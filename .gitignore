@@ -1,0 +1,164 @@
+*.pkl
+*.pyc
+ipso_pip_env
+__pycache__
+.idea
+.vscode
+site
+saved_data/image_lists.json
+md_files
+.gitignore
+qt_thread_tsts.py
+saved_data/004c2711_dr_annotations.db
+saved_data/0102405_ggt_annotations.db
+saved_data/013c2307mar_annotations.db
+saved_data/020s1804_nem_annotations.db
+saved_data/07as_eucast_1901_annotations.db
+saved_data/10ac_mpo1_1904_annotations.db
+saved_data/12as_ortobo_1904_annotations.db
+saved_data/14as_19tp02_1904_annotations.db
+saved_data/15as_vigsrs_1904_annotations.db
+saved_data/18hp01_annotations.db
+saved_data/carto_lum_all_on_annotations.db
+saved_data/carto_lum_env_on_annotations.db
+saved_data/carto_lum_spot_on_annotations.db
+saved_data/montpellier_racines_annotations.db
+saved_data/test_images_annotations.db
+ui/qt_thread_tsts.py
+ui/qt_thread_tsts.ui
+resources/splash_600px_transparent.png
+resources/3d bar chart.png
+resources/Abort.png
+resources/About.png
+resources/Add.png
+resources/Anchor.png
+resources/Application.png
+resources/Apply.png
+resources/Back.png
+resources/Bad mark.png
+resources/Blue key.png
+resources/Blue tag.png
+resources/Boss.png
+resources/Bottom.png
+resources/CD.png
+resources/Calculator.png
+resources/Calendar.png
+resources/Car key.png
+resources/Clipboard.png
+resources/Clock.png
+resources/Close.png
+resources/Compass.png
+resources/Component.png
+resources/Copy.png
+resources/Create.png
+resources/Cut.png
+resources/Database.png
+resources/Delivery.png
+resources/Dial.png
+resources/Disaster.png
+resources/Dollar.png
+resources/Download.png
+resources/E-mail.png
+resources/Eject.png
+resources/Erase.png
+resources/Euro.png
+resources/Exit.png
+resources/Fall.png
+resources/Fast-forward.png
+resources/Favourites.png
+resources/Female.png
+resources/Filter.png
+resources/Find.png
+resources/First.png
+resources/First record.png
+resources/Flag.png
+resources/Folder.png
+resources/Forbidden.png
+resources/Forward.png
+resources/Free bsd.png
+resources/Go.png
+resources/Go back.png
+resources/Go forward.png
+resources/Good-mark.png
+resources/Green tag.png
+resources/Heart.png
+resources/Help book.png
+resources/Help book 3d.png
+resources/Hint.png
+resources/Home.png
+resources/How-to.png
+resources/Hungup.png
+resources/Key.png
+resources/Last.png
+resources/Last recor.png
+resources/Left-right.png
+resources/Linux.png
+resources/Lock.png
+resources/Low rating.png
+resources/Mail.png
+resources/Male.png
+resources/Medium rating.png
+resources/Message.png
+resources/Mobile-phone.png
+resources/Modify.png
+resources/Movie.png
+resources/Music.png
+resources/New.png
+resources/Next.png
+resources/Next track.png
+resources/No.png
+resources/No-entry.png
+resources/Notes.png
+resources/Paste.png
+resources/Pause.png
+resources/People.png
+resources/Person.png
+resources/Phone number.png
+resources/Pie chart.png
+resources/Pinion.png
+resources/Play-music.png
+resources/Playback.png
+resources/Previous.png
+resources/Previous record.png
+resources/Question.png
+resources/Raise.png
+resources/Record.png
+resources/Red mark.png
+resources/Red star.png
+resources/Red tag.png
+resources/Redo.png
+resources/Remove.png
+resources/Repair.png
+resources/Report.png
+resources/Retort.png
+resources/Rewind.png
+resources/Sad.png
+resources/Search.png
+resources/Shopping cart.png
+resources/Smile.png
+resources/Sound.png
+resources/Stop sign.png
+resources/Sync.png
+resources/Table.png
+resources/Target.png
+resources/Taxi.png
+resources/Terminate.png
+resources/Text.png
+resources/Text preview.png
+resources/Thumbs down.png
+resources/Thumbs up.png
+resources/Top.png
+resources/Turn off.png
+resources/Undo.png
+resources/Unlock.png
+resources/Up-down.png
+resources/Update.png
+resources/Upload.png
+resources/User group.png
+resources/View.png
+resources/Wrench.png
+resources/Yes.png
+resources/Zoom.png
+resources/md_image_4.xcf
+resources/md_image_6.xcf
+resources/splash_600px_fill.png

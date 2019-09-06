@@ -1,0 +1,2660 @@
+{
+  "__class_name__": "IptScriptGenerator",
+  "_ip_operators": [
+    {
+      "tool": {
+        "__class_name__": "IptLinearTransformation",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "enabled",
+            "desc": "Activate tool",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "Toggle whether or not tool is active",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "method",
+            "desc": "Select transformation",
+            "default_value": "alpha_beta",
+            "allowed_values": {
+              "alpha_beta": "Simple brightness and contrast",
+              "gamma": "Gamma correction",
+              "alpha_beta_target": "Reach target brightness using linear transformation",
+              "gamma_target": "Reach target brightness using gamma correction",
+              "smart_target_brightness": "Intelligent brightness fit"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "alpha_beta_target",
+            "_widgets": {},
+            "_grid_search_options": "alpha_beta",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "apply_case",
+            "desc": "Apply smart transformation if",
+            "default_value": "always",
+            "allowed_values": {
+              "never": "Never",
+              "always": "Always",
+              "if_under": "If image brightness is below target",
+              "if_over": "If image brightness is over target"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "always",
+            "_widgets": {},
+            "_grid_search_options": "always",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "alpha_gamma",
+            "desc": "Alpha/Gamma",
+            "default_value": 100,
+            "allowed_values": [
+              1,
+              400
+            ],
+            "hint": "Alpha value for linear transformation, gamma for gamma correction",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 100,
+            "_widgets": {},
+            "_grid_search_options": "100",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "beta",
+            "desc": "Beta (brightness)",
+            "default_value": 0,
+            "allowed_values": [
+              -255,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "target_brightness",
+            "desc": "Target brightness",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 90,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "max_delta_for_brightness",
+            "desc": "Limit brightness fixing",
+            "default_value": 255,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 255,
+            "_widgets": {},
+            "_grid_search_options": "255",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "show_over_under",
+            "desc": "Show over an under exposed parts",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "brg_calc",
+            "desc": "Brightness calculation mode",
+            "default_value": "std",
+            "allowed_values": {
+              "none": "none",
+              "std": "Luminance (standard, objective)",
+              "p1": "Luminance (perceived option 1)",
+              "p2": "Luminance (perceived option 2, slower to calculate)"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "std",
+            "_widgets": {},
+            "_grid_search_options": "std",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "tb_output",
+            "desc": [
+              "Image",
+              "Brightness average",
+              "Contrast average",
+              "Brightness min/max"
+            ],
+            "default_value": {},
+            "allowed_values": "table_output",
+            "hint": "",
+            "widget_type": "table_output",
+            "kind": "unk_k",
+            "options": {},
+            "_value": {},
+            "_widgets": {},
+            "_grid_search_options": "{}",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "text_overlay",
+            "desc": "Overlay text on top of images",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "Draw description text on top of images",
+            "widget_type": "checkbox",
+            "kind": "text_overlay_cb",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false,
+        "data_dict": {}
+      },
+      "enabled": true,
+      "kind": "Exposure fixing",
+      "uuid": "36639855-b0b5-4a49-9762-0333184e56d6"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptHoughCircles",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "roi_name",
+            "desc": "ROI name",
+            "default_value": "unnamed_roi",
+            "allowed_values": "single_line_text_input",
+            "hint": "",
+            "widget_type": "single_line_text_input",
+            "kind": "roi_name_selector",
+            "options": {},
+            "_value": "keep_roi",
+            "_widgets": {},
+            "_grid_search_options": "unnamed_roi",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "roi_type",
+            "desc": "Select action linked to ROI",
+            "default_value": "keep",
+            "allowed_values": {
+              "keep": "Keep region inside ROI",
+              "delete": "Delete region inside ROI",
+              "crop": "Crop image to ROI (most tools don not support this option)",
+              "safe": "Region inside ROI is safe",
+              "enforce": "Check mask position",
+              "erode": "Erode region inside ROI - mask only",
+              "dilate": "Dilate region inside ROI - mask only",
+              "open": "Open region inside ROI - mask only",
+              "close": "Close region inside ROI - mask only",
+              "other": "No predefined behavior"
+            },
+            "hint": "no clue",
+            "widget_type": "unk_wt",
+            "kind": "roi_type_selector",
+            "options": {},
+            "_value": "keep",
+            "_widgets": {},
+            "_grid_search_options": "keep",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "roi_shape",
+            "desc": "Select ROI shape",
+            "default_value": "rectangle",
+            "allowed_values": {
+              "rectangle": "Rectangle",
+              "circle": "Circle, will be treated as rectangle for morphology"
+            },
+            "hint": "no clue",
+            "widget_type": "unk_wt",
+            "kind": "roi_shape_selector",
+            "options": {},
+            "_value": "circle",
+            "_widgets": {},
+            "_grid_search_options": "rectangle",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "tool_target",
+            "desc": "Target IPT",
+            "default_value": "none",
+            "allowed_values": {
+              "none": "None"
+            },
+            "hint": "no clue",
+            "widget_type": "unk_wt",
+            "kind": "tool_target_selector",
+            "options": {},
+            "_value": "none",
+            "_widgets": {},
+            "_grid_search_options": "none",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "s1",
+            "desc": "",
+            "default_value": "",
+            "allowed_values": "label",
+            "hint": "",
+            "widget_type": "label",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "",
+            "_widgets": {},
+            "_grid_search_options": "",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "source_file",
+            "desc": "Select source file type",
+            "default_value": "source",
+            "allowed_values": {
+              "source": "source",
+              "mask": "mask",
+              "source_roi": "Source with ROIs applied",
+              "process_roi": "Use roi created for process",
+              "masked_source": "masked source",
+              "cropped_source": "source cropped to keep ROI (if available)",
+              "source_median": "source with median filter (5 if not set)"
+            },
+            "hint": "no clue",
+            "widget_type": "combo_box",
+            "kind": "source_selector",
+            "options": {},
+            "_value": "source",
+            "_widgets": {},
+            "_grid_search_options": "source",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "channel",
+            "desc": "Channel",
+            "default_value": "l",
+            "allowed_values": {
+              "rd": "rgb: red",
+              "gr": "rgb: green",
+              "bl": "rgb: blue",
+              "h": "hsv: hue",
+              "s": "hsv: saturation",
+              "v": "hsv: value",
+              "l": "lab: lightness",
+              "a": "lab: a_green-red",
+              "b": "lab: b_blue-yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "channel_selector",
+            "options": {},
+            "_value": "l",
+            "_widgets": {},
+            "_grid_search_options": "l",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "min_radius",
+            "desc": "Minimal radius to consider",
+            "default_value": 400,
+            "allowed_values": [
+              0,
+              2000
+            ],
+            "hint": "All circles smaller than this will be ignored",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 700,
+            "_widgets": {},
+            "_grid_search_options": "400",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "max_radius",
+            "desc": "Maximal radius to consider",
+            "default_value": 1000,
+            "allowed_values": [
+              0,
+              2000
+            ],
+            "hint": "All circles bigger than this will be ignored",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 750,
+            "_widgets": {},
+            "_grid_search_options": "1000",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "step_radius",
+            "desc": "Radius granularity",
+            "default_value": 10,
+            "allowed_values": [
+              0,
+              100
+            ],
+            "hint": "Steps for scanning radius",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 10,
+            "_widgets": {},
+            "_grid_search_options": "10",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "max_peaks",
+            "desc": "Maximum number of detected circles",
+            "default_value": 2,
+            "allowed_values": [
+              1,
+              20
+            ],
+            "hint": "Keeps only n best circles",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 2,
+            "_widgets": {},
+            "_grid_search_options": "2",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "min_distance",
+            "desc": "Minimum distance between two circles",
+            "default_value": 20,
+            "allowed_values": [
+              1,
+              2000
+            ],
+            "hint": "Remove circles that are too close",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 20,
+            "_widgets": {},
+            "_grid_search_options": "20",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "line_width",
+            "desc": "Draw line width",
+            "default_value": 4,
+            "allowed_values": [
+              1,
+              20
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 4,
+            "_widgets": {},
+            "_grid_search_options": "4",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "keep_only_one",
+            "desc": "Keep only closest, if not, ROI is larger circle",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "target_position",
+            "desc": "Keep the closest circle closest to",
+            "default_value": "BOTTOM_CENTER",
+            "allowed_values": {
+              "TOP_LEFT": "TOP_LEFT",
+              "TOP_CENTER": "TOP_CENTER",
+              "TOP_RIGHT": "TOP_RIGHT",
+              "MIDDLE_LEFT": "MIDDLE_LEFT",
+              "MIDDLE_CENTER": "MIDDLE_CENTER",
+              "MIDDLE_RIGHT": "MIDDLE_RIGHT",
+              "BOTTOM_LEFT": "BOTTOM_LEFT",
+              "BOTTOM_CENTER": "BOTTOM_CENTER",
+              "BOTTOM_RIGHT": "BOTTOM_RIGHT"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "MIDDLE_CENTER",
+            "_widgets": {},
+            "_grid_search_options": "BOTTOM_CENTER",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "max_dist_to_root",
+            "desc": "Maximum distance to root position",
+            "default_value": 1000,
+            "allowed_values": [
+              0,
+              4000
+            ],
+            "hint": "",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1000,
+            "_widgets": {},
+            "_grid_search_options": "1000",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "draw_boundaries",
+            "desc": "Draw max and min circles",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "draw_candidates",
+            "desc": "Draw discarded candidates",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "expand_circle",
+            "desc": "Contract/expand circle",
+            "default_value": 0,
+            "allowed_values": [
+              -1000,
+              1000
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": -170,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "edge_only",
+            "desc": "Edge detection only",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "operator",
+            "desc": "Select edge detection operator",
+            "default_value": "canny_opcv",
+            "allowed_values": {
+              "canny_opcv": "Canny OpenCV",
+              "canny_scik": "Canny Scikit",
+              "laplacian": "Laplacian",
+              "sobel": "Sobel",
+              "sobel_v": "Sobel vertical",
+              "sobel_h": "Sobel horizontal",
+              "roberts": "Roberts",
+              "prewitt": "Prewitt"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "sobel",
+            "_widgets": {},
+            "_grid_search_options": "canny_opcv",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "canny_sigma",
+            "desc": "Canny's sigma",
+            "default_value": 2,
+            "allowed_values": [
+              0,
+              20
+            ],
+            "hint": "Sigma.",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 2,
+            "_widgets": {},
+            "_grid_search_options": "2",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "canny_first",
+            "desc": "Canny's first Threshold",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "First threshold for the hysteresis procedure.",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "canny_second",
+            "desc": "Canny's second Threshold",
+            "default_value": 255,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "Second threshold for the hysteresis procedure.",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 255,
+            "_widgets": {},
+            "_grid_search_options": "255",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "kernel_size",
+            "desc": "Kernel size",
+            "default_value": 5,
+            "allowed_values": [
+              0,
+              27
+            ],
+            "hint": "",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 5,
+            "_widgets": {},
+            "_grid_search_options": "5",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "threshold",
+            "desc": "Threshold",
+            "default_value": 130,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "Threshold for kernel based operators",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 132,
+            "_widgets": {},
+            "_grid_search_options": "130",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "apply_threshold",
+            "desc": "Apply threshold",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false
+      },
+      "enabled": true,
+      "kind": "ROI (dynamic)",
+      "uuid": "8779c601-cf07-4650-aca9-a3d5c3150efa"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptExposureChecker",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "enabled",
+            "desc": "Activate tool",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "Toggle whether or not tool is active",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "overexposed_limit",
+            "desc": "Overexposed if over: ",
+            "default_value": 255,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 200,
+            "_widgets": {},
+            "_grid_search_options": "255",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "over_color",
+            "desc": "Color for overexposed parts",
+            "default_value": "red",
+            "allowed_values": {
+              "none": "none",
+              "black": "black",
+              "blue": "blue",
+              "blue_violet": "blue_violet",
+              "blue_cabin": "blue_cabin",
+              "cyan": "cyan",
+              "dim_grey": "dim_grey",
+              "fuchsia": "fuchsia",
+              "green": "green",
+              "light_steel_blue": "light_steel_blue",
+              "lime": "lime",
+              "maroon": "maroon",
+              "orange": "orange",
+              "purple": "purple",
+              "red": "red",
+              "silver": "silver",
+              "teal": "teal",
+              "white": "white",
+              "yellow": "yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "color_selector",
+            "options": {},
+            "_value": "blue_cabin",
+            "_widgets": {},
+            "_grid_search_options": "red",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "underexposed_limit",
+            "desc": "Underexposed if under: ",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 27,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "under_color",
+            "desc": "Color for underexposed parts",
+            "default_value": "orange",
+            "allowed_values": {
+              "none": "none",
+              "black": "black",
+              "blue": "blue",
+              "blue_violet": "blue_violet",
+              "blue_cabin": "blue_cabin",
+              "cyan": "cyan",
+              "dim_grey": "dim_grey",
+              "fuchsia": "fuchsia",
+              "green": "green",
+              "light_steel_blue": "light_steel_blue",
+              "lime": "lime",
+              "maroon": "maroon",
+              "orange": "orange",
+              "purple": "purple",
+              "red": "red",
+              "silver": "silver",
+              "teal": "teal",
+              "white": "white",
+              "yellow": "yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "color_selector",
+            "options": {},
+            "_value": "blue_cabin",
+            "_widgets": {},
+            "_grid_search_options": "orange",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "show_grey_zones",
+            "desc": "Display grey zones",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "grey_zone_limit",
+            "desc": "Grey if more than x apart: ",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "How little different must the 3 components be to be considered grey",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "grey_zone_color",
+            "desc": "Color for grey parts",
+            "default_value": "fuchsia",
+            "allowed_values": {
+              "black": "black",
+              "blue": "blue",
+              "blue_violet": "blue_violet",
+              "blue_cabin": "blue_cabin",
+              "cyan": "cyan",
+              "dim_grey": "dim_grey",
+              "fuchsia": "fuchsia",
+              "green": "green",
+              "light_steel_blue": "light_steel_blue",
+              "lime": "lime",
+              "maroon": "maroon",
+              "orange": "orange",
+              "purple": "purple",
+              "red": "red",
+              "silver": "silver",
+              "teal": "teal",
+              "white": "white",
+              "yellow": "yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "color_selector",
+            "options": {},
+            "_value": "fuchsia",
+            "_widgets": {},
+            "_grid_search_options": "fuchsia",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "sep_1",
+            "desc": "",
+            "default_value": "",
+            "allowed_values": "label",
+            "hint": "",
+            "widget_type": "label",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "",
+            "_widgets": {},
+            "_grid_search_options": "",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "source_brightness",
+            "desc": "Calculate source brightness on",
+            "default_value": "source",
+            "allowed_values": {
+              "source": "source",
+              "mask": "mask",
+              "source_roi": "Source with ROIs applied",
+              "process_roi": "Use roi created for process",
+              "masked_source": "masked source",
+              "cropped_source": "source cropped to keep ROI (if available)",
+              "source_median": "source with median filter (5 if not set)"
+            },
+            "hint": "no clue",
+            "widget_type": "combo_box",
+            "kind": "source_selector",
+            "options": {},
+            "_value": "source",
+            "_widgets": {},
+            "_grid_search_options": "source",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "brg_calc",
+            "desc": "Source brightness calculation mode",
+            "default_value": "std",
+            "allowed_values": {
+              "none": "none",
+              "std": "Luminance (standard, objective)",
+              "p1": "Luminance (perceived option 1)",
+              "p2": "Luminance (perceived option 2, slower to calculate)"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "std",
+            "_widgets": {},
+            "_grid_search_options": "std",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "src_brightness",
+            "desc": "Source brightness:",
+            "default_value": "-",
+            "allowed_values": "single_line_text_output",
+            "hint": "",
+            "widget_type": "single_line_text_output",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "-",
+            "_widgets": {},
+            "_grid_search_options": "-",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "src_contrast",
+            "desc": "Source contrast:",
+            "default_value": "-",
+            "allowed_values": "single_line_text_output",
+            "hint": "",
+            "widget_type": "single_line_text_output",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "-",
+            "_widgets": {},
+            "_grid_search_options": "-",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "average_as",
+            "desc": "Use average brightness as:",
+            "default_value": "none",
+            "allowed_values": {
+              "none": "Nothing",
+              "average_as_lower": "Use average brightness as underexposed threshold",
+              "average_as_upper": "Use average brightness as overexposed threshold"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "none",
+            "_widgets": {},
+            "_grid_search_options": "none",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "avg_weight",
+            "desc": "Apply x factor to auto threshold",
+            "default_value": 100,
+            "allowed_values": [
+              0,
+              200
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 100,
+            "_widgets": {},
+            "_grid_search_options": "100",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "text_overlay",
+            "desc": "Overlay text on top of images",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "Draw description text on top of images",
+            "widget_type": "checkbox",
+            "kind": "text_overlay_cb",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false,
+        "data_dict": {}
+      },
+      "enabled": true,
+      "kind": "Pre processing",
+      "uuid": "bc52604d-334b-496f-8814-66a88b2578c3"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptThreshold",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "enabled",
+            "desc": "Activate tool",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "Toggle whether or not tool is active",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "channel",
+            "desc": "Channel",
+            "default_value": "h",
+            "allowed_values": {
+              "rd": "rgb: red",
+              "gr": "rgb: green",
+              "bl": "rgb: blue",
+              "h": "hsv: hue",
+              "s": "hsv: saturation",
+              "v": "hsv: value",
+              "l": "lab: lightness",
+              "a": "lab: a_green-red",
+              "b": "lab: b_blue-yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "channel_selector",
+            "options": {},
+            "_value": "h",
+            "_widgets": {},
+            "_grid_search_options": "h",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "min_t",
+            "desc": "Threshold min value",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 10,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "max_t",
+            "desc": "Threshold max value",
+            "default_value": 255,
+            "allowed_values": [
+              0,
+              255
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 60,
+            "_widgets": {},
+            "_grid_search_options": "255",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "median_filter_size",
+            "desc": "Median filter size (odd values only)",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              51
+            ],
+            "hint": "",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "morph_op",
+            "desc": "Morphology operator",
+            "default_value": "none",
+            "allowed_values": {
+              "none": "none",
+              "erode": "erode",
+              "dilate": "dilate",
+              "open": "open",
+              "close": "close"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "open",
+            "_widgets": {},
+            "_grid_search_options": "none",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "kernel_size",
+            "desc": "Kernel size",
+            "default_value": 3,
+            "allowed_values": [
+              3,
+              101
+            ],
+            "hint": "",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 3,
+            "_widgets": {},
+            "_grid_search_options": "3",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "kernel_shape",
+            "desc": "Kernel shape",
+            "default_value": "ellipse",
+            "allowed_values": {
+              "ellipse": "ellipse",
+              "rectangle": "rectangle",
+              "cross": "cross"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "ellipse",
+            "_widgets": {},
+            "_grid_search_options": "ellipse",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "proc_times",
+            "desc": "Iterations",
+            "default_value": 1,
+            "allowed_values": [
+              1,
+              100
+            ],
+            "hint": "",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 2,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "text_overlay",
+            "desc": "Overlay text on top of images",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "Draw description text on top of images",
+            "widget_type": "checkbox",
+            "kind": "text_overlay_cb",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "build_mosaic",
+            "desc": "Build mosaic",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "If true edges and result will be displayed side by side",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "background_color",
+            "desc": "Background color",
+            "default_value": "none",
+            "allowed_values": {
+              "none": "none",
+              "black": "black",
+              "blue": "blue",
+              "blue_violet": "blue_violet",
+              "blue_cabin": "blue_cabin",
+              "cyan": "cyan",
+              "dim_grey": "dim_grey",
+              "fuchsia": "fuchsia",
+              "green": "green",
+              "light_steel_blue": "light_steel_blue",
+              "lime": "lime",
+              "maroon": "maroon",
+              "orange": "orange",
+              "purple": "purple",
+              "red": "red",
+              "silver": "silver",
+              "teal": "teal",
+              "white": "white",
+              "yellow": "yellow"
+            },
+            "hint": "Color to be used when printing masked image.\n if \"None\" is selected standard mask will be printed.",
+            "widget_type": "combo_box",
+            "kind": "color_selector",
+            "options": {},
+            "_value": "none",
+            "_widgets": {},
+            "_grid_search_options": "none",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false
+      },
+      "enabled": true,
+      "kind": "Threshold",
+      "uuid": "79bf4795-2c7e-401c-ba05-2e5258c56c34"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptKeepLinkedContours",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "tolerance_distance",
+            "desc": "Allowed distance to main contour",
+            "default_value": 100,
+            "allowed_values": [
+              0,
+              5000
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 10,
+            "_widgets": {},
+            "_grid_search_options": "100",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "tolerance_area",
+            "desc": "Min contour area size",
+            "default_value": 5000,
+            "allowed_values": [
+              2,
+              50000
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 5000,
+            "_widgets": {},
+            "_grid_search_options": "5000",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "root_position",
+            "desc": "Root contour position",
+            "default_value": "BOTTOM_CENTER",
+            "allowed_values": {
+              "TOP_LEFT": "TOP_LEFT",
+              "TOP_CENTER": "TOP_CENTER",
+              "TOP_RIGHT": "TOP_RIGHT",
+              "MIDDLE_LEFT": "MIDDLE_LEFT",
+              "MIDDLE_CENTER": "MIDDLE_CENTER",
+              "MIDDLE_RIGHT": "MIDDLE_RIGHT",
+              "BOTTOM_LEFT": "BOTTOM_LEFT",
+              "BOTTOM_CENTER": "BOTTOM_CENTER",
+              "BOTTOM_RIGHT": "BOTTOM_RIGHT"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "MIDDLE_CENTER",
+            "_widgets": {},
+            "_grid_search_options": "BOTTOM_CENTER",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "dilation_iter",
+            "desc": "Erosion/dilation iterations (kernel size 3)",
+            "default_value": 0,
+            "allowed_values": [
+              -100,
+              100
+            ],
+            "hint": "",
+            "widget_type": "slider",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "area_override_size",
+            "desc": "Include all contours bigger than",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              50000
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "delete_all_bellow",
+            "desc": "Delete all contours smaller than",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              50000
+            ],
+            "hint": "The more small contours are delete, the faster the algorithm",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 100,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "channel",
+            "desc": "Pseudo color channel",
+            "default_value": "l",
+            "allowed_values": {
+              "rd": "rgb: red",
+              "gr": "rgb: green",
+              "bl": "rgb: blue",
+              "h": "hsv: hue",
+              "s": "hsv: saturation",
+              "v": "hsv: value",
+              "l": "lab: lightness",
+              "a": "lab: a_green-red",
+              "b": "lab: b_blue-yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "channel_selector",
+            "options": {},
+            "_value": "l",
+            "_widgets": {},
+            "_grid_search_options": "l",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false
+      },
+      "enabled": true,
+      "kind": "Mask cleanup",
+      "uuid": "6c4e7030-8eaf-4bec-b87d-49041768feae"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptAnalyseObservation",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "experiment",
+            "desc": "experiment",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "plant",
+            "desc": "plant",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "date_time",
+            "desc": "date_time",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "camera",
+            "desc": "camera",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "view_option",
+            "desc": "view_option",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "sep_1",
+            "desc": "",
+            "default_value": "",
+            "allowed_values": "label",
+            "hint": "",
+            "widget_type": "label",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "",
+            "_widgets": {},
+            "_grid_search_options": "",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "split_plant_name",
+            "desc": "Split plant name into multiple variables",
+            "default_value": 0,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 0,
+            "_widgets": {},
+            "_grid_search_options": "0",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "separator",
+            "desc": "Character to use as separator",
+            "default_value": "_",
+            "allowed_values": "single_line_text_input",
+            "hint": "",
+            "widget_type": "single_line_text_input",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "_",
+            "_widgets": {},
+            "_grid_search_options": "_",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "new_column_names",
+            "desc": "Names of new variables",
+            "default_value": "",
+            "allowed_values": "single_line_text_input",
+            "hint": "names separate by \",\" with no spaces",
+            "widget_type": "single_line_text_input",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "",
+            "_widgets": {},
+            "_grid_search_options": "",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false,
+        "data_dict": {}
+      },
+      "enabled": true,
+      "kind": "Feature extraction",
+      "uuid": "48685674-3cf2-4f9a-8a93-9321e5fad6ae"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptAnalyzeColor",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "color_mean",
+            "desc": "Add color mean information",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "color_std_dev",
+            "desc": "Add color standard deviation information",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "hist_bins",
+            "desc": "Histogram bins",
+            "default_value": 256,
+            "allowed_values": [
+              2,
+              256
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 256,
+            "_widgets": {},
+            "_grid_search_options": "256",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "quantile_color",
+            "desc": "Select amount of quantiles for color analysis",
+            "default_value": 4,
+            "allowed_values": [
+              0,
+              20
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 4,
+            "_widgets": {},
+            "_grid_search_options": "4",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "sep_1",
+            "desc": "",
+            "default_value": "",
+            "allowed_values": "label",
+            "hint": "",
+            "widget_type": "label",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "",
+            "_widgets": {},
+            "_grid_search_options": "",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "channel",
+            "desc": "Channel",
+            "default_value": "l",
+            "allowed_values": {
+              "rd": "rgb: red",
+              "gr": "rgb: green",
+              "bl": "rgb: blue",
+              "h": "hsv: hue",
+              "s": "hsv: saturation",
+              "v": "hsv: value",
+              "l": "lab: lightness",
+              "a": "lab: a_green-red",
+              "b": "lab: b_blue-yellow"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "channel_selector",
+            "options": {},
+            "_value": "l",
+            "_widgets": {},
+            "_grid_search_options": "l",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "background",
+            "desc": "Debug image background",
+            "default_value": "bw",
+            "allowed_values": {
+              "source": "Source image",
+              "black": "Black",
+              "white": "White",
+              "silver": "Silver",
+              "bw": "Black and white"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "bw",
+            "_widgets": {},
+            "_grid_search_options": "bw",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "color_map",
+            "desc": "Select pseudo color map",
+            "default_value": "c_2",
+            "allowed_values": {
+              "a_0": "Autumn",
+              "b_1": "Bone",
+              "c_2": "Jet",
+              "d_3": "Winter",
+              "e_4": "Rainbow",
+              "f_5": "Ocean",
+              "g_6": "Summer",
+              "h_7": "Spring",
+              "i_8": "Cool",
+              "j_9": "HSV",
+              "k_10": "Pink",
+              "l_11": "Hot"
+            },
+            "hint": "",
+            "widget_type": "combo_box",
+            "kind": "color_map_selector",
+            "options": {},
+            "_value": "c_2",
+            "_widgets": {},
+            "_grid_search_options": "c_2",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false,
+        "data_dict": {}
+      },
+      "enabled": true,
+      "kind": "Feature extraction",
+      "uuid": "4461b124-9fdc-4d8c-8b06-9200050a0211"
+    },
+    {
+      "tool": {
+        "__class_name__": "IptAnalyzeObject",
+        "_param_list": [
+          {
+            "__class_name__": "IptParam",
+            "name": "area",
+            "desc": "Area",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "centroid_x",
+            "desc": "Centroid x",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "centroid_y",
+            "desc": "Centroid y",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "hull_area",
+            "desc": "Convex hull area",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_solidity",
+            "desc": "Shape solidity",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_extend",
+            "desc": "Shape extend",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "straight_bounding_rectangle_left",
+            "desc": "Straight bounding rectangle left",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "straight_bounding_rectangle_width",
+            "desc": "Straight bounding rectangle width",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "straight_bounding_rectangle_top",
+            "desc": "Straight bounding rectangle top",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "straight_bounding_rectangle_height",
+            "desc": "Straight bounding rectangle height",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "rotated_bounding_rectangle_cx",
+            "desc": "Rotated bounding rectangle cx",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "rotated_bounding_rectangle_cy",
+            "desc": "Rotated bounding rectangle cy",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "rotated_bounding_rectangle_width",
+            "desc": "Rotated bounding rectangle width",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "rotated_bounding_rectangle_height",
+            "desc": "Rotated bounding rectangle height",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "rotated_bounding_rectangle_rotation",
+            "desc": "Rotated bounding rectangle rotation",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "minimum_enclosing_circle_cx",
+            "desc": "Minimum enclosing circle cx",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "minimum_enclosing_circle_cy",
+            "desc": "Minimum enclosing circle cy",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "minimum_enclosing_circle_radius",
+            "desc": "Minimum enclosing circle radius",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_height",
+            "desc": "Shape height",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_width",
+            "desc": "Shape width",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_width_min",
+            "desc": "Shape minimum width",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_width_max",
+            "desc": "Shape maximum width",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_width_avg",
+            "desc": "Shape average width",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "shape_width_std",
+            "desc": "Shape width standard deviation",
+            "default_value": 1,
+            "allowed_values": [
+              0,
+              1
+            ],
+            "hint": "",
+            "widget_type": "checkbox",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 1,
+            "_widgets": {},
+            "_grid_search_options": "1",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "s1",
+            "desc": "",
+            "default_value": "",
+            "allowed_values": "label",
+            "hint": "",
+            "widget_type": "label",
+            "kind": "unk_k",
+            "options": {},
+            "_value": "",
+            "_widgets": {},
+            "_grid_search_options": "",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "quantile_width",
+            "desc": "Select amount of quantiles for width analysis",
+            "default_value": 4,
+            "allowed_values": [
+              0,
+              20
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 4,
+            "_widgets": {},
+            "_grid_search_options": "4",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "line_width",
+            "desc": "Draw line width (debug images)",
+            "default_value": 4,
+            "allowed_values": [
+              1,
+              100
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 4,
+            "_widgets": {},
+            "_grid_search_options": "4",
+            "_wrapper": null
+          },
+          {
+            "__class_name__": "IptParam",
+            "name": "centroid_width",
+            "desc": "Draw centroid width (debug images)",
+            "default_value": 10,
+            "allowed_values": [
+              1,
+              100
+            ],
+            "hint": "",
+            "widget_type": "spin_box",
+            "kind": "unk_k",
+            "options": {},
+            "_value": 10,
+            "_widgets": {},
+            "_grid_search_options": "10",
+            "_wrapper": null
+          }
+        ],
+        "_kwargs": null,
+        "_wrapper": null,
+        "_result": null,
+        "_old_lock_state": false,
+        "data_dict": {}
+      },
+      "enabled": true,
+      "kind": "Feature extraction",
+      "uuid": "7f643a3d-55df-481b-8a0c-798ca501dfe9"
+    }
+  ],
+  "_feature_list": [
+    {
+      "feature": "area",
+      "enabled": true
+    },
+    {
+      "feature": "bound_data",
+      "enabled": true
+    },
+    {
+      "feature": "centroid",
+      "enabled": true
+    },
+    {
+      "feature": "chlorophyll_mean",
+      "enabled": true
+    },
+    {
+      "feature": "chlorophyll_std_dev",
+      "enabled": true
+    },
+    {
+      "feature": "color_mean",
+      "enabled": true
+    },
+    {
+      "feature": "color_std_dev",
+      "enabled": true
+    },
+    {
+      "feature": "date_time",
+      "enabled": true
+    },
+    {
+      "feature": "experiment",
+      "enabled": true
+    },
+    {
+      "feature": "hist_bins",
+      "enabled": true
+    },
+    {
+      "feature": "hull_area",
+      "enabled": true
+    },
+    {
+      "feature": "minimum_enclosing_circle",
+      "enabled": true
+    },
+    {
+      "feature": "plant",
+      "enabled": true
+    },
+    {
+      "feature": "quantile_color_5",
+      "enabled": true
+    },
+    {
+      "feature": "quantile_width_4",
+      "enabled": true
+    },
+    {
+      "feature": "rotated_bounding_rectangle",
+      "enabled": true
+    },
+    {
+      "feature": "shape_extend",
+      "enabled": true
+    },
+    {
+      "feature": "shape_height",
+      "enabled": true
+    },
+    {
+      "feature": "shape_solidity",
+      "enabled": true
+    },
+    {
+      "feature": "straight_bounding_rectangle",
+      "enabled": true
+    },
+    {
+      "feature": "width_data",
+      "enabled": true
+    }
+  ],
+  "_target_data_base": null,
+  "_settings": {
+    "__class_name__": "SettingsHolder",
+    "update_feedback_items": [
+      "bound_level",
+      "pseudo_channel",
+      "color_map",
+      "pseudo_background_type"
+    ],
+    "_param_list": [
+      {
+        "__class_name__": "IptParam",
+        "name": "threshold_only",
+        "desc": "Find mask only",
+        "default_value": 0,
+        "allowed_values": [
+          0,
+          1
+        ],
+        "hint": "",
+        "widget_type": "checkbox",
+        "kind": "unk_k",
+        "options": {},
+        "_value": 0,
+        "_widgets": {},
+        "_grid_search_options": "0",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "merge_method",
+        "desc": "Select merge method",
+        "default_value": "multi_and",
+        "allowed_values": {
+          "multi_and": "Logical AND",
+          "multi_or": "Logical OR"
+        },
+        "hint": "",
+        "widget_type": "combo_box",
+        "kind": "unk_k",
+        "options": {},
+        "_value": "multi_and",
+        "_widgets": {},
+        "_grid_search_options": "multi_and",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "display_images",
+        "desc": "Display step by step images",
+        "default_value": 1,
+        "allowed_values": [
+          0,
+          1
+        ],
+        "hint": "",
+        "widget_type": "checkbox",
+        "kind": "unk_k",
+        "options": {},
+        "_value": 1,
+        "_widgets": {},
+        "_grid_search_options": "1",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "build_mosaic",
+        "desc": "Display mosaic",
+        "default_value": 0,
+        "allowed_values": [
+          0,
+          1
+        ],
+        "hint": "",
+        "widget_type": "checkbox",
+        "kind": "unk_k",
+        "options": {},
+        "_value": 0,
+        "_widgets": {},
+        "_grid_search_options": "0",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "bound_level",
+        "desc": "Horizontal bound position",
+        "default_value": -1,
+        "allowed_values": [
+          -1,
+          4000
+        ],
+        "hint": "Horizontal bound normally used to separate above from below ground",
+        "widget_type": "spin_box",
+        "kind": "unk_k",
+        "options": {},
+        "_value": -1,
+        "_widgets": {},
+        "_grid_search_options": "-1",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "pseudo_channel",
+        "desc": "Channel used for pseudo color images",
+        "default_value": "l",
+        "allowed_values": {
+          "rd": "rgb: red",
+          "gr": "rgb: green",
+          "bl": "rgb: blue",
+          "h": "hsv: hue",
+          "s": "hsv: saturation",
+          "v": "hsv: value",
+          "l": "lab: lightness",
+          "a": "lab: a_green-red",
+          "b": "lab: b_blue-yellow"
+        },
+        "hint": "Select channel for pseudo color image",
+        "widget_type": "combo_box",
+        "kind": "channel_selector",
+        "options": {},
+        "_value": "l",
+        "_widgets": {},
+        "_grid_search_options": "l",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "color_map",
+        "desc": "Select pseudo color map",
+        "default_value": "c_2",
+        "allowed_values": {
+          "a_0": "Autumn",
+          "b_1": "Bone",
+          "c_2": "Jet",
+          "d_3": "Winter",
+          "e_4": "Rainbow",
+          "f_5": "Ocean",
+          "g_6": "Summer",
+          "h_7": "Spring",
+          "i_8": "Cool",
+          "j_9": "HSV",
+          "k_10": "Pink",
+          "l_11": "Hot"
+        },
+        "hint": "",
+        "widget_type": "combo_box",
+        "kind": "color_map_selector",
+        "options": {},
+        "_value": "c_2",
+        "_widgets": {},
+        "_grid_search_options": "c_2",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "pseudo_background_type",
+        "desc": "Background type for pseudo color images",
+        "default_value": "bw",
+        "allowed_values": {
+          "bw": "Black & white source",
+          "source": "Source image",
+          "black": "Black backround",
+          "white": "White background",
+          "silver": "Silver background"
+        },
+        "hint": "",
+        "widget_type": "combo_box",
+        "kind": "unk_k",
+        "options": {},
+        "_value": "bw",
+        "_widgets": {},
+        "_grid_search_options": "bw",
+        "_wrapper": null
+      },
+      {
+        "__class_name__": "IptParam",
+        "name": "use_default_script",
+        "desc": "Use default script if present",
+        "default_value": 0,
+        "allowed_values": [
+          0,
+          1
+        ],
+        "hint": "",
+        "widget_type": "checkbox",
+        "kind": "unk_k",
+        "options": {},
+        "_value": 0,
+        "_widgets": {},
+        "_grid_search_options": "0",
+        "_wrapper": null
+      }
+    ],
+    "_kwargs": null,
+    "_wrapper": null
+  },
+  "_last_wrapper_luid": ""
+}

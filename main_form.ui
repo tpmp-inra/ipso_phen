@@ -1,0 +1,2724 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <author>Felicià MAVIANE MACIA</author>
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1024</width>
+    <height>869</height>
+   </rect>
+  </property>
+  <property name="font">
+   <font>
+    <family>Consolas</family>
+   </font>
+  </property>
+  <property name="windowTitle">
+   <string>&lt;b&gt;IPSO&lt;/b&gt;</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="main_form.qrc">
+    <normaloff>:/icons/resources/leaf-24.ico</normaloff>:/icons/resources/leaf-24.ico</iconset>
+  </property>
+  <property name="toolTipDuration">
+   <number>-4</number>
+  </property>
+  <property name="statusTip">
+   <string/>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QCheckBox" name="chk_experiment">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Experiment:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_experiment">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chk_plant">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Plant:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_plant">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chk_date">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Date:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_date">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chk_camera">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Camera:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_camera">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chk_view_option">
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>View option:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_view_option">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="chk_time">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <weight>50</weight>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="layoutDirection">
+         <enum>Qt::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Time:</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_time">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0">
+      <item>
+       <widget class="QLabel" name="lbl_selection">
+        <property name="font">
+         <font>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
+        <property name="text">
+         <string>Selection:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_add_to_selection">
+        <property name="text">
+         <string>Add</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_remove_from_selection">
+        <property name="text">
+         <string>Remove</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_keep_annotated">
+        <property name="text">
+         <string>Keep tagged</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_clear_selection">
+        <property name="text">
+         <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeType">
+         <enum>QSizePolicy::Fixed</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_save_image_list">
+        <property name="text">
+         <string>Save as:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="le_selection_name">
+        <property name="maximumSize">
+         <size>
+          <width>240</width>
+          <height>16777215</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cb_saved_batches">
+        <property name="sizeAdjustPolicy">
+         <enum>QComboBox::AdjustToContents</enum>
+        </property>
+        <item>
+         <property name="text">
+          <string>-------------------</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="bt_delete_saved_list">
+        <property name="text">
+         <string>...</string>
+        </property>
+        <property name="icon">
+         <iconset resource="main_form.qrc">
+          <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_15">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="tabPosition">
+       <enum>QTabWidget::North</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab_image_viewer">
+       <attribute name="title">
+        <string>Toolbox</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <item>
+         <widget class="QSplitter" name="spl_ver_main">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QFrame" name="frame_5">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <property name="lineWidth">
+            <number>1</number>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QSplitter" name="spl_hor_main_left">
+              <property name="frameShape">
+               <enum>QFrame::NoFrame</enum>
+              </property>
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="opaqueResize">
+               <bool>true</bool>
+              </property>
+              <widget class="QFrame" name="frame_4">
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="lineWidth">
+                <number>0</number>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QTableWidget" name="images_table">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>100</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="editTriggers">
+                   <set>QAbstractItemView::NoEditTriggers</set>
+                  </property>
+                  <property name="dragDropOverwriteMode">
+                   <bool>false</bool>
+                  </property>
+                  <property name="alternatingRowColors">
+                   <bool>true</bool>
+                  </property>
+                  <property name="selectionMode">
+                   <enum>QAbstractItemView::SingleSelection</enum>
+                  </property>
+                  <property name="selectionBehavior">
+                   <enum>QAbstractItemView::SelectRows</enum>
+                  </property>
+                  <property name="textElideMode">
+                   <enum>Qt::ElideMiddle</enum>
+                  </property>
+                  <property name="gridStyle">
+                   <enum>Qt::SolidLine</enum>
+                  </property>
+                  <property name="sortingEnabled">
+                   <bool>true</bool>
+                  </property>
+                  <attribute name="horizontalHeaderDefaultSectionSize">
+                   <number>70</number>
+                  </attribute>
+                  <attribute name="horizontalHeaderHighlightSections">
+                   <bool>false</bool>
+                  </attribute>
+                  <attribute name="horizontalHeaderStretchLastSection">
+                   <bool>false</bool>
+                  </attribute>
+                  <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+                   <bool>true</bool>
+                  </attribute>
+                  <column>
+                   <property name="text">
+                    <string>Experiment</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Plant</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Date</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Camera</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>View option</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Time</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>date_time</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Path</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Luid</string>
+                   </property>
+                  </column>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QFrame" name="frame_3">
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QSplitter" name="spl_ver_main_tab_source">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <widget class="QTabWidget" name="tw_tool_box">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>16777215</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="tabShape">
+                    <enum>QTabWidget::Rounded</enum>
+                   </property>
+                   <property name="currentIndex">
+                    <number>1</number>
+                   </property>
+                   <property name="documentMode">
+                    <bool>false</bool>
+                   </property>
+                   <property name="tabBarAutoHide">
+                    <bool>false</bool>
+                   </property>
+                   <widget class="QWidget" name="tb_tool_help">
+                    <attribute name="title">
+                     <string>Help</string>
+                    </attribute>
+                    <layout class="QGridLayout" name="gridLayout_6">
+                     <item row="0" column="0">
+                      <widget class="QTextBrowser" name="txtb_tool_help"/>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="tb_annotations">
+                    <attribute name="title">
+                     <string>Annotations</string>
+                    </attribute>
+                    <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0,0,0">
+                     <item row="1" column="4">
+                      <spacer name="horizontalSpacer">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QLabel" name="label_3">
+                       <property name="text">
+                        <string>Annotation level:</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="5">
+                      <widget class="QToolButton" name="bt_delete_annotation">
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Delete.png</normalon>
+                        </iconset>
+                       </property>
+                       <property name="iconSize">
+                        <size>
+                         <width>24</width>
+                         <height>24</height>
+                        </size>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QComboBox" name="cb_annotation_level">
+                       <property name="sizeAdjustPolicy">
+                        <enum>QComboBox::AdjustToContents</enum>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>Info</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/Info.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>OK</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/OK.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Warning</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/Warning.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Error</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/Error.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Critical</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/Danger.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Source issue</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/Problem.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Unknown</string>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/annotation_level/resources/Help.png</normalon>
+                         </iconset>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item row="5" column="0" colspan="6">
+                      <widget class="QTextEdit" name="te_annotations"/>
+                     </item>
+                     <item row="9" column="0" colspan="6">
+                      <widget class="QTextBrowser" name="tb_auto_annotation"/>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="tab">
+                    <attribute name="title">
+                     <string>Grid search</string>
+                    </attribute>
+                    <layout class="QGridLayout" name="gridLayout_2">
+                     <item row="0" column="0" colspan="4">
+                      <widget class="QScrollArea" name="scrollArea">
+                       <property name="widgetResizable">
+                        <bool>true</bool>
+                       </property>
+                       <widget class="QWidget" name="scrollAreaWidgetContents_3">
+                        <property name="geometry">
+                         <rect>
+                          <x>0</x>
+                          <y>0</y>
+                          <width>98</width>
+                          <height>28</height>
+                         </rect>
+                        </property>
+                        <layout class="QHBoxLayout" name="horizontalLayout_4">
+                         <item>
+                          <layout class="QGridLayout" name="gl_grid_search_params"/>
+                         </item>
+                        </layout>
+                       </widget>
+                      </widget>
+                     </item>
+                     <item row="3" column="0">
+                      <widget class="QPushButton" name="bt_update_grid_search">
+                       <property name="text">
+                        <string>Update</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="1">
+                      <widget class="QPushButton" name="bt_reset_grid_search">
+                       <property name="text">
+                        <string>Reset</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="3">
+                      <widget class="QPushButton" name="bt_run_grid_search">
+                       <property name="text">
+                        <string>Run grid search</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="3" column="2">
+                      <widget class="QCheckBox" name="chk_random_grid_search">
+                       <property name="toolTip">
+                        <string>Run grid search in random order</string>
+                       </property>
+                       <property name="text">
+                        <string>Random</string>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="tb_last_batch">
+                    <attribute name="title">
+                     <string>Last batch</string>
+                    </attribute>
+                    <layout class="QGridLayout" name="gridLayout_9">
+                     <item row="0" column="0" colspan="5">
+                      <widget class="QTextBrowser" name="txtb_last_batch"/>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="QPushButton" name="bt_save_batch">
+                       <property name="text">
+                        <string>Save batch</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QPushButton" name="bt_set_batch_as_selection">
+                       <property name="text">
+                        <string>Set as selection</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="3">
+                      <widget class="QLineEdit" name="le_batch_name"/>
+                     </item>
+                     <item row="1" column="1">
+                      <spacer name="horizontalSpacer_10">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="tb_tool_generated_code">
+                    <attribute name="title">
+                     <string>Code</string>
+                    </attribute>
+                    <layout class="QGridLayout" name="gridLayout_7">
+                     <item row="0" column="0" colspan="2">
+                      <widget class="QTextBrowser" name="txtb_code">
+                       <property name="maximumSize">
+                        <size>
+                         <width>16777215</width>
+                         <height>16777215</height>
+                        </size>
+                       </property>
+                       <property name="lineWrapMode">
+                        <enum>QTextEdit::NoWrap</enum>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
+                   </widget>
+                   <widget class="QWidget" name="tb_statistics">
+                    <attribute name="title">
+                     <string>Statistics</string>
+                    </attribute>
+                    <layout class="QGridLayout" name="gridLayout_8">
+                     <item row="1" column="0">
+                      <widget class="QPushButton" name="bt_update_selection_stats">
+                       <property name="text">
+                        <string>Build selection statistics</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="QPushButton" name="bt_clear_statistics">
+                       <property name="text">
+                        <string>Clear</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="0" colspan="3">
+                      <widget class="QTextBrowser" name="lv_stats">
+                       <property name="font">
+                        <font>
+                         <family>Courier</family>
+                        </font>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <spacer name="horizontalSpacer_5">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
+                     </item>
+                    </layout>
+                   </widget>
+                  </widget>
+                  <widget class="QLabel" name="lbl_source_image">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="autoFillBackground">
+                    <bool>false</bool>
+                   </property>
+                   <property name="frameShape">
+                    <enum>QFrame::NoFrame</enum>
+                   </property>
+                   <property name="text">
+                    <string/>
+                   </property>
+                   <property name="scaledContents">
+                    <bool>false</bool>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QFrame" name="frame_2">
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <layout class="QHBoxLayout" name="horizontalLayout">
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_16">
+                  <item row="0" column="0" colspan="4">
+                   <widget class="QTabWidget" name="tb_tool_script">
+                    <property name="currentIndex">
+                     <number>0</number>
+                    </property>
+                    <widget class="QWidget" name="tab_tools">
+                     <attribute name="title">
+                      <string>Tools</string>
+                     </attribute>
+                     <layout class="QGridLayout" name="gridLayout_3">
+                      <item row="0" column="6">
+                       <widget class="QPushButton" name="bt_process_image">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/image_process/resources/Play.png</normalon>
+                         </iconset>
+                        </property>
+                        <property name="iconSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                        <property name="default">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="4">
+                       <widget class="QPushButton" name="bt_reset_op">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
+                        </property>
+                        <property name="iconSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QPushButton" name="bt_select_tool">
+                        <property name="text">
+                         <string>Selected tool: </string>
+                        </property>
+                        <property name="flat">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0" colspan="7">
+                       <widget class="QScrollArea" name="scrollArea_2">
+                        <property name="frameShape">
+                         <enum>QFrame::HLine</enum>
+                        </property>
+                        <property name="frameShadow">
+                         <enum>QFrame::Plain</enum>
+                        </property>
+                        <property name="horizontalScrollBarPolicy">
+                         <enum>Qt::ScrollBarAsNeeded</enum>
+                        </property>
+                        <property name="widgetResizable">
+                         <bool>true</bool>
+                        </property>
+                        <widget class="QWidget" name="scrollAreaWidgetContents_4">
+                         <property name="geometry">
+                          <rect>
+                           <x>0</x>
+                           <y>0</y>
+                           <width>568</width>
+                           <height>70</height>
+                          </rect>
+                         </property>
+                         <layout class="QGridLayout" name="gridLayout_17">
+                          <item row="0" column="0">
+                           <layout class="QGridLayout" name="gl_tool_params"/>
+                          </item>
+                          <item row="1" column="0">
+                           <spacer name="verticalSpacer">
+                            <property name="orientation">
+                             <enum>Qt::Vertical</enum>
+                            </property>
+                            <property name="sizeHint" stdset="0">
+                             <size>
+                              <width>20</width>
+                              <height>40</height>
+                             </size>
+                            </property>
+                           </spacer>
+                          </item>
+                         </layout>
+                        </widget>
+                       </widget>
+                      </item>
+                      <item row="0" column="3">
+                       <widget class="QCheckBox" name="chk_use_pipeline_as_preprocessor">
+                        <property name="text">
+                         <string>Use pipeline as preprocessor</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="2">
+                       <spacer name="horizontalSpacer_11">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                    <widget class="QWidget" name="tab_pipeline">
+                     <attribute name="title">
+                      <string>Pipeline</string>
+                     </attribute>
+                     <layout class="QGridLayout" name="gridLayout">
+                      <item row="0" column="5">
+                       <widget class="QPushButton" name="bt_save_pipeline">
+                        <property name="toolTip">
+                         <string>Save script...</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="3">
+                       <widget class="QPushButton" name="bt_clear_pipeline">
+                        <property name="toolTip">
+                         <string>New script</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="4">
+                       <widget class="QPushButton" name="bt_load_pipeline">
+                        <property name="toolTip">
+                         <string>Load script...</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="8">
+                       <widget class="QProgressBar" name="pb_script_gen_progress">
+                        <property name="minimumSize">
+                         <size>
+                          <width>200</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                        <property name="textVisible">
+                         <bool>true</bool>
+                        </property>
+                        <property name="textDirection">
+                         <enum>QProgressBar::BottomToTop</enum>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="0">
+                       <widget class="QLabel" name="lbl_pipeline">
+                        <property name="font">
+                         <font>
+                          <weight>75</weight>
+                          <bold>true</bold>
+                         </font>
+                        </property>
+                        <property name="text">
+                         <string>Pipeline:</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="6">
+                       <spacer name="horizontalSpacer_9">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>22</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item row="0" column="7">
+                       <widget class="QToolButton" name="bt_script_gen_run">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/image_process/resources/Play.png</normalon>
+                         </iconset>
+                        </property>
+                        <property name="iconSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0" colspan="9">
+                       <layout class="QGridLayout" name="gl_pipeline_data"/>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QLabel" name="lbl_pipeline_name">
+                        <property name="text">
+                         <string>T</string>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="2">
+                       <spacer name="horizontalSpacer_4">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                     </layout>
+                    </widget>
+                    <widget class="QWidget" name="tab_script">
+                     <attribute name="title">
+                      <string>Script</string>
+                     </attribute>
+                     <layout class="QHBoxLayout" name="horizontalLayout_9">
+                      <item>
+                       <widget class="QTextBrowser" name="txtb_script"/>
+                      </item>
+                     </layout>
+                    </widget>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label">
+                    <property name="font">
+                     <font>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="text">
+                     <string>Batch process:</string>
+                    </property>
+                    <property name="alignment">
+                     <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="1">
+                   <widget class="QComboBox" name="cb_batch_mode">
+                    <property name="maximumSize">
+                     <size>
+                      <width>200</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <item>
+                     <property name="text">
+                      <string>All</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>First n</string>
+                     </property>
+                    </item>
+                    <item>
+                     <property name="text">
+                      <string>Random n</string>
+                     </property>
+                    </item>
+                   </widget>
+                  </item>
+                  <item row="1" column="2">
+                   <widget class="QSpinBox" name="sb_batch_count">
+                    <property name="maximumSize">
+                     <size>
+                      <width>50</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="maximum">
+                     <number>62735</number>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="3">
+                   <widget class="QToolButton" name="bt_launch_batch">
+                    <property name="text">
+                     <string/>
+                    </property>
+                    <property name="icon">
+                     <iconset>
+                      <normalon>:/image_process/resources/Play.png</normalon>
+                     </iconset>
+                    </property>
+                    <property name="iconSize">
+                     <size>
+                      <width>24</width>
+                      <height>24</height>
+                     </size>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QFrame" name="frame">
+           <property name="frameShape">
+            <enum>QFrame::NoFrame</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Plain</enum>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_15">
+            <item row="0" column="0">
+             <widget class="QComboBox" name="cb_available_outputs">
+              <property name="maxVisibleItems">
+               <number>30</number>
+              </property>
+              <property name="sizeAdjustPolicy">
+               <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <widget class="QPushButton" name="bt_clear_result">
+              <property name="maximumSize">
+               <size>
+                <width>100</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QTabWidget" name="tabWidget_3">
+              <property name="currentIndex">
+               <number>0</number>
+              </property>
+              <widget class="QWidget" name="tab_6">
+               <attribute name="title">
+                <string>Output images</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_13">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lbl_output_image">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="frameShape">
+                   <enum>QFrame::NoFrame</enum>
+                  </property>
+                  <property name="text">
+                   <string/>
+                  </property>
+                  <property name="scaledContents">
+                   <bool>false</bool>
+                  </property>
+                  <property name="alignment">
+                   <set>Qt::AlignCenter</set>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab_7">
+               <attribute name="title">
+                <string>Output data</string>
+               </attribute>
+               <layout class="QGridLayout" name="gridLayout_14">
+                <item row="0" column="0">
+                 <widget class="QTableWidget" name="tw_script_sim_output">
+                  <property name="frameShadow">
+                   <enum>QFrame::Plain</enum>
+                  </property>
+                  <attribute name="horizontalHeaderStretchLastSection">
+                   <bool>true</bool>
+                  </attribute>
+                  <attribute name="verticalHeaderStretchLastSection">
+                   <bool>false</bool>
+                  </attribute>
+                  <column>
+                   <property name="text">
+                    <string>Key</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>Value</string>
+                   </property>
+                  </column>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_pipeline_processor">
+       <attribute name="title">
+        <string>Pipeline processor</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_10">
+        <item>
+         <widget class="QSplitter" name="spl_pipeline_processor">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QWidget" name="layoutWidget">
+           <layout class="QGridLayout" name="gridLayout_10">
+            <item row="0" column="0">
+             <widget class="QLabel" name="label_11">
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Selected images:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="1">
+             <spacer name="horizontalSpacer_13">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>138</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QTableWidget" name="tb_pp_images">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="editTriggers">
+               <set>QAbstractItemView::NoEditTriggers</set>
+              </property>
+              <property name="dragDropOverwriteMode">
+               <bool>false</bool>
+              </property>
+              <property name="alternatingRowColors">
+               <bool>true</bool>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::SingleSelection</enum>
+              </property>
+              <property name="selectionBehavior">
+               <enum>QAbstractItemView::SelectRows</enum>
+              </property>
+              <property name="textElideMode">
+               <enum>Qt::ElideMiddle</enum>
+              </property>
+              <property name="gridStyle">
+               <enum>Qt::SolidLine</enum>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+              <attribute name="horizontalHeaderDefaultSectionSize">
+               <number>70</number>
+              </attribute>
+              <attribute name="horizontalHeaderHighlightSections">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="horizontalHeaderStretchLastSection">
+               <bool>false</bool>
+              </attribute>
+              <attribute name="verticalHeaderShowSortIndicator" stdset="0">
+               <bool>true</bool>
+              </attribute>
+              <column>
+               <property name="text">
+                <string>Experiment</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Plant</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Date</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Camera</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>View option</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Time</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>date_time</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Path</string>
+               </property>
+              </column>
+              <column>
+               <property name="text">
+                <string>Luid</string>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="layoutWidget">
+           <layout class="QGridLayout" name="gridLayout_12">
+            <item row="0" column="0" colspan="3">
+             <widget class="QGroupBox" name="groupBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="title">
+               <string>Pipeline processor options:</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_11">
+               <item row="1" column="0">
+                <widget class="QLabel" name="lbl_csv_file_name">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>CSV file name:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QToolButton" name="bt_pp_select_output_folder">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="main_form.qrc">
+                   <normaloff>:/common/resources/folder_blue.png</normaloff>:/common/resources/folder_blue.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="edt_csv_file_name"/>
+               </item>
+               <item row="7" column="0" colspan="3">
+                <layout class="QHBoxLayout" name="horizontalLayout_11">
+                 <item>
+                  <widget class="QCheckBox" name="cb_pp_generate_series_id">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Generate series id</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>max delta from first image in series:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="sp_pp_time_delta">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="maximum">
+                    <number>10080</number>
+                   </property>
+                   <property name="value">
+                    <number>20</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>minutes</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="8" column="0">
+                <widget class="QLabel" name="label_9">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Thread count:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="2">
+                <widget class="QLabel" name="lb_pp_thread_count">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>0</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Output folder:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="8" column="1">
+                <widget class="QSlider" name="sl_pp_thread_count">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="le_pp_output_folder">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="5" column="0" colspan="3">
+                <widget class="QGroupBox" name="groupBox_2">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="title">
+                  <string>Pipeline:</string>
+                 </property>
+                 <property name="flat">
+                  <bool>false</bool>
+                 </property>
+                 <layout class="QGridLayout" name="gridLayout_5">
+                  <item row="2" column="3">
+                   <widget class="QToolButton" name="bt_pp_clear_script">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                    <property name="icon">
+                     <iconset resource="main_form.qrc">
+                      <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0" colspan="4">
+                   <widget class="QRadioButton" name="rb_pp_active_script">
+                    <property name="text">
+                     <string>Active script</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="0" colspan="4">
+                   <widget class="QRadioButton" name="rb_pp_default_process">
+                    <property name="text">
+                     <string>Default process</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="0">
+                   <widget class="QRadioButton" name="rb_pp_load_script">
+                    <property name="text">
+                     <string>Load script</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="1">
+                   <widget class="QLineEdit" name="le_pp_selected_pipeline">
+                    <property name="font">
+                     <font>
+                      <weight>50</weight>
+                      <bold>false</bold>
+                     </font>
+                    </property>
+                    <property name="readOnly">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="2" column="2">
+                   <widget class="QToolButton" name="bt_pp_select_script">
+                    <property name="text">
+                     <string>...</string>
+                    </property>
+                    <property name="icon">
+                     <iconset resource="main_form.qrc">
+                      <normaloff>:/common/resources/List.png</normaloff>:/common/resources/List.png</iconset>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </item>
+               <item row="4" column="0" colspan="3">
+                <widget class="QCheckBox" name="cb_pp_append_timestamp_to_output_folder">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Append timestamp to output folder</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0" colspan="3">
+                <widget class="QCheckBox" name="cb_pp_append_experience_name">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Append experience name to output folder</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0" colspan="3">
+                <widget class="QCheckBox" name="cb_pp_overwrite">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Overwrite existing files?</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item row="3" column="2">
+             <widget class="QPushButton" name="bt_pp_start">
+              <property name="minimumSize">
+               <size>
+                <width>100</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="font">
+               <font>
+                <pointsize>16</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Start</string>
+              </property>
+              <property name="icon">
+               <iconset resource="main_form.qrc">
+                <normaloff>:/image_process/resources/Play.png</normaloff>:/image_process/resources/Play.png</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>24</width>
+                <height>24</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <spacer name="horizontalSpacer_6">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>490</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="3" column="0">
+             <widget class="QPushButton" name="bt_pp_reset">
+              <property name="font">
+               <font>
+                <weight>50</weight>
+                <bold>false</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>Reset</string>
+              </property>
+              <property name="icon">
+               <iconset resource="main_form.qrc">
+                <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="3">
+             <widget class="QCheckBox" name="chk_pp_show_last_item">
+              <property name="text">
+               <string>Show last processed item (performance hit)</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="QLabel" name="lbl_last_processed_item">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tab_log">
+       <attribute name="title">
+        <string>Log</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QTextBrowser" name="lv_log"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1024</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="mnu_recent_parsed_folders">
+     <property name="title">
+      <string>Recent folders</string>
+     </property>
+     <addaction name="act_clean_parsed_folders"/>
+    </widget>
+    <widget class="QMenu" name="mnu_connect_to_db">
+     <property name="title">
+      <string>Databases</string>
+     </property>
+    </widget>
+    <addaction name="act_parse_folder_memory"/>
+    <addaction name="mnu_recent_parsed_folders"/>
+    <addaction name="mnu_connect_to_db"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_selected_image"/>
+    <addaction name="actionSave_all_images"/>
+    <addaction name="separator"/>
+    <addaction name="action_build_video_from_images"/>
+    <addaction name="separator"/>
+    <addaction name="action_new_tool"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <widget class="QMenu" name="menuVideo">
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="title">
+      <string>Video</string>
+     </property>
+     <property name="toolTipsVisible">
+      <bool>true</bool>
+     </property>
+     <widget class="QMenu" name="menuFrame_duration">
+      <property name="title">
+       <string>Frame duration</string>
+      </property>
+      <addaction name="action_video_1_24_second"/>
+      <addaction name="action_video_half_second"/>
+      <addaction name="action_video_1_second"/>
+      <addaction name="action_video_5_second"/>
+     </widget>
+     <widget class="QMenu" name="menuResolution">
+      <property name="title">
+       <string>Resolution</string>
+      </property>
+      <addaction name="action_video_res_first_image"/>
+      <addaction name="action_video_res_1080p"/>
+      <addaction name="action_video_res_720p"/>
+      <addaction name="action_video_res_576p"/>
+      <addaction name="action_video_res_480p"/>
+      <addaction name="action_video_res_376p"/>
+      <addaction name="action_video_res_240p"/>
+     </widget>
+     <widget class="QMenu" name="menuAspect_ratio">
+      <property name="title">
+       <string>Aspect ratio</string>
+      </property>
+      <addaction name="action_video_ar_16_9"/>
+      <addaction name="action_video_ar_4_3"/>
+      <addaction name="action_video_ar_1_1"/>
+     </widget>
+     <widget class="QMenu" name="menuBackground_color">
+      <property name="title">
+       <string>Background color</string>
+      </property>
+      <addaction name="action_video_bkg_color_black"/>
+      <addaction name="action_video_bkg_color_white"/>
+      <addaction name="action_video_bkg_color_silver"/>
+     </widget>
+     <addaction name="menuResolution"/>
+     <addaction name="menuAspect_ratio"/>
+     <addaction name="menuBackground_color"/>
+     <addaction name="menuFrame_duration"/>
+     <addaction name="action_video_stack_and_jitter"/>
+    </widget>
+    <widget class="QMenu" name="menu_theme">
+     <property name="title">
+      <string>Theme</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menuCode_generation_mode">
+     <property name="title">
+      <string>Code generation</string>
+     </property>
+     <addaction name="action_create_wrapper_before"/>
+     <addaction name="separator"/>
+     <addaction name="action_functional_style"/>
+     <addaction name="action_object_oriented_wrapped_with_a_with_clause"/>
+     <addaction name="action_standard_object_oriented_call"/>
+    </widget>
+    <addaction name="actionEnable_annotations"/>
+    <addaction name="actionEnable_log"/>
+    <addaction name="menuVideo"/>
+    <addaction name="menu_theme"/>
+    <addaction name="separator"/>
+    <addaction name="menuCode_generation_mode"/>
+   </widget>
+   <widget class="QMenu" name="menuScript_generator">
+    <property name="title">
+     <string>Pipeline</string>
+    </property>
+    <addaction name="action_new_script"/>
+    <addaction name="action_load_script"/>
+    <addaction name="action_save_script"/>
+    <addaction name="action_save_as_python_script"/>
+    <addaction name="separator"/>
+    <addaction name="action_add_exposure_fixer"/>
+    <addaction name="actionAdd_white_balance_fixer"/>
+    <addaction name="actionAdd_channel_mask"/>
+    <addaction name="action_add_roi"/>
+    <addaction name="actionSet_contour_cleaner"/>
+    <addaction name="action_add_feature_extractor"/>
+   </widget>
+   <widget class="QMenu" name="mnu_tools_root">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <property name="toolTipsVisible">
+     <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="action_show_read_me"/>
+    <addaction name="action_show_documentation"/>
+    <addaction name="separator"/>
+    <addaction name="action_build_tool_documentation"/>
+    <addaction name="action_build_ipso_phen_documentation"/>
+    <addaction name="separator"/>
+    <addaction name="action_about_form"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="mnu_tools_root"/>
+   <addaction name="menuScript_generator"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar">
+   <property name="font">
+    <font>
+     <weight>75</weight>
+     <bold>true</bold>
+    </font>
+   </property>
+  </widget>
+  <action name="actionTPMP">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>TPMP</string>
+   </property>
+  </action>
+  <action name="actionTPMP_sample">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>TPMP sample</string>
+   </property>
+  </action>
+  <action name="action_switch_db_new">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>New DB</string>
+   </property>
+  </action>
+  <action name="actionSelect">
+   <property name="text">
+    <string>Select ...</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionEnable_annotations">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable annotations</string>
+   </property>
+  </action>
+  <action name="actionEnable_log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable log</string>
+   </property>
+  </action>
+  <action name="actionSave_selected_image">
+   <property name="text">
+    <string>Save selected image</string>
+   </property>
+  </action>
+  <action name="actionSave_all_images">
+   <property name="text">
+    <string>Save all images</string>
+   </property>
+  </action>
+  <action name="action_parse_folder">
+   <property name="text">
+    <string>Parse folder</string>
+   </property>
+  </action>
+  <action name="actionAdd_channel_mask">
+   <property name="text">
+    <string>Add Threshold</string>
+   </property>
+  </action>
+  <action name="actionAdd_white_balance_fixer">
+   <property name="text">
+    <string>Add Pre-processing</string>
+   </property>
+  </action>
+  <action name="action_script_merge_select_and">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>And</string>
+   </property>
+  </action>
+  <action name="action_script_merge_select_or">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Or</string>
+   </property>
+  </action>
+  <action name="actionSet_contour_cleaner">
+   <property name="text">
+    <string>Add Mask cleanup</string>
+   </property>
+  </action>
+  <action name="actionDisplay_images">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Display images</string>
+   </property>
+  </action>
+  <action name="actionUse_file_name">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use file name</string>
+   </property>
+  </action>
+  <action name="action_data_output_none">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="action_data_output_stdio">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Std IO</string>
+   </property>
+  </action>
+  <action name="action_data_output_file">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>File</string>
+   </property>
+  </action>
+  <action name="action_execute_script">
+   <property name="text">
+    <string>Execute</string>
+   </property>
+  </action>
+  <action name="actionAll">
+   <property name="text">
+    <string>All</string>
+   </property>
+  </action>
+  <action name="actionNone">
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="action_build_video_from_images">
+   <property name="text">
+    <string>Build video from images</string>
+   </property>
+  </action>
+  <action name="action_new_script">
+   <property name="icon">
+    <iconset resource="main_form.qrc">
+     <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+  </action>
+  <action name="action_load_script">
+   <property name="icon">
+    <iconset resource="main_form.qrc">
+     <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
+   </property>
+   <property name="text">
+    <string>Load...</string>
+   </property>
+  </action>
+  <action name="action_save_script">
+   <property name="icon">
+    <iconset resource="main_form.qrc">
+     <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save...</string>
+   </property>
+  </action>
+  <action name="action_add_roi_execute_after_pre_processing">
+   <property name="text">
+    <string>Add ROI (execute after pre-processing</string>
+   </property>
+  </action>
+  <action name="action_roi_execute_before_pre_processing">
+   <property name="text">
+    <string>Execute before pre-processing</string>
+   </property>
+  </action>
+  <action name="action_roi_execute_after_pre_processing">
+   <property name="text">
+    <string>Execute after pre-processing</string>
+   </property>
+  </action>
+  <action name="action_roi_execute_after_mask_merger">
+   <property name="text">
+    <string>Execute after mask merger</string>
+   </property>
+  </action>
+  <action name="act_view_anno_all">
+   <property name="text">
+    <string>All</string>
+   </property>
+  </action>
+  <action name="act_view_anno_none">
+   <property name="text">
+    <string>None</string>
+   </property>
+  </action>
+  <action name="act_view_anno_empty">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>No annotation</string>
+   </property>
+  </action>
+  <action name="act_view_anno_info">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Info</string>
+   </property>
+  </action>
+  <action name="act_view_anno_ok">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>OK</string>
+   </property>
+  </action>
+  <action name="act_view_anno_warning">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Warning</string>
+   </property>
+  </action>
+  <action name="act_view_anno_error">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Error</string>
+   </property>
+  </action>
+  <action name="act_view_anno_critical">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Critical</string>
+   </property>
+  </action>
+  <action name="act_view_anno_source_issue">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Source issue</string>
+   </property>
+  </action>
+  <action name="act_view_anno_unknown">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Unknown</string>
+   </property>
+  </action>
+  <action name="action_save_as_python_script">
+   <property name="text">
+    <string>Save as Python script...</string>
+   </property>
+  </action>
+  <action name="actionMerge_script_and_toolbox_panels">
+   <property name="text">
+    <string>Merge script and toolbox panels</string>
+   </property>
+  </action>
+  <action name="actionPut_tools_widgets_in_scroll_panel">
+   <property name="text">
+    <string>Put tools widgets in scroll panel</string>
+   </property>
+  </action>
+  <action name="action_add_roi">
+   <property name="text">
+    <string>Add ROI</string>
+   </property>
+  </action>
+  <action name="actionAdd_auto_fill_in_grid_search">
+   <property name="text">
+    <string>Add auto fill in grid search</string>
+   </property>
+  </action>
+  <action name="actionAdd_buttons_to_add_tool_to_script_next_to_reset_button">
+   <property name="text">
+    <string>Add buttons to add tool to script next to reset button</string>
+   </property>
+  </action>
+  <action name="actionAdd_roi_to_check_mask_positioning">
+   <property name="text">
+    <string>Add roi to check mask positioning</string>
+   </property>
+  </action>
+  <action name="actionFix_ROI_display_color_issue_for_rectangles">
+   <property name="text">
+    <string>Fix ROI display color issue for rectangles</string>
+   </property>
+  </action>
+  <action name="actionAdd_more_colors_for_ROI">
+   <property name="text">
+    <string>Add more colors for ROI</string>
+   </property>
+  </action>
+  <action name="action_create_wrapper_before">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Create wrapper before</string>
+   </property>
+  </action>
+  <action name="action_standard_object_oriented_call">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Standard object oriented call</string>
+   </property>
+  </action>
+  <action name="action_object_oriented_wrapped_with_a_with_clause">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Object oriented wrapped with a &quot;with&quot; clause</string>
+   </property>
+  </action>
+  <action name="action_functional_style">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Functional style</string>
+   </property>
+  </action>
+  <action name="action_video_1_second">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1 second</string>
+   </property>
+  </action>
+  <action name="action_video_1_24_second">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>1/24 second</string>
+   </property>
+  </action>
+  <action name="action_video_5_second">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>5 seconds</string>
+   </property>
+  </action>
+  <action name="action_video_stack_and_jitter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Stack &amp; jitter</string>
+   </property>
+  </action>
+  <action name="action_video_half_second">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>0.5 seconds</string>
+   </property>
+  </action>
+  <action name="action_video_res_first_image">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>First image</string>
+   </property>
+  </action>
+  <action name="action_video_res_1080p">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1080p</string>
+   </property>
+  </action>
+  <action name="action_video_res_720p">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>720p</string>
+   </property>
+  </action>
+  <action name="action_video_res_576p">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>576p</string>
+   </property>
+  </action>
+  <action name="action_video_res_480p">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>480p</string>
+   </property>
+  </action>
+  <action name="action_video_res_376p">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>376p</string>
+   </property>
+  </action>
+  <action name="action_video_res_240p">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>240p</string>
+   </property>
+  </action>
+  <action name="action_video_ar_16_9">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>16/9</string>
+   </property>
+  </action>
+  <action name="action_video_ar_4_3">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>4/3</string>
+   </property>
+  </action>
+  <action name="action_video_ar_1_1">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>1/1</string>
+   </property>
+  </action>
+  <action name="action_video_bkg_color_black">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Black</string>
+   </property>
+  </action>
+  <action name="action_video_bkg_color_white">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>White</string>
+   </property>
+  </action>
+  <action name="action_video_bkg_color_silver">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Silver</string>
+   </property>
+  </action>
+  <action name="act_parse_folder_memory">
+   <property name="text">
+    <string>Parse folder</string>
+   </property>
+   <property name="toolTip">
+    <string>Parse folder and create memory database</string>
+   </property>
+  </action>
+  <action name="act_clean_parsed_folders">
+   <property name="text">
+    <string>Clear</string>
+   </property>
+  </action>
+  <action name="actionplace_holder">
+   <property name="text">
+    <string>place_holder</string>
+   </property>
+  </action>
+  <action name="actionplace_holder_2">
+   <property name="text">
+    <string>place_holder</string>
+   </property>
+  </action>
+  <action name="action_add_exposure_fixer">
+   <property name="text">
+    <string>Add Exposure fixing</string>
+   </property>
+  </action>
+  <action name="action_add_feature_extractor">
+   <property name="text">
+    <string>Add Feature extraction</string>
+   </property>
+  </action>
+  <action name="action_about_form">
+   <property name="text">
+    <string>About IPSO Phen</string>
+   </property>
+  </action>
+  <action name="action_show_documentation">
+   <property name="text">
+    <string>Documentation</string>
+   </property>
+  </action>
+  <action name="action_use_dark_theme">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Dark theme</string>
+   </property>
+  </action>
+  <action name="action_build_tool_documentation">
+   <property name="text">
+    <string>Build tool documentation</string>
+   </property>
+  </action>
+  <action name="action_build_ipso_phen_documentation">
+   <property name="text">
+    <string>Build IPSO Phen documentation</string>
+   </property>
+  </action>
+  <action name="action_show_read_me">
+   <property name="text">
+    <string>Read me</string>
+   </property>
+  </action>
+  <action name="action_build_missing_tools_documentation">
+   <property name="text">
+    <string>Build missing tools documentation</string>
+   </property>
+  </action>
+  <action name="action_new_tool">
+   <property name="text">
+    <string>New tool</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="main_form.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>bt_clear_statistics</sender>
+   <signal>clicked()</signal>
+   <receiver>lv_stats</receiver>
+   <slot>clear()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>113</x>
+     <y>290</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>113</x>
+     <y>281</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
