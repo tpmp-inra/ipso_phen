@@ -19,7 +19,7 @@ from ip_base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ip_base.ipt_functional import call_ipt_code, call_ipt_func_code
 from tools.csv_writer import AbstractCsvWriter
 
-ALLOW_RESULT_CACHE = False
+ALLOW_RESULT_CACHE = True
 
 
 def encode_ipt(o):
