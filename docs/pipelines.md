@@ -20,7 +20,7 @@ In this section we're going to build a fully functioning pipeline starting from 
 
 ## Tutorial
 
-<iframe width="650" height="400" src="https://youtu.be/RrTdjc1vVoc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+<iframe width="650" height="400" src="https://www.youtube.com/embed/RrTdjc1vVoc" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Pipeline save formats
 
