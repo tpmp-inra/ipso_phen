@@ -6,6 +6,14 @@ import re
 import inspect
 import pkgutil
 
+# Check PlantCV
+try:
+    from plantcv import plantcv as pcv
+except Exception as e:
+    allow_pcv = False
+else:
+    allow_pcv = True
+
 
 # Functions
 def format_time(seconds):
@@ -79,11 +87,17 @@ def get_module_classes(
     package, class_inherits_from, remove_abstract: bool = True, exclude_if_contains: tuple = ()
 ):
     res = []
+    if not allow_pcv:
+        exclude_if_contains = exclude_if_contains + ('pcv',)
     for (module_loader, name, is_pkg) in pkgutil.iter_modules(package.__path__):
         try:
+            exclude_module = False
             for exclusion_ in exclude_if_contains:
                 if exclusion_ in name:
-                    continue
+                    exclude_module = True
+                    break
+            if exclude_module:
+                continue
             pkg_name = package.__name__ + '.' + name
             pkg = __import__(pkg_name)
             module = sys.modules[pkg_name]

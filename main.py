@@ -15,12 +15,6 @@ from timeit import default_timer as timer
 from typing import Any
 import glob
 
-try:
-    from plantcv import plantcv as pcv
-except Exception as e:
-    allow_pcv = False
-else:
-    allow_pcv = True
 import cv2
 import numpy as np
 import pandas as pd
@@ -47,6 +41,7 @@ from ip_base.ipt_abstract import IptBase, IptParamHolder
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
 from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from tools import shapes
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import format_time
@@ -631,7 +626,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.mnu_db_action_group = None
 
         # Build tools selectors
-        self._ip_tools_holder = IptHolder(allow_pcv=allow_pcv)
+        self._ip_tools_holder = IptHolder()
         try:
             if hasattr(self, 'bt_select_tool'):
                 tool_menu = QMenu()

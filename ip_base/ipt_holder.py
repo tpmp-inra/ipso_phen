@@ -12,17 +12,13 @@ class IptHolder(object):
     def __init__(self, **kwargs):
         self._ipt_list = []
         self._use_cases = []
-        self._allow_pcv = kwargs.get('allow_pcv', False) is True
 
     def _init_holders(self):
         """Build list containing a single instance of all available tools
         """
         # Build unique class list
         ipt_classes_list = get_module_classes(
-            package=ip_tools,
-            class_inherits_from=IptBase,
-            remove_abstract=True,
-            exclude_if_contains=() if self._allow_pcv else ('pcv',)
+            package=ip_tools, class_inherits_from=IptBase, remove_abstract=True
         )
 
         # Create objects

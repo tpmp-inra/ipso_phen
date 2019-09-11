@@ -14,7 +14,7 @@ DISABLE_SPLASH_SCREEN = True
 
 # This should NEVER be set to false unless you know what you're doing.
 # If you set it anyway, the program will most likely become annoying.
-USE_PROCESS_THREAD = True
+USE_PROCESS_THREAD = False
 
 FLAT_TOOLS_MENU = False
 

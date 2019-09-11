@@ -1,12 +1,12 @@
 <b><font size="+3">IPSO Phen</font></b>
 ___
-<br>
 
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Remember, a few hours of trial and error can save you several minutes of looking at the README.</p>&mdash; I Am Devloper (@iamdevloper) <a href="https://twitter.com/iamdevloper/status/1060067235316809729?ref_src=twsrc%5Etfw">November 7, 2018</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-<br>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Remember, a few hours of trial and error can save you several minutes of looking at the README.</p>&mdash; I Am Devloper (@iamdevloper) <a href="https://twitter.com/iamdevloper/status/1060067235316809729?ref_src=twsrc%5Etfw">November 7, 2018</a></blockquote>  
+
+Full documentation is available at our [read the docs site](https://ipso-phen.readthedocs.io/en/latest/)
+
 
 ![Sample pipeline](./docs/images/md_image_6.gif)
-<br>
 
 - [What is IPSO Phen](#what-is-ipso-phen)
   - [Introduction](#introduction)
@@ -40,7 +40,7 @@ The rise in popularity of high throughput plant phenotyping facilities leads to 
 
 ## Introduction
 
-Toulouse Plant Microbe Phenotyping (TPMP) is a high throughput platform located on the INRA Occitanie-Toulouse campus. It has five camera groups in two robots taking pictures from the top or the side of the plant. Species studied to date are *Marchantia*, *Arabidopsis*, *Medicago*, Tomato, Tobacco, Sunflower, Eucalyptus, Wheat and *Brachypodium*. This large amount of possible combinations generated the need for a tool to create, test and run analysis pipelines. After evaluating the software tools freely available, we created IPSO Phen, an all-in-one image processing toolbox.
+Toulouse Plant Microbe Phenotyping (TPMP) is a high throughput platform located on the INRA Occitanie-Toulouse campus in France. It has five camera groups in two robots taking pictures from the top or the side of the plant. Species studied to date are *Marchantia*, *Arabidopsis*, *Medicago*, Tomato, Tobacco, Sunflower, Eucalyptus, Wheat and *Brachypodium*. This large amount of possible combinations generated the need for a tool to create, test and run analysis pipelines. After evaluating the software tools freely available, we created IPSO Phen, an all-in-one image processing toolbox.  
 IPSO Phen, groups in a single interface around fifty different image-processing tools that can be combined into pipelines. The settings of both tools and pipelines can be thoroughly tested on fixed or random sets of images from the experiments. IPSO Phen can access images either from a file system or through a database.
 
 ## Image processing tools

@@ -1,6 +1,11 @@
+# Getting the source code
+
+Source code is available from our [GitHub](https://github.com/tpmp-inra/ipso_phen)
+
 # Installing
 
-Following a number of issues with OpenCV and Qt packages on windows, we recommend using pip instead of conda.
+!!! warning
+    Following a number of issues with OpenCV and Qt packages on windows, we recommend using pip instead of conda.
 
 ## Pip
 
@@ -71,3 +76,12 @@ Follow this steps
     - **mkdocs**: conda install -c conda-forge mkdocs
     - **mkdocs-material**: conda install -c conda-forge mkdocs-material
     - **unidecode**: conda install -c anaconda unidecode
+
+
+## PlantCV
+
+!!! warning
+    At the moment of writing this documentation I could not install PlantCV with pip, only the conda method worked.
+
+If you want to use PlantCV you will have to install it. If PlantCV is installed all available PlnatCV tools will be loaded when the program starts.  
+Please go to their documentation page fond here: [https://plantcv.readthedocs.io/en/stable/](https://plantcv.readthedocs.io/en/stable/)

@@ -436,10 +436,7 @@ class IptScriptGenerator(object):
         else:
             tool = tool_dict['tool'].copy()
             if tool.process_wrapper(wrapper=wrapper):
-                if (tool_kind == TOOL_GROUP_FEATURE_EXTRACTION_STR) and hasattr(tool, 'data_dict'):
-                    ret = tool.data_dict
-                else:
-                    ret = tool.result
+                ret = tool.result
                 tool_dict['changed'] = False
                 tool_dict['last_result'] = ret
             else:
@@ -763,8 +760,12 @@ class IptScriptGenerator(object):
         code_ += f'{ws_ct}ap = argparse.ArgumentParser()\n'
         code_ += f'{ws_ct}ap.add_argument("-i", "--image", required=True, help="Path to the image")\n'
         code_ += f'{ws_ct}ap.add_argument("-d", "--destination", required=False, help="Destination folder")\n'
+        code_ += f'{ws_ct}ap.add_argument("-p", "--print_images", required=False, help="Print images, y or n")\n'
+        code_ += f'{ws_ct}ap.add_argument("-m", "--print_mosaic", required=False, help="Print mosaic, y or n")\n'
         code_ += f'{ws_ct}args = vars(ap.parse_args())\n'
         code_ += f'{ws_ct}file_name = args["image"]\n'
+        code_ += f'{ws_ct}print_images = args.get("print_images", "n") == "y"\n'
+        code_ += f'{ws_ct}print_mosaic = args.get("print_mosaic", "n") == "y"\n'
         code_ += f'{ws_ct}dst_folder = args.get("destination", "")\n\n'
         code_ += ws_ct + '# Restore working folder\n'
         code_ += ws_ct + 'os.chdir(old_wd)\n\n'
@@ -774,8 +775,18 @@ class IptScriptGenerator(object):
         code_ += ws_ct + "wrapper = AbstractImageProcessor(file_name)\n"
         code_ += ws_ct + "wrapper.lock = True\n"
         code_ += ws_ct + "wrapper.store_image(wrapper.current_image, 'true_source_image')\n"
-        if self.display_images:
-            code_ += ws_ct + "wrapper.write_images = 'plot'\n"
+        code_ += ws_ct + "if print_images or print_mosaic:\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "wrapper.store_images = True\n"
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + "if print_images:\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "wrapper.write_images = 'plot'\n"
+        ws_ct = remove_tab(ws_ct)        
+        code_ += ws_ct + "if print_mosaic:\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "wrapper.write_mosaic = 'plot'\n"
+        ws_ct = remove_tab(ws_ct)
         code_ += '\n'
 
         # Fix image exposition
@@ -794,12 +805,16 @@ class IptScriptGenerator(object):
             code_ += f'{ws_ct}# Store image name for analysis\n'
             code_ += ws_ct + 'wrapper.store_image(wrapper.current_image, "exposure_fixed")\n'
             code_ += ws_ct + 'analysis_image = "exposure_fixed"\n'
-            code_ += '\n'
+            code_ += '\n'            
         else:
             code_ += f'{ws_ct}# Set default name for image analysis'
             code_ += ws_ct + '# No exposure fix needed\n'
             code_ += ws_ct + 'analysis_image = NONE\n'
             code_ += '\n'
+        code_ += ws_ct + "if print_mosaic:\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'wrapper.store_image(wrapper.current_image, "fixed_source")\n'
+        ws_ct = remove_tab(ws_ct)
 
         # Build static ROIs
         # _________________
@@ -852,6 +867,10 @@ class IptScriptGenerator(object):
                     generate_imports=False
                 )
                 code_ += '\n'
+            code_ += ws_ct + "if print_mosaic:\n"       
+            ws_ct = add_tab(ws_ct)
+            code_ += ws_ct + 'wrapper.store_image(wrapper.current_image, "pre_processed_image")\n'
+            ws_ct = remove_tab(ws_ct)
 
         # Build coarse masks
         # __________________
@@ -870,7 +889,11 @@ class IptScriptGenerator(object):
             code_ += f'{ws_ct}if func:\n'
             ws_ct = add_tab(ws_ct)
             code_ += ws_ct + 'wrapper.mask = func([mask for mask in mask_list if mask is not None])\n'
-            code_ += ws_ct + f'wrapper.store_image(wrapper.mask, f"mask_{self.merge_method}")\n'
+            code_ += ws_ct + f'wrapper.store_image(wrapper.mask, f"mask_{self.merge_method}")\n'            
+            code_ += ws_ct + "if print_mosaic:\n"       
+            ws_ct = add_tab(ws_ct)
+            code_ += ws_ct + 'wrapper.store_image(wrapper.mask, "coarse_mask")\n'
+            ws_ct = remove_tab(ws_ct)
             ws_ct = remove_tab(ws_ct)
             code_ += ws_ct + 'else:\n'
             ws_ct = add_tab(ws_ct)
@@ -885,7 +908,11 @@ class IptScriptGenerator(object):
                  ws_ct + '# _____________________________________\n'
         code_ += ws_ct + "handled_rois = ['keep', 'delete', 'erode', 'dilate', 'open', 'close']\n"
         code_ += ws_ct + "rois_list = [roi for roi in wrapper.rois_list if roi.tag in handled_rois and not (roi.target and roi.target != 'none')]\n"
-        code_ += ws_ct + f"wrapper.mask = wrapper.apply_roi_list(img=wrapper.mask, rois=rois_list, print_dbg={self.display_images})\n"
+        code_ += ws_ct + f"wrapper.mask = wrapper.apply_roi_list(img=wrapper.mask, rois=rois_list, print_dbg={self.display_images})\n"        
+        code_ += ws_ct + "if print_mosaic:\n"       
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'wrapper.store_image(wrapper.mask, "mask_after_roi")\n'
+        ws_ct = remove_tab(ws_ct)
         code_ += '\n'
 
         # Clean mask
@@ -902,61 +929,69 @@ class IptScriptGenerator(object):
                 code_ += ws_ct + 'return\n'
                 ws_ct = remove_tab(ws_ct)
                 code_ += '\n'
+            code_ += ws_ct + "if print_mosaic:\n"
+            ws_ct = add_tab(ws_ct)
+            code_ += ws_ct + 'wrapper.store_image(wrapper.mask, "clean_mask")\n'
+            ws_ct = remove_tab(ws_ct)
+            code_ += '\n'
 
         # Check that the mask is where it belongs
         # _______________________________________
         code_ += ws_ct + '# Check that the mask is where it belongs\n' + \
                  ws_ct + '# _______________________________________\n'
-        if self.display_images:
-            code_ += ws_ct + 'res = True\n'
-            code_ += ws_ct + 'enforcers_list = wrapper.get_rois({"enforce"})\n'
-            code_ += ws_ct + 'for i, enforcer in enumerate(enforcers_list):\n'
-            ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'mask = wrapper.mask.copy()\n'
-            code_ += ws_ct + 'mask = wrapper.keep_roi(mask, enforcer)\n'
-            code_ += ws_ct + 'partial_ok = np.count_nonzero(mask) > 0\n'
-            code_ += ws_ct + 'res = partial_ok and res\n'
-            code_ += ws_ct + 'if partial_ok:\n'
-            ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'roi_img = np.dstack((np.zeros_like(mask), mask, np.zeros_like(mask)))\n'
-            ws_ct = remove_tab(ws_ct)
-            code_ += ws_ct + 'else:\n'
-            ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'roi_img = np.dstack((np.zeros_like(mask), np.zeros_like(mask), mask))\n'
-            ws_ct = remove_tab(ws_ct)
-            code_ += ws_ct + 'background_img = cv2.bitwise_and(wrapper.mask, wrapper.mask, mask=255 - mask)\n'
-            code_ += ws_ct + 'img = cv2.bitwise_or(roi_img, np.dstack((background_img, background_img, background_img)))\n'
-            code_ += ws_ct + 'enforcer.draw_to(img, line_width=4)\n'
-            code_ += ws_ct + "wrapper.store_image(img, f'enforcer_{i}_{enforcer.name}')\n"
-            ws_ct = remove_tab(ws_ct)
-            code_ += ws_ct + 'if not res:\n'
-            ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'return\n'
-            ws_ct = remove_tab(ws_ct)
-        else:
-            code_ += ws_ct + 'enforcers_list = wrapper.get_rois({"enforce"})\n'
-            code_ += ws_ct + 'for i, enforcer in enumerate(enforcers_list):\n'
-            ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'mask = wrapper.mask.copy()\n'
-            code_ += ws_ct + 'mask = wrapper.keep_roi(mask, enforcer)\n'
-            code_ += ws_ct + 'if np.count_nonzero(mask) = 0:\n'
-            ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'return\n'
-            ws_ct = remove_tab(ws_ct)
-            ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + "if print_images:\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'res = True\n'
+        code_ += ws_ct + 'enforcers_list = wrapper.get_rois({"enforce"})\n'
+        code_ += ws_ct + 'for i, enforcer in enumerate(enforcers_list):\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'mask = wrapper.mask.copy()\n'
+        code_ += ws_ct + 'mask = wrapper.keep_roi(mask, enforcer)\n'
+        code_ += ws_ct + 'partial_ok = np.count_nonzero(mask) > 0\n'
+        code_ += ws_ct + 'res = partial_ok and res\n'
+        code_ += ws_ct + 'if partial_ok:\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'roi_img = np.dstack((np.zeros_like(mask), mask, np.zeros_like(mask)))\n'
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + 'else:\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'roi_img = np.dstack((np.zeros_like(mask), np.zeros_like(mask), mask))\n'
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + 'background_img = cv2.bitwise_and(wrapper.mask, wrapper.mask, mask=255 - mask)\n'
+        code_ += ws_ct + 'img = cv2.bitwise_or(roi_img, np.dstack((background_img, background_img, background_img)))\n'
+        code_ += ws_ct + 'enforcer.draw_to(img, line_width=4)\n'
+        code_ += ws_ct + "wrapper.store_image(img, f'enforcer_{i}_{enforcer.name}')\n"
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + 'if not res:\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'return\n'
+        ws_ct = remove_tab(ws_ct)
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + 'else:\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'enforcers_list = wrapper.get_rois({"enforce"})\n'
+        code_ += ws_ct + 'for i, enforcer in enumerate(enforcers_list):\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'mask = wrapper.mask.copy()\n'
+        code_ += ws_ct + 'mask = wrapper.keep_roi(mask, enforcer)\n'
+        code_ += ws_ct + 'if np.count_nonzero(mask) == 0:\n'
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + 'return\n'
+        ws_ct = remove_tab(ws_ct)
+        ws_ct = remove_tab(ws_ct)
+        ws_ct = remove_tab(ws_ct)
         code_ += '\n'
 
         # Extract features
         # ________________
-        if (len(self.feature_list) >
-            0) and not self.threshold_only and (len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0):
+        if not self.threshold_only and (len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0):
             code_ += ws_ct + "# Extract features\n"
             code_ += ws_ct + "# ________________\n"
             code_ += ws_ct + "wrapper.current_image = wrapper.retrieve_stored_image('exposure_fixed')\n"
             code_ += ws_ct + "wrapper.csv_data_holder = AbstractCsvWriter()\n"
             for fe_tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
                 code_ += call_ipt_code(
-                    ipt=fe_tool, white_spaces=ws_ct, result_name='current_data', generate_imports=False
+                    ipt=fe_tool, white_spaces=ws_ct, result_name='current_data', generate_imports=False, return_type='data'
                 )
                 code_ += f'{ws_ct}if isinstance(current_data, dict):\n'
                 ws_ct = add_tab(ws_ct)
@@ -968,7 +1003,7 @@ class IptScriptGenerator(object):
                 ws_ct = remove_tab(ws_ct)
                 code_ += '\n'
             code_ += ws_ct + "# Save CSV\n"
-            code_ += ws_ct + 'if dst_folder and (len(wrapper.csv_data_holder) > 0):\n'
+            code_ += ws_ct + 'if dst_folder and (len(wrapper.csv_data_holder.data_list) > 0):\n'
             ws_ct = add_tab(ws_ct)
             code_ += ws_ct + "with open(os.path.join(dst_folder, '', wrapper.file_handler.file_name_no_ext + '.csv'), 'w', newline='') as csv_file_:\n"
             ws_ct = add_tab(ws_ct)
@@ -986,15 +1021,40 @@ class IptScriptGenerator(object):
 
         # Build mosaic
         # ____________
-        if self.build_mosaic:
-            code_ += ws_ct + "# Build mosaic\n"
-            code_ += ws_ct + "# ____________\n"
-            code_ += ws_ct + "wrapper.store_mosaic = " + (
-                '"result"' if (len(self.feature_list) > 0) and not self.threshold_only else '"debug"'
-            ) + "\n"
-            code_ += ws_ct + "wrapper.mosaic_data = None\n"
-            code_ += ws_ct + "wrapper.print_mosaic()\n"
-            code_ += '\n'
+        code_ += ws_ct + "# Build mosaic\n"
+        code_ += ws_ct + "# ____________\n"
+        code_ += ws_ct + "if print_mosaic:\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "wrapper.store_mosaic = 'result'\n"
+        code_ += ws_ct + "wrapper.mosaic_data = np.array([\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "['fixed_source', 'pre_processed_image', 'coarse_mask'],\n"
+        code_ += ws_ct + "[\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "'mask_after_roi',\n"
+        code_ += ws_ct + "'clean_mask',\n"
+        code_ += ws_ct + "wrapper.draw_image(\n"
+        ws_ct = add_tab(ws_ct)
+        code_ += ws_ct + "src_image=wrapper.current_image,\n"
+        code_ += ws_ct + "src_mask=wrapper.mask,\n"
+        code_ += ws_ct + "background='bw',\n"
+        code_ += ws_ct + "foreground='source',\n"
+        code_ += ws_ct + "bck_grd_luma=120,\n"
+        code_ += ws_ct + "contour_thickness=6,\n"
+        code_ += ws_ct + "hull_thickness=6,\n"
+        code_ += ws_ct + "width_thickness=6,\n"
+        code_ += ws_ct + "height_thickness=6,\n"
+        code_ += ws_ct + "centroid_width=20,\n"
+        code_ += ws_ct + "centroid_line_width=8\n"
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + ")\n"
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + "]\n"
+        ws_ct = remove_tab(ws_ct)
+        code_ += ws_ct + "])\n"
+        code_ += ws_ct + "wrapper.print_mosaic(padding=(-4, -4, -4, -4))\n"
+        ws_ct = remove_tab(ws_ct)
+        code_ += '\n'
 
         code_ += f'{ws_ct}print("Done.")'
 
