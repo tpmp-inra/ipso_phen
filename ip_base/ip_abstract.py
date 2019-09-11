@@ -550,7 +550,7 @@ class AbstractImageProcessor(ImageWrapper):
         """
         if img['written'] is not True:
             if self.is_plot_image(img['name']):
-                self.plot_image(img=img)
+                self.plot_image(img_dict=img)
             elif self.is_save_image(img['name']):
                 self.save_image(img=img, idx=idx)
 
@@ -3474,6 +3474,10 @@ class AbstractImageProcessor(ImageWrapper):
     @property
     def write_mosaic(self):
         return self._options.get('write_mosaic', 'none')
+
+    @write_mosaic.setter
+    def write_mosaic(self, value):
+        self._options['write_mosaic'] = value
 
     @property
     def mosaic_data(self):

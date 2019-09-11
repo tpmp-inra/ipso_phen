@@ -23,11 +23,9 @@
     <body>
         <p><b><font size="+3">IPSO Phen</font></b></p>
 <hr>
-<br>
-<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Remember, a few hours of trial and error can save you several minutes of looking at the README.</p>&mdash; I Am Devloper (@iamdevloper) <a href="https://twitter.com/iamdevloper/status/1060067235316809729?ref_src=twsrc%5Etfw">November 7, 2018</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
-<br>
-<p><img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_6.gif" alt="Sample pipeline">
-<br></p>
+<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Remember, a few hours of trial and error can save you several minutes of looking at the README.</p>&mdash; I Am Devloper (@iamdevloper) <a href="https://twitter.com/iamdevloper/status/1060067235316809729?ref_src=twsrc%5Etfw">November 7, 2018</a></blockquote>  
+<p>Full documentation is available at our <a href="https://ipso-phen.readthedocs.io/en/latest/">read the docs site</a></p>
+<p><img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_6.gif" alt="Sample pipeline"></p>
 <ul>
 <li><a href="#what-is-ipso-phen">What is IPSO Phen</a>
 <ul>
@@ -79,10 +77,10 @@
 <h1 id="what-is-ipso-phen">What is IPSO Phen</h1>
 <p>The rise in popularity of high throughput plant phenotyping facilities leads to a large volume of images. To address the increasing demand and diversity of image analysis needs, we developed IPSO Phen, an all-in-one program to build, test and execute image-processing pipelines by chaining easily customizable tools.</p>
 <h2 id="introduction">Introduction</h2>
-<p>Toulouse Plant Microbe Phenotyping (TPMP) is a high throughput platform located on the INRA Occitanie-Toulouse campus. It has five camera groups in two robots taking pictures from the top or the side of the plant. Species studied to date are <em>Marchantia</em>, <em>Arabidopsis</em>, <em>Medicago</em>, Tomato, Tobacco, Sunflower, Eucalyptus, Wheat and <em>Brachypodium</em>. This large amount of possible combinations generated the need for a tool to create, test and run analysis pipelines. After evaluating the software tools freely available, we created IPSO Phen, an all-in-one image processing toolbox.
+<p>Toulouse Plant Microbe Phenotyping (TPMP) is a high throughput platform located on the INRA Occitanie-Toulouse campus in France. It has five camera groups in two robots taking pictures from the top or the side of the plant. Species studied to date are <em>Marchantia</em>, <em>Arabidopsis</em>, <em>Medicago</em>, Tomato, Tobacco, Sunflower, Eucalyptus, Wheat and <em>Brachypodium</em>. This large amount of possible combinations generated the need for a tool to create, test and run analysis pipelines. After evaluating the software tools freely available, we created IPSO Phen, an all-in-one image processing toolbox.<br>
 IPSO Phen, groups in a single interface around fifty different image-processing tools that can be combined into pipelines. The settings of both tools and pipelines can be thoroughly tested on fixed or random sets of images from the experiments. IPSO Phen can access images either from a file system or through a database.</p>
 <h2 id="image-processing-tools">Image processing tools</h2>
-<p><img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_2.jpg" alt="Image processing tool">
+<p><img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_2.jpg" alt="Image processing tool">
 IPSO Phen comes with a variety of image-processing tools that belong to different categories such as pre-processing, threshold, segmentation, feature extraction, etc… Each tool generates its own interface to customize/test its settings. There is also a grid search feature that allows the exploration of a whole solution space defined by a customized range for each setting.<br>
 Among the available tools, there is an image pre-processor based on Otsu’s  automatic clustering-based threshold method, various classic threshold methods and an advanced contour cleaning tool able to remove noise while keeping split contours.<br>
 Each tool can be used directly in a Python script by copying and pasting the code generated in the &quot;code&quot; tab next to the &quot;Help&quot; tab.</p>
@@ -236,10 +234,10 @@ For advanced Python users there is also the possibility to generate fully functi
 <h2 id="building-image-data-file">Building image data file</h2>
 <h3 id="launching-the-analysis">Launching the analysis</h3>
 <p>Once a pipeline is ready it can be executed on any number of images in the &quot;Pipeline processor&quot; tab. Options can be set before launching the maas process, only thread count can be modified afterwards.
-<img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_8.jpg" alt="Pipeline processor"></p>
+<img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_8.jpg" alt="Pipeline processor"></p>
 <h3 id="progress-feedback">Progress feedback</h3>
 <p>Once the process starts, the progress can be viewed on the &quot;Log&quot; tab. At any time the process can be stopped, afterwards, if the process is restarted the already analysed images will be skipped (partial results are stored) unless the setting to overwrite is checked.
-<img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_9.jpg" alt="Pipeline processor"></p>
+<img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_9.jpg" alt="Pipeline processor"></p>
 <h3 id="csv-file">CSV file</h3>
 <p>After the all the images are analysed, a CSV file will be generated in the selected output folder.</p>
 <h1 id="samples">Samples</h1>
@@ -257,12 +255,12 @@ To use this sample:</p>
 <ul>
 <li>Sample pipeline and output image
 <ul>
-<li><img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_6.gif" alt="Sample pipeline"></li>
+<li><img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_6.gif" alt="Sample pipeline"></li>
 </ul>
 </li>
 <li>Generated script (excerpt) and output data
 <ul>
-<li><img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_7.jpg" alt="Generated script"></li>
+<li><img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_7.jpg" alt="Generated script"></li>
 </ul>
 </li>
 </ul>
@@ -273,7 +271,7 @@ If you want to build a class pipeline check <a href="./class_pipelines/ip_stub.p
 <ul>
 <li>Output images:
 <ul>
-<li><img src="file:///c:\Users\fmavianemac\Documents\Felicia\ipso_phen\docs\images\md_image_4.gif" alt="Output images"></li>
+<li><img src="file:///c:\Users\fmavianemac\Documents\Felicia\Python\ipso_phen\docs\images\md_image_4.gif" alt="Output images"></li>
 </ul>
 </li>
 </ul>

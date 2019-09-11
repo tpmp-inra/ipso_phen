@@ -16,7 +16,7 @@ def _get_ipt_class(class_name: str) -> Union[type, None]:
         return None
 
 
-def call_ipt(ipt_id: str, source, **kwargs):
+def call_ipt(ipt_id: str, source, return_type: str = 'result', **kwargs):
     """Processes an image/wrapper with an IPT using an function like syntax
     :param ipt_id: Class name of the IPT
     :param source: Wrapper or path to source image
@@ -26,7 +26,10 @@ def call_ipt(ipt_id: str, source, **kwargs):
     if item is not None:
         with item(source, **kwargs) as (res, ipt):
             if res:
-                return ipt.result
+                if return_type == 'data' and hasattr(ipt, 'data_dict'):
+                    return ipt.data_dict
+                else:
+                    return ipt.result
     return None
 
 
@@ -48,7 +51,12 @@ def call_ipt_func(ipt_id: str, function_name: str, source, **kwargs):
 
 
 def call_ipt_code(
-    ipt, file_name: str = '', generate_imports: bool = True, white_spaces: str = '', result_name: str = ''
+    ipt,
+    file_name: str = '',
+    generate_imports: bool = True,
+    white_spaces: str = '',
+    result_name: str = '',
+    return_type: str = 'result'
 ):
     """Returns the code needed to run the IPT with given parameters
     :param generate_imports:
@@ -79,11 +87,12 @@ def call_ipt_code(
     else:
         source = f'wrapper'
 
-    ws = white_spaces + '         ' + ''.join([' ' for _ in range(0, len(res_name))])
-    res += f'{white_spaces}{res_name}call_ipt(ipt_id="{ipt_id}",\n'
-    res += f'{ws}source={source},\n{ws}'
-    res += f",\n{ws}".join([f"{p.name}={p.str_value}" for p in ipt.input_params(exclude_defaults=True)]
-                          ) + ')\n'
+    res += white_spaces + f'{res_name}call_ipt(\n'
+    ws = white_spaces + '    '
+    res += f",\n{ws}".join([f'{ws}ipt_id="{ipt_id}"', f'source={source}', f'return_type="{return_type}"'] +
+                           [f"{p.name}={p.str_value}"
+                            for p in ipt.input_params(exclude_defaults=True)]) + '\n'
+    res += white_spaces + ')\n'
 
     return res
 
@@ -129,12 +138,11 @@ def call_ipt_func_code(
     else:
         source = f'wrapper'
 
-    ws = white_spaces + \
-         ''.join([' ' for _ in range(0, len('call_ipt_func '))]) + \
-         ''.join([' ' for _ in range(0, len(res_name))])
-    res += f'{white_spaces}{res_name}call_ipt_func(ipt_id="{ipt_id}",\n'
-    res += f'{ws}source={source},\n{ws}function_name="{function_name}",\n{ws}'
+    ws = white_spaces + '    '
+    res += f'{white_spaces}{res_name}call_ipt_func(\n'
+    res += f'{ws}ipt_id="{ipt_id}",\n{ws}source={source},\n{ws}function_name="{function_name}",\n{ws}'
     res += f",\n{ws}".join([f"{p.name}={p.str_value}" for p in ipt.input_params(exclude_defaults=True)]
-                          ) + ')\n'
+                          ) + '\n'
+    res += f'{white_spaces})\n'
 
     return res
