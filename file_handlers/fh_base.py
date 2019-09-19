@@ -390,7 +390,7 @@ class FileHandlerBase(ABC):
 
     @property
     def is_vis(self):
-        return False
+        return True
 
     @property
     def is_fluo(self):
