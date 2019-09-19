@@ -1620,7 +1620,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             if last_db.db_name == '':
                 last_db = None
-            elif last_db.dbms == 'sqlite' and last_db.db_name != ':memory:' and not os.path.isfile(os.path.join('./sqlite_databases', last_db.db_name)):
+            elif (last_db.dbms == 'sqlite' and last_db.db_name != ':memory:' and not os.path.isfile(os.path.join('./sqlite_databases', last_db.db_name))):
                 last_db = None
 
             # Load saved databases
