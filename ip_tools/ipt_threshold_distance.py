@@ -4,8 +4,7 @@ from scipy.special import expit, logit
 from scipy import stats
 
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
-from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR
+from ip_base.ip_common import all_colors_dict, TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_THRESHOLD_STR
 
 CHANNEL_COUNT = 3
 
@@ -33,7 +32,9 @@ class IptThresholdDistance(IptBase):
             name='origin',
             desc='Distance origin',
             default_value='zero',
-            values=dict(zero='Space origin', mean='Components means', median='Components medians')
+            values= {**dict(zero='Space origin', mean='Components means', median='Components medians'), 
+                     **{k: k for k in all_colors_dict}},
+            hint='Can be zero, the mean or median colour or a selected one.'
         )
         self.add_combobox(
             name='distance',
@@ -89,7 +90,7 @@ class IptThresholdDistance(IptBase):
             * Transformation applied to channel 2 (transformation_2): 
             * Channel (channel_3): 
             * Transformation applied to channel 3 (transformation_3): 
-            * Distance origin (origin): 
+            * Distance origin (origin): Can be zero, the mean or median colour or a selected one.
             * Distance (distance): 
             * Target IPT (tool_target): no clue
             * Postprocessing option (post_processing): 
@@ -163,9 +164,12 @@ class IptThresholdDistance(IptBase):
             elif origin == 'median':
                 p0 = [np.median(c, axis=None) for c in channels]
             else:
-                wrapper.error_holder.add_error('Unknown origin')
-                res = False
-                return
+                try:
+                    p0 = all_colors_dict[origin]                    
+                except Exception as e:
+                    wrapper.error_holder.add_error('Unknown origin')
+                    res = False
+                    return
 
             distance_method = self.get_value_of('distance')
             if distance_method == 'l2' and len(channels) <= 1:

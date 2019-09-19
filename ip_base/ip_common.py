@@ -176,7 +176,7 @@ def bgr_to_rgb(color: tuple) -> tuple:
     Returns:
         tuple -- Converted color
     """
-    return (color[1], color[0], color[2])
+    return (color[2], color[1], color[0])
 
 
 def rgb_to_bgr(color: tuple) -> tuple:
@@ -188,7 +188,7 @@ def rgb_to_bgr(color: tuple) -> tuple:
     Returns:
         tuple -- Converted color
     """
-    return (color[1], color[0], color[2])
+    return (color[0], color[1], color[2])
 
 
 def get_hr_channel_name(channel):
