@@ -44,7 +44,7 @@ from ip_base.ipt_script_generator import IptScriptGenerator
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from tools import shapes
 from tools.comand_line_wrapper import ArgWrapper
-from tools.common_functions import format_time
+from tools.common_functions import format_time, open_file
 from tools.common_functions import make_safe_name, force_directories, natural_keys
 from tools.error_holder import ErrorHolder
 from tools.paths_factory import get_folders_paths
@@ -60,6 +60,8 @@ from ui.q_components import (
 )
 from ui.q_thread_handlers import IpsoRunnable, IpsoMassRunner, IpsoCsvBuilder
 
+from version import __version__
+
 try:
     import pydevd
 
@@ -70,8 +72,6 @@ except ImportError:
 qtCreatorFile = "./main_form.ui"
 
 Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
-
-__VERSION__ = "0.5.4.27"
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
@@ -143,7 +143,7 @@ def log_method_execution_time(f):
 class AboutDialog(Ui_about_dialog):
 
     def set_version(self):
-        self.lb_version.setText(f'Version: {__VERSION__}')
+        self.lb_version.setText(f'Version: {__version__}')
 
     def set_copyright(self):
         self.lbl_copyright.setText('Unpublished work (c) 2018-2019 INRA.')
@@ -158,6 +158,7 @@ class AboutDialog(Ui_about_dialog):
             self.txt_brw_used_packages.verticalScrollBar().setValue(
                 self.txt_brw_used_packages.verticalScrollBar().minimum()
             )
+        self.txt_brw_used_packages.moveCursor(QTextCursor.Start, 0)
 
 
 class NewToolDialog(QDialog):
@@ -509,6 +510,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._process_in_progress = False
         self._current_database = None
         self._current_tool = None
+        self._script_generator = None
+        self._file_name = ""
 
         QtWidgets.QMainWindow.__init__(self)
         Ui_MainWindow.__init__(self)
@@ -578,8 +581,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._status_label = QLabel('')
         self.statusBar().addWidget(self._status_label, stretch=0)
 
-        _, self.dst_image_path = get_folders_paths(
-            src_seed='', dst_seed=dt.now().strftime('%Y_%B_%d %H-%M-%S')
+        self.dst_image_path = get_folders_paths(
+            dst_seed=dt.now().strftime('%Y_%B_%d %H-%M-%S')
         )
 
         self._options = ArgWrapper(
@@ -889,7 +892,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             if ddb_list is not None:
                 qr = ddb_list.query(
-                    command='SELECT', table='TABLE_EXPERIMENTS', columns='db_name, experiment, robot'
+                    command='SELECT', 
+                    table='TABLE_EXPERIMENTS', 
+                    columns='db_name, experiment, robot'
                 )
                 if qr is not None:
                     for ddb in qr:
@@ -904,7 +909,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._last_folder = folder_path
         self.build_recent_folders_menu(self._last_folder)
         self.current_database = dbw.db_info_to_database(
-            dbw.DbInfo(name='Memory database', db_name=':memory:', path=self._last_folder, dbms='sqlite')
+            dbw.DbInfo(name='Memory database', 
+            db_name=':memory:', 
+            path=self._last_folder, 
+            dbms='sqlite')
         )
 
     def on_action_parse_folder(self):
@@ -919,7 +927,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     if ldb.path == dlg.folder_path:
                         self.update_feedback(
                             status_message='Database already exists',
-                            log_message=f"""{ui_consts.LOG_WARNING_STR} There's already a database named {ldb.name} pointing to {ldb.path} using {ldb.dbms}.<br>
+                            log_message=f"""{ui_consts.LOG_WARNING_STR} 
+                            There's already a database named {ldb.name} 
+                            pointing to {ldb.path} using {ldb.dbms}.<br>
                             Existing database will be used."""
                         )
                         self.current_database = dbw.db_info_to_database(ldb)
@@ -1439,19 +1449,19 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             qApp.setStyle(style)
             if theme == 'dark':
                 palette = QPalette()
-                palette.setColor(QPalette.Window, QColor(53, 53, 53))
                 palette.setColor(QPalette.WindowText, Qt.white)
-                palette.setColor(QPalette.Base, QColor(60, 60, 60))
-                palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
-                palette.setColor(QPalette.ToolTipBase, Qt.white)
-                palette.setColor(QPalette.ToolTipText, Qt.white)
                 palette.setColor(QPalette.Text, Qt.white)
-                palette.setColor(QPalette.Button, QColor(53, 53, 53))
+                palette.setColor(QPalette.ToolTipText, Qt.black)
                 palette.setColor(QPalette.ButtonText, Qt.white)
                 palette.setColor(QPalette.BrightText, Qt.red)
+                palette.setColor(QPalette.HighlightedText, Qt.black)
+                palette.setColor(QPalette.Window, QColor(53, 53, 53))
+                palette.setColor(QPalette.Base, QColor(60, 60, 60))
+                palette.setColor(QPalette.AlternateBase, QColor(53, 53, 53))
+                palette.setColor(QPalette.ToolTipBase, Qt.yellow)
+                palette.setColor(QPalette.Button, QColor(53, 53, 53))
                 palette.setColor(QPalette.Link, QColor(42, 130, 218))
                 palette.setColor(QPalette.Highlight, QColor(42, 130, 218))
-                palette.setColor(QPalette.HighlightedText, Qt.black)
             elif theme == 'default':
                 palette = self.style().standardPalette()
             elif theme == 'random !!!':
@@ -1471,19 +1481,20 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 palette.setColor(QPalette.HighlightedText, QColor(*ipc.random_color()))
             elif theme == 'Demo':
                 palette = QPalette()
-                palette.setColor(QPalette.WindowText, QColor(*ipc.bgr_to_rgb(ipc.C_WHITE)))
-                palette.setColor(QPalette.Text, QColor(*ipc.bgr_to_rgb(ipc.C_SILVER)))
-                palette.setColor(QPalette.ToolTipText, QColor(*ipc.bgr_to_rgb(ipc.C_DIM_GRAY)))
-                palette.setColor(QPalette.ButtonText, QColor(*ipc.bgr_to_rgb(ipc.C_WHITE)))
-                palette.setColor(QPalette.BrightText, QColor(*ipc.bgr_to_rgb(ipc.C_SILVER)))
-                palette.setColor(QPalette.HighlightedText, QColor(*ipc.bgr_to_rgb(ipc.C_LIME)))
-                palette.setColor(QPalette.Window, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE_VIOLET)))
-                palette.setColor(QPalette.Base, QColor(*ipc.bgr_to_rgb(ipc.C_FUCHSIA)))
+                palette.setColor(QPalette.WindowText, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE)))
+                palette.setColor(QPalette.Text, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE_VIOLET)))
+                palette.setColor(QPalette.ToolTipText, QColor(*ipc.bgr_to_rgb(ipc.C_CABIN_BLUE)))
+                palette.setColor(QPalette.ButtonText, QColor(*ipc.bgr_to_rgb(ipc.C_CYAN)))
+                palette.setColor(QPalette.BrightText, QColor(*ipc.bgr_to_rgb(ipc.C_LIGHT_STEEL_BLUE)))
+                palette.setColor(QPalette.HighlightedText, QColor(*ipc.bgr_to_rgb(ipc.C_PURPLE)))                
+                palette.setColor(QPalette.Window, QColor(*ipc.bgr_to_rgb(ipc.C_MAROON)))
+                palette.setColor(QPalette.Base, QColor(*ipc.bgr_to_rgb(ipc.C_BLACK)))                
                 palette.setColor(QPalette.AlternateBase, QColor(*ipc.bgr_to_rgb(ipc.C_GREEN)))
-                palette.setColor(QPalette.ToolTipBase, QColor(*ipc.bgr_to_rgb(ipc.C_YELLOW)))
-                palette.setColor(QPalette.Button, QColor(*ipc.bgr_to_rgb(ipc.C_GREEN)))
-                palette.setColor(QPalette.Link, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE)))
-                palette.setColor(QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_CABIN_BLUE)))
+                palette.setColor(QPalette.ToolTipBase, QColor(*ipc.bgr_to_rgb(ipc.C_LIME)))
+                palette.setColor(QPalette.Button, QColor(*ipc.bgr_to_rgb(ipc.C_ORANGE)))
+                palette.setColor(QPalette.Link, QColor(*ipc.bgr_to_rgb(ipc.C_WHITE)))
+                palette.setColor(QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_SILVER)))
+                palette.setColor(QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_RED)))
             else:
                 self.update_feedback(
                     status_message='Unknown theme',
@@ -1743,7 +1754,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 settings_.value('pipeline_processor/append_timestamp', 'true').lower() == 'true'
             )
             self.sl_pp_thread_count.setValue(
-                settings_.value('pipeline_processor/thread_count', self.sl_pp_thread_count.value())
+                int(settings_.value('pipeline_processor/thread_count', self.sl_pp_thread_count.value()))
             )
             self.pp_thread_pool.setMaxThreadCount(self.sl_pp_thread_count.value())
             self.sp_pp_time_delta.setValue(
@@ -2034,10 +2045,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         ntd.show()
 
     def on_action_show_read_me(self):
-        os.startfile(os.path.join(os.getcwd(), 'readme.html'))
+        open_file((os.getcwd(), 'readme.html'))
 
     def on_action_show_documentation(self):
-        os.startfile(os.path.join(os.getcwd(), 'site/index.html'))
+        open_file((os.getcwd(), 'site/index.html'))
 
     def build_tool_documentation(self, tool, tool_name):
         with open(os.path.join('docs', f'{tool_name}.md'), 'w') as f:
@@ -2997,7 +3008,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             image_name = f"img_{dt.now().strftime('%Y%B%d_%H%M%S')}.jpg"
             self.save_image(text=image_name, image_data=cb.itemData(cb.currentIndex()))
             self.update_feedback(status_message=f'Saved {cb.currentText()}', use_status_as_log=True)
-            os.startfile(os.path.join(self.dst_image_path, ''))
+            open_file((self.dst_image_path, ''))
 
     @pyqtSlot()
     def on_bt_save_all_images(self):
@@ -3008,7 +3019,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.save_image(text=image_name, image_data=cb.itemData(i))
             self.update_feedback(status_message=f'Saved {image_name} -- {i + 1}/{cb.count()}')
         self.update_feedback(status_message=f'Saved {cb.count()} images', use_status_as_log=True)
-        os.startfile(os.path.join(self.dst_image_path, ''))
+        open_file((self.dst_image_path, ''))
 
     def on_video_frame_duration_changed(self):
         self.action_video_1_24_second.setChecked(self.sender() == self.action_video_1_24_second)
@@ -3142,7 +3153,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.log_exception(f'Failed to generate video: "{repr(e)}"')
         else:
             self.update_feedback(status_message=f'Generated video "{vid_name}"', use_status_as_log=True)
-            os.startfile(os.path.join(self.dst_image_path, ''))
+            open_file((self.dst_image_path, ''))
         finally:
             out.release()
             cv2.destroyAllWindows()
