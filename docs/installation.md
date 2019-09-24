@@ -75,5 +75,5 @@ Follow this steps
 !!! warning
     At the moment of writing this documentation I could not install PlantCV with pip, only the conda method worked.
 
-If you want to use PlantCV you will have to install it. If PlantCV is installed all available PlnatCV tools will be loaded when the program starts.  
+If you want to use PlantCV you will have to install it. If PlantCV is installed all available PlantCV tools will be loaded when the program starts.  
 Please go to their documentation page fond here: [https://plantcv.readthedocs.io/en/stable/](https://plantcv.readthedocs.io/en/stable/)
