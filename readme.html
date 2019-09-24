@@ -41,13 +41,13 @@
 <li><a href="#pip">Pip</a>
 <ul>
 <li><a href="#windows">Windows</a></li>
-<li><a href="#linuxosx-or-windows-if-previous-method-failed">Linux/OSX (or Windows if previous method failed)</a></li>
+<li><a href="#linuxosx">Linux/OSX</a></li>
 </ul>
 </li>
 <li><a href="#conda">Conda</a>
 <ul>
 <li><a href="#windows-1">Windows</a></li>
-<li><a href="#linuxosx-or-windows-if-previous-method-failed-1">Linux/OSX (or Windows if previous method failed)</a></li>
+<li><a href="#linuxosx-or-windows-if-previous-method-failed">Linux/OSX (or Windows if previous method failed)</a></li>
 </ul>
 </li>
 </ul>
@@ -103,28 +103,15 @@ For advanced Python users there is also the possibility to generate fully functi
 <li>Execute on the prompt: install.bat <em>PYTHON_EXE_PATH</em></li>
 <li>To launch IPSO Phen just double click on run.bat</li>
 </ol>
-<h3 id="linuxosx-or-windows-if-previous-method-failed">Linux/OSX (or Windows if previous method failed)</h3>
+<h3 id="linuxosx">Linux/OSX</h3>
 <p>Follow this steps</p>
 <ol>
 <li>Install Python minimum version 3.6 if needed - <a href="https://www.python.org/downloads/">https://www.python.org/downloads/</a>  during installation keep track of the folder where Python is installed and find the path to the Python executable file <em>PYTHON_EXE_PATH</em></li>
 <li>Extract/copy/clone IPSO Phen files to a new folder</li>
 <li>Open a terminal session ond go to the folder containing IPSO Phen</li>
-<li>Run the following commands
-<ol>
-<li><em>PYTHON_EXE_PATH</em> -m venv ipso_pip_env</li>
-<li>.\ipso_pip_env\Scripts\activate</li>
-<li>python -m pip install --upgrade pip</li>
-<li>pip install -r requirements.txt</li>
-<li>.\ipso_pip_env\Scripts\deactivate <em>(optional)</em></li>
-</ol>
-</li>
-<li>To launch IPSO Phen run the following commands
-<ol>
-<li>./ipso_pip_env/Scripts/activate</li>
-<li>./ipso_pip_env/Scripts/python ./main.py</li>
-<li>./ipso_pip_env/Scripts/deactivate <em>(once IPSO Phen has been closed)</em></li>
-</ol>
-</li>
+<li>Execute ./install.pip.x (you may need to execute chmod u+x install.pip.x before to turn the file into an executable)</li>
+<li>When asked &quot;<em>Where is Python?</em>&quot; enter <em>PYTHON_EXE_PATH</em></li>
+<li>To launch IPSO Phen just double click on run.pip.x (you may need to execute chmod u+x run.pip.x before to turn the file into an executable)</li>
 </ol>
 <h2 id="conda">Conda</h2>
 <h3 id="windows-1">Windows</h3>
@@ -139,7 +126,7 @@ For advanced Python users there is also the possibility to generate fully functi
 <li>Execute on the prompt: activate ipso_phen_env</li>
 <li>Execute on the prompt: python <a href="http://main.py">main.py</a></li>
 </ol>
-<h3 id="linuxosx-or-windows-if-previous-method-failed-1">Linux/OSX (or Windows if previous method failed)</h3>
+<h3 id="linuxosx-or-windows-if-previous-method-failed">Linux/OSX (or Windows if previous method failed)</h3>
 <p>Follow this steps</p>
 <ol>
 <li>Install Miniconda if needed - <a href="https://docs.conda.io/en/latest/miniconda.html">https://docs.conda.io/en/latest/miniconda.html</a> 64bits version</li>

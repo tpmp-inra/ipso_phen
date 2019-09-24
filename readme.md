@@ -17,10 +17,10 @@ Full documentation is available at our [read the docs site](https://ipso-phen.re
 - [Installing](#installing)
   - [Pip](#pip)
     - [Windows](#windows)
-    - [Linux/OSX (or Windows if previous method failed)](#linuxosx-or-windows-if-previous-method-failed)
+    - [Linux/OSX](#linuxosx)
   - [Conda](#conda)
     - [Windows](#windows-1)
-    - [Linux/OSX (or Windows if previous method failed)](#linuxosx-or-windows-if-previous-method-failed-1)
+    - [Linux/OSX (or Windows if previous method failed)](#linuxosx-or-windows-if-previous-method-failed)
 - [First steps](#first-steps)
   - [Loading images](#loading-images)
   - [About the tools](#about-the-tools)
@@ -79,23 +79,16 @@ Follow this steps
 4. Execute on the prompt: install.bat *PYTHON_EXE_PATH*
 5. To launch IPSO Phen just double click on run.bat
 
-### Linux/OSX (or Windows if previous method failed)
+### Linux/OSX
 
 Follow this steps
 
 1. Install Python minimum version 3.6 if needed - [https://www.python.org/downloads/](https://www.python.org/downloads/)  during installation keep track of the folder where Python is installed and find the path to the Python executable file *PYTHON_EXE_PATH*
 2. Extract/copy/clone IPSO Phen files to a new folder
 3. Open a terminal session ond go to the folder containing IPSO Phen
-4. Run the following commands
-   1. *PYTHON_EXE_PATH* -m venv ipso_pip_env 
-   2. .\ipso_pip_env\Scripts\activate
-   3. python -m pip install --upgrade pip 
-   4. pip install -r requirements.txt 
-   5. .\ipso_pip_env\Scripts\deactivate *(optional)*
-5. To launch IPSO Phen run the following commands
-   1. ./ipso_pip_env/Scripts/activate
-   2. ./ipso_pip_env/Scripts/python ./main.py
-   3. ./ipso_pip_env/Scripts/deactivate *(once IPSO Phen has been closed)*
+4. Execute ./install.pip.x (you may need to execute chmod u+x install.pip.x before to turn the file into an executable)
+5. When asked "*Where is Python?*" enter *PYTHON_EXE_PATH*
+6. To launch IPSO Phen just double click on run.pip.x (you may need to execute chmod u+x run.pip.x before to turn the file into an executable)
 
 ## Conda
 
