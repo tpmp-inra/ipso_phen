@@ -33,6 +33,7 @@ Full documentation is available at our [read the docs site](https://ipso-phen.re
 - [Samples](#samples)
   - [Arabidopsis top view](#arabidopsis-top-view)
   - [Tomato side plant](#tomato-side-plant)
+- [Authors](#authors)
 
 # What is IPSO Phen
 
@@ -234,3 +235,7 @@ If you want to build a class pipeline check [this script](./class_pipelines/ip_s
 
 - Output images:
   - ![Output images](./docs/images/md_image_4.gif)
+
+# Authors
+
+- Felicià Antoni Maviane Macia

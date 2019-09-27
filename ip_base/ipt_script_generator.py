@@ -44,7 +44,8 @@ def decode_ipt(dct):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
                 try:
                     ret = obj(**tmp)
-                except:
+                except Exception as e:
+                    print(f'Failed to load ipt: {repr(e)}')
                     ret = None
                 finally:
                     return ret
@@ -436,7 +437,10 @@ class IptScriptGenerator(object):
         else:
             tool = tool_dict['tool'].copy()
             if tool.process_wrapper(wrapper=wrapper):
-                ret = tool.result
+                if (tool_dict['kind'] == TOOL_GROUP_FEATURE_EXTRACTION_STR) and (hasattr(tool, 'data_dict')):
+                    ret = tool.data_dict
+                else:
+                    ret = tool.result
                 tool_dict['changed'] = False
                 tool_dict['last_result'] = ret
             else:
@@ -514,6 +518,7 @@ class IptScriptGenerator(object):
             if len(tools_[TOOL_GROUP_THRESHOLD_STR]) > 0:
                 mask_list = []
                 mask_names = []
+                masks_failed_cpt = 0
                 for i, tool in enumerate(tools_[TOOL_GROUP_THRESHOLD_STR]):
                     target = tool['tool'].get_value_of('tool_target')
                     if target not in [None, '', 'none']:
@@ -524,8 +529,13 @@ class IptScriptGenerator(object):
                     if mask is not None:
                         mask_list.append(mask)
                         mask_names.append(tool['tool'].short_desc())
+                    else:
+                        masks_failed_cpt += 1
                     current_step = self.add_progress(
-                        progress_callback, current_step, total_steps, 'Building coarse masks',
+                        progress_callback,
+                        current_step,
+                        total_steps,
+                        f'Building coarse masks, failed {masks_failed_cpt}' if masks_failed_cpt != 0 else 'Building coarse masks',
                         wrapper if mask is not None else None
                     )
 
@@ -1142,6 +1152,7 @@ class IptScriptGenerator(object):
             current_op = self.ip_operators[i]
             if self.op_matches(current_op, constraints=constraints):
                 op_to_delete = self.ip_operators.pop(self.ip_operators.index(current_op))
+                self.delete_cache_if_tool_after(op_to_delete['kind'])
                 for p in op_to_delete['tool'].gizmos:
                     p.clear_widgets()
             else:
@@ -1190,6 +1201,34 @@ class IptScriptGenerator(object):
                 return feature
         return None
 
+    @staticmethod
+    def ops_after(tool_kind: str):
+        if tool_kind in [TOOL_GROUP_EXPOSURE_FIXING_STR]:
+            return [
+                TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR, TOOL_GROUP_PRE_PROCESSING_STR,
+                TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR
+            ]
+        if tool_kind in [TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR]:
+            return [
+                TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR
+            ]
+        elif tool_kind == TOOL_GROUP_PRE_PROCESSING_STR:
+            return [
+                TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR
+            ]
+        elif tool_kind == TOOL_GROUP_THRESHOLD_STR:
+            return [TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR]
+        elif tool_kind == TOOL_GROUP_MASK_CLEANUP_STR:
+            return [TOOL_GROUP_MASK_CLEANUP_STR]
+        elif tool_kind == TOOL_GROUP_FEATURE_EXTRACTION_STR:
+            return [TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        else:
+            return []
+
+    def delete_cache_if_tool_after(self, tool_kind: str):
+        for tool_dict in self.get_operators(constraints=dict(kind=self.ops_after(tool_kind))):
+            tool_dict['last_result'] = None
+
     def toggle_enabled_state(self, key: str) -> None:
         """
         Toggles enabled of matching key
@@ -1198,31 +1237,7 @@ class IptScriptGenerator(object):
         tool = self.get_operators(constraints=dict(uuid=key))
         if len(tool) > 0:
             tool[0]['enabled'] = not tool[0]['enabled']
-            if tool[0]['kind'] in [TOOL_GROUP_EXPOSURE_FIXING_STR]:
-                to_reset = [
-                    TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR, TOOL_GROUP_PRE_PROCESSING_STR,
-                    TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR
-                ]
-            if tool[0]['kind'] in [TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR]:
-                to_reset = [
-                    TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR
-                ]
-            elif tool[0]['kind'] == TOOL_GROUP_PRE_PROCESSING_STR:
-                to_reset = [
-                    TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR
-                ]
-            elif tool[0]['kind'] == TOOL_GROUP_THRESHOLD_STR:
-                to_reset = [TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR]
-            elif tool[0]['kind'] == TOOL_GROUP_MASK_CLEANUP_STR:
-                to_reset = [TOOL_GROUP_MASK_CLEANUP_STR]
-            elif tool[0]['kind'] == TOOL_GROUP_FEATURE_EXTRACTION_STR:
-                to_reset = [TOOL_GROUP_FEATURE_EXTRACTION_STR]
-            else:
-                to_reset = []
-            tools_to_reset = self.get_operators(constraints=dict(kind=to_reset))
-            for tool_dict in tools_to_reset:
-                tool_dict['last_result'] = None
-            return
+            self.delete_cache_if_tool_after(tool[0]['kind'])            
         for feature in self.feature_list:
             if feature['feature'] == key:
                 feature['enabled'] = not feature['enabled']
