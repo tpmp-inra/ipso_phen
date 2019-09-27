@@ -14,6 +14,7 @@ from datetime import datetime as dt
 from timeit import default_timer as timer
 from typing import Any
 import glob
+import webbrowser
 
 import cv2
 import numpy as np
@@ -83,6 +84,7 @@ _TAB_VIDEO = 'tab_video_player'
 
 _TAB_TOOLS = 'tab_tools'
 _TAB_PIPELINE = 'tab_pipeline'
+_TAB_SCRIPT = 'tab_script'
 
 _ACTIVE_SCRIPT_TAG = 'Active script'
 
@@ -114,6 +116,17 @@ sys.excepthook = excepthook
 
 
 class FullQueryResult(FullQueryResultBase):
+
+    # def __init__(self, Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, Luid):
+    #     self.Experiment = Experiment
+    #     self.Plant = Plant
+    #     self.Date = Date
+    #     self.Camera = Camera
+    #     self.view_option = view_option
+    #     self.Time = Time
+    #     self.date_time = date_time
+    #     self.FilePath = FilePath
+    #     self.Luid = Luid
 
     def __str__(self):
         return f'{self.Experiment}_{self.Plant}_{self.date_time}_{self.Camera}_{self.view_option}'
@@ -290,8 +303,8 @@ class NewToolDialog(QDialog):
                 f.write(f"{spaces}mask = wrapper.mask\n")
                 f.write(f"{spaces}if mask is None:\n")
                 f.write(
-                    f"{spaces}    wrapper.error_holder.add_error(" +
-                    f"'Failure {self.ui.le_tool_name.text()}: mask must be initialized')\n"
+                    f"""{spaces}    wrapper.error_holder.add_error(
+                        'Failure {self.ui.le_tool_name.text()}: mask must be initialized')\n"""
                 )
                 f.write(f"{spaces}    return\n")
             f.write(f"\n")
@@ -892,8 +905,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             if ddb_list is not None:
                 qr = ddb_list.query(
-                    command='SELECT', 
-                    table='TABLE_EXPERIMENTS', 
+                    command='SELECT',
+                    table='TABLE_EXPERIMENTS',
                     columns='db_name, experiment, robot'
                 )
                 if qr is not None:
@@ -909,10 +922,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._last_folder = folder_path
         self.build_recent_folders_menu(self._last_folder)
         self.current_database = dbw.db_info_to_database(
-            dbw.DbInfo(name='Memory database', 
-            db_name=':memory:', 
-            path=self._last_folder, 
-            dbms='sqlite')
+            dbw.DbInfo(
+                name='Memory database',
+                db_name=':memory:',
+                path=self._last_folder,
+                dbms='sqlite'
+            )
         )
 
     def on_action_parse_folder(self):
@@ -927,8 +942,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     if ldb.path == dlg.folder_path:
                         self.update_feedback(
                             status_message='Database already exists',
-                            log_message=f"""{ui_consts.LOG_WARNING_STR} 
-                            There's already a database named {ldb.name} 
+                            log_message=f"""{ui_consts.LOG_WARNING_STR}
+                            There's already a database named {ldb.name}
                             pointing to {ldb.path} using {ldb.dbms}.<br>
                             Existing database will be used."""
                         )
@@ -961,7 +976,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.log_exception(f'Unknown DBMS: {db}')
                 else:
                     self.current_database = db
-                break    
+                break
 
     def on_recent_folder_select(self):
         self.do_parse_folder(self.sender().text())
@@ -1303,9 +1318,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         widgets.extend(self.findChildren(QLineEdit))
         widgets.extend(self.findChildren(QMenu))
         widgets.extend(self.findChildren(QTableWidget))
+
         for widget in widgets:
-            if 'ipt_param_' in widget.objectName():
-                continue
+            # if 'ipt_param_' in widget.objectName():
+            #     continue
             if 'sl_pp_thread_count' in widget.objectName():
                 continue
             if 'chk_pp_show_last_item' in widget.objectName():
@@ -1316,6 +1332,15 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 widget.setEnabled(False)
             else:
                 widget.setEnabled(new_state)
+
+        for tab_name_ in [_TAB_TOOLS, _TAB_PIPELINE, _TAB_SCRIPT]:
+            tab_widget_ = self.tb_tool_script.findChild(QWidget, tab_name_)
+            if tab_widget_ is None:
+                continue
+            if new_state is True:
+                tab_widget_.setEnabled(True)
+            else:
+                tab_widget_.setEnabled(tab_name_ == self.selected_run_tab)
 
     @staticmethod
     def check_image_list_size(display_warning, list_size):
@@ -1486,9 +1511,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 palette.setColor(QPalette.ToolTipText, QColor(*ipc.bgr_to_rgb(ipc.C_CABIN_BLUE)))
                 palette.setColor(QPalette.ButtonText, QColor(*ipc.bgr_to_rgb(ipc.C_CYAN)))
                 palette.setColor(QPalette.BrightText, QColor(*ipc.bgr_to_rgb(ipc.C_LIGHT_STEEL_BLUE)))
-                palette.setColor(QPalette.HighlightedText, QColor(*ipc.bgr_to_rgb(ipc.C_PURPLE)))                
+                palette.setColor(QPalette.HighlightedText, QColor(*ipc.bgr_to_rgb(ipc.C_PURPLE)))
                 palette.setColor(QPalette.Window, QColor(*ipc.bgr_to_rgb(ipc.C_MAROON)))
-                palette.setColor(QPalette.Base, QColor(*ipc.bgr_to_rgb(ipc.C_BLACK)))                
+                palette.setColor(QPalette.Base, QColor(*ipc.bgr_to_rgb(ipc.C_BLACK)))
                 palette.setColor(QPalette.AlternateBase, QColor(*ipc.bgr_to_rgb(ipc.C_GREEN)))
                 palette.setColor(QPalette.ToolTipBase, QColor(*ipc.bgr_to_rgb(ipc.C_LIME)))
                 palette.setColor(QPalette.Button, QColor(*ipc.bgr_to_rgb(ipc.C_ORANGE)))
@@ -1814,7 +1839,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 settings_.setValue('selected_plant_luid', self._src_image_wrapper.luid)
 
             if self.current_database is not None:
-                settings_.beginGroup('current_data_base')                
+                settings_.beginGroup('current_data_base')
                 settings_.setValue('name', self.current_database.display_name)
                 settings_.setValue('db_name', self.current_database.db_name)
                 settings_.setValue('path', self.current_database.path)
@@ -2048,7 +2073,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         open_file((os.getcwd(), 'readme.html'))
 
     def on_action_show_documentation(self):
-        open_file((os.getcwd(), 'site/index.html'))
+        webbrowser.open('https://ipso-phen.readthedocs.io/en/latest/')
 
     def build_tool_documentation(self, tool, tool_name):
         with open(os.path.join('docs', f'{tool_name}.md'), 'w') as f:
@@ -2711,6 +2736,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         elif mode == 'script':
             if not is_batch_process:
                 self.on_bt_clear_result()
+            self.update_feedback(status_message='Executing current script, please wait...')
         else:
             self.update_feedback(
                 status_message=f'Unknown runnable mode {mode}',
@@ -2787,10 +2813,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.global_progress_start(add_stop_button=True)
         elif thread_total > 1 and thread_step < thread_total:
             self.global_progress_update(self.threads_step, self.threads_total)
-        elif thread_total > 1 and thread_step >= thread_total:
-            self.global_progress_stop()
-            self.set_global_enabled_state(new_state=True)
-        elif thread_total <= 1:
+        elif (thread_step >= thread_total) or (thread_total < 1):
             self.global_progress_stop()
             self.set_global_enabled_state(new_state=True)
 
@@ -2895,6 +2918,16 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 new_enabled_state = True
             else:
                 new_enabled_state = False
+
+            if script_ is not None:
+                update_msg = ''
+            if ipt_ is not None and not ipt_.real_time:
+                update_msg = f'Executing {ipt_.name}, please wait...'
+            else:
+                update_msg = ''
+            if update_msg:
+                self.update_feedback(status_message=update_msg)
+
             self.set_global_enabled_state(new_state=new_enabled_state)
 
             self.thread_pool.clear()
