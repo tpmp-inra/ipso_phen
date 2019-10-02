@@ -8,7 +8,7 @@ If you have an idea for a new image processing tool or you want to port an alrea
 We're going to build a really simple tool that rotates an image
 
 !!! warning
-    Before creating your awn tools set 
+    Before creating your own tools set 
     ```python
     USE_PROCESS_THREAD = False
     ```

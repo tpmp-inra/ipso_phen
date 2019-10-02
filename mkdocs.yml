@@ -65,7 +65,7 @@ nav:
           - Triangle threshold: ipt_Triangle_threshold.md
   - Testing: testing.md
   - Using the grid search: grid_search.md
-  - Tutorial - Pipelines: pipelines.md
+  - Pipelines: pipelines.md
   - Pipeline processor: pipeline_processor.md
   - Advanced features:
       - Creating custom tools: custom_tools.md
