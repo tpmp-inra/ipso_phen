@@ -20,6 +20,12 @@ class IptAnalyzeBound(IptBaseAnalyzer):
         self.add_checkbox(
             name='below_bound_percent_area', desc='Percentage area below bound level', default_value=1
         )
+        self.add_checkbox(
+            name='override_shape_height',
+            desc='Override shape height',
+            default_value=1,
+            hint='If true "shape_height" from "Analyse object" will be overridden.'
+        )
 
         self.add_spin_box(
             name='line_position',
@@ -95,7 +101,9 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                 self.add_value('below_bound_area', mask_data_bottom.area)
                 self.add_value('below_bound_percent_area', mask_data_bottom.area / area_ * 100)
 
-                self.add_value('shape_height', t_height + b_height)
+                self.add_value(
+                    'shape_height', t_height + b_height, force_add=self.get_value_of('override_shape_height')
+                )
 
                 if wrapper.store_images:
                     pseudo_color_channel = self.get_value_of('channel')

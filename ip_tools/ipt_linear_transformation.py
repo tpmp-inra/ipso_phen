@@ -60,6 +60,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
             minimum=0,
             maximum=255
         )
+        self.add_roi_selector()
         self.add_checkbox(name='show_over_under', desc='Show over an under exposed parts', default_value=0)
         self.add_combobox(
             name='brg_calc',
@@ -127,7 +128,11 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     # First get the source brightness
                     target_brightness = self.get_value_of('target_brightness')
                     if brg_calc != 'none':
-                        rois = self.get_ipt_roi(wrapper=wrapper)
+                        rois = self.get_ipt_roi(
+                            wrapper=wrapper,
+                            roi_names=self.get_value_of('roi_names').replace(' ', '').split(','),
+                            selection_mode=self.get_value_of('roi_selection_mode')
+                        )
                         if len(rois) > 0:
                             roi = rois[0]
                         else:

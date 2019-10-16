@@ -1,0 +1,11 @@
+CHANGES
+=======
+
+* Sem-Ver:: bugfix
+* Sem-Ver: feature
+* Update ui\_consts.py
+* Added sample brachy image Improved documentation Fixed pipeline scripts Updated readme with read the docs @
+* Fixed Youtube URL
+* Updated path to tutorial video Restored script generator cache Deactivated postgres option
+* First commit to new repo
+* Initial commit

@@ -7,7 +7,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
+    <width>1176</width>
     <height>869</height>
    </rect>
   </property>
@@ -211,7 +211,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0">
       <item>
        <widget class="QLabel" name="lbl_selection">
         <property name="font">
@@ -250,6 +250,20 @@
        <widget class="QPushButton" name="bt_clear_selection">
         <property name="text">
          <string>Clear</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="bt_add_random">
+        <property name="text">
+         <string>Add random</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="sp_add_random_count">
+        <property name="maximum">
+         <number>10000</number>
         </property>
        </widget>
       </item>
@@ -671,8 +685,8 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>98</width>
-                          <height>28</height>
+                          <width>559</width>
+                          <height>235</height>
                          </rect>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -934,7 +948,7 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>568</width>
+                           <width>571</width>
                            <height>70</height>
                           </rect>
                          </property>
@@ -1218,41 +1232,38 @@
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
            </property>
-           <layout class="QGridLayout" name="gridLayout_15">
-            <item row="0" column="0">
-             <widget class="QComboBox" name="cb_available_outputs">
-              <property name="maxVisibleItems">
-               <number>30</number>
+           <layout class="QHBoxLayout" name="horizontalLayout_12">
+            <item>
+             <widget class="QSplitter" name="spl_ver_main_img_data">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
               </property>
-              <property name="sizeAdjustPolicy">
-               <enum>QComboBox::AdjustToContentsOnFirstShow</enum>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QPushButton" name="bt_clear_result">
-              <property name="maximumSize">
-               <size>
-                <width>100</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Clear</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
-             <widget class="QTabWidget" name="tabWidget_3">
-              <property name="currentIndex">
-               <number>0</number>
-              </property>
-              <widget class="QWidget" name="tab_6">
-               <attribute name="title">
-                <string>Output images</string>
-               </attribute>
+              <widget class="QWidget" name="layoutWidget">
                <layout class="QGridLayout" name="gridLayout_13">
                 <item row="0" column="0">
+                 <widget class="QComboBox" name="cb_available_outputs">
+                  <property name="maxVisibleItems">
+                   <number>30</number>
+                  </property>
+                  <property name="sizeAdjustPolicy">
+                   <enum>QComboBox::AdjustToContents</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="bt_clear_result">
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Clear</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0" colspan="2">
                  <widget class="QLabel" name="lbl_output_image">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
@@ -1276,35 +1287,32 @@
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="tab_7">
-               <attribute name="title">
-                <string>Output data</string>
+              <widget class="QTableWidget" name="tw_script_sim_output">
+               <property name="frameShadow">
+                <enum>QFrame::Plain</enum>
+               </property>
+               <property name="alternatingRowColors">
+                <bool>true</bool>
+               </property>
+               <property name="sortingEnabled">
+                <bool>true</bool>
+               </property>
+               <attribute name="horizontalHeaderStretchLastSection">
+                <bool>true</bool>
                </attribute>
-               <layout class="QGridLayout" name="gridLayout_14">
-                <item row="0" column="0">
-                 <widget class="QTableWidget" name="tw_script_sim_output">
-                  <property name="frameShadow">
-                   <enum>QFrame::Plain</enum>
-                  </property>
-                  <attribute name="horizontalHeaderStretchLastSection">
-                   <bool>true</bool>
-                  </attribute>
-                  <attribute name="verticalHeaderStretchLastSection">
-                   <bool>false</bool>
-                  </attribute>
-                  <column>
-                   <property name="text">
-                    <string>Key</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Value</string>
-                   </property>
-                  </column>
-                 </widget>
-                </item>
-               </layout>
+               <attribute name="verticalHeaderStretchLastSection">
+                <bool>false</bool>
+               </attribute>
+               <column>
+                <property name="text">
+                 <string>Key</string>
+                </property>
+               </column>
+               <column>
+                <property name="text">
+                 <string>Value</string>
+                </property>
+               </column>
               </widget>
              </widget>
             </item>
@@ -1496,7 +1504,7 @@
                   <string>...</string>
                  </property>
                  <property name="icon">
-                  <iconset resource="main_form.qrc">
+                  <iconset>
                    <normaloff>:/common/resources/folder_blue.png</normaloff>:/common/resources/folder_blue.png</iconset>
                  </property>
                 </widget>
@@ -1895,7 +1903,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1024</width>
+     <width>1176</width>
      <height>21</height>
     </rect>
    </property>
@@ -1999,12 +2007,21 @@
      <addaction name="action_object_oriented_wrapped_with_a_with_clause"/>
      <addaction name="action_standard_object_oriented_call"/>
     </widget>
+    <widget class="QMenu" name="mnu_debug">
+     <property name="title">
+      <string>Debug</string>
+     </property>
+     <addaction name="action_use_multithreading"/>
+     <addaction name="action_use_pipeline_cache"/>
+    </widget>
     <addaction name="actionEnable_annotations"/>
     <addaction name="actionEnable_log"/>
     <addaction name="menuVideo"/>
     <addaction name="menu_theme"/>
     <addaction name="separator"/>
     <addaction name="menuCode_generation_mode"/>
+    <addaction name="separator"/>
+    <addaction name="mnu_debug"/>
    </widget>
    <widget class="QMenu" name="menuScript_generator">
     <property name="title">
@@ -2697,6 +2714,31 @@
   <action name="action_new_tool">
    <property name="text">
     <string>New tool</string>
+   </property>
+  </action>
+  <action name="action_use_multithreading">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use multithreading</string>
+   </property>
+   <property name="toolTip">
+    <string>Do not change !!!</string>
+   </property>
+  </action>
+  <action name="action_use_pipeline_cache">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Use pipeline cache</string>
    </property>
   </action>
  </widget>

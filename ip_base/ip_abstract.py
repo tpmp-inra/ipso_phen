@@ -18,7 +18,7 @@ from tools.common_functions import time_method, force_directories
 from tools.error_holder import ErrorHolder
 from tools.db_wrapper import DB_TYPE_MEMORY
 
-matplotlib.use('agg')
+matplotlib.use("agg")
 
 KLC_FULLY_INSIDE = dict(val=0, color=(0, 255, 0))  # GREEN
 KLC_OVERLAPS = dict(val=1, color=(255, 0, 0))  # BLUE
@@ -32,7 +32,6 @@ KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE = dict(val=8, color=(125, 255, 125))  # LIGHTE
 
 
 class ImageListHolder:
-
     def __init__(self, file_list):
         self.image_list = [file_handler_factory(file_path_) for file_path_ in file_list]
 
@@ -86,11 +85,11 @@ class AbstractImageProcessor(ImageWrapper):
         self._built_channels = {}
 
         self.csv_data_holder = self.init_csv_writer()
-        self.csv_data_holder.update_csv_value('experiment', self.experiment)
-        self.csv_data_holder.update_csv_value('plant', self.plant)
-        self.csv_data_holder.update_csv_value('date_time', self.date_time)
-        self.csv_data_holder.update_csv_value('camera', self.camera)
-        self.csv_data_holder.update_csv_value('view_option', self.view_option)
+        self.csv_data_holder.update_csv_value("experiment", self.experiment)
+        self.csv_data_holder.update_csv_value("plant", self.plant)
+        self.csv_data_holder.update_csv_value("date_time", self.date_time)
+        self.csv_data_holder.update_csv_value("camera", self.camera)
+        self.csv_data_holder.update_csv_value("view_option", self.view_option)
 
         self.error_holder = ErrorHolder(self)
 
@@ -98,15 +97,16 @@ class AbstractImageProcessor(ImageWrapper):
         if self.lock:
             return
         self.csv_data_holder = self.init_csv_writer()
-        self.csv_data_holder.update_csv_value('experiment', self.experiment)
-        self.csv_data_holder.update_csv_value('plant', self.plant)
-        self.csv_data_holder.update_csv_value('date_time', self.date_time)
-        self.csv_data_holder.update_csv_value('camera', self.camera)
-        self.csv_data_holder.update_csv_value('view_option', self.view_option)
+        self.csv_data_holder.update_csv_value("experiment", self.experiment)
+        self.csv_data_holder.update_csv_value("plant", self.plant)
+        self.csv_data_holder.update_csv_value("date_time", self.date_time)
+        self.csv_data_holder.update_csv_value("camera", self.camera)
+        self.csv_data_holder.update_csv_value("view_option", self.view_option)
         self._rois_list = []
         self.image_list = []
+        self.data_output = {}
         self._mosaic_data = None
-        self.store_mosaic = 'none'
+        self.store_mosaic = "none"
         self._current_image = self.source_image
 
     def init_csv_writer(self):
@@ -139,11 +139,11 @@ class AbstractImageProcessor(ImageWrapper):
         src_img = cv2.imdecode(np_array, 3)
 
         try:
-            if self.is_nir and self.view_option == 'top':
+            if self.is_nir and self.view_option == "top":
                 src_img = cv2.flip(src_img, 0)
                 src_img = cv2.flip(src_img, 1)
         except Exception as e:
-            self.error_holder.add_error(f'Failed to load {repr(self)} because {repr(e)}')
+            self.error_holder.add_error(f"Failed to load {repr(self)} because {repr(e)}")
             self.good_image = False
         else:
             self.good_image = src_img is not None
@@ -152,10 +152,12 @@ class AbstractImageProcessor(ImageWrapper):
             src_img = self._fix_source_image(src_img)
 
         if self.good_image and store_source:
-            self.store_image(src_img, 'source')
+            self.store_image(src_img, "source")
 
         if not self.good_image:
-            self.error_holder.add_error('Unable to load source image', new_error_kind='source_issue')
+            self.error_holder.add_error(
+                "Unable to load source image", new_error_kind="source_issue"
+            )
 
         return src_img
 
@@ -164,23 +166,26 @@ class AbstractImageProcessor(ImageWrapper):
 
         :return: Number of MSP images available
         """
-        if (self.msp_images_holder is None) and (self.target_database is not None
-                                                ) and (DB_TYPE_MEMORY not in self.target_database.type):
+        if (
+            (self.msp_images_holder is None)
+            and (self.target_database is not None)
+            and (DB_TYPE_MEMORY not in self.target_database.type)
+        ):
             current_date_time = self.date_time
             ret = self.target_database.query(
-                command='SELECT',
-                columns='FilePath',
-                additional='ORDER BY date_time ASC',
+                command="SELECT",
+                columns="FilePath",
+                additional="ORDER BY date_time ASC",
                 experiment=self.experiment,
                 plant=self.plant,
                 camera=self.camera,
                 date_time=dict(
-                    operator='BETWEEN',
+                    operator="BETWEEN",
                     date_min=current_date_time - datetime.timedelta(hours=1),
-                    date_max=current_date_time + datetime.timedelta(hours=1)
-                )
+                    date_max=current_date_time + datetime.timedelta(hours=1),
+                ),
             )
-            file_list_ = [item[0] for item in ret if 'sw755' not in item[0].lower()]
+            file_list_ = [item[0] for item in ret if "sw755" not in item[0].lower()]
             self.msp_images_holder = ImageListHolder(file_list_)
         if self.msp_images_holder is None:
             return 0
@@ -188,7 +193,7 @@ class AbstractImageProcessor(ImageWrapper):
             return len(self.msp_images_holder)
 
     @staticmethod
-    def _draw_text(img: Any, text: str):
+    def _draw_text(img: Any, text: str, fnt_color: tuple = ipc.C_RED):
         """Draw text into img, always draws on bottom left portion of the image
 
         :param img: target image
@@ -198,10 +203,11 @@ class AbstractImageProcessor(ImageWrapper):
         y = img.shape[0] - 20
         fnt_face = cv2.FONT_HERSHEY_DUPLEX
         fnt_scale = img.shape[0] / 1500
-        fnt_clr = ipc.C_RED
         fnt_thickness = max(round(img.shape[0] / 1080), 1)
-        for line in reversed(list(text.split('\n'))):
-            cv2.putText(img, line, (10, y), fnt_face, fnt_scale, fnt_clr, fnt_thickness, cv2.LINE_AA)
+        for line in reversed(list(text.split("\n"))):
+            cv2.putText(
+                img, line, (10, y), fnt_face, fnt_scale, fnt_color, fnt_thickness, cv2.LINE_AA
+            )
             y -= cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
 
     def draw_image(self, **kwargs):
@@ -224,28 +230,28 @@ class AbstractImageProcessor(ImageWrapper):
             * width_thickness
         :return: drawn image
         """
-        src = kwargs.get('src_image', self.current_image)
-        mask = kwargs.get('src_mask', self.mask)
-        obj = kwargs.get('objects', None)
-        channel = kwargs.get('channel', 'l')
-        background = kwargs.get('background', 'source')
-        foreground = kwargs.get('foreground', 'source')
-        bck_grd_luma = kwargs.get('bck_grd_luma', 100)
-        normalize_before = kwargs.get('normalize_before', False)
-        color_map = kwargs.get('color_map', ipc.DEFAULT_COLOR_MAP)
+        src = kwargs.get("src_image", self.current_image)
+        mask = kwargs.get("src_mask", self.mask)
+        obj = kwargs.get("objects", None)
+        channel = kwargs.get("channel", "l")
+        background = kwargs.get("background", "source")
+        foreground = kwargs.get("foreground", "source")
+        bck_grd_luma = kwargs.get("bck_grd_luma", 100)
+        normalize_before = kwargs.get("normalize_before", False)
+        color_map = kwargs.get("color_map", ipc.DEFAULT_COLOR_MAP)
         if isinstance(color_map, str):
-            _, color_map = color_map.split('_')
+            _, color_map = color_map.split("_")
             color_map = int(color_map)
-        roi = kwargs.get('roi', None)
-        contour_thickness = kwargs.get('contour_thickness', 0)
-        hull_thickness = kwargs.get('hull_thickness', 0)
-        bounding_rec_thickness = kwargs.get('bounding_rec_thickness', 0)
-        straight_bounding_rec_thickness = kwargs.get('straight_bounding_rec_thickness', 0)
-        enclosing_circle_thickness = kwargs.get('enclosing_circle_thickness', 0)
-        centroid_width = kwargs.get('centroid_width', 0)
-        centroid_line_width = kwargs.get('centroid_line_width', 4)
-        height_thickness = kwargs.get('height_thickness', 0)
-        width_thickness = kwargs.get('width_thickness', 0)
+        roi = kwargs.get("roi", None)
+        contour_thickness = kwargs.get("contour_thickness", 0)
+        hull_thickness = kwargs.get("hull_thickness", 0)
+        bounding_rec_thickness = kwargs.get("bounding_rec_thickness", 0)
+        straight_bounding_rec_thickness = kwargs.get("straight_bounding_rec_thickness", 0)
+        enclosing_circle_thickness = kwargs.get("enclosing_circle_thickness", 0)
+        centroid_width = kwargs.get("centroid_width", 0)
+        centroid_line_width = kwargs.get("centroid_line_width", 4)
+        height_thickness = kwargs.get("height_thickness", 0)
+        width_thickness = kwargs.get("width_thickness", 0)
 
         # Apply roi to mask
         if (roi is not None) and (mask is not None):
@@ -258,10 +264,10 @@ class AbstractImageProcessor(ImageWrapper):
         # Build foreground
         if len(src.shape) == 2 or (len(src.shape) == 3 and src.shape[2] == 1):
             foreground_img = np.dstack((src, src, src))
-            background = 'source'
-        elif foreground == 'source':
+            background = "source"
+        elif foreground == "source":
             foreground_img = src.copy()
-        elif foreground == 'false_colour':
+        elif foreground == "false_colour":
             if isinstance(channel, str):
                 c = self.get_channel(src, channel)
             else:
@@ -271,33 +277,33 @@ class AbstractImageProcessor(ImageWrapper):
             if normalize_before:
                 c = cv2.equalizeHist(c)
             foreground_img = cv2.applyColorMap(c, color_map)
-        elif foreground == 'black':
+        elif foreground == "black":
             foreground_img = np.full(src.shape, ipc.C_BLACK, np.uint8)
-        elif foreground == 'silver':
+        elif foreground == "silver":
             foreground_img = np.full(src.shape, ipc.C_SILVER, np.uint8)
-        elif foreground == 'white':
+        elif foreground == "white":
             foreground_img = np.full(src.shape, ipc.C_WHITE, np.uint8)
-        elif foreground == 'bw':
+        elif foreground == "bw":
             foreground_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
             foreground_img = np.dstack((foreground_img, foreground_img, foreground_img))
         else:
-            self.error_holder.add_error(f'Unknown foreground {background}')
+            self.error_holder.add_error(f"Unknown foreground {background}")
             return np.full(src.shape, ipc.C_FUCHSIA, np.uint8)
 
         if mask_ is None:
             img = foreground_img.copy()
         else:
             # Build background
-            if background == 'white':
+            if background == "white":
                 background_img = np.full(foreground_img.shape, ipc.C_WHITE, np.uint8)
-            elif background == 'black':
+            elif background == "black":
                 background_img = np.full(foreground_img.shape, ipc.C_BLACK, np.uint8)
-            elif background == 'silver':
+            elif background == "silver":
                 background_img = np.full(foreground_img.shape, ipc.C_SILVER, np.uint8)
-            elif background == 'bw':
+            elif background == "bw":
                 background_img = cv2.cvtColor(foreground_img, cv2.COLOR_BGR2GRAY)
                 background_img = np.dstack((background_img, background_img, background_img))
-            elif background == 'source':
+            elif background == "source":
                 background_img = np.copy(foreground_img)
             elif isinstance(background, tuple):
                 if len(background) == 3:
@@ -307,10 +313,10 @@ class AbstractImageProcessor(ImageWrapper):
                         foreground_img.shape, (background, background, background), np.uint8
                     )
                 else:
-                    self.error_holder.add_error(f'Unknown color: {background}')
+                    self.error_holder.add_error(f"Unknown color: {background}")
                     return np.full(foreground_img.shape, ipc.C_FUCHSIA, np.uint8)
             else:
-                self.error_holder.add_error(f'Unknown background {background}')
+                self.error_holder.add_error(f"Unknown background {background}")
                 return np.full(foreground_img.shape, ipc.C_FUCHSIA, np.uint8)
             if bck_grd_luma != 100:
                 bck_grd_luma /= 100
@@ -325,11 +331,18 @@ class AbstractImageProcessor(ImageWrapper):
             background_img = cv2.bitwise_and(background_img, background_img, mask=255 - mask_)
             img = cv2.bitwise_or(foreground_img, background_img)
             # Draw contour
-            if ((contour_thickness > 0) or (hull_thickness > 0) or (bounding_rec_thickness > 0) or
-                (straight_bounding_rec_thickness > 0) or (enclosing_circle_thickness > 0) or
-                (centroid_width > 0) or (height_thickness > 0) or (width_thickness > 0)):
+            if (np.count_nonzero(mask_) > 0) and (
+                (contour_thickness > 0)
+                or (hull_thickness > 0)
+                or (bounding_rec_thickness > 0)
+                or (straight_bounding_rec_thickness > 0)
+                or (enclosing_circle_thickness > 0)
+                or (centroid_width > 0)
+                or (height_thickness > 0)
+                or (width_thickness > 0)
+            ):
                 if obj is None:
-                    if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
+                    if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
                         id_objects, obj_hierarchy = cv2.findContours(
                             mask_, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
                         )[-2:]
@@ -350,7 +363,9 @@ class AbstractImageProcessor(ImageWrapper):
                     cv2.drawContours(img, [box], 0, ipc.C_RED, bounding_rec_thickness)
                 if straight_bounding_rec_thickness > 0:
                     x, y, w, h = cv2.boundingRect(obj)
-                    cv2.rectangle(img, (x, y), (x + w, y + h), ipc.C_PURPLE, bounding_rec_thickness)
+                    cv2.rectangle(
+                        img, (x, y), (x + w, y + h), ipc.C_PURPLE, bounding_rec_thickness
+                    )
                 if enclosing_circle_thickness > 0:
                     (x, y), radius = cv2.minEnclosingCircle(obj)
                     center = (int(x), int(y))
@@ -358,25 +373,42 @@ class AbstractImageProcessor(ImageWrapper):
                     cv2.circle(img, center, radius, ipc.C_YELLOW, enclosing_circle_thickness)
                 if (centroid_width > 0) or (height_thickness > 0) or (width_thickness > 0):
                     moments = cv2.moments(mask_, binaryImage=True)
-                    if moments['m00'] != 0:
-                        cmx, cmy = (moments['m10'] / moments['m00'], moments['m01'] / moments['m00'])
+                    if moments["m00"] != 0:
+                        cmx, cmy = (
+                            moments["m10"] / moments["m00"],
+                            moments["m01"] / moments["m00"],
+                        )
                         x_, y_, width_, height_ = cv2.boundingRect(obj)
                         if height_thickness > 0:
                             cv2.line(
-                                img, (int(cmx), y_), (int(cmx), y_ + height_), ipc.C_CYAN, height_thickness
+                                img,
+                                (int(cmx), y_),
+                                (int(cmx), y_ + height_),
+                                ipc.C_CYAN,
+                                height_thickness,
                             )
                         if width_thickness > 0:
                             cv2.line(
-                                img, (x_, int(cmy)), (x_ + width_, int(cmy)), ipc.C_CYAN, width_thickness
+                                img,
+                                (x_, int(cmy)),
+                                (x_ + width_, int(cmy)),
+                                ipc.C_CYAN,
+                                width_thickness,
                             )
                         if centroid_width > 0:
                             cv2.circle(
-                                img, (int(cmx), int(cmy)), centroid_width, ipc.C_YELLOW, centroid_line_width
+                                img,
+                                (int(cmx), int(cmy)),
+                                centroid_width,
+                                ipc.C_YELLOW,
+                                centroid_line_width,
                             )
 
         if roi is not None:
             src_ = src.copy()
-            src_[roi.top:roi.bottom, roi.left:roi.right] = img[roi.top:roi.bottom, roi.left:roi.right]
+            src_[roi.top : roi.bottom, roi.left : roi.right] = img[
+                roi.top : roi.bottom, roi.left : roi.right
+            ]
             return src_
         else:
             return img
@@ -388,7 +420,8 @@ class AbstractImageProcessor(ImageWrapper):
         rois: Any = (),
         mosaic_list: list = None,
         text_overlay: Any = False,
-        force_store: bool = False
+        force_store: bool = False,
+        font_color: tuple = ipc.C_RED
     ) -> dict:
         """
         Store image for debug or result
@@ -404,15 +437,15 @@ class AbstractImageProcessor(ImageWrapper):
 
         if self.owner is not None:
             target = self.owner
-            text = f'{self.view_option}_{text}'
+            text = f"{self.view_option}_{text}"
         else:
             target = self
 
         for dic in target.image_list:
-            if dic['name'].lower() == text:
+            if dic["name"].lower() == text:
                 target.image_list.remove(dic)
 
-        if (text and (target.store_images or (text.lower() == 'mosaic'))) or force_store:
+        if (text and (target.store_images or (text.lower() == "mosaic"))) or force_store:
             # Create dummy image if issue
             if image is not None:
                 cp = image.copy()
@@ -420,7 +453,9 @@ class AbstractImageProcessor(ImageWrapper):
                 cp = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
 
             # Ensure image is 3D
-            if (rois or text_overlay) and (len(cp.shape) == 2 or (len(cp.shape) == 3 and cp.shape[2] == 1)):
+            if (rois or text_overlay) and (
+                len(cp.shape) == 2 or (len(cp.shape) == 3 and cp.shape[2] == 1)
+            ):
                 cp = np.dstack((cp, cp, cp))
 
             # Print ROIs if needed
@@ -432,13 +467,13 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Print text if needed
             if isinstance(text_overlay, str):
-                self._draw_text(cp, text_overlay)
+                self._draw_text(img=cp, text=text_overlay, fnt_color=font_color)
             elif text_overlay:
-                self._draw_text(cp, text.replace(', ', '\n'))
+                self._draw_text(img=cp, text=text.replace(", ", "\n"), fnt_color=font_color)
 
             new_dict = dict(name=text, image=cp, written=False)
             target.image_list.append(new_dict)
-            if target.write_images == 'plot':
+            if target.write_images == "plot":
                 target.plot_image(img_dict=new_dict, destroy_window=True)
             if mosaic_list is not None and text:
                 mosaic_list.append(text)
@@ -456,15 +491,15 @@ class AbstractImageProcessor(ImageWrapper):
         if image_dict is not None:
             return self.image_storage_path(image_dict)
         else:
-            return ''
+            return ""
 
     def image_storage_path(
         self,
         dic: dict,
-        index: str = '',
-        ext: str = 'jpg',
+        index: str = "",
+        ext: str = "jpg",
         is_force_output: bool = False,
-        is_force_fullname: bool = False
+        is_force_fullname: bool = False,
     ) -> str:
         """returns path to which an image will be written
 
@@ -479,12 +514,12 @@ class AbstractImageProcessor(ImageWrapper):
             str -- destination file path
         """
 
-        store_ = is_force_output or self.is_store_image(dic['name'])
+        store_ = is_force_output or self.is_store_image(dic["name"])
         if not store_:
-            return ''
+            return ""
 
-        if dic['name'] == 'use_source_name':
-            return f'{self.dst_path}{self.name}.{ext}'
+        if dic["name"] == "use_source_name":
+            return f"{self.dst_path}{self.name}.{ext}"
 
         if is_force_fullname:
             if index:
@@ -492,42 +527,42 @@ class AbstractImageProcessor(ImageWrapper):
             else:
                 return f'{self.dst_path}{self.name}_{dic["name"]}.{ext}'
         else:
-            if self.is_plot_image(dic['name']):
-                return ''
-            elif self.is_save_image(dic['name']):
-                if dic['name'] == 'mosaic':
-                    tmp_path = '{}{}'.format(self.dst_path, 'mosaics')
-                    tmp_path = os.path.join(tmp_path, '')
+            if self.is_plot_image(dic["name"]):
+                return ""
+            elif self.is_save_image(dic["name"]):
+                if dic["name"] == "mosaic":
+                    tmp_path = "{}{}".format(self.dst_path, "mosaics")
+                    tmp_path = os.path.join(tmp_path, "")
                     force_directories(tmp_path)
-                    return '{}{}.jpg'.format(tmp_path, self.name)
+                    return "{}{}.jpg".format(tmp_path, self.name)
                 else:
-                    tmp_path = f'{self.dst_path}{self.name}'
-                    tmp_path = os.path.join(tmp_path, '')
+                    tmp_path = f"{self.dst_path}{self.name}"
+                    tmp_path = os.path.join(tmp_path, "")
                     force_directories(tmp_path)
                     return f'{tmp_path}{index}_{dic["name"]}.{ext}'
             else:
-                return ''
+                return ""
 
     def save_image(self, img: Any, idx: int = -1) -> None:
         if idx >= 0:
             str_idx = str(idx)
         else:
-            str_idx = ''
+            str_idx = ""
         tmp_path = self.image_storage_path(img, index=str_idx)
         if tmp_path:
-            cv2.imwrite(tmp_path, img['image'])
-            img['written'] = True
+            cv2.imwrite(tmp_path, img["image"])
+            img["written"] = True
 
     def plot_image(self, img_dict: dict, destroy_window: bool = False) -> bool:
         res = False
         try:
             cv2.imshow(
-                img_dict['name'],
+                img_dict["name"],
                 ipc.resize_image(
-                    img_dict['image'].copy(),
+                    img_dict["image"].copy(),
                     target_rect=shapes.Rect.from_lwth(0, 800, 0, 600),
-                    keep_aspect_ratio=True
-                )
+                    keep_aspect_ratio=True,
+                ),
             )
             cv2.waitKey(0)
             if destroy_window:
@@ -548,10 +583,10 @@ class AbstractImageProcessor(ImageWrapper):
         :param idx: int
         :return:
         """
-        if img['written'] is not True:
-            if self.is_plot_image(img['name']):
+        if img["written"] is not True:
+            if self.is_plot_image(img["name"]):
                 self.plot_image(img_dict=img)
-            elif self.is_save_image(img['name']):
+            elif self.is_save_image(img["name"]):
                 self.save_image(img=img, idx=idx)
 
     def retrieve_image_dict(self, dict_name: str):
@@ -561,58 +596,61 @@ class AbstractImageProcessor(ImageWrapper):
         :param dict_name: key
         :return: success, image dictionary
         """
-        if dict_name.lower() == '':
+        if dict_name.lower() == "":
             return None
         else:
             for dic in self.image_list:
-                if dic['name'].lower() == dict_name.lower():
+                if dic["name"].lower() == dict_name.lower():
                     return dic
-            if dict_name.lower() == 'source':
-                return self.store_image(self.source_image, 'source')
-            if dict_name.lower() == 'mask':
-                return self.store_image(self.mask, 'mask')
+            if dict_name.lower() == "source":
+                return self.store_image(self.source_image, "source")
+            if dict_name.lower() == "mask":
+                return self.store_image(self.mask, "mask")
         return None
 
     def print_mosaic(self, padding: tuple = (-2, -2, -2, -2)):
-        if (self.store_mosaic.lower() != 'none') or (self.write_mosaic.lower() != 'none'):
+        if (self.store_mosaic.lower() != "none") or (self.write_mosaic.lower() != "none"):
             if self._mosaic_data is None:
-                if self.store_mosaic.lower() == 'debug':
-                    # self._mosaic_data = np.array(['source', 'img_wth_tagged_cnt', 'pseudo_on'])
-                    self._mosaic_data = np.array(['source', 'pseudo_on'])
-                elif self.store_mosaic.lower() == 'result':
-                    img_lst = ['!n', '!n', '!n', '!n']
-                    available_images = [dic['name'] for dic in self.image_list]
-                    if 'true_source_image' in available_images:
-                        img_lst[0] = 'true_source_image'
+                if self.store_mosaic.lower() == "debug":
+                    self._mosaic_data = np.array(["source", "img_wth_tagged_cnt", "shapes"])
+                elif self.store_mosaic.lower() == "result":
+                    img_lst = ["!n", "!n", "!n", "!n"]
+                    available_images = [dic["name"] for dic in self.image_list]
+                    if "true_source_image" in available_images:
+                        img_lst[0] = "true_source_image"
                     else:
-                        img_lst[0] = 'source'
-                    if 'mask' in available_images:
-                        img_lst[1] = 'mask'
-                    if 'pseudo_on' in available_images:
-                        img_lst[2] = 'pseudo_on'
-                    if 'shapes' in available_images:
-                        img_lst[3] = 'shapes'
+                        img_lst[0] = "source"
+                    if "mask" in available_images:
+                        img_lst[1] = "mask"
+                    if "pseudo_on" in available_images:
+                        img_lst[2] = "pseudo_on"
+                    if "shapes" in available_images:
+                        img_lst[3] = "shapes"
 
                     for img_name in reversed(available_images):
-                        if img_lst.count('!n') == 0:
+                        if img_lst.count("!n") == 0:
                             break
-                        if not (img_name in img_lst) and (img_name != 'histogram'):
+                        if not (img_name in img_lst) and (img_name != "histogram"):
                             try:
-                                idx = len(img_lst) - 1 - img_lst[::-1].index('!n')
+                                idx = len(img_lst) - 1 - img_lst[::-1].index("!n")
                             except ValueError as _:
                                 break
                             img_lst[idx] = img_name
-                    self._mosaic_data = np.array([[img_lst[0], img_lst[1]], [img_lst[2], img_lst[3]]])
+                    self._mosaic_data = np.array(
+                        [[img_lst[0], img_lst[1]], [img_lst[2], img_lst[3]]]
+                    )
                 else:
                     raise NotImplementedError
 
             try:
                 canvas = self.build_mosaic(padding=padding)
-                mosaic_ = self.store_image(canvas, 'mosaic')
+                mosaic_ = self.store_image(canvas, "mosaic")
                 self.print_image(mosaic_)
             except Exception as e:
                 # Unsupported format detected
-                print('Exception: "{}" - Image: "{}", unsupported mosaic'.format(repr(e), str(self)))
+                print(
+                    'Exception: "{}" - Image: "{}", unsupported mosaic'.format(repr(e), str(self))
+                )
 
     def print_images(self):
         """Prints images to disc according to options and selection
@@ -620,15 +658,15 @@ class AbstractImageProcessor(ImageWrapper):
         Keyword Arguments:
             selection {list} -- List of image names to be printed (default: {[]})
         """
-        if self.write_images == 'print':
+        if self.write_images == "print":
             for i, img in enumerate(self.image_list):
-                if img['written'] is True:
+                if img["written"] is True:
                     continue
                 self.print_image(img, i + 1)
 
         self.print_mosaic()
 
-    def avg_brightness_contrast(self, img: Any = None, mode: str = 'std', mask=None) -> tuple:
+    def avg_brightness_contrast(self, img: Any = None, mode: str = "std", mask=None) -> tuple:
         """Calculates average brightness using one of 3 available metthods
 
         * std='standard, objective'
@@ -642,23 +680,25 @@ class AbstractImageProcessor(ImageWrapper):
         if img is None:
             img = self.current_image
         b, g, r = cv2.split(img)
-        if mode == 'std':
-            c = r*0.2126 + g*0.7152 + b*0.0722
-        elif mode == 'p1':
-            c = r*0.299 + g*0.587 + b*0.114
-        elif mode == 'p2':
+        if mode == "std":
+            c = r * 0.2126 + g * 0.7152 + b * 0.0722
+        elif mode == "p1":
+            c = r * 0.299 + g * 0.587 + b * 0.114
+        elif mode == "p2":
             c = np.sqrt(
-                0.241 * np.power(r.astype(np.float), 2) + 0.691 * np.power(g.astype(np.float), 2) +
-                0.068 * np.power(b.astype(np.float), 2)
+                0.241 * np.power(r.astype(np.float), 2)
+                + 0.691 * np.power(g.astype(np.float), 2)
+                + 0.068 * np.power(b.astype(np.float), 2)
             )
         else:
-            self.error_holder.add_error('Unknown average calculation mode')
+            self.error_holder.add_error("Unknown average calculation mode")
             return 0, 0
         if mask is None:
             tmp_tuple = cv2.meanStdDev(c.reshape(c.shape[1] * c.shape[0]))
         else:
             tmp_tuple = cv2.meanStdDev(
-                c.reshape(c.shape[1] * c.shape[0]), mask=mask.reshape(mask.shape[1] * mask.shape[0])
+                c.reshape(c.shape[1] * c.shape[0]),
+                mask=mask.reshape(mask.shape[1] * mask.shape[0]),
             )
 
         return tmp_tuple[0][0][0], tmp_tuple[1][0][0]
@@ -699,12 +739,12 @@ class AbstractImageProcessor(ImageWrapper):
 
             if self.store_images:
                 dbg_img = self.draw_image(
-                    src_image=ori_img, src_mask=mask, background='bw', foreground='source'
+                    src_image=ori_img, src_mask=mask, background="bw", foreground="source"
                 )
                 cv2.drawContours(dbg_img, group, -1, (255, 0, 0), 6)
                 for cnt in contours:
                     cv2.drawContours(dbg_img, cnt, -1, (255, 0, 255), 4)
-                self.store_image(dbg_img, 'objcomp')
+                self.store_image(dbg_img, "objcomp")
 
             return group, mask
         else:
@@ -729,7 +769,7 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         obj, mask = self.prepare_analysis(
-            self.draw_image(src_mask=mask, background='silver', foreground='source'), mask
+            self.draw_image(src_mask=mask, background="silver", foreground="source"), mask
         )
 
         # Valid objects can only be analyzed if they have >= 5 vertices
@@ -739,86 +779,96 @@ class AbstractImageProcessor(ImageWrapper):
         ori_img = np.copy(img)
         hull = cv2.convexHull(obj)
         m = cv2.moments(mask, binaryImage=True)
-        area = m['m00']
+        area = m["m00"]
         if area:
             # x and y position (bottom left?) and extent x (width) and extent y (height)
             x, y, width, height = cv2.boundingRect(obj)
 
             # Centroid (center of mass x, center of mass y)
-            cmx, cmy = (m['m10'] / m['m00'], m['m01'] / m['m00'])
+            cmx, cmy = (m["m10"] / m["m00"], m["m01"] / m["m00"])
 
             # Store Shape Data
-            self.csv_data_holder.update_csv_value('area', area)
-            if self.csv_data_holder.has_csv_key('centroid'):
-                self.csv_data_holder.update_csv_value('centroid_x', cmx, force_pair=True)
-                self.csv_data_holder.update_csv_value('centroid_y', cmy, force_pair=True)
-                self.csv_data_holder.data_list.pop('centroid', None)
+            self.csv_data_holder.update_csv_value("area", area)
+            if self.csv_data_holder.has_csv_key("centroid"):
+                self.csv_data_holder.update_csv_value("centroid_x", cmx, force_pair=True)
+                self.csv_data_holder.update_csv_value("centroid_y", cmy, force_pair=True)
+                self.csv_data_holder.data_list.pop("centroid", None)
 
             hull_area = cv2.contourArea(hull)
-            self.csv_data_holder.update_csv_value('hull_area', hull_area)
-            self.csv_data_holder.update_csv_value('shape_solidity', area / hull_area)
+            self.csv_data_holder.update_csv_value("hull_area", hull_area)
+            self.csv_data_holder.update_csv_value("shape_solidity", area / hull_area)
 
             x, y, w, h = cv2.boundingRect(obj)
-            self.csv_data_holder.update_csv_value('shape_extend', float(area) / (w*h))
-            if self.csv_data_holder.has_csv_key('straight_bounding_rectangle'):
-                self.csv_data_holder.update_csv_value('straight_bounding_rectangle_left', x, force_pair=True)
-                self.csv_data_holder.update_csv_value('straight_bounding_rectangle_width', w, force_pair=True)
-                self.csv_data_holder.update_csv_value('straight_bounding_rectangle_top', y, force_pair=True)
+            self.csv_data_holder.update_csv_value("shape_extend", float(area) / (w * h))
+            if self.csv_data_holder.has_csv_key("straight_bounding_rectangle"):
                 self.csv_data_holder.update_csv_value(
-                    'straight_bounding_rectangle_height', h, force_pair=True
+                    "straight_bounding_rectangle_left", x, force_pair=True
                 )
-                self.csv_data_holder.data_list.pop('straight_bounding_rectangle', None)
+                self.csv_data_holder.update_csv_value(
+                    "straight_bounding_rectangle_width", w, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "straight_bounding_rectangle_top", y, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "straight_bounding_rectangle_height", h, force_pair=True
+                )
+                self.csv_data_holder.data_list.pop("straight_bounding_rectangle", None)
                 straight_bounding_rec_thickness = 4
             else:
                 straight_bounding_rec_thickness = 0
 
-            if self.csv_data_holder.has_csv_key('rotated_bounding_rectangle'):
+            if self.csv_data_holder.has_csv_key("rotated_bounding_rectangle"):
                 (x, y), (w, h), r = cv2.minAreaRect(obj)
                 wl = max(w, h)
                 hl = min(w, h)
                 self.csv_data_holder.update_csv_value(
-                    key='rotated_bounding_rectangle_cx', value=x, force_pair=True
+                    key="rotated_bounding_rectangle_cx", value=x, force_pair=True
                 )
                 self.csv_data_holder.update_csv_value(
-                    key='rotated_bounding_rectangle_cy', value=y, force_pair=True
+                    key="rotated_bounding_rectangle_cy", value=y, force_pair=True
                 )
                 self.csv_data_holder.update_csv_value(
-                    key='rotated_bounding_rectangle_width', value=wl, force_pair=True
+                    key="rotated_bounding_rectangle_width", value=wl, force_pair=True
                 )
                 self.csv_data_holder.update_csv_value(
-                    key='rotated_bounding_rectangle_height', value=hl, force_pair=True
+                    key="rotated_bounding_rectangle_height", value=hl, force_pair=True
                 )
                 self.csv_data_holder.update_csv_value(
-                    key='rotated_bounding_rectangle_rotation', value=r + 180, force_pair=True
+                    key="rotated_bounding_rectangle_rotation", value=r + 180, force_pair=True
                 )
-                self.csv_data_holder.data_list.pop('rotated_bounding_rectangle', None)
+                self.csv_data_holder.data_list.pop("rotated_bounding_rectangle", None)
                 bounding_rec_thickness = 4
             else:
                 bounding_rec_thickness = 0
 
-            if self.csv_data_holder.has_csv_key('minimum_enclosing_circle'):
+            if self.csv_data_holder.has_csv_key("minimum_enclosing_circle"):
                 (x, y), radius = cv2.minEnclosingCircle(obj)
-                self.csv_data_holder.update_csv_value('minimum_enclosing_circle_cx', x, force_pair=True)
-                self.csv_data_holder.update_csv_value('minimum_enclosing_circle_cy', y, force_pair=True)
                 self.csv_data_holder.update_csv_value(
-                    'minimum_enclosing_circle_radius', radius, force_pair=True
+                    "minimum_enclosing_circle_cx", x, force_pair=True
                 )
-                self.csv_data_holder.data_list.pop('minimum_enclosing_circle', None)
+                self.csv_data_holder.update_csv_value(
+                    "minimum_enclosing_circle_cy", y, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "minimum_enclosing_circle_radius", radius, force_pair=True
+                )
+                self.csv_data_holder.data_list.pop("minimum_enclosing_circle", None)
                 enclosing_circle_thickness = 4
             else:
                 enclosing_circle_thickness = 0
 
-            self.csv_data_holder.update_csv_value('shape_height', height)
+            self.csv_data_holder.update_csv_value("shape_height", height)
             # Some new f(r)iends
-            if self.csv_data_holder.has_csv_key('width_data'):
+            if self.csv_data_holder.has_csv_key("width_data"):
                 mask_data = ipc.MaskData(mask)
                 _, _, _, min_, max_, avg_, std_ = mask_data.width_quantile_stats(1, 0, tag=0)
-                self.csv_data_holder.update_csv_value('shape_width', width, force_pair=True)
-                self.csv_data_holder.update_csv_value('shape_width_min', min_, force_pair=True)
-                self.csv_data_holder.update_csv_value('shape_width_max', max_, force_pair=True)
-                self.csv_data_holder.update_csv_value('shape_width_avg', avg_, force_pair=True)
-                self.csv_data_holder.update_csv_value('shape_width_std', std_, force_pair=True)
-                self.csv_data_holder.data_list.pop('width_data', None)
+                self.csv_data_holder.update_csv_value("shape_width", width, force_pair=True)
+                self.csv_data_holder.update_csv_value("shape_width_min", min_, force_pair=True)
+                self.csv_data_holder.update_csv_value("shape_width_max", max_, force_pair=True)
+                self.csv_data_holder.update_csv_value("shape_width_avg", avg_, force_pair=True)
+                self.csv_data_holder.update_csv_value("shape_width_std", std_, force_pair=True)
+                self.csv_data_holder.data_list.pop("width_data", None)
 
             if self.store_images:
                 # Start with the sure ones
@@ -827,63 +877,80 @@ class AbstractImageProcessor(ImageWrapper):
                         src_image=ori_img,
                         src_mask=mask,
                         objects=obj,
-                        background='bw',
-                        foreground='source',
+                        background="bw",
+                        foreground="source",
                         contour_thickness=4,
-                        hull_thickness=4 if self.csv_data_holder.has_csv_key('hull_area') else 0,
-                        width_thickness=4 if self.csv_data_holder.has_csv_key('shape_width') else 0,
-                        height_thickness=4 if self.csv_data_holder.has_csv_key('shape_height') else 0,
-                        centroid_width=10 if self.csv_data_holder.has_csv_key('centroid_x') else 0
-                    ), 'shapes'
+                        hull_thickness=4 if self.csv_data_holder.has_csv_key("hull_area") else 0,
+                        width_thickness=4
+                        if self.csv_data_holder.has_csv_key("shape_width")
+                        else 0,
+                        height_thickness=4
+                        if self.csv_data_holder.has_csv_key("shape_height")
+                        else 0,
+                        centroid_width=10 if self.csv_data_holder.has_csv_key("centroid_x") else 0,
+                    ),
+                    "shapes",
                 )
                 self.store_image(
                     self.draw_image(
                         src_image=mask,
                         src_mask=mask,
                         objects=obj,
-                        background='bw',
-                        foreground='source',
+                        background="bw",
+                        foreground="source",
                         contour_thickness=4,
-                        hull_thickness=4 if self.csv_data_holder.has_csv_key('hull_area') else 0,
-                        width_thickness=4 if self.csv_data_holder.has_csv_key('shape_width') else 0,
-                        height_thickness=4 if self.csv_data_holder.has_csv_key('shape_height') else 0,
-                        centroid_width=10 if self.csv_data_holder.has_csv_key('centroid_x') else 0
-                    ), 'shapes_on_mask'
+                        hull_thickness=4 if self.csv_data_holder.has_csv_key("hull_area") else 0,
+                        width_thickness=4
+                        if self.csv_data_holder.has_csv_key("shape_width")
+                        else 0,
+                        height_thickness=4
+                        if self.csv_data_holder.has_csv_key("shape_height")
+                        else 0,
+                        centroid_width=10 if self.csv_data_holder.has_csv_key("centroid_x") else 0,
+                    ),
+                    "shapes_on_mask",
                 )
                 # Add new ones
-                if enclosing_circle_thickness + bounding_rec_thickness + straight_bounding_rec_thickness > 0:
+                if (
+                    enclosing_circle_thickness
+                    + bounding_rec_thickness
+                    + straight_bounding_rec_thickness
+                    > 0
+                ):
                     self.store_image(
                         self.draw_image(
                             src_image=ori_img,
                             src_mask=mask,
                             objects=obj,
-                            background='bw',
-                            foreground='source',
+                            background="bw",
+                            foreground="source",
                             enclosing_circle_thickness=enclosing_circle_thickness,
                             bounding_rec_thickness=bounding_rec_thickness,
-                            straight_bounding_rec_thickness=straight_bounding_rec_thickness
-                        ), 'more_shapes'
+                            straight_bounding_rec_thickness=straight_bounding_rec_thickness,
+                        ),
+                        "more_shapes",
                     )
                     self.store_image(
                         self.draw_image(
                             src_image=mask,
                             src_mask=mask,
                             objects=obj,
-                            background='bw',
-                            foreground='source',
+                            background="bw",
+                            foreground="source",
                             enclosing_circle_thickness=enclosing_circle_thickness,
                             bounding_rec_thickness=bounding_rec_thickness,
-                            straight_bounding_rec_thickness=straight_bounding_rec_thickness
-                        ), 'more_shapes_on_mask'
+                            straight_bounding_rec_thickness=straight_bounding_rec_thickness,
+                        ),
+                        "more_shapes_on_mask",
                     )
 
             # handle width quantiles
             keys = [k for k in self.csv_data_holder.data_list]
             for k in keys:
-                if 'quantile_width' in k:
-                    _, kind, n = k.split('_')
+                if "quantile_width" in k:
+                    _, kind, n = k.split("_")
                     n = int(n)
-                    if kind.lower() == 'width':
+                    if kind.lower() == "width":
                         msk_dt = ipc.MaskData(mask)
                         qtl_img = np.zeros_like(mask)
                         qtl_img = np.dstack((qtl_img, qtl_img, qtl_img))
@@ -892,33 +959,34 @@ class AbstractImageProcessor(ImageWrapper):
                                 n, i, tag=i
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_area', total_, True
+                                f"quantile_width_{i + 1}_{n}_area", total_, True
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_hull', hull_, True
+                                f"quantile_width_{i + 1}_{n}_hull", hull_, True
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_solidity', solidity_, True
+                                f"quantile_width_{i + 1}_{n}_solidity", solidity_, True
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_min_{kind}', min_, True
+                                f"quantile_width_{i + 1}_{n}_min_{kind}", min_, True
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_max_{kind}', max_, True
+                                f"quantile_width_{i + 1}_{n}_max_{kind}", max_, True
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_avg_{kind}', avg_, True
+                                f"quantile_width_{i + 1}_{n}_avg_{kind}", avg_, True
                             )
                             self.csv_data_holder.update_csv_value(
-                                f'quantile_width_{i + 1}_{n}_std_{kind}', std_, True
+                                f"quantile_width_{i + 1}_{n}_std_{kind}", std_, True
                             )
                             p_qt_msk = msk_dt.height_quantile_mask(
-                                total=n, index=i, colour=int((i+1) / (n+1) * 255)
+                                total=n, index=i, colour=int((i + 1) / (n + 1) * 255)
                             )
                             qtl_img = cv2.bitwise_or(
-                                qtl_img, np.dstack((np.zeros_like(mask), p_qt_msk, np.zeros_like(mask)))
+                                qtl_img,
+                                np.dstack((np.zeros_like(mask), p_qt_msk, np.zeros_like(mask))),
                             )
-                        self.store_image(qtl_img, f'quantiles_width_{n}')
+                        self.store_image(qtl_img, f"quantiles_width_{n}")
 
                         self.csv_data_holder.data_list.pop(k, None)
         else:
@@ -927,7 +995,9 @@ class AbstractImageProcessor(ImageWrapper):
         return True
 
     @time_method
-    def analyze_bound(self, img: Any, mask: Any, line_position: int = -1, pseudo_color_channel: str = ' v'):
+    def analyze_bound(
+        self, img: Any, mask: Any, line_position: int = -1, pseudo_color_channel: str = " v"
+    ):
         """User-input boundary line tool
         Inputs:
         img             = image
@@ -938,15 +1008,15 @@ class AbstractImageProcessor(ImageWrapper):
         :param line_position: int
         :return success: bool
         """
-        if (line_position < 0) or not self.csv_data_holder.has_csv_key('bound_data'):
-            self.csv_data_holder.data_list.pop('bound_data', None)
+        if (line_position < 0) or not self.csv_data_holder.has_csv_key("bound_data"):
+            self.csv_data_holder.data_list.pop("bound_data", None)
             return True
 
-        self.csv_data_holder.data_list.pop('bound_data', None)
+        self.csv_data_holder.data_list.pop("bound_data", None)
 
-        roi_top = shapes.RectangleOfInterest.from_lwth(0, self.width, 0, line_position, 'roi_top')
+        roi_top = shapes.RectangleOfInterest.from_lwth(0, self.width, 0, line_position, "roi_top")
         roi_bottom = shapes.RectangleOfInterest.from_lwth(
-            0, self.width, line_position, self.height - line_position, 'roi_bottom'
+            0, self.width, line_position, self.height - line_position, "roi_bottom"
         )
 
         mask_top = self.crop_to_roi(img=mask, roi=roi_top)
@@ -955,7 +1025,7 @@ class AbstractImageProcessor(ImageWrapper):
         mask_data_top = ipc.MaskData(mask_top)
         mask_data_bottom = ipc.MaskData(mask_bottom)
 
-        area_ = self.csv_data_holder.retrieve_csv_value('area')
+        area_ = self.csv_data_holder.retrieve_csv_value("area")
         if area_ is None:
             mask_data = ipc.MaskData(mask)
             area_ = mask_data.area
@@ -965,21 +1035,31 @@ class AbstractImageProcessor(ImageWrapper):
                 t_height = mask_data_top.mask.shape[0] - mask_data_top.top_index
                 b_height = mask_data_bottom.height
 
-                self.csv_data_holder.update_csv_value('above_bound_height', t_height, force_pair=True)
-                self.csv_data_holder.update_csv_value('above_bound_area', mask_data_top.area, force_pair=True)
                 self.csv_data_holder.update_csv_value(
-                    'above_bound_percent_area', mask_data_top.area / area_ * 100, force_pair=True
+                    "above_bound_height", t_height, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "above_bound_area", mask_data_top.area, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "above_bound_percent_area", mask_data_top.area / area_ * 100, force_pair=True
                 )
 
-                self.csv_data_holder.update_csv_value('below_bound_height', b_height, force_pair=True)
                 self.csv_data_holder.update_csv_value(
-                    'below_bound_area', mask_data_bottom.area, force_pair=True
+                    "below_bound_height", b_height, force_pair=True
                 )
                 self.csv_data_holder.update_csv_value(
-                    'below_bound_percent_area', mask_data_bottom.area / area_ * 100, force_pair=True
+                    "below_bound_area", mask_data_bottom.area, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "below_bound_percent_area",
+                    mask_data_bottom.area / area_ * 100,
+                    force_pair=True,
                 )
 
-                self.csv_data_holder.update_csv_value('shape_height', t_height + b_height, force_pair=True)
+                self.csv_data_holder.update_csv_value(
+                    "shape_height", t_height + b_height, force_pair=True
+                )
 
                 if self.store_images:
                     c = self.get_channel(src_img=img, channel=pseudo_color_channel)
@@ -988,30 +1068,30 @@ class AbstractImageProcessor(ImageWrapper):
                         src_image=background_img,
                         channel=pseudo_color_channel,
                         src_mask=mask,
-                        foreground='false_colour',
-                        background='source',
+                        foreground="false_colour",
+                        background="source",
                         normalize_before=True,
                         color_map=cv2.COLORMAP_SUMMER,
                         roi=roi_top,
                         centroid_width=10,
                         height_thickness=4,
-                        width_thickness=4
+                        width_thickness=4,
                     )
                     p_img = self.draw_image(
                         src_image=p_img,
                         channel=pseudo_color_channel,
                         src_mask=mask,
-                        foreground='false_colour',
-                        background='source',
+                        foreground="false_colour",
+                        background="source",
                         normalize_before=False,
                         color_map=cv2.COLORMAP_HOT,
                         roi=roi_bottom,
                         centroid_width=10,
                         height_thickness=4,
-                        width_thickness=4
+                        width_thickness=4,
                     )
                     cv2.line(p_img, (0, line_position), (self.width, line_position), ipc.C_RED, 3)
-                    self.store_image(p_img, 'bounds')
+                    self.store_image(p_img, "bounds")
             except Exception as e:
                 self.error_holder.add_error(f'Failed to analyse bounds "{repr(e)}"')
                 return False
@@ -1039,9 +1119,9 @@ class AbstractImageProcessor(ImageWrapper):
         :return masked_img: numpy array
         """
 
-        if background_color.lower() == 'white':
+        if background_color.lower() == "white":
             background_color = (255, 255, 255)
-        elif background_color.lower() == 'black':
+        elif background_color.lower() == "black":
             background_color = (0, 0, 0)
 
         rem_img = cv2.bitwise_and(img, img, mask=mask)
@@ -1053,30 +1133,37 @@ class AbstractImageProcessor(ImageWrapper):
         """
         Extract chlorophyll data
         """
-        if self.csv_data_holder.has_csv_key('chlorophyll_mean'
-                                           ) or self.csv_data_holder.has_csv_key('chlorophyll_std_dev'):
+        if self.csv_data_holder.has_csv_key(
+            "chlorophyll_mean"
+        ) or self.csv_data_holder.has_csv_key("chlorophyll_std_dev"):
             try:
                 b, g, r = cv2.split(cv2.bitwise_and(img, img, mask=mask))
-                c = np.exp((-0.0280 * r * 1.04938271604938) + (0.0190*g*1.04938271604938) +
-                           (-0.0030 * b * 1.04115226337449) + 5.780)
+                c = np.exp(
+                    (-0.0280 * r * 1.04938271604938)
+                    + (0.0190 * g * 1.04938271604938)
+                    + (-0.0030 * b * 1.04115226337449)
+                    + 5.780
+                )
                 if self.store_images:
                     calc_img = cv2.bitwise_and(c, c, mask=mask)
-                    calc_img = ((calc_img - calc_img.min()) / (calc_img.max() - calc_img.min()) *
-                                255).astype(np.uint8)
+                    calc_img = (
+                        (calc_img - calc_img.min()) / (calc_img.max() - calc_img.min()) * 255
+                    ).astype(np.uint8)
                     pseudo = self.draw_image(
                         src_image=img,
                         channel=calc_img,
-                        background='source',
-                        foreground='false_colour',
-                        color_map=cv2.COLORMAP_RAINBOW
+                        background="source",
+                        foreground="false_colour",
+                        color_map=cv2.COLORMAP_RAINBOW,
                     )
-                    self.store_image(pseudo, 'pseudo_chlorophyll_on_img')
-                    self.store_image(calc_img, 'chlorophyll_calculated')
+                    self.store_image(pseudo, "pseudo_chlorophyll_on_img")
+                    self.store_image(calc_img, "chlorophyll_calculated")
                 tmp_tuple = cv2.meanStdDev(
-                    c.reshape(c.shape[1] * c.shape[0]), mask=mask.reshape(mask.shape[1] * mask.shape[0])
+                    c.reshape(c.shape[1] * c.shape[0]),
+                    mask=mask.reshape(mask.shape[1] * mask.shape[0]),
                 )
-                self.csv_data_holder.update_csv_value('chlorophyll_mean', tmp_tuple[0][0][0])
-                self.csv_data_holder.update_csv_value('chlorophyll_std_dev', tmp_tuple[1][0][0])
+                self.csv_data_holder.update_csv_value("chlorophyll_mean", tmp_tuple[0][0][0])
+                self.csv_data_holder.update_csv_value("chlorophyll_std_dev", tmp_tuple[1][0][0])
             except Exception as e:
                 return False
             else:
@@ -1089,9 +1176,9 @@ class AbstractImageProcessor(ImageWrapper):
         self,
         img: Any,
         mask: Any,
-        pseudo_color_channel: str = 'v',
+        pseudo_color_channel: str = "v",
         pseudo_color_map: int = 2,
-        pseudo_bkg: str = 'bw'
+        pseudo_bkg: str = "bw",
     ):
         """Analyze the color properties of an image object
         Inputs:
@@ -1113,8 +1200,8 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         if not (
-            self.csv_data_holder.has_csv_key('color_std_dev') or
-            self.csv_data_holder.has_csv_key('color_mean')
+            self.csv_data_holder.has_csv_key("color_std_dev")
+            or self.csv_data_holder.has_csv_key("color_mean")
         ):
             return True
 
@@ -1122,63 +1209,63 @@ class AbstractImageProcessor(ImageWrapper):
 
         channel_data = {}
         for c in self.available_channels_as_tuple:
-            if c[0] == 'chla':
+            if c[0] == "chla":
                 continue
             channel_data[c[1]] = dict(
                 color_space=c[0],
                 channel_name=c[1],
                 data=self.get_channel(src_img=masked, channel=c[1]),
-                graph_color=ipc.channel_color(c[1])
+                graph_color=ipc.channel_color(c[1]),
             )
 
-        self.csv_data_holder.update_csv_value('hist_bins', f'{256}')
+        self.csv_data_holder.update_csv_value("hist_bins", f"{256}")
 
         for k, v in channel_data.items():
-            if v['data'] is None:
-                self.error_holder.add_error(f'Missing channel {ipc.get_hr_channel_name(k)}')
+            if v["data"] is None:
+                self.error_holder.add_error(f"Missing channel {ipc.get_hr_channel_name(k)}")
                 continue
             tmp_tuple = cv2.meanStdDev(
-                src=v['data'].reshape(v['data'].shape[1] * v['data'].shape[0]),
-                mask=mask.reshape(mask.shape[1] * mask.shape[0])
+                src=v["data"].reshape(v["data"].shape[1] * v["data"].shape[0]),
+                mask=mask.reshape(mask.shape[1] * mask.shape[0]),
             )
-            v['hist'] = cv2.calcHist([v['data']], [0], mask, [256], [0, (256 - 1)])
+            v["hist"] = cv2.calcHist([v["data"]], [0], mask, [256], [0, (256 - 1)])
             seed_ = f'{v["color_space"]}_{k}'
             self.csv_data_holder.update_csv_value(
-                key=f'{seed_}_std_dev',
+                key=f"{seed_}_std_dev",
                 value=tmp_tuple[1][0][0],
-                force_pair=self.csv_data_holder.has_csv_key('color_std_dev')
+                force_pair=self.csv_data_holder.has_csv_key("color_std_dev"),
             )
             self.csv_data_holder.update_csv_value(
-                key=f'{seed_}_mean',
+                key=f"{seed_}_mean",
                 value=tmp_tuple[0][0][0],
-                force_pair=self.csv_data_holder.has_csv_key('color_mean')
+                force_pair=self.csv_data_holder.has_csv_key("color_mean"),
             )
 
         # Remove consumed keys
-        if self.csv_data_holder.has_csv_key('color_std_dev'):
-            self.csv_data_holder.data_list.pop('color_std_dev', None)
-        if self.csv_data_holder.has_csv_key('color_mean'):
-            self.csv_data_holder.data_list.pop('color_mean', None)
+        if self.csv_data_holder.has_csv_key("color_std_dev"):
+            self.csv_data_holder.data_list.pop("color_std_dev", None)
+        if self.csv_data_holder.has_csv_key("color_mean"):
+            self.csv_data_holder.data_list.pop("color_mean", None)
 
         # Create Histogram Plot
         if self.store_images:
             fig = plt.figure(figsize=(10, 10), dpi=100)
             for k, v in channel_data.items():
-                if v['data'] is None:
+                if v["data"] is None:
                     continue
-                plt.plot(v['hist'], label=v["channel_name"])
+                plt.plot(v["hist"], label=v["channel_name"])
                 plt.xlim([0, 256 - 1])
                 plt.legend()
 
-            if self.write_images != 'print':
+            if self.write_images != "print":
                 fig.canvas.draw()
                 # Now we can save it to a numpy array.
-                data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+                data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep="")
                 data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-                self.store_image(data, 'histogram')
-            elif self.write_images != 'plot':
+                self.store_image(data, "histogram")
+            elif self.write_images != "plot":
                 plt.axis("off")
-                plt.title('histogram')
+                plt.title("histogram")
                 fig.tight_layout()
                 plt.show()
 
@@ -1189,34 +1276,38 @@ class AbstractImageProcessor(ImageWrapper):
                 src_image=img,
                 channel=pseudo_color_channel,
                 color_map=pseudo_color_map,
-                foreground='false_colour',
+                foreground="false_colour",
                 src_mask=mask,
-                background=pseudo_bkg
+                background=pseudo_bkg,
             )
-            self.store_image(pseudo_colour, f'pseudo_on')
+            self.store_image(pseudo_colour, f"pseudo_on")
 
         # handle color quantiles
         keys = [k for k in self.csv_data_holder.data_list]
         for k in keys:
-            if 'quantile_color' in k:
-                *_, n = k.split('_')
+            if "quantile_color" in k:
+                *_, n = k.split("_")
                 n = int(n)
                 for c, v in channel_data.items():
-                    if v['data'] is None:
-                        self.error_holder.add_error(f'Missing channel {v["color_space"], v["channel_name"]}')
+                    if v["data"] is None:
+                        self.error_holder.add_error(
+                            f'Missing channel {v["color_space"], v["channel_name"]}'
+                        )
                         continue
                     seed_ = f'{v["color_space"]}_{c}'
-                    hist = cv2.calcHist([v['data']], [0], mask, [n], [0, (256 - 1)])
+                    hist = cv2.calcHist([v["data"]], [0], mask, [n], [0, (256 - 1)])
                     total_pixels = np.sum(hist)
                     for i, qtt in enumerate([hist_val[0] for hist_val in hist]):
                         self.csv_data_holder.update_csv_value(
-                            f'quantile_color_{seed_}_{i + 1}_{n}_percent', qtt / total_pixels * 100, True
+                            f"quantile_color_{seed_}_{i + 1}_{n}_percent",
+                            qtt / total_pixels * 100,
+                            True,
                         )
                 self.csv_data_holder.data_list.pop(k, None)
 
         return True
 
-    def fill_mask_holes(self, src_mask: Any, dbg_text: str = ''):
+    def fill_mask_holes(self, src_mask: Any, dbg_text: str = ""):
         """Fills holes inside mask using floodfill method
 
         Arguments:
@@ -1237,17 +1328,17 @@ class AbstractImageProcessor(ImageWrapper):
         # Floodfill from point (0, 0)
         cv2.floodFill(im_floodfill, mask, (0, 0), 255)
         if dbg_text:
-            self.store_image(im_floodfill, '{}_floodfill'.format(dbg_text))
+            self.store_image(im_floodfill, "{}_floodfill".format(dbg_text))
 
         # Invert floodfilled image
         im_floodfill_inv = cv2.bitwise_not(im_floodfill)
         if dbg_text:
-            self.store_image(im_floodfill_inv, '{}_floodfill_inv'.format(dbg_text))
+            self.store_image(im_floodfill_inv, "{}_floodfill_inv".format(dbg_text))
 
         # Combine the two images to get the foreground.
         mask_leafs = src_mask | im_floodfill_inv
         if dbg_text:
-            self.store_image(mask_leafs, '{}_mask_filled'.format(dbg_text))
+            self.store_image(mask_leafs, "{}_mask_filled".format(dbg_text))
 
         return mask_leafs
 
@@ -1266,14 +1357,14 @@ class AbstractImageProcessor(ImageWrapper):
             cx_ = int(m["m10"] / m["m00"])
             cy_ = int(m["m01"] / m["m00"])
             dist_ = math.sqrt(math.pow(cx_ - origin.x, 2) + math.pow(cy_ - origin.y, 2))
-            dist_scaled_inverted = 1 - dist_/max_dist
+            dist_scaled_inverted = 1 - dist_ / max_dist
             res_ = dict(
                 dist=dist_,
                 cx=cx_,
                 cy=cy_,
                 dist_scaled_inverted=dist_scaled_inverted,
                 area=cv2.contourArea(hull),
-                scaled_area=cv2.contourArea(hull) * math.pow(dist_scaled_inverted, 2)
+                scaled_area=cv2.contourArea(hull) * math.pow(dist_scaled_inverted, 2),
             )
         else:
             res_ = dict(dist=0, cx=0, cy=0, dist_scaled_inverted=0, area=0, scaled_area=0)
@@ -1288,7 +1379,7 @@ class AbstractImageProcessor(ImageWrapper):
         tolerance_distance=None,
         dilation_iter=0,
         trusted_safe_zone=False,
-        area_override_size=0
+        area_override_size=0,
     ):
         """Compares to hulls
 
@@ -1301,31 +1392,40 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         def last_chance_(test_cnt):
-            ok_size = (tolerance_area is not None) and ((tolerance_area < 0) or
-                                                        cv2.contourArea(test_cnt) >= tolerance_area)
-            ok_dist = (tolerance_distance is
-                       not None) and (tolerance_distance < 0 or min_dist <= tolerance_distance)
+            ok_size = (tolerance_area is not None) and (
+                (tolerance_area < 0) or cv2.contourArea(test_cnt) >= tolerance_area
+            )
+            ok_dist = (tolerance_distance is not None) and (
+                tolerance_distance < 0 or min_dist <= tolerance_distance
+            )
             if ok_size and ok_dist:
                 return KLC_OK_TOLERANCE
             elif ok_size:
-                if self.rois_intersects('safe', test_cnt):
+                if self.rois_intersects("safe", test_cnt):
                     return KLC_PROTECTED_SIZE_OK
                 else:
                     res_ = KLC_NO_CLOSE_ENOUGH
             elif ok_dist:
-                if self.rois_intersects('safe',
-                                        test_cnt) and cv2.contourArea(test_cnt) > pow(dilation_iter * 2, 2):
+                if self.rois_intersects("safe", test_cnt) and cv2.contourArea(test_cnt) > pow(
+                    dilation_iter * 2, 2
+                ):
                     return KLC_PROTECTED_DIST_OK
                 else:
                     res_ = KLC_NO_BIG_ENOUGH
-            elif trusted_safe_zone and self.rois_intersects('safe', test_cnt):
+            elif trusted_safe_zone and self.rois_intersects("safe", test_cnt):
                 return KLC_OK_TOLERANCE
             else:
                 res_ = KLC_OUTSIDE
 
             # Check area override limit
-            if ((area_override_size > 0) and (cv2.contourArea(test_cnt) > area_override_size) and
-                (self.rois_intersects('safe', test_cnt) or self.rois_intersects('safeish', test_cnt))):
+            if (
+                (area_override_size > 0)
+                and (cv2.contourArea(test_cnt) > area_override_size)
+                and (
+                    self.rois_intersects("safe", test_cnt)
+                    or self.rois_intersects("safeish", test_cnt)
+                )
+            ):
                 return KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
             else:
                 return res_
@@ -1342,7 +1442,12 @@ class AbstractImageProcessor(ImageWrapper):
             _, max_val, _, _ = cv2.minMaxLoc(test_img)
             nz_cmp_img = np.nonzero(cmp_img)
             nz_test_img = np.nonzero(test_img)
-            if (max_val > 0) and nz_cmp_img and nz_test_img and (len(nz_cmp_img[0]) > len(nz_test_img[0])):
+            if (
+                (max_val > 0)
+                and nz_cmp_img
+                and nz_test_img
+                and (len(nz_cmp_img[0]) > len(nz_test_img[0]))
+            ):
                 return KLC_OVERLAPS
 
         # Check point to point
@@ -1382,15 +1487,17 @@ class AbstractImageProcessor(ImageWrapper):
             * trusted_safe_zone: if true all contours in zones tagged safe will be accepted, required=False, default=False
         :return: : Filtered mask
         """
-        src_image = kwargs.get('src_image', self.current_image)
-        src_mask = kwargs.get('src_mask', self.mask)
+        src_image = kwargs.get("src_image", self.current_image)
+        src_mask = kwargs.get("src_mask", self.mask)
         if (src_image is None) or (src_mask is None):
-            self.error_holder.add_error(f'Source & mask are mandatory for keep linked contours "{str(self)}')
+            self.error_holder.add_error(
+                f'Source & mask are mandatory for keep linked contours "{str(self)}'
+            )
             return None
-        dilation_iter = kwargs.get('dilation_iter', 0)
-        roi = kwargs.get('roi', self.get_roi('main_roi'))
-        root_position = kwargs.get('root_position', 'BOTTOM_CENTER')
-        trusted_safe_zone = kwargs.get('trusted_safe_zone', False)
+        dilation_iter = kwargs.get("dilation_iter", 0)
+        roi = kwargs.get("roi", self.get_roi("main_roi"))
+        root_position = kwargs.get("root_position", "BOTTOM_CENTER")
+        trusted_safe_zone = kwargs.get("trusted_safe_zone", False)
 
         if dilation_iter > 0:
             dil_mask = self.dilate(src_mask, proc_times=dilation_iter)
@@ -1398,19 +1505,23 @@ class AbstractImageProcessor(ImageWrapper):
             dil_mask = self.erode(src_mask, proc_times=abs(dilation_iter))
         else:
             dil_mask = src_mask.copy()
-        self.store_image(dil_mask, 'dil_mask')
+        self.store_image(dil_mask, "dil_mask")
 
-        if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             contours, _ = cv2.findContours(dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         else:
-            _, contours, _ = cv2.findContours(dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            _, contours, _ = cv2.findContours(
+                dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+            )
 
-        self.store_image(cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), 'img_dilated_cnt')
+        self.store_image(
+            cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
+        )
 
         # print('Total cnts {}'.format(len(contours)))
 
         self.store_image(
-            cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8), 'src_img_with_cnt'
+            cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8), "src_img_with_cnt"
         )
 
         # Transform all contours into approximations
@@ -1420,26 +1531,26 @@ class AbstractImageProcessor(ImageWrapper):
             hulls.append(cv2.approxPolyDP(cnt, eps * cv2.arcLength(cnt, True), True))
         hull_img = src_image.copy()
         cv2.drawContours(hull_img, hulls, -1, (0, 255, 0), 4)
-        self.store_image(hull_img, 'src_img_with_cnt_approx_{}'.format(eps))
+        self.store_image(hull_img, "src_img_with_cnt_approx_{}".format(eps))
 
         # Find the largest hull
         main_hull = hulls[0]
         if roi:  # There's a ROI, lets keep the biggest hull close to its root
             roi_root = roi.point_at_position(root_position, True)
-            if root_position == 'MIDDLE_CENTER':
+            if root_position == "MIDDLE_CENTER":
                 dist_max = roi.radius
             else:
-                dist_max = math.sqrt(roi.width**2 + roi.height**2)
+                dist_max = math.sqrt(roi.width ** 2 + roi.height ** 2)
 
             hull_img = src_image.copy()
             max_area = 0
             # cnt_data = []
             for i, hull in enumerate(hulls):
                 morph_dict = self.get_distance_data(hull, roi_root, dist_max)
-                cl_cmp = morph_dict['dist_scaled_inverted'] * 255
-                cv2.drawContours(hull_img, [hull], 0, (0, int(cl_cmp), int((1-cl_cmp) * 255)), 2)
-                if morph_dict['scaled_area'] > max_area:
-                    max_area = morph_dict['scaled_area']
+                cl_cmp = morph_dict["dist_scaled_inverted"] * 255
+                cv2.drawContours(hull_img, [hull], 0, (0, int(cl_cmp), int((1 - cl_cmp) * 255)), 2)
+                if morph_dict["scaled_area"] > max_area:
+                    max_area = morph_dict["scaled_area"]
                     main_hull = hull
 
             # cnt_data.sort(key=lambda cnt_s: cnt_s['dist'])
@@ -1449,7 +1560,7 @@ class AbstractImageProcessor(ImageWrapper):
             # print('______')
             # print(f'[MAX AREA:{max_area:.2f}][Dist max:{dist_max:.2f}]')
 
-            self.store_image(hull_img, 'src_img_with_cnt_distance_map')
+            self.store_image(hull_img, "src_img_with_cnt_distance_map")
         else:  # No ROI defined
             max_area = cv2.contourArea(hulls[0])
             for i, hull in enumerate(hulls):
@@ -1459,10 +1570,12 @@ class AbstractImageProcessor(ImageWrapper):
                     main_hull = hull
 
         # At this point we have the zone were the contours are allowed to be
-        if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         else:
-            _, contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            _, contours, _ = cv2.findContours(
+                src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+            )
         for cnt in contours:
             hull = cv2.approxPolyDP(cnt, eps * cv2.arcLength(cnt, True), True)
             res = self.check_hull(
@@ -1470,19 +1583,23 @@ class AbstractImageProcessor(ImageWrapper):
                 cmp_hull=hull,
                 master_hull=main_hull,
                 dilation_iter=dilation_iter,
-                trusted_safe_zone=trusted_safe_zone
+                trusted_safe_zone=trusted_safe_zone,
             )
             if res in [
-                KLC_FULLY_INSIDE, KLC_OVERLAPS, KLC_PROTECTED_DIST_OK, KLC_PROTECTED_SIZE_OK,
-                KLC_OK_TOLERANCE, KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
+                KLC_FULLY_INSIDE,
+                KLC_OVERLAPS,
+                KLC_PROTECTED_DIST_OK,
+                KLC_PROTECTED_SIZE_OK,
+                KLC_OK_TOLERANCE,
+                KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE,
             ]:
                 cv2.drawContours(src_image, [cnt], 0, (0, 255, 0), 2)
             else:
                 cv2.drawContours(src_image, [cnt], 0, (0, 0, 255), 2)
                 cv2.drawContours(src_mask, [cnt], 0, (0, 0, 0), -1)
 
-        self.store_image(src_image, 'img_wth_tagged_cnt')
-        self.store_image(src_mask, 'mask_lnk_cnts')
+        self.store_image(src_image, "img_wth_tagged_cnt")
+        self.store_image(src_mask, "mask_lnk_cnts")
 
         return src_mask
 
@@ -1504,33 +1621,39 @@ class AbstractImageProcessor(ImageWrapper):
             * delete_all_bellow: all contours smaller than value will be deleted
         :return: : Filtered mask
         """
-        src_image = kwargs.get('src_image', self.current_image)
-        src_mask = kwargs.get('src_mask', self.mask)
+        src_image = kwargs.get("src_image", self.current_image)
+        src_mask = kwargs.get("src_mask", self.mask)
         if (src_image is None) or (src_mask is None):
-            self.error_holder.add_error(f'Source & mask are mandatory for keep linked contours "{str(self)}')
+            self.error_holder.add_error(
+                f'Source & mask are mandatory for keep linked contours "{str(self)}'
+            )
             return None
-        dilation_iter = kwargs.get('dilation_iter', 0)
-        tolerance_distance = kwargs.get('tolerance_distance', 0)
-        tolerance_area = kwargs.get('tolerance_area', 0)
-        roi = kwargs.get('roi', self.get_roi('main_roi'))
-        root_position = kwargs.get('root_position', 'BOTTOM_CENTER')
-        trusted_safe_zone = kwargs.get('trusted_safe_zone', False)
-        area_override_size = kwargs.get('area_override_size', 0)
-        delete_all_bellow = kwargs.get('delete_all_bellow', 0)
+        dilation_iter = kwargs.get("dilation_iter", 0)
+        tolerance_distance = kwargs.get("tolerance_distance", 0)
+        tolerance_area = kwargs.get("tolerance_area", 0)
+        roi = kwargs.get("roi", self.get_roi("main_roi"))
+        root_position = kwargs.get("root_position", "BOTTOM_CENTER")
+        trusted_safe_zone = kwargs.get("trusted_safe_zone", False)
+        area_override_size = kwargs.get("area_override_size", 0)
+        delete_all_bellow = kwargs.get("delete_all_bellow", 0)
 
         if tolerance_distance != int(tolerance_distance) or tolerance_area != int(tolerance_area):
-            raise NotImplementedError('Only integers allowed')
+            raise NotImplementedError("Only integers allowed")
 
         # print('Minimums allowed: [Area:{:.2f}] [Distance:{:.2f}]'.format(tolerance_area, tolerance_distance))
 
-        self.store_image(src_mask, 'raw__mask')
+        self.store_image(src_mask, "raw__mask")
         # Delete all small contours
         if delete_all_bellow > 0:
             fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
-            if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
-                contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
+                contours, _ = cv2.findContours(
+                    src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+                )
             else:
-                _, contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+                _, contours, _ = cv2.findContours(
+                    src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+                )
             small_img = src_mask.copy()
             small_img = np.dstack((small_img, small_img, small_img))
             for cnt in contours:
@@ -1540,13 +1663,15 @@ class AbstractImageProcessor(ImageWrapper):
                     cv2.drawContours(src_mask, [cnt], 0, (0, 0, 0), -1)
                     # Print debug image
                     x, y, w, h = cv2.boundingRect(cnt)
-                    x += w//2 - 10
+                    x += w // 2 - 10
                     y += h // 2
                     cv2.drawContours(small_img, [cnt], -1, ipc.C_RED, -1)
-                    cv2.putText(small_img, f"Area: {area_}", (x, y), fnt[0], fnt[1], ipc.C_FUCHSIA, 2)
+                    cv2.putText(
+                        small_img, f"Area: {area_}", (x, y), fnt[0], fnt[1], ipc.C_FUCHSIA, 2
+                    )
                 else:
                     cv2.drawContours(small_img, [cnt], -1, ipc.C_GREEN, -1)
-            self.store_image(small_img, 'small_removed_mask')
+            self.store_image(small_img, "small_removed_mask")
 
         if dilation_iter > 0:
             dil_mask = self.dilate(src_mask, proc_times=dilation_iter)
@@ -1554,17 +1679,21 @@ class AbstractImageProcessor(ImageWrapper):
             dil_mask = self.erode(src_mask, proc_times=abs(dilation_iter))
         else:
             dil_mask = src_mask.copy()
-        self.store_image(dil_mask, 'dil_mask')
-        if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
+        self.store_image(dil_mask, "dil_mask")
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             contours, _ = cv2.findContours(dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         else:
-            _, contours, _ = cv2.findContours(dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        self.store_image(cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), 'img_dilated_cnt')
+            _, contours, _ = cv2.findContours(
+                dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+            )
+        self.store_image(
+            cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
+        )
 
         # print('Total cnts {}'.format(len(contours)))
 
         img_cnt = cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8)
-        self.store_image(img_cnt, 'src_img_with_cnt')
+        self.store_image(img_cnt, "src_img_with_cnt")
 
         # Transform all contours into approximations
         hulls = []
@@ -1573,17 +1702,17 @@ class AbstractImageProcessor(ImageWrapper):
             hulls.append(cv2.approxPolyDP(cnt, eps * cv2.arcLength(cnt, True), True))
         hull_img = src_image.copy()
         cv2.drawContours(hull_img, hulls, -1, (0, 255, 0), 4)
-        self.store_image(hull_img, 'src_img_with_cnt_approx_{}'.format(eps))
+        self.store_image(hull_img, "src_img_with_cnt_approx_{}".format(eps))
 
         # Find the largest hull
         big_hull = hulls[0]
         big_idx = 0
         if roi:  # There's a ROI, lets keep the biggest hull close to its root
             roi_root = roi.point_at_position(root_position, True)
-            if root_position == 'MIDDLE_CENTER':
+            if root_position == "MIDDLE_CENTER":
                 dist_max = roi.radius
             else:
-                dist_max = math.sqrt(roi.width**2 + roi.height**2)
+                dist_max = math.sqrt(roi.width ** 2 + roi.height ** 2)
 
             hull_img = src_image.copy()
             max_area = 0
@@ -1594,13 +1723,18 @@ class AbstractImageProcessor(ImageWrapper):
                 # cnt_data.append(morph_dict)
 
                 cv2.drawContours(
-                    hull_img, [hull], 0, (
-                        0, int(morph_dict['dist_scaled_inverted'] * 255
-                              ), int((1 - morph_dict['dist_scaled_inverted']) * 255)
-                    ), 2
+                    hull_img,
+                    [hull],
+                    0,
+                    (
+                        0,
+                        int(morph_dict["dist_scaled_inverted"] * 255),
+                        int((1 - morph_dict["dist_scaled_inverted"]) * 255),
+                    ),
+                    2,
                 )
-                if morph_dict['scaled_area'] > max_area:
-                    max_area = morph_dict['scaled_area']
+                if morph_dict["scaled_area"] > max_area:
+                    max_area = morph_dict["scaled_area"]
                     big_hull = hull
                     big_idx = i
 
@@ -1611,7 +1745,7 @@ class AbstractImageProcessor(ImageWrapper):
             # print('______')
             # print(f'[MAX AREA:{max_area:.2f}][Dist max:{dist_max:.2f}]')
 
-            self.store_image(hull_img, 'src_img_with_cnt_distance_map')
+            self.store_image(hull_img, "src_img_with_cnt_distance_map")
         else:  # No ROI defined
             max_area = cv2.contourArea(hulls[0])
             for i, hull in enumerate(hulls):
@@ -1636,24 +1770,27 @@ class AbstractImageProcessor(ImageWrapper):
                 tolerance_distance=tolerance_distance,
                 dilation_iter=dilation_iter,
                 trusted_safe_zone=trusted_safe_zone,
-                area_override_size=area_override_size
+                area_override_size=area_override_size,
             )
-            cv2.drawContours(hull_img, [hull], 0, res['color'], 2)
+            cv2.drawContours(hull_img, [hull], 0, res["color"], 2)
             if res == KLC_FULLY_INSIDE:
                 pass
             elif res in [
-                KLC_OVERLAPS, KLC_PROTECTED_DIST_OK, KLC_PROTECTED_SIZE_OK, KLC_OK_TOLERANCE,
-                KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
+                KLC_OVERLAPS,
+                KLC_PROTECTED_DIST_OK,
+                KLC_PROTECTED_SIZE_OK,
+                KLC_OK_TOLERANCE,
+                KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE,
             ]:
                 good_hulls.append(hull)
             else:
                 unknown_hulls.append(hull)
 
-        self.store_image(hull_img, 'src_img_with_cnt_as_hull_init')
+        self.store_image(hull_img, "src_img_with_cnt_as_hull_init")
 
         hull_img = src_image.copy()
-        cv2.drawContours(hull_img, good_hulls, -1, KLC_FULLY_INSIDE['color'], 4)
-        self.store_image(hull_img, 'init_good_hulls')
+        cv2.drawContours(hull_img, good_hulls, -1, KLC_FULLY_INSIDE["color"], 4)
+        self.store_image(hull_img, "init_good_hulls")
         # Try to aggregate unknown hulls to good hulls
         stable = False
         while not stable:
@@ -1673,19 +1810,22 @@ class AbstractImageProcessor(ImageWrapper):
                         tolerance_distance=tolerance_distance,
                         dilation_iter=dilation_iter,
                         trusted_safe_zone=trusted_safe_zone,
-                        area_override_size=area_override_size
+                        area_override_size=area_override_size,
                     )
                     if res == KLC_FULLY_INSIDE:
-                        del (unknown_hulls[i])
+                        del unknown_hulls[i]
                         stable = False
                         break
                     elif res in [
-                        KLC_PROTECTED_SIZE_OK, KLC_PROTECTED_DIST_OK, KLC_OVERLAPS, KLC_OK_TOLERANCE,
-                        KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
+                        KLC_PROTECTED_SIZE_OK,
+                        KLC_PROTECTED_DIST_OK,
+                        KLC_OVERLAPS,
+                        KLC_OK_TOLERANCE,
+                        KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE,
                     ]:
                         draw_hull = unknown_hulls.pop(i)
                         good_hulls.append(draw_hull)
-                        cv2.drawContours(hull_img, [draw_hull], -1, res['color'], 2)
+                        cv2.drawContours(hull_img, [draw_hull], -1, res["color"], 2)
                         stable = False
                         break
                     elif res in [KLC_OUTSIDE, KLC_NO_BIG_ENOUGH, KLC_NO_CLOSE_ENOUGH]:
@@ -1695,37 +1835,39 @@ class AbstractImageProcessor(ImageWrapper):
                 if res in [KLC_OUTSIDE, KLC_NO_BIG_ENOUGH, KLC_NO_CLOSE_ENOUGH]:
                     i += 1
                 if isinstance(res, dict):
-                    cv2.drawContours(hull_img, [hull], -1, res.get('color', ipc.C_CABIN_BLUE), 2)
+                    cv2.drawContours(hull_img, [hull], -1, res.get("color", ipc.C_CABIN_BLUE), 2)
                 else:
-                    self.error_holder.add_error(f'Unknown check_hull res {str(res)}')
-            self.store_image(hull_img, f'src_img_with_cnt_after_agg_iter_{iter_count}')
+                    self.error_holder.add_error(f"Unknown check_hull res {str(res)}")
+            self.store_image(hull_img, f"src_img_with_cnt_after_agg_iter_{iter_count}")
             iter_count += 1
 
         hull_img = src_image.copy()
         fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
         for gh in good_hulls:
             x, y, w, h = cv2.boundingRect(gh)
-            x += w//2 - 10
+            x += w // 2 - 10
             y += h // 2
             area_ = cv2.contourArea(gh)
-            cv2.drawContours(hull_img, [gh], -1, KLC_FULLY_INSIDE['color'], 8)
+            cv2.drawContours(hull_img, [gh], -1, KLC_FULLY_INSIDE["color"], 8)
             if area_ > 0:
                 cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 0), 2)
         for uh in unknown_hulls:
             x, y, w, h = cv2.boundingRect(uh)
-            x += w//2 - 10
+            x += w // 2 - 10
             y += h // 2
             area_ = cv2.contourArea(uh)
-            cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE['color'], 8)
+            cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE["color"], 8)
             if area_ > 0:
                 cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2)
-        self.store_image(hull_img, f'src_img_with_cnt_after_agg_iter_last')
+        self.store_image(hull_img, f"src_img_with_cnt_after_agg_iter_last")
 
         # At this point we have the zone were the contours are allowed to be
-        if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
             contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
         else:
-            _, contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+            _, contours, _ = cv2.findContours(
+                src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
+            )
         for cnt in contours:
             hull = cv2.approxPolyDP(cnt, eps * cv2.arcLength(cnt, True), True)
             is_good_one = False
@@ -1738,11 +1880,15 @@ class AbstractImageProcessor(ImageWrapper):
                     tolerance_distance=tolerance_distance,
                     dilation_iter=dilation_iter,
                     trusted_safe_zone=trusted_safe_zone,
-                    area_override_size=area_override_size
+                    area_override_size=area_override_size,
                 )
                 if res in [
-                    KLC_FULLY_INSIDE, KLC_OVERLAPS, KLC_PROTECTED_DIST_OK, KLC_PROTECTED_SIZE_OK,
-                    KLC_OK_TOLERANCE, KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
+                    KLC_FULLY_INSIDE,
+                    KLC_OVERLAPS,
+                    KLC_PROTECTED_DIST_OK,
+                    KLC_PROTECTED_SIZE_OK,
+                    KLC_OK_TOLERANCE,
+                    KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE,
                 ]:
                     is_good_one = True
                     break
@@ -1753,8 +1899,8 @@ class AbstractImageProcessor(ImageWrapper):
                 cv2.drawContours(src_image, [cnt], 0, (0, 0, 255), 2)
                 cv2.drawContours(src_mask, [cnt], 0, (0, 0, 0), -1)
 
-        self.store_image(src_image, 'img_wth_tagged_cnt')
-        self.store_image(src_mask, 'mask_lnk_cnts')
+        self.store_image(src_image, "img_wth_tagged_cnt")
+        self.store_image(src_mask, "mask_lnk_cnts")
 
         return src_mask
 
@@ -1772,17 +1918,25 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         # Identify objects
-        if LooseVersion(cv2.__version__) > LooseVersion('4.0.0'):
-            id_objects, obj_hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[-2:]
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
+            id_objects, obj_hierarchy = cv2.findContours(
+                mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
+            )[-2:]
         else:
-            _, id_objects, obj_hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)[-2:]
+            _, id_objects, obj_hierarchy = cv2.findContours(
+                mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
+            )[-2:]
 
         if self.store_images:
             ori_img = np.copy(img)
             for i, _ in enumerate(id_objects):
-                cv2.drawContours(ori_img, id_objects, i, (255, 0, 0), -1, lineType=8, hierarchy=obj_hierarchy)
-                cv2.drawContours(ori_img, id_objects, i, (0, 0, 255), 2, lineType=8, hierarchy=obj_hierarchy)
-            self.store_image(ori_img, 'masked_whole_cnts')
+                cv2.drawContours(
+                    ori_img, id_objects, i, (255, 0, 0), -1, lineType=8, hierarchy=obj_hierarchy
+                )
+                cv2.drawContours(
+                    ori_img, id_objects, i, (0, 0, 255), 2, lineType=8, hierarchy=obj_hierarchy
+                )
+            self.store_image(ori_img, "masked_whole_cnts")
 
         # Object combine kept objects
         obj, msk = self.object_composition(img, id_objects, obj_hierarchy)
@@ -1797,7 +1951,7 @@ class AbstractImageProcessor(ImageWrapper):
         pseudo_color_channel: str,
         pseudo_color_map: int = 2,
         boundary_position: int = -1,
-        pseudo_background_type='bw'
+        pseudo_background_type="bw",
     ):
         """Creates shape, boundary and text data for image.
         Last step of pipeline
@@ -1820,19 +1974,22 @@ class AbstractImageProcessor(ImageWrapper):
         else:
             res = True
 
-        res = self.analyze_bound(img, mask, boundary_position, 'v') and res
+        res = self.analyze_bound(img, mask, boundary_position, "v") and res
 
         # Determine color properties: Histograms,
         # Color Slices and Pseudocolored Images, output color analyzed images (optional)
         if not self.is_heliasen:
             res = self.analyse_chlorophyll(img=img, mask=mask) and res
-            res = self.analyze_color(
-                img=img,
-                mask=mask,
-                pseudo_color_channel=pseudo_color_channel,
-                pseudo_color_map=pseudo_color_map,
-                pseudo_bkg=pseudo_background_type
-            ) and res
+            res = (
+                self.analyze_color(
+                    img=img,
+                    mask=mask,
+                    pseudo_color_channel=pseudo_color_channel,
+                    pseudo_color_map=pseudo_color_map,
+                    pseudo_bkg=pseudo_background_type,
+                )
+                and res
+            )
         return res
 
     @time_method
@@ -1840,10 +1997,10 @@ class AbstractImageProcessor(ImageWrapper):
         self,
         mask: Any,
         source_image: [None, str, Any] = None,
-        pseudo_color_channel: str = 'v',
+        pseudo_color_channel: str = "v",
         pseudo_color_map: int = 2,
         boundary_position: int = -1,
-        pseudo_background_type='bw'
+        pseudo_background_type="bw",
     ) -> bool:
         """Extract image data after segmentation
 
@@ -1868,9 +2025,9 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Display mask on image
             masked_whole = self.draw_image(
-                src_image=img, src_mask=mask, background='silver', foreground='source'
+                src_image=img, src_mask=mask, background="silver", foreground="source"
             )
-            self.store_image(masked_whole, 'masked_whole')
+            self.store_image(masked_whole, "masked_whole")
 
             # Analyse
             res = self.analyse(
@@ -1879,10 +2036,12 @@ class AbstractImageProcessor(ImageWrapper):
                 pseudo_color_channel=pseudo_color_channel,
                 pseudo_color_map=pseudo_color_map,
                 pseudo_background_type=pseudo_background_type,
-                boundary_position=boundary_position
+                boundary_position=boundary_position,
             )
         except Exception as e:
-            self.error_holder.add_error(f'Failed to extract image data: "{str(self)}", because "{repr(e)}"')
+            self.error_holder.add_error(
+                f'Failed to extract image data: "{str(self)}", because "{repr(e)}"'
+            )
             print(self.error_holder.last_error())
             res = False
         finally:
@@ -1915,13 +2074,13 @@ class AbstractImageProcessor(ImageWrapper):
             list_index = 0
             res = cv2.bitwise_and(image_list[0], image_list[1])
             if print_intermediate:
-                self.store_image(res, '{}_and{}'.format(list_index, list_index + 1))
+                self.store_image(res, "{}_and{}".format(list_index, list_index + 1))
                 list_index += 2
             if len(image_list) > 2:
                 for current_image in image_list[2:]:
                     res = cv2.bitwise_and(res, current_image)
                     if print_intermediate:
-                        self.store_image(res, 'res_and{}'.format(list_index))
+                        self.store_image(res, "res_and{}".format(list_index))
                         list_index += 1
 
             return res
@@ -1943,13 +2102,13 @@ class AbstractImageProcessor(ImageWrapper):
             list_index = 0
             res = cv2.bitwise_or(image_list[0], image_list[1])
             if print_intermediate:
-                self.store_image(res, '{}_and{}'.format(list_index, list_index + 1))
+                self.store_image(res, "{}_and{}".format(list_index, list_index + 1))
                 list_index += 2
             if list_len_ > 2:
                 for current_image in image_list[2:]:
                     res = cv2.bitwise_or(res, current_image)
                     if print_intermediate:
-                        self.store_image(res, 'res_and{}'.format(list_index))
+                        self.store_image(res, "res_and{}".format(list_index))
                         list_index += 1
             return res
 
@@ -1959,8 +2118,8 @@ class AbstractImageProcessor(ImageWrapper):
         kernel_size: int = 3,
         kernel_shape: int = cv2.MORPH_ELLIPSE,
         rois: tuple = (),
-        dbg_text: str = '',
-        proc_times: int = 1
+        dbg_text: str = "",
+        proc_times: int = 1,
     ):
         """Morphology - Open wrapper
 
@@ -1981,16 +2140,16 @@ class AbstractImageProcessor(ImageWrapper):
             result = image.copy()
             for roi in rois:
                 r = roi.as_rect()
-                result[r.top:r.bottom, r.left:r.right] = cv2.morphologyEx(
-                    result[r.top:r.bottom, r.left:r.right],
+                result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
+                    result[r.top : r.bottom, r.left : r.right],
                     cv2.MORPH_OPEN,
                     morph_kernel,
-                    iterations=proc_times
+                    iterations=proc_times,
                 )
         else:
             result = cv2.morphologyEx(image, cv2.MORPH_OPEN, morph_kernel, iterations=proc_times)
         if dbg_text:
-            self.store_image(result, '{}_open_{}'.format(dbg_text, kernel_size), rois)
+            self.store_image(result, "{}_open_{}".format(dbg_text, kernel_size), rois)
         return result
 
     def close(
@@ -1999,8 +2158,8 @@ class AbstractImageProcessor(ImageWrapper):
         kernel_size: int = 3,
         kernel_shape: int = cv2.MORPH_ELLIPSE,
         rois: tuple = (),
-        dbg_text: str = '',
-        proc_times: int = 1
+        dbg_text: str = "",
+        proc_times: int = 1,
     ):
         """Morphology - Close wrapper
 
@@ -2021,16 +2180,16 @@ class AbstractImageProcessor(ImageWrapper):
             result = image.copy()
             for roi in rois:
                 r = roi.as_rect()
-                result[r.top:r.bottom, r.left:r.right] = cv2.morphologyEx(
-                    result[r.top:r.bottom, r.left:r.right],
+                result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
+                    result[r.top : r.bottom, r.left : r.right],
                     cv2.MORPH_CLOSE,
                     morph_kernel,
-                    iterations=proc_times
+                    iterations=proc_times,
                 )
         else:
             result = cv2.morphologyEx(image, cv2.MORPH_CLOSE, morph_kernel, iterations=proc_times)
         if dbg_text:
-            self.store_image(result, '{}_close_{}'.format(dbg_text, kernel_size), rois)
+            self.store_image(result, "{}_close_{}".format(dbg_text, kernel_size), rois)
         return result
 
     def dilate(
@@ -2039,8 +2198,8 @@ class AbstractImageProcessor(ImageWrapper):
         kernel_size: int = 3,
         kernel_shape: int = cv2.MORPH_ELLIPSE,
         rois: tuple = (),
-        dbg_text: str = '',
-        proc_times: int = 1
+        dbg_text: str = "",
+        proc_times: int = 1,
     ):
         """Morphology - Dilate wrapper
 
@@ -2063,13 +2222,17 @@ class AbstractImageProcessor(ImageWrapper):
             for roi in rois:
                 if roi is not None:
                     r = roi.as_rect()
-                    result[r.top:r.bottom, r.left:r.right] = cv2.dilate(
-                        result[r.top:r.bottom, r.left:r.right], morph_kernel, iterations=proc_times
+                    result[r.top : r.bottom, r.left : r.right] = cv2.dilate(
+                        result[r.top : r.bottom, r.left : r.right],
+                        morph_kernel,
+                        iterations=proc_times,
                     )
         else:
             result = cv2.dilate(image, morph_kernel, iterations=proc_times)
         if dbg_text:
-            self.store_image(result, '{}_dilate_{}_{}_times'.format(dbg_text, kernel_size, proc_times), rois)
+            self.store_image(
+                result, "{}_dilate_{}_{}_times".format(dbg_text, kernel_size, proc_times), rois
+            )
         return result
 
     def erode(
@@ -2078,8 +2241,8 @@ class AbstractImageProcessor(ImageWrapper):
         kernel_size: int = 3,
         kernel_shape: int = cv2.MORPH_ELLIPSE,
         rois: tuple = (),
-        dbg_text: str = '',
-        proc_times: int = 1
+        dbg_text: str = "",
+        proc_times: int = 1,
     ):
         """Morphology - Erode wrapper
 
@@ -2102,13 +2265,17 @@ class AbstractImageProcessor(ImageWrapper):
             for roi in rois:
                 if roi is not None:
                     r = roi.as_rect()
-                    result[r.top:r.bottom, r.left:r.right] = cv2.erode(
-                        result[r.top:r.bottom, r.left:r.right], morph_kernel, iterations=proc_times
+                    result[r.top : r.bottom, r.left : r.right] = cv2.erode(
+                        result[r.top : r.bottom, r.left : r.right],
+                        morph_kernel,
+                        iterations=proc_times,
                     )
         else:
             result = cv2.erode(image, morph_kernel, iterations=proc_times)
         if dbg_text:
-            self.store_image(result, '{}_erode_{}_{}_times'.format(dbg_text, kernel_size, proc_times), rois)
+            self.store_image(
+                result, "{}_erode_{}_{}_times".format(dbg_text, kernel_size, proc_times), rois
+            )
         return result
 
     def print_channels(
@@ -2119,7 +2286,7 @@ class AbstractImageProcessor(ImageWrapper):
         median_filter_size: int = 0,
         test_normalize: bool = False,
         median_filter_max: int = 0,
-        step_op: int = 2
+        step_op: int = 2,
     ):
         """Creates images for each requested channel and stores them
 
@@ -2160,65 +2327,65 @@ class AbstractImageProcessor(ImageWrapper):
         """
         if self.is_vis:
             if self.is_wide_angle:
-                self.add_rect_roi(234, 1588, 258, 1034, 'main_roi', 'keep')
-                self.add_rect_roi(1558, 272, 254, 234, 'roi_cable', 'erode')
-                self.add_rect_roi(328, 32, 102, 2108, 'roi_bar_left', 'erode')
-                self.add_rect_roi(1670, 48, 484, 1728, 'roi_bar_right', 'erode')
-                self.add_rect_roi(268, 52, 786, 48, 'roi_bolt_left', 'erode')
-                self.add_rect_roi(1722, 48, 782, 52, 'roi_bolt_right', 'erode')
-                self.add_rect_roi(638, 778, 592, 654, 'safe_zone', 'safe')
+                self.add_rect_roi(234, 1588, 258, 1034, "main_roi", "keep")
+                self.add_rect_roi(1558, 272, 254, 234, "roi_cable", "erode")
+                self.add_rect_roi(328, 32, 102, 2108, "roi_bar_left", "erode")
+                self.add_rect_roi(1670, 48, 484, 1728, "roi_bar_right", "erode")
+                self.add_rect_roi(268, 52, 786, 48, "roi_bolt_left", "erode")
+                self.add_rect_roi(1722, 48, 782, 52, "roi_bolt_right", "erode")
+                self.add_rect_roi(638, 778, 592, 654, "safe_zone", "safe")
             else:
                 if self.is_blue_guide:
-                    self.add_rect_roi(16, 2020, 22, 1306, 'main_roi', 'keep')
-                    self.add_rect_roi(1702, 344, 6, 308, 'roi_cable', 'erode')
-                    self.add_rect_roi(50, 60, 10, 1456, 'roi_bar_left', 'erode')
-                    self.add_rect_roi(1970, 44, 16, 1406, 'roi_bar_right', 'erode')
-                    self.add_rect_roi(732, 502, 900, 364, 'safe_1', 'safe')
-                    self.add_rect_roi(1070, 894, 304, 960, 'safe_2', 'safe')
-                    self.add_rect_roi(114, 800, 260, 1008, 'safe_3', 'safe')
-                    self.add_rect_roi(114, 1590, 18, 812, 'safe_4', 'safe')
+                    self.add_rect_roi(16, 2020, 22, 1306, "main_roi", "keep")
+                    self.add_rect_roi(1702, 344, 6, 308, "roi_cable", "erode")
+                    self.add_rect_roi(50, 60, 10, 1456, "roi_bar_left", "erode")
+                    self.add_rect_roi(1970, 44, 16, 1406, "roi_bar_right", "erode")
+                    self.add_rect_roi(732, 502, 900, 364, "safe_1", "safe")
+                    self.add_rect_roi(1070, 894, 304, 960, "safe_2", "safe")
+                    self.add_rect_roi(114, 800, 260, 1008, "safe_3", "safe")
+                    self.add_rect_roi(114, 1590, 18, 812, "safe_4", "safe")
                 elif self.is_drop_roi:
                     if self.is_blue_background:
-                        self.add_rect_roi(28, 1998, 756, 1290, 'main_roi', 'keep')
-                        self.add_rect_roi(1688, 338, 20, 290, 'roi_cable', 'erode')
-                        self.add_rect_roi(42, 70, 6, 2432, 'roi_bar_left', 'erode')
-                        self.add_rect_roi(1894, 46, 18, 2372, 'roi_bar_right', 'erode')
-                        self.add_rect_roi(236, 1416, 42, 1876, 'safe_left_top', 'safe')
-                        self.add_rect_roi(1550, 256, 372, 1528, 'safe_right_middle', 'safe')
+                        self.add_rect_roi(28, 1998, 756, 1290, "main_roi", "keep")
+                        self.add_rect_roi(1688, 338, 20, 290, "roi_cable", "erode")
+                        self.add_rect_roi(42, 70, 6, 2432, "roi_bar_left", "erode")
+                        self.add_rect_roi(1894, 46, 18, 2372, "roi_bar_right", "erode")
+                        self.add_rect_roi(236, 1416, 42, 1876, "safe_left_top", "safe")
+                        self.add_rect_roi(1550, 256, 372, 1528, "safe_right_middle", "safe")
                     else:
-                        self.add_rect_roi(28, 1998, 756, 1290, 'main_roi', 'keep')
-                        self.add_rect_roi(1688, 338, 20, 290, 'roi_cable', 'erode')
-                        self.add_rect_roi(150, 50, 6, 2432, 'roi_bar_left', 'erode')
-                        self.add_rect_roi(1838, 38, 18, 2372, 'roi_bar_right', 'erode')
-                        self.add_rect_roi(90, 46, 688, 46, 'roi_bolt_left', 'erode')
-                        self.add_rect_roi(1894, 46, 686, 46, 'roi_bolt_right', 'erode')
-                        self.add_rect_roi(236, 1416, 42, 1876, 'safe_left_top', 'safe')
-                        self.add_rect_roi(1550, 256, 372, 1528, 'safe_right_middle', 'safe')
+                        self.add_rect_roi(28, 1998, 756, 1290, "main_roi", "keep")
+                        self.add_rect_roi(1688, 338, 20, 290, "roi_cable", "erode")
+                        self.add_rect_roi(150, 50, 6, 2432, "roi_bar_left", "erode")
+                        self.add_rect_roi(1838, 38, 18, 2372, "roi_bar_right", "erode")
+                        self.add_rect_roi(90, 46, 688, 46, "roi_bolt_left", "erode")
+                        self.add_rect_roi(1894, 46, 686, 46, "roi_bolt_right", "erode")
+                        self.add_rect_roi(236, 1416, 42, 1876, "safe_left_top", "safe")
+                        self.add_rect_roi(1550, 256, 372, 1528, "safe_right_middle", "safe")
                 elif self.is_blue_background:
-                    self.add_rect_roi(28, 1998, 20, 1290, 'main_roi', 'keep')
-                    self.add_rect_roi(1688, 338, 20, 290, 'roi_cable', 'erode')
-                    self.add_rect_roi(42, 70, 4, 2438, 'roi_bar_left', 'erode')
-                    self.add_rect_roi(1941, 80, 4, 2438, 'roi_bar_right', 'erode')
-                    self.add_rect_roi(236, 1416, 42, 1222, 'safe_left_top', 'safe')
-                    self.add_rect_roi(1550, 256, 372, 892, 'safe_right_middle', 'safe')
+                    self.add_rect_roi(28, 1998, 20, 1290, "main_roi", "keep")
+                    self.add_rect_roi(1688, 338, 20, 290, "roi_cable", "erode")
+                    self.add_rect_roi(42, 70, 4, 2438, "roi_bar_left", "erode")
+                    self.add_rect_roi(1941, 80, 4, 2438, "roi_bar_right", "erode")
+                    self.add_rect_roi(236, 1416, 42, 1222, "safe_left_top", "safe")
+                    self.add_rect_roi(1550, 256, 372, 892, "safe_right_middle", "safe")
                 else:
-                    self.add_rect_roi(28, 1998, 20, 1290, 'main_roi', 'keep')
-                    self.add_rect_roi(1688, 338, 20, 290, 'roi_cable', 'erode')
-                    self.add_rect_roi(150, 50, 6, 2432, 'roi_bar_left', 'erode')
-                    self.add_rect_roi(1838, 38, 18, 2372, 'roi_bar_right', 'erode')
-                    self.add_rect_roi(90, 46, 688, 46, 'roi_bolt_left', 'erode')
-                    self.add_rect_roi(1894, 46, 686, 46, 'roi_bolt_right', 'erode')
-                    self.add_rect_roi(236, 1416, 42, 1222, 'safe_left_top', 'safe')
-                    self.add_rect_roi(1550, 256, 372, 892, 'safe_right_middle', 'safe')
+                    self.add_rect_roi(28, 1998, 20, 1290, "main_roi", "keep")
+                    self.add_rect_roi(1688, 338, 20, 290, "roi_cable", "erode")
+                    self.add_rect_roi(150, 50, 6, 2432, "roi_bar_left", "erode")
+                    self.add_rect_roi(1838, 38, 18, 2372, "roi_bar_right", "erode")
+                    self.add_rect_roi(90, 46, 688, 46, "roi_bolt_left", "erode")
+                    self.add_rect_roi(1894, 46, 686, 46, "roi_bolt_right", "erode")
+                    self.add_rect_roi(236, 1416, 42, 1222, "safe_left_top", "safe")
+                    self.add_rect_roi(1550, 256, 372, 892, "safe_right_middle", "safe")
         elif self.is_fluo:
             if self.is_drop_roi:
-                self.add_rect_roi(1, 1036, 10, 1100, 'main_roi', 'keep')
-                self.add_rect_roi(286, 456, 1092, 70, 'roi_sticker')
-                self.add_rect_roi(286, 456, 1053, 42, 'roi_protect', 'safe')
+                self.add_rect_roi(1, 1036, 10, 1100, "main_roi", "keep")
+                self.add_rect_roi(286, 456, 1092, 70, "roi_sticker")
+                self.add_rect_roi(286, 456, 1053, 42, "roi_protect", "safe")
             else:
-                self.add_rect_roi(1, 1036, 10, 725, 'main_roi', 'keep')
-                self.add_rect_roi(286, 456, 711, 70, 'roi_sticker')
-                self.add_rect_roi(286, 456, 690, 42, 'roi_protect', 'safe')
+                self.add_rect_roi(1, 1036, 10, 725, "main_roi", "keep")
+                self.add_rect_roi(286, 456, 711, 70, "roi_sticker")
+                self.add_rect_roi(286, 456, 690, 42, "roi_protect", "safe")
         elif self.is_nir:
             pass
         else:
@@ -2232,12 +2399,19 @@ class AbstractImageProcessor(ImageWrapper):
         :return:
         """
         return [
-            dict(channel=dt[0], mask=None, debug_name='', min=dt[1], max=dt[2], median_filter_size=dt[3])
+            dict(
+                channel=dt[0],
+                mask=None,
+                debug_name="",
+                min=dt[1],
+                max=dt[2],
+                median_filter_size=dt[3],
+            )
             for dt in data
         ]
 
     def apply_mask_data_dict(
-        self, source_image, mask_data: dict, store_masks: bool = True, dbg_str_prefix: str = ''
+        self, source_image, mask_data: dict, store_masks: bool = True, dbg_str_prefix: str = ""
     ):
         """DEPRECATED Build mask from dict built in prepare_masks_data_dict
 
@@ -2248,18 +2422,18 @@ class AbstractImageProcessor(ImageWrapper):
         :return:
         """
         for dic_info in mask_data:
-            dic_info['mask'], dic_info['debug_name'] = self.get_mask(
+            dic_info["mask"], dic_info["debug_name"] = self.get_mask(
                 source_image,
-                dic_info['channel'],
-                dic_info['min'],
-                dic_info['max'],
-                median_filter_size=dic_info['median_filter_size']
+                dic_info["channel"],
+                dic_info["min"],
+                dic_info["max"],
+                median_filter_size=dic_info["median_filter_size"],
             )
             if store_masks:
-                root_dbg_name = dic_info['debug_name']
+                root_dbg_name = dic_info["debug_name"]
                 if dbg_str_prefix:
-                    root_dbg_name = f'{dbg_str_prefix}_{root_dbg_name}'
-                self.store_image(dic_info['mask'], root_dbg_name)
+                    root_dbg_name = f"{dbg_str_prefix}_{root_dbg_name}"
+                self.store_image(dic_info["mask"], root_dbg_name)
 
         return mask_data
 
@@ -2270,26 +2444,26 @@ class AbstractImageProcessor(ImageWrapper):
         :param kwargs: arguments to apply to channels
         :return: mask if merge_action is present, list of masks else
         """
-        is_store_images = kwargs.get('is_store_images', False)
+        is_store_images = kwargs.get("is_store_images", False)
         masks_ = []
 
-        for params in kwargs.get('params_list', None):
-            channel = params.get('channel', 'h')
-            method = params.get('method', 'standard')
+        for params in kwargs.get("params_list", None):
+            channel = params.get("channel", "h")
+            method = params.get("method", "standard")
 
             # Apply threshold
-            if method == 'standard':
+            if method == "standard":
                 mask, _ = self.get_mask(
                     source_image,
                     channel=channel,
-                    min_t=params.get('min_t', 0),
-                    max_t=params.get('max_t', 255),
-                    median_filter_size=params.get('median_filter_size', 0)
+                    min_t=params.get("min_t", 0),
+                    max_t=params.get("max_t", 255),
+                    median_filter_size=params.get("median_filter_size", 0),
                 )
-            elif method == 'otsu':
+            elif method == "otsu":
                 c = self.get_channel(src_img=source_image, channel=channel)
                 _, mask = cv2.threshold(c, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-                if params.get('invert', False) is True:
+                if params.get("invert", False) is True:
                     mask = 255 - mask
             else:
                 self.error_holder.add_error(f'Unknown threshold method "{method}"')
@@ -2299,10 +2473,12 @@ class AbstractImageProcessor(ImageWrapper):
                 continue
 
             # Apply morphology
-            func = getattr(self, params.get('morph_op', 'none'), None)
+            func = getattr(self, params.get("morph_op", "none"), None)
             if func:
                 mask = func(
-                    mask, kernel_size=params.get('kernel_size', 3), proc_times=params.get('proc_times', 1)
+                    mask,
+                    kernel_size=params.get("kernel_size", 3),
+                    proc_times=params.get("proc_times", 1),
                 )
 
             # Build dict
@@ -2310,24 +2486,24 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Store image if needed
             if is_store_images:
-                self.store_image(mask, res['desc'])
+                self.store_image(mask, res["desc"])
 
             masks_.append(res)
 
         if len(masks_) > 1:
-            func = getattr(self, kwargs.get('merge_action', ''), None)
+            func = getattr(self, kwargs.get("merge_action", ""), None)
             if func:
-                mask = func([dic['mask'] for dic in masks_])
-                self.store_image(mask, 'built_mask')
+                mask = func([dic["mask"] for dic in masks_])
+                self.store_image(mask, "built_mask")
                 return mask
             else:
                 return masks_
         elif len(masks_) == 1:
-            return masks_[0]['mask']
+            return masks_[0]["mask"]
         else:
             return None
 
-    def keep_roi(self, src_mask, roi: Union[shapes.Shape, str], dbg_str: str = ''):
+    def keep_roi(self, src_mask, roi: Union[shapes.Shape, str], dbg_str: str = ""):
         """Delete all data outside of the mask
 
         Arguments:
@@ -2356,7 +2532,7 @@ class AbstractImageProcessor(ImageWrapper):
 
         return cp
 
-    def delete_roi(self, src_mask, roi, dbg_str=''):
+    def delete_roi(self, src_mask, roi, dbg_str=""):
         """Delete data inside roi
 
         Arguments:
@@ -2385,7 +2561,7 @@ class AbstractImageProcessor(ImageWrapper):
 
         return cp
 
-    def keep_rois(self, src_mask, tags, dbg_str=''):
+    def keep_rois(self, src_mask, tags, dbg_str="", print_rois=False):
         """
 
         :param src_mask:
@@ -2396,28 +2572,37 @@ class AbstractImageProcessor(ImageWrapper):
         roi_list = []
         images_ = []
         for tag in tags:
-            roi_list.extend(self.get_rois({tag}))
-        for roi in roi_list:
-            images_.append(self.keep_roi(src_mask, roi, ''))
-        res = self.multi_or(tuple(images_), False)
+            if isinstance(tag, str):
+                roi_list.extend(self.get_rois({tag}))
+            else:
+                roi_list.append(tag)
+        if roi_list:
+            for roi in roi_list:
+                images_.append(self.keep_roi(src_mask, roi, ""))
+            res = self.multi_or(tuple(images_), False)
+        else:
+            res = src_mask
         if dbg_str:
-            self.store_image(res, dbg_str)
+            self.store_image(image=res, text=dbg_str, rois=roi_list if dbg_str else ())
 
         return res
 
-    def delete_rois(self, src_mask, tags, dbg_str=''):
+    def delete_rois(self, src_mask, tags, dbg_str="", print_rois=False):
         roi_list = []
         for tag in tags:
-            roi_list.extend(self.get_rois({tag}))
+            if isinstance(tag, str):
+                roi_list.extend(self.get_rois({tag}))
+            else:
+                roi_list.append(tag)
         for roi in roi_list:
-            src_mask = self.delete_roi(src_mask, roi, '')
+            src_mask = self.delete_roi(src_mask, roi, "")
         if dbg_str:
-            self.store_image(src_mask, dbg_str)
+            self.store_image(image=src_mask, text=dbg_str, rois=roi_list if dbg_str else ())
 
         return src_mask
 
     def draw_rois(self, img, rois):
-        if (len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1)):
+        if len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
             img_ = np.dstack((img, img, img))
         else:
             img_ = img.copy()
@@ -2432,29 +2617,29 @@ class AbstractImageProcessor(ImageWrapper):
         return img_
 
     def apply_roi(self, img, roi, print_dbg: bool = False):
-        dbg_str = f'roi_{roi.tag}_{roi.name}' if print_dbg else ''
+        dbg_str = f"roi_{roi.tag}_{roi.name}" if print_dbg else ""
         if roi is None:
             return img
-        elif roi.tag == 'keep':
+        elif roi.tag == "keep":
             return self.keep_roi(src_mask=img, roi=roi, dbg_str=dbg_str)
-        elif roi.tag == 'delete':
+        elif roi.tag == "delete":
             return self.delete_roi(src_mask=img, roi=roi, dbg_str=dbg_str)
-        elif roi.tag == 'crop':
+        elif roi.tag == "crop":
             return self.crop_to_roi(img=img, roi=roi, erase_outside_if_circle=True)
-        elif roi.tag in ['safe', 'enforce']:
+        elif roi.tag in ["safe", "enforce"]:
             return img
-        elif roi.tag == 'erode':
+        elif roi.tag == "erode":
             return self.erode(image=img, rois=(roi,), dbg_text=dbg_str)
-        elif roi.tag == 'dilate':
+        elif roi.tag == "dilate":
             return self.dilate(image=img, rois=(roi,), dbg_text=dbg_str)
-        elif roi.tag == 'open':
+        elif roi.tag == "open":
             return self.open(image=img, rois=(roi,), dbg_text=dbg_str)
-        elif roi.tag == 'close':
+        elif roi.tag == "close":
             return self.close(image=img, rois=(roi,), dbg_text=dbg_str)
         else:
             return img
 
-    def apply_rois(self, img, dbg_str=''):
+    def apply_rois(self, img, dbg_str=""):
         """Applies all stored rois to image according to tags
 
         Arguments:
@@ -2467,19 +2652,19 @@ class AbstractImageProcessor(ImageWrapper):
 
         for roi in self._rois_list:
             if dbg_str:
-                tmp_str = '{}_{}'.format(dbg_str, roi.name)
+                tmp_str = "{}_{}".format(dbg_str, roi.name)
             else:
-                tmp_str = ''
-            if roi.tag == 'keep':
+                tmp_str = ""
+            if roi.tag == "keep":
                 img = self.keep_roi(img, roi, tmp_str)
-            elif roi.tag == 'delete':
+            elif roi.tag == "delete":
                 img = self.delete_roi(img, roi, tmp_str)
 
         if dbg_str:
             self.store_image(img, dbg_str)
         return img
 
-    def crop_to_roi(self, img, roi, erase_outside_if_circle: bool = False, dbg_str=''):
+    def crop_to_roi(self, img, roi, erase_outside_if_circle: bool = False, dbg_str=""):
         """
         Crop image to ROI size and position
         :param img:
@@ -2496,8 +2681,10 @@ class AbstractImageProcessor(ImageWrapper):
                 img_ = self.keep_roi(img_, roi)
             keep_roi_as_rest = roi.as_rect()
             keep_roi_as_rest.bound(shapes.Rect.from_lwth(0, self.width, 0, self.height))
-            img_ = img_[keep_roi_as_rest.top:keep_roi_as_rest.bottom, keep_roi_as_rest.left:keep_roi_as_rest.
-                        right]
+            img_ = img_[
+                keep_roi_as_rest.top : keep_roi_as_rest.bottom,
+                keep_roi_as_rest.left : keep_roi_as_rest.right,
+            ]
             if dbg_str:
                 self.store_image(img, dbg_str)
 
@@ -2514,7 +2701,7 @@ class AbstractImageProcessor(ImageWrapper):
         if not self.rois_list:
             self.init_rois()
         for roi in self.rois_list:
-            if roi.tag == 'keep':
+            if roi.tag == "keep":
                 keep_roi = roi
                 break
         if keep_roi is not None:
@@ -2599,7 +2786,9 @@ class AbstractImageProcessor(ImageWrapper):
 
         return cv2.merge(out_channels)
 
-    def apply_CLAHE(self, img, color_space='HSV', clip_limit=(2.0, 2.0, 2.0), tile_grid_size=(8, 8)):
+    def apply_CLAHE(
+        self, img, color_space="HSV", clip_limit=(2.0, 2.0, 2.0), tile_grid_size=(8, 8)
+    ):
         """Applies CLAHE (Contrast Limited Adaptive Histogram Equalization) to source image
 
         Arguments:
@@ -2620,11 +2809,11 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         # Change color space
-        if color_space.upper() == 'HSV':
+        if color_space.upper() == "HSV":
             csi = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        elif color_space.upper() == 'LAB':
+        elif color_space.upper() == "LAB":
             csi = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-        elif color_space.upper() == 'RGB':
+        elif color_space.upper() == "RGB":
             csi = img.copy()
         else:
             raise NotImplementedError
@@ -2645,11 +2834,11 @@ class AbstractImageProcessor(ImageWrapper):
 
         # Merge channels
         csi = cv2.merge([c1, c2, c3])
-        if color_space.upper() == 'HSV':
+        if color_space.upper() == "HSV":
             return cv2.cvtColor(csi, cv2.COLOR_HSV2BGR)
-        elif color_space.upper() == 'LAB':
+        elif color_space.upper() == "LAB":
             return cv2.cvtColor(csi, cv2.COLOR_LAB2BGR)
-        elif color_space.upper() == 'RGB':
+        elif color_space.upper() == "RGB":
             return csi
         else:
             raise NotImplementedError
@@ -2671,12 +2860,12 @@ class AbstractImageProcessor(ImageWrapper):
             if percents_limits[1] < 0:
                 percents_limits[1] = 0
             img_test = self.simplest_cb(img.copy(), percents_limits)
-            self.store_image(img_test, 'wb_{}_{}'.format(percents_limits[0], percents_limits[1]))
+            self.store_image(img_test, "wb_{}_{}".format(percents_limits[0], percents_limits[1]))
             percents_limits[0] -= step
             percents_limits[1] -= step
 
     def get_channel(
-        self, src_img=None, channel='l', dbg_str='', rois=(), normalize=False, median_filter_size=0
+        self, src_img=None, channel="l", dbg_str="", rois=(), normalize=False, median_filter_size=0
     ):
         """Returns channel component
 
@@ -2707,41 +2896,45 @@ class AbstractImageProcessor(ImageWrapper):
         if channel in ipc.CHANNELS_BY_SPACE[ipc.HSV]:
             hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
             h, s, v = cv2.split(hsv)
-            if channel == 'h':
+            if channel == "h":
                 c = h
-            elif channel == 's':
+            elif channel == "s":
                 c = s
             else:
                 c = v
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.LAB]:
             lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
             l, a, b = cv2.split(lab)
-            if channel == 'l':
+            if channel == "l":
                 c = l
-            elif channel == 'a':
+            elif channel == "a":
                 c = a
             else:
                 c = b
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.RGB]:
             b, g, r = cv2.split(img)
-            if channel == 'bl':
+            if channel == "bl":
                 c = b
-            elif channel == 'gr':
+            elif channel == "gr":
                 c = g
             else:
                 c = r
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.CHLA]:
             b, g, r = cv2.split(img)
-            c = np.exp((-0.0280 * r * 1.04938271604938) + (0.0190*g*1.04938271604938) +
-                       (-0.0030 * b * 1.04115226337449) + 5.780)
+            c = np.exp(
+                (-0.0280 * r * 1.04938271604938)
+                + (0.0190 * g * 1.04938271604938)
+                + (-0.0030 * b * 1.04115226337449)
+                + 5.780
+            )
             c = ((c - c.min()) / (c.max() - c.min()) * 255).astype(np.uint8)
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.MSP]:
             if self.is_msp and (self.retrieve_msp_images() != 0):
-                _, wl = channel.split('_')
-                img = self.msp_images_holder.retrieve_image('view_option', wl)
+                _, wl = channel.split("_")
+                img = self.msp_images_holder.retrieve_image("view_option", wl)
                 if img is not None:
                     b, g, r = cv2.split(img)
-                    lpo1 = r*0.299 + g*0.587 + b*0.114
+                    lpo1 = r * 0.299 + g * 0.587 + b * 0.114
                     c = lpo1.astype(np.uint8)
                 else:
                     return None
@@ -2749,22 +2942,24 @@ class AbstractImageProcessor(ImageWrapper):
                 return None
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.NDVI]:
             if self.is_msp and (self.retrieve_msp_images() != 0):
-                r = self.get_channel(channel='rd')
-                nir = self.get_channel(channel=channel.replace('ndvi', 'wl'))
+                r = self.get_channel(channel="rd")
+                nir = self.get_channel(channel=channel.replace("ndvi", "wl"))
                 if r is not None and nir is not None:
-                    np.seterr(divide='ignore')
+                    np.seterr(divide="ignore")
                     try:
                         ndvi = np.divide(
-                            np.subtract(nir, r).astype(np.float),
-                            np.add(nir, r).astype(np.float)
+                            np.subtract(nir, r).astype(np.float), np.add(nir, r).astype(np.float)
                         ).astype(np.float)
                         ndvi[ndvi == np.inf] = 0
                         ndvi[np.isnan(ndvi)] = 0
                         res = np.multiply(
-                            np.divide(np.subtract(ndvi, ndvi.min()), np.subtract(ndvi.max(), ndvi.min())), 255
+                            np.divide(
+                                np.subtract(ndvi, ndvi.min()), np.subtract(ndvi.max(), ndvi.min())
+                            ),
+                            255,
                         ).astype(np.uint8)
                     finally:
-                        np.seterr(divide='warn')
+                        np.seterr(divide="warn")
                     c = res
                 else:
                     return None
@@ -2782,21 +2977,24 @@ class AbstractImageProcessor(ImageWrapper):
             c = cv2.medianBlur(c, median_filter_size)
 
         if dbg_str:
-            dbg_str = '{}_{}'.format(ipc.get_channel_name(channel), dbg_str)
+            dbg_str = "{}_{}".format(ipc.get_channel_name(channel), dbg_str)
             if normalize:
-                dbg_str = '{}_normalized'.format(dbg_str)
+                dbg_str = "{}_normalized".format(dbg_str)
             if median_filter_size > 1:
-                dbg_str = '{}_median_{}'.format(dbg_str, median_filter_size)
+                dbg_str = "{}_median_{}".format(dbg_str, median_filter_size)
 
             self.store_image(c, dbg_str, rois)
 
         return c
 
-    def get_channel_stats(self, src_img=None, channel='l', normalize=False, median_filter_size=0):
+    def get_channel_stats(self, src_img=None, channel="l", normalize=False, median_filter_size=0):
         """Calculates average and standard deviation for a given channel"""
         if isinstance(channel, str):
             c = self.get_channel(
-                src_img=src_img, channel=channel, normalize=normalize, median_filter_size=median_filter_size
+                src_img=src_img,
+                channel=channel,
+                normalize=normalize,
+                median_filter_size=median_filter_size,
             )
         else:
             c = channel
@@ -2811,7 +3009,7 @@ class AbstractImageProcessor(ImageWrapper):
         min_t: int = 0,
         max_t: int = 255,
         normalize: bool = False,
-        median_filter_size: int = 0
+        median_filter_size: int = 0,
     ) -> tuple:
         """ Returns channel mask
 
@@ -2827,33 +3025,35 @@ class AbstractImageProcessor(ImageWrapper):
         median_filter_size = 0 if median_filter_size == 1 else ipc.ensure_odd(median_filter_size)
         if channel:
             dbg_str = ipc.get_hr_channel_name(channel)
-            c = self.get_channel(src_img, channel, '', [], normalize, median_filter_size)
+            c = self.get_channel(src_img, channel, "", [], normalize, median_filter_size)
         else:
-            dbg_str = 'source'
+            dbg_str = "source"
             if len(src_img.shape) == 2 or (len(src_img.shape) == 3 and src_img.shape[2] == 1):
                 c = src_img.copy()
             else:
-                self.error_holder.add_error('If no channel is selected source must be grayscale image')
-                return None, ''
+                self.error_holder.add_error(
+                    "If no channel is selected source must be grayscale image"
+                )
+                return None, ""
 
         if c is None:
-            return None, ''
+            return None, ""
 
         if normalize:
-            dbg_str = '{}_normalized'.format(dbg_str)
+            dbg_str = "{}_normalized".format(dbg_str)
         if median_filter_size > 1:
-            dbg_str = '{}_median_{}'.format(dbg_str, median_filter_size)
+            dbg_str = "{}_median_{}".format(dbg_str, median_filter_size)
 
         mask = cv2.inRange(c, min_t, max_t)
-        stored_string = '{}_min_{}_max{}'.format(dbg_str, min_t, max_t)
+        stored_string = "{}_min_{}_max{}".format(dbg_str, min_t, max_t)
 
         return mask, stored_string
 
     def remove_hor_noise_lines(self, **kwargs):
-        min_line_size = kwargs.get('min_line_size', 20)
-        c = kwargs.get('mask', self.mask)
-        fully_isolated = kwargs.get('fully_isolated', True)
-        max_iter = kwargs.get('max_iter', 100)
+        min_line_size = kwargs.get("min_line_size", 20)
+        c = kwargs.get("mask", self.mask)
+        fully_isolated = kwargs.get("fully_isolated", True)
+        max_iter = kwargs.get("max_iter", 100)
 
         if c is None:
             return dict(mask=None, lines=[])
@@ -2874,14 +3074,16 @@ class AbstractImageProcessor(ImageWrapper):
                     for i in l.nz_pos:
                         c[l.height_pos][i] = 255
                 else:
-                    lines = msk_data.horizontal_lines_at(l.height_pos, min_line_size, fully_isolated)
+                    lines = msk_data.horizontal_lines_at(
+                        l.height_pos, min_line_size, fully_isolated
+                    )
                     if not lines:
                         continue
                     all_lines.append(lines)
                     for i, line in enumerate(lines):
                         stable_ = False
                         cv2.line(c, (line[1], line[0]), (line[2], line[0]), 0, 1)
-            self.store_image(c, f'cleaned_image_iter{iter_}')
+            self.store_image(c, f"cleaned_image_iter{iter_}")
 
         return dict(mask=c, lines=all_lines)
 
@@ -2896,16 +3098,16 @@ class AbstractImageProcessor(ImageWrapper):
             numpy array -- stored image
         """
 
-        if img_name.lower() == '':
+        if img_name.lower() == "":
             return None
-        elif img_name.lower() == 'source':
+        elif img_name.lower() == "source":
             return self.source_image
-        elif img_name.lower() == 'current_image':
+        elif img_name.lower() == "current_image":
             return self.current_image
         else:
             for dic in self.image_list:
-                if dic['name'].lower() == img_name.lower():
-                    return dic['image']
+                if dic["name"].lower() == img_name.lower():
+                    return dic["image"]
         return None
 
     def build_msp_mosaic(self):
@@ -2915,12 +3117,16 @@ class AbstractImageProcessor(ImageWrapper):
         """
         self.retrieve_msp_images()
 
-        mosaic_image_list = np.array([wrapper.view_option for wrapper in self.msp_images_holder.image_list])
-        mosaic_image_list = np.append(mosaic_image_list, ['' for _ in range(len(mosaic_image_list), 9)])
+        mosaic_image_list = np.array(
+            [wrapper.view_option for wrapper in self.msp_images_holder.image_list]
+        )
+        mosaic_image_list = np.append(
+            mosaic_image_list, ["" for _ in range(len(mosaic_image_list), 9)]
+        )
         mosaic_image_list = mosaic_image_list.reshape((3, 3))
 
         for wrapper in self.msp_images_holder.image_list:
-            if not ('755' in wrapper.view_option):
+            if not ("755" in wrapper.view_option):
                 img = wrapper.get_channel()
             else:
                 img = wrapper.current_image
@@ -2938,9 +3144,13 @@ class AbstractImageProcessor(ImageWrapper):
         :return: Mosaic image
         """
         mosaic_data_ = {}
-        for color_space, channel, channel_name in ipc.create_channel_generator(self.available_channels):
-            channel_image = self.get_channel(src_img, channel, '', rois, normalize, median_filter_size)
-            img_name = f'{channel_name}_{normalize}_{median_filter_size}'
+        for color_space, channel, channel_name in ipc.create_channel_generator(
+            self.available_channels
+        ):
+            channel_image = self.get_channel(
+                src_img, channel, "", rois, normalize, median_filter_size
+            )
+            img_name = f"{channel_name}_{normalize}_{median_filter_size}"
             self.store_image(channel_image, img_name)
             if color_space not in mosaic_data_.keys():
                 mosaic_data_[color_space] = [img_name]
@@ -2954,7 +3164,7 @@ class AbstractImageProcessor(ImageWrapper):
         shape=None,
         image_names=None,
         background_color: tuple = (125, 125, 125),
-        padding: tuple = (-2, -2, -2, -2)
+        padding: tuple = (-2, -2, -2, -2),
     ):
         """Creates a mosaic aggregating stored images
 
@@ -3009,13 +3219,15 @@ class AbstractImageProcessor(ImageWrapper):
             for l, line in enumerate(image_names):
                 parse_line(line, l, canvas)
         else:
-            raise NotImplementedError('Unable to handle {} dimensions arrays'.format(len(image_names.shape)))
+            raise NotImplementedError(
+                "Unable to handle {} dimensions arrays".format(len(image_names.shape))
+            )
 
         return canvas
 
     @staticmethod
     def _params_to_string(**kwargs):
-        return ''.join([f'[{k}:{v}]' for k, v in kwargs.items()])
+        return "".join([f"[{k}:{v}]" for k, v in kwargs.items()])
 
     @time_method
     def default_process(self, **kwargs):
@@ -3024,13 +3236,13 @@ class AbstractImageProcessor(ImageWrapper):
             self._rois_list = []
             self.image_list = []
 
-            mode = kwargs.get('method', 'process_mode_test_channels')
-            params_dict = kwargs.get('clean_params', None)
+            mode = kwargs.get("method", "process_mode_test_channels")
+            params_dict = kwargs.get("clean_params", None)
             if not params_dict:
-                params_list = kwargs.get('params', [])
+                params_list = kwargs.get("params", [])
                 params_dict = {}
                 for param_ in params_list:
-                    params_dict[param_['name']] = param_['value']
+                    params_dict[param_["name"]] = param_["value"]
 
             func = getattr(self, mode, self.process_image)
             res = func(**params_dict)
@@ -3044,17 +3256,19 @@ class AbstractImageProcessor(ImageWrapper):
 
     def check_source(self):
         if self.is_color_checker:
-            self.error_holder.add_error('HANDLED FAILURE color checker')
+            self.error_holder.add_error("HANDLED FAILURE color checker")
             return False
 
         if self.is_msp and (self.retrieve_msp_images() != 8):
             self.error_holder.add_error(
-                f'Wrong number of MSP files expected 8, received {self.retrieve_msp_images()}',
-                new_error_kind='source_issue'
+                f"Wrong number of MSP files expected 8, received {self.retrieve_msp_images()}",
+                new_error_kind="source_issue",
             )
 
         if self.is_corrupted:
-            self.error_holder.add_error('Image has been tagged as corrupted', new_error_kind='source_issue')
+            self.error_holder.add_error(
+                "Image has been tagged as corrupted", new_error_kind="source_issue"
+            )
             return False
 
         return True
@@ -3066,16 +3280,16 @@ class AbstractImageProcessor(ImageWrapper):
         return img
 
     def preprocess_source_image(self, **kwargs):
-        return kwargs.get('src_img', self.current_image)
+        return kwargs.get("src_img", self.current_image)
 
     def build_channel_mask(self, source_image, **kwargs):
         self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(source_image, self.rois)
-        self.store_image(mosaic_image_, 'full_channel_mosaic')
+        self.store_image(mosaic_image_, "full_channel_mosaic")
 
         return False
 
     def crop_mask(self):
-        self.mask = self.apply_rois(self.mask, 'mask_roi_all')
+        self.mask = self.apply_rois(self.mask, "mask_roi_all")
         return True
 
     def clean_mask(self, source_image):
@@ -3097,14 +3311,14 @@ class AbstractImageProcessor(ImageWrapper):
         Returns:
             dict -- dictionnary containing analysis options
         """
-        pseudo_color_channel = kwargs.get('pseudo_color_channel', 'l' if self.is_msp else 'v')
-        boundary_position = kwargs.get('boundary_position', -1)
+        pseudo_color_channel = kwargs.get("pseudo_color_channel", "l" if self.is_msp else "v")
+        boundary_position = kwargs.get("boundary_position", -1)
 
         return dict(
-            background='source',
-            foreground='false_colour',
+            background="source",
+            foreground="false_colour",
             pseudo_color_channel=pseudo_color_channel,
-            boundary_position=boundary_position
+            boundary_position=boundary_position,
         )
 
     @time_method
@@ -3117,7 +3331,6 @@ class AbstractImageProcessor(ImageWrapper):
         res = False
         try:
             self.error_holder.clear()
-            self.data_output = {}
 
             if not self.check_source():
                 return
@@ -3126,7 +3339,7 @@ class AbstractImageProcessor(ImageWrapper):
 
             img = self.current_image
             if not self.good_image:
-                self.error_holder.add_error('Image failed to load', new_error_kind='source_issue')
+                self.error_holder.add_error("Image failed to load", new_error_kind="source_issue")
                 return
 
             img = self.preprocess_source_image(src_img=img)
@@ -3140,39 +3353,49 @@ class AbstractImageProcessor(ImageWrapper):
 
             res = self.build_channel_mask(img, **kwargs)
             if not res:
-                self.error_holder.add_error('Failed to build channel mask')
+                self.error_holder.add_error("Failed to build channel mask")
                 return
 
             res = self.crop_mask()
             if not res:
-                self.error_holder.add_error('Failed to crop mask for')
+                self.error_holder.add_error("Failed to crop mask for")
                 return
 
             res = self.clean_mask(source_image=img.copy())
             if not res:
-                self.error_holder.add_error('Failed to clean mask')
+                self.error_holder.add_error("Failed to clean mask")
                 return
 
             res = self.ensure_mask_zone()
             if not res:
-                self.error_holder.add_error('Mask not where expected to b')
+                self.error_holder.add_error("Mask not where expected to b")
                 return
 
             analysis_options = self.update_analysis_params(**kwargs)
 
-            if kwargs.get('threshold_only', 0) != 1:
+            if kwargs.get("threshold_only", 0) != 1:
                 res = self.extract_image_data(
                     mask=self.mask,
                     boundary_position=analysis_options["boundary_position"],
-                    pseudo_color_channel=analysis_options["pseudo_color_channel"]
+                    pseudo_color_channel=analysis_options["pseudo_color_channel"],
                 )
-            elif self.store_images:
-                pseudo_color_img = self.draw_image(
-                    channel=analysis_options["pseudo_color_channel"],
-                    background=analysis_options['background'],
-                    foreground=analysis_options['foreground']
+            if self.store_images:
+                self.store_image(
+                    self.draw_image(
+                        src_image=self.current_image,
+                        src_mask=self.mask,
+                        background="bw",
+                        foreground="source",
+                        bck_grd_luma=120,
+                        contour_thickness=6,
+                        hull_thickness=6,
+                        width_thickness=6,
+                        height_thickness=6,
+                        centroid_width=20,
+                        centroid_line_width=8,
+                    ),
+                    "shapes",
                 )
-                self.store_image(pseudo_color_img, 'pseudo_on')
 
             self.build_mosaic_data(**kwargs)
 
@@ -3197,7 +3420,7 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         for roi in self._rois_list:
-            if (tag == '' or tag == roi.tag) and roi.contains(pt):
+            if (tag == "" or tag == roi.tag) and roi.contains(pt):
                 return True
         return False
 
@@ -3248,7 +3471,7 @@ class AbstractImageProcessor(ImageWrapper):
             return shapes.RectangleOfInterest.empty()
         else:
             return shapes.RectangleOfInterest.from_lwth(
-                0, self.width, 0, self.height, 'main_roi', 'keep', (0, 255, 0)
+                0, self.width, 0, self.height, "main_roi", "keep", (0, 255, 0)
             )
 
     def get_rois(self, tags: set = None):
@@ -3270,7 +3493,9 @@ class AbstractImageProcessor(ImageWrapper):
             self.rois_list.remove(roi)
         self._rois_list.append(new_roi)
 
-    def add_circle_roi(self, left, top, radius, name, tag='', color=None) -> shapes.CircleOfInterest:
+    def add_circle_roi(
+        self, left, top, radius, name, tag="", color=None
+    ) -> shapes.CircleOfInterest:
         """Add Circle of Interest to list
 
         Arguments:
@@ -3293,10 +3518,10 @@ class AbstractImageProcessor(ImageWrapper):
         width=None,
         top=None,
         height=None,
-        name: str = 'no_name',
-        tag='',
+        name: str = "no_name",
+        tag="",
         color=None,
-        **kwargs
+        **kwargs,
     ) -> shapes.RectangleOfInterest:
         """Add Rectangle of Interest to list
 
@@ -3311,8 +3536,8 @@ class AbstractImageProcessor(ImageWrapper):
             tag {str} -- ROI associated tag (default: {''})
             color {tuple} -- ROI print color (default: {None})
         """
-        right = kwargs.get('right', None)
-        bottom = kwargs.get('bottom', None)
+        right = kwargs.get("right", None)
+        bottom = kwargs.get("bottom", None)
 
         if left is None and right is None:
             if width is None or width == 0:
@@ -3361,7 +3586,7 @@ class AbstractImageProcessor(ImageWrapper):
         return rect
 
     def _get_csv_file_path(self):
-        return os.path.join(self.dst_path, 'partials', self.csv_file_name)
+        return os.path.join(self.dst_path, "partials", self.csv_file_name)
 
     @property
     def source_image(self):
@@ -3407,26 +3632,31 @@ class AbstractImageProcessor(ImageWrapper):
             self._mask = None
 
     def is_store_image(self, name):
-        return ((self.store_images and (name.lower() != 'mosaic')) or
-                ((self.store_mosaic.lower() != 'none') and (name.lower() == 'mosaic')))
+        return (self.store_images and (name.lower() != "mosaic")) or (
+            (self.store_mosaic.lower() != "none") and (name.lower() == "mosaic")
+        )
 
     def is_save_image(self, name):
-        return ((self.write_images == 'print') or ((name == 'mosaic') and (self.write_mosaic == 'print')))
+        return (self.write_images == "print") or (
+            (name == "mosaic") and (self.write_mosaic == "print")
+        )
 
     def is_plot_image(self, name):
-        return ((self.write_images == 'plot') or ((name == 'mosaic') and (self.write_mosaic == 'plot')))
+        return (self.write_images == "plot") or (
+            (name == "mosaic") and (self.write_mosaic == "plot")
+        )
 
     @property
     def log_times(self):
-        return self._options.get('log_times', False)
+        return self._options.get("log_times", False)
 
     @property
     def dst_path(self):
-        return self._options.get('dst_path', '')
+        return self._options.get("dst_path", "")
 
     @property
     def is_color_checker(self):
-        return self.plant == 'color_checker'
+        return self.plant == "color_checker"
 
     @property
     def is_empty_pot(self):
@@ -3442,42 +3672,42 @@ class AbstractImageProcessor(ImageWrapper):
 
     @property
     def write_images(self):
-        return self._options.get('write_images', 'none').lower()
+        return self._options.get("write_images", "none").lower()
 
     @write_images.setter
     def write_images(self, value):
         if isinstance(value, str):
-            self._options['write_images'] = value.lower()
+            self._options["write_images"] = value.lower()
         else:
-            self._options['write_images'] = 'none'
+            self._options["write_images"] = "none"
 
     @property
     def store_images(self):
-        return self._options.get('store_images', False)
+        return self._options.get("store_images", False)
 
     @store_images.setter
     def store_images(self, value):
-        self._options['store_images'] = value
+        self._options["store_images"] = value
 
     @property
     def store_mosaic(self):
-        return self._options.get('store_mosaic', 'none')
+        return self._options.get("store_mosaic", "none")
 
     @store_mosaic.setter
     def store_mosaic(self, value):
-        self._options['store_mosaic'] = value
+        self._options["store_mosaic"] = value
 
     @property
     def write_result_text(self):
-        return self._options.get('write_result_text', False)
+        return self._options.get("write_result_text", False)
 
     @property
     def write_mosaic(self):
-        return self._options.get('write_mosaic', 'none')
+        return self._options.get("write_mosaic", "none")
 
     @write_mosaic.setter
     def write_mosaic(self, value):
-        self._options['write_mosaic'] = value
+        self._options["write_mosaic"] = value
 
     @property
     def mosaic_data(self):
@@ -3522,7 +3752,7 @@ class AbstractImageProcessor(ImageWrapper):
         elif self.is_vis:
             res = [ci for ci in ipc.create_channel_generator(include_chla=True)]
         elif self.is_nir:
-            res = [('nir', 'l', 'nir')]
+            res = [("nir", "l", "nir")]
         elif self.is_fluo:
             res = [ci for ci in ipc.create_channel_generator()]
         elif self.is_cf_calc:
@@ -3530,7 +3760,9 @@ class AbstractImageProcessor(ImageWrapper):
         else:
             res = [
                 ci
-                for ci in ipc.create_channel_generator(include_vis=True, include_ndvi=True, include_msp=True)
+                for ci in ipc.create_channel_generator(
+                    include_vis=True, include_ndvi=True, include_msp=True
+                )
             ]
 
         return res

@@ -373,13 +373,15 @@ class Rect(Shape):
             x, y = other.as_tuple()
             return (self.left <= x <= self.right and self.top <= y <= self.bottom)
         elif isinstance(other, Rect):
-            return (self.left <= other.left) and (self.right >= other.right) and (self.top <= other.top
-                                                                                 ) and (self.bottom >= other.bottom)
+            return (self.left <= other.left) and (self.right >=
+                                                  other.right) and (self.top <= other.top
+                                                                   ) and (self.bottom >= other.bottom)
 
     def overlaps(self, other):
         """Return true if a rectangle overlaps this rectangle."""
         return (
-            self.right > other.left and self.left < other.right and self.top < other.bottom and self.bottom > other.top
+            self.right > other.left and self.left < other.right and self.top < other.bottom and
+            self.bottom > other.top
         )
 
     def union(self, other):
@@ -420,17 +422,19 @@ class Rect(Shape):
         return f'Rect:[l:{self.left}, w:{self.width}/t:{self.top}, h:{self.bottom}]'
 
     def __eq__(self, other):
-        return (self.left == other.left) and (self.right == other.right) and (self.top == other.top
-                                                                             ) and (self.bottom == other.bottom)
+        return (self.left == other.left) and (self.right == other.right
+                                             ) and (self.top == other.top) and (self.bottom == other.bottom)
 
     def __ne__(self, other):
-        return (self.left != other.left) or (self.right != other.right) or (self.top !=
-                                                                            other.top) or (self.bottom != other.bottom)
+        return (self.left != other.left) or (self.right != other.right) or (self.top != other.top
+                                                                           ) or (self.bottom != other.bottom)
 
     def draw_to(self, dst_img, line_width=-1, color=None):
         if not color:
             color = 255
-        return cv2.rectangle(dst_img.copy(), (self.left, self.top), (self.right, self.bottom), color, line_width)
+        return cv2.rectangle(
+            dst_img.copy(), (self.left, self.top), (self.right, self.bottom), color, line_width
+        )
 
     @property
     def top_left(self):
@@ -528,7 +532,9 @@ class Circle(Shape):
         :param angle: in radians
         :return: Point
         """
-        return Point(self.center.x + self.radius * math.cos(angle), self.center.y + self.radius * math.sin(angle))
+        return Point(
+            self.center.x + self.radius * math.cos(angle), self.center.y + self.radius * math.sin(angle)
+        )
 
     def as_rect(self):
         return Rect.from_lwth(
@@ -690,6 +696,88 @@ class RectangleOfInterest(Rect):
         )
 
     @classmethod
+    def from_any(
+        cls,
+        source_width: int,
+        source_height: int,
+        left=None,
+        right=None,
+        width=None,
+        top=None,
+        bottom=None,
+        height=None,
+        name: str = 'no_name',
+        tag='',
+        color=None,
+        target: str = ''
+    ):
+        """Creates an ROI from left, right, width, top, bottom, height
+
+            Arguments:
+                source_width {int} -- Container image width
+                source_height {int} -- Container image height
+                left {int} -- Left coordinate
+                right {int} -- Right coordinate
+                width {int} -- ROI width
+                top {int} -- Right coordinate
+                bottom {int} -- Bottom coordinate
+                height {int} -- ROI height
+                name {str} -- ROI name
+
+            Keyword Arguments:
+                tag {str} -- Tag attached to ROI (default: {'None'})
+                color {tuple} -- Print color (default: {(255,255,255)})
+
+            Raises:
+                NotImplementedError -- Empty rects are not allowed
+        """
+        if left is None and right is None:
+            if width is None or width == 0:
+                left = 0
+                width = source_width
+            elif width > 0:
+                left = 0
+            elif width < 0:
+                left = source_width + width
+                width = -width
+        elif left is not None:
+            if right is not None:
+                width = right - left
+            elif width is None:
+                width = source_width - left
+        elif right is not None:
+            if width is not None:
+                left = right - width
+            else:
+                left = 0
+                width = source_width - right
+
+        if top is None and bottom is None:
+            if height is None or height == 0:
+                top = 0
+                height = source_height
+            elif height > 0:
+                top = 0
+            elif height < 0:
+                top = source_height + height
+                height = -height
+        elif top is not None:
+            if bottom is not None:
+                height = bottom - top
+            elif height is None:
+                height = source_height - top
+        elif bottom is not None:
+            if height is not None:
+                top = bottom - height
+            else:
+                top = 0
+                height = source_height - bottom
+
+        return cls.from_lwth(
+            left=left, width=width, top=top, height=height, name=name, tag=tag, color=color, target=target
+        )
+
+    @classmethod
     def from_lwth(cls, left, width, top, height, name, tag='None', color=None, target: str = ''):
         """Creates region of interrest from left, width, top, height
 
@@ -707,7 +795,6 @@ class RectangleOfInterest(Rect):
         Raises:
             NotImplementedError -- Empty rects are not allowed
         """
-        """Create rectangle independent coordinates"""
         return cls(
             pt1=Point(int(left), int(top)),
             pt2=Point(int(left + width), int(top + height)),
