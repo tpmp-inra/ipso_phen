@@ -6,6 +6,7 @@ class IptMorphology(IptBase):
 
     def build_params(self):
         self.add_morphology_operator(default_operator='none')
+        self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):
         """
@@ -36,8 +37,17 @@ class IptMorphology(IptBase):
                     if mask is None:
                         wrapper.error_holder.add_error(f'Watershed needs a calculated mask to start')
                         return False
-            self.result = self.apply_morphology_from_params(mask)
-            wrapper.store_image(self.result, f'Morphology_{self.input_params_as_str()}', text_overlay=True)
+            self.result = self.apply_morphology_from_params(mask.copy())
+            rois = self.get_ipt_roi(
+                wrapper=wrapper,
+                roi_names=self.get_value_of('roi_names').replace(' ', '').split(','),
+                selection_mode=self.get_value_of('roi_selection_mode')
+            )
+            if rois:
+                self.result = wrapper.multi_or(
+                    (wrapper.keep_rois(self.result, rois), wrapper.delete_rois(mask, rois))
+                )
+            wrapper.store_image(self.result, f'morphology_{self.get_value_of("morph_op")}', text_overlay=True)
 
         except Exception as e:
             res = False

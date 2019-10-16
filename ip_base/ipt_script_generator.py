@@ -19,8 +19,6 @@ from ip_base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ip_base.ipt_functional import call_ipt_code, call_ipt_func_code
 from tools.csv_writer import AbstractCsvWriter
 
-ALLOW_RESULT_CACHE = True
-
 
 def encode_ipt(o):
     if isinstance(o, IptScriptGenerator):
@@ -120,6 +118,7 @@ class IptScriptGenerator(object):
         self._target_data_base = None
         self._settings = SettingsHolder()
         self._last_wrapper_luid = ''
+        self.use_cache = kwargs.get('use_cache')
 
     @staticmethod
     def _init_features():
@@ -278,7 +277,7 @@ class IptScriptGenerator(object):
     def is_use_last_result(
         self, tool_dict: dict, wrapper: AbstractImageProcessor, previous_state: bool
     ) -> bool:
-        if ALLOW_RESULT_CACHE:
+        if self.use_cache:
             return previous_state and \
                 (wrapper is not None) and \
                 (wrapper.luid == self._last_wrapper_luid) and \
@@ -318,7 +317,7 @@ class IptScriptGenerator(object):
                     progress_callback, current_step, total_steps, 'Fixing exposure', wrapper
                 )
         wrapper.store_image(wrapper.current_image, 'exposure_fixed', force_store=True)
-        use_last_result = self.build_rois(
+        use_last_result, current_step = self.build_rois(
             wrapper=wrapper,
             tools=None,
             use_last_result=use_last_result,
@@ -413,7 +412,7 @@ class IptScriptGenerator(object):
                 current_step = self.add_progress(
                     progress_callback, current_step, total_steps, 'Building ROIs', None
                 )
-        return use_last_result
+        return use_last_result, current_step
 
     def process_tool(self, tool_dict: dict, wrapper: AbstractImageProcessor, use_last_result):
         use_last_result = self.is_use_last_result(
@@ -655,9 +654,9 @@ class IptScriptGenerator(object):
                         ),
                         text='mask_on_bw'
                     )
-                    self.add_progress(
-                        progress_callback, current_step, total_steps, 'Checked mask enforcers', wrapper
-                    )
+                current_step = self.add_progress(
+                    progress_callback, current_step, total_steps, 'Checked mask enforcers', wrapper
+                )
 
                 # Extract features
                 if res and not self.threshold_only and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0:
@@ -669,7 +668,7 @@ class IptScriptGenerator(object):
                         )
                         if isinstance(current_data, dict):
                             wrapper.csv_data_holder.data_list.update(current_data)
-                        self.add_progress(
+                        current_step = self.add_progress(
                             progress_callback, current_step, total_steps, 'Extracting features', wrapper
                         )
                     res = len(wrapper.csv_data_holder.data_list) > 0
@@ -677,21 +676,13 @@ class IptScriptGenerator(object):
                 if self.build_mosaic:
                     old_mosaic = wrapper.store_mosaic
                     wrapper.store_mosaic = 'result'
-                    # wrapper.mosaic_data = np.array([['', 'source', ''], ['', 'exposure_fixed', ''],
-                    #                                 ['', 'rois', ''], ['', 'pre_processed_image', ''],
-                    #                                 [mask_names[0], mask_names[1], mask_names[2]],
-                    #                                 ['', 'coarse_mask', ''], ['', 'used_rois', ''],
-                    #                                 ['', 'src_img_with_cnt_after_agg_iter_last', ''],
-                    #                                 ['clean_mask', 'pseudo_on', 'shapes']])
-                    # wrapper.mosaic_data = np.array([['exposure_fixed', 'coarse_mask', 'used_rois'],
-                    #                                 ['clean_mask', fifth_image, 'mask_on_bw']])
                     wrapper.mosaic_data = np.array([
                         ['source', 'exposure_fixed', 'pre_processed_image'],
                         [
                             'coarse_mask',
                             'clean_mask',
                             wrapper.draw_image(
-                                src_image=wrapper.current_image,
+                                src_image=wrapper.retrieve_stored_image('exposure_fixed'),
                                 src_mask=wrapper.mask,
                                 background='bw',
                                 foreground='source',
@@ -710,7 +701,7 @@ class IptScriptGenerator(object):
             else:
                 res = True
 
-            self.add_progress(progress_callback, total_steps, total_steps, 'Done', wrapper)
+            current_step = self.add_progress(progress_callback, total_steps, total_steps, 'Done', wrapper)
         except Exception as e:
             if wrapper is not None:
                 wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')

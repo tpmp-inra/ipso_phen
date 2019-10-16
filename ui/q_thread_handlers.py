@@ -160,7 +160,8 @@ class IpsoRunnable(QRunnable):
             after = timer()
             if res:
                 status_message = f'Successfully processed {self.ipt.name} in {format_time(after - before)}'
-                log_message = f'Successfully processed {self.ipt.name} for "{wrapper.name}" in {format_time(after - before)}'
+                log_message = f"""Successfully processed {self.ipt.name}
+                for "{wrapper.name}" in {format_time(after - before)}"""
             else:
                 status_message = f'{self.ipt.name} processing failed: in {format_time(after - before)}'
                 wrapper.error_holder.add_error(f'Processing {self.ipt.name}', new_error_kind='ipt_error')
@@ -306,15 +307,22 @@ class IpsoGroupProcessor(QRunnable):
                             image=ipo.draw_image(
                                 src_image=ipo.source_image,
                                 src_mask=ipo.mask,
+                                background='bw',
                                 foreground='source',
-                                background='bw'
+                                bck_grd_luma=120,
+                                contour_thickness=6,
+                                hull_thickness=6,
+                                width_thickness=6,
+                                height_thickness=6,
+                                centroid_width=20,
+                                centroid_line_width=8
                             ),
-                            text='mask_on_bw',
+                            text='shapes',
                             force_store=True
                         )
                         ipo.store_image(image=ipo.mask, text='mask', force_store=True)
                         self.signals_holder.on_image_ready.emit(
-                            ipo.build_mosaic(image_names=np.array(['source', 'mask', 'mask_on_bw']))
+                            ipo.build_mosaic(image_names=np.array(['source', 'mask', 'shapes']))
                         )
                     except Exception as e:
                         err_holder = ErrorHolder(
@@ -405,6 +413,7 @@ class IpsoMassRunner(QRunnable):
         self._is_continue = False
         self._reported_stop = False
         self._target_database = kwargs.get('data_base')
+        self._multithread = kwargs.get('multithread', True)
         # Create pipeline
         self.pipeline = kwargs.get('pipeline')
         self.group_time_delta = kwargs.get('group_time_delta')
@@ -462,7 +471,7 @@ class IpsoMassRunner(QRunnable):
                             launch_state = 'abort'
                             return
                         self.signals_holder.on_progress.emit(i, len(groups_to_process))
-                        if ui_consts.USE_PROCESS_THREAD:
+                        if self._multithread:
                             self.item_thread_pool.start(item_worker)
                         else:
                             item_worker.run()

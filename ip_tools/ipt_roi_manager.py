@@ -26,12 +26,12 @@ class IptRoiManager(IptBase):
 
     def build_params(self):
         self.add_roi_settings(default_name='unnamed_roi', default_type='keep', default_shape='rectangle')
-        self.add_spin_box(name='left', desc='Left', default_value=0, minimum=0, maximum=10000)
+        self.add_spin_box(name='left', desc='Left', default_value=0, minimum=-10000, maximum=10000)
         self.add_spin_box(
-            name='width', desc='Width (Diameter for circles)', default_value=0, minimum=0, maximum=10000
+            name='width', desc='Width (Diameter for circles)', default_value=0, minimum=-10000, maximum=10000
         )
-        self.add_spin_box(name='top', desc='Top', default_value=0, minimum=0, maximum=10000)
-        self.add_spin_box(name='height', desc='Height', default_value=0, minimum=0, maximum=10000)
+        self.add_spin_box(name='top', desc='Top', default_value=0, minimum=-10000, maximum=10000)
+        self.add_spin_box(name='height', desc='Height', default_value=0, minimum=-10000, maximum=10000)
         self.add_button(
             name='draw_roi',
             desc='Launch ROI draw form',
@@ -129,7 +129,18 @@ class IptRoiManager(IptBase):
             return None
 
         if roi_shape == 'rectangle':
-            return shapes.RectangleOfInterest.from_lwth(
+            wrapper = self.init_wrapper(**kwargs)
+            if wrapper is None:
+                return False
+
+            if width < 0:
+                left = None
+            if height < 0:
+                top = None
+
+            return shapes.RectangleOfInterest.from_any(
+                source_width=wrapper.width,
+                source_height=wrapper.height,
                 left=left,
                 width=width,
                 top=top,

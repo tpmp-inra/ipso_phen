@@ -51,6 +51,7 @@ class IptThresholdDistance(IptBase):
             )
         )
         self.add_tool_target()
+        self.add_roi_selector()
         self.add_separator('s2')
         self.add_combobox(
             name='post_processing',
@@ -114,7 +115,11 @@ class IptThresholdDistance(IptBase):
         np.seterr(divide='ignore')
         try:
             img = self.extract_source_from_args()
-            rois = self.get_ipt_roi(wrapper=wrapper)
+            rois = self.get_ipt_roi(
+                wrapper=wrapper,
+                roi_names=self.get_value_of('roi_names').replace(' ', '').split(','),
+                selection_mode=self.get_value_of('roi_selection_mode')
+            )
             if len(rois) > 0:
                 roi = rois[0]
             else:

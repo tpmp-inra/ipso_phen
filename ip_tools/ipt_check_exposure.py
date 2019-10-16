@@ -11,7 +11,10 @@ class IptExposureChecker(IptBaseAnalyzer):
 
     def build_params(self):
         self.add_checkbox(
-            name='enabled', desc='Activate tool', default_value=1, hint='Toggle whether or not tool is active'
+            name='enabled',
+            desc='Activate tool',
+            default_value=1,
+            hint='Toggle whether or not tool is active'
         )
         self.add_spin_box(
             name='overexposed_limit', desc='Overexposed if over: ', default_value=255, minimum=0, maximum=255
@@ -20,7 +23,11 @@ class IptExposureChecker(IptBaseAnalyzer):
             name='over_color', desc='Color for overexposed parts', default_value='red', enable_none=True
         )
         self.add_spin_box(
-            name='underexposed_limit', desc='Underexposed if under: ', default_value=0, minimum=0, maximum=255
+            name='underexposed_limit',
+            desc='Underexposed if under: ',
+            default_value=0,
+            minimum=0,
+            maximum=255
         )
         self.add_color_selector(
             name='under_color', desc='Color for underexposed parts', default_value='orange', enable_none=True
@@ -64,8 +71,14 @@ class IptExposureChecker(IptBaseAnalyzer):
             )
         )
         self.add_spin_box(
-            name='avg_weight', desc='Apply x factor to auto threshold', default_value=100, minimum=0, maximum=200
+            name='avg_weight',
+            desc='Apply x factor to auto threshold',
+            default_value=100,
+            minimum=0,
+            maximum=200
         )
+
+        self.add_roi_selector()
 
         self.add_text_overlay()
 
@@ -104,87 +117,96 @@ class IptExposureChecker(IptBaseAnalyzer):
             img = self.extract_source_from_args()
             text_overlay = self.get_value_of('text_overlay') == 1
             br_dict = None
-            if self.get_value_of('enabled') == 1:
-                overexposed_limit = self.get_value_of(key='overexposed_limit', default_value=255)
-                over_color = self.get_value_of(key='over_color', default_value='red')
-                underexposed_limit = self.get_value_of(key='underexposed_limit', default_value=0)
-                under_color = self.get_value_of(key='under_color', default_value='orange')
+            if self.get_value_of('enabled') != 1:
+                res = True
+                wrapper.store_image(image=img, text='unaltered_image')
+                return
+            overexposed_limit = self.get_value_of(key='overexposed_limit', default_value=255)
+            over_color = self.get_value_of(key='over_color', default_value='red')
+            underexposed_limit = self.get_value_of(key='underexposed_limit', default_value=0)
+            under_color = self.get_value_of(key='under_color', default_value='orange')
 
-                show_grey_zones = self.get_value_of('show_grey_zones', default_value=0) == 1
-                grey_zone_limit = self.get_value_of('grey_zone_limit', default_value=0)
-                grey_zone_color = self.get_value_of('grey_zone_color', default_value='blue')
-                brg_calc = self.get_value_of('brg_calc')
-                text_overlay = self.get_value_of('text_overlay') == 1
+            show_grey_zones = self.get_value_of('show_grey_zones', default_value=0) == 1
+            grey_zone_limit = self.get_value_of('grey_zone_limit', default_value=0)
+            grey_zone_color = self.get_value_of('grey_zone_color', default_value='blue')
+            brg_calc = self.get_value_of('brg_calc')
+            text_overlay = self.get_value_of('text_overlay') == 1
 
-                b, g, r = cv2.split(img.copy())
+            roi_names = self.get_value_of('roi_names').replace(' ', '').split(',')
 
-                # Calculate image brightness
-                if brg_calc != 'none':
-                    calc_img = self.extract_source_from_args(source_mode='source_brightness')
-                    wrapper.store_image(calc_img, f'calc_image_{self.get_value_of("source_brightness")}')
-                    bs, gs, rs = cv2.split(calc_img)
-                    if brg_calc == 'std':
-                        s = rs*0.2126 + gs*0.7152 + bs*0.0722
-                    elif brg_calc == 'p1':
-                        s = rs*0.299 + gs*0.587 + bs*0.114
-                    elif brg_calc == 'p2':
-                        s = np.sqrt(
-                            0.241 * np.power(rs.astype(np.float), 2) + 0.691 * np.power(gs.astype(np.float), 2) +
-                            0.068 * np.power(bs.astype(np.float), 2)
-                        )
-                    else:
-                        wrapper.error_list.add_error('Unknown brightness mode')
-                        return
-                    wrapper.store_image(self.to_uint8(s), f'brightness_{self.get_value_of("source_brightness")}')
-                    s_tuple = cv2.meanStdDev(s.reshape(s.shape[1] * s.shape[0]))
-                    self.update_output_from_dict(
-                        dict(src_brightness=f'{s_tuple[0][0][0]:.2f}', src_contrast=f'{s_tuple[1][0][0]:.2f}')
+            b, g, r = cv2.split(img.copy())
+
+            # Calculate image brightness
+            if brg_calc != 'none':
+                calc_img = self.extract_source_from_args(source_mode='source_brightness')
+                wrapper.store_image(calc_img, f'calc_image_{self.get_value_of("source_brightness")}')
+                bs, gs, rs = cv2.split(calc_img)
+                if brg_calc == 'std':
+                    s = rs*0.2126 + gs*0.7152 + bs*0.0722
+                elif brg_calc == 'p1':
+                    s = rs*0.299 + gs*0.587 + bs*0.114
+                elif brg_calc == 'p2':
+                    s = np.sqrt(
+                        0.241 * np.power(rs.astype(np.float), 2) + 0.691 * np.power(gs.astype(np.float), 2) +
+                        0.068 * np.power(bs.astype(np.float), 2)
                     )
-                    self.add_value('src_brightness', f'{s_tuple[0][0][0]:.2f}', True)
-                    self.add_value('src_contrast', f'{s_tuple[1][0][0]:.2f}', True)
-
-                    average_as = self.get_value_of('average_as')
-                    avg_weight = self.get_value_of('avg_weight')
-                    if average_as == 'average_as_lower':
-                        underexposed_limit = int(s_tuple[0][0][0] / 100 * avg_weight)
-                    elif average_as == 'average_as_upper':
-                        overexposed_limit = int(s_tuple[0][0][0] / 100 * avg_weight)
                 else:
-                    br_dict = None
+                    wrapper.error_list.add_error('Unknown brightness mode')
+                    return
+                wrapper.store_image(self.to_uint8(s), f'brightness_{self.get_value_of("source_brightness")}')
+                s_tuple = cv2.meanStdDev(s.reshape(s.shape[1] * s.shape[0]))
+                self.update_output_from_dict(
+                    dict(src_brightness=f'{s_tuple[0][0][0]:.2f}', src_contrast=f'{s_tuple[1][0][0]:.2f}')
+                )
+                self.add_value('src_brightness', f'{s_tuple[0][0][0]:.2f}', True)
+                self.add_value('src_contrast', f'{s_tuple[1][0][0]:.2f}', True)
 
-                # Handle grey areas
-                if show_grey_zones:
-                    avg = ((b.astype(np.int32) + g.astype(np.int32) + r.astype(np.int32)) / 3)
-                    b_abs_diff = np.absolute(b - avg).astype(np.int32)
-                    g_abs_diff = np.absolute(g - avg).astype(np.int32)
-                    r_abs_diff = np.absolute(r - avg).astype(np.int32)
-                    abs_avg_diff = ((b_abs_diff + g_abs_diff + r_abs_diff).astype(np.int32) / 3).astype(np.uint8)
-
-                    mask_grey = cv2.inRange(abs_avg_diff, 0, grey_zone_limit)
-                else:
-                    mask_grey = None
-
-                # Handle over & under exposure
-                mask_over = cv2.inRange(img, (overexposed_limit, overexposed_limit, overexposed_limit), (255, 255, 255))
-                mask_under = cv2.inRange(img, (0, 0, 0), (underexposed_limit, underexposed_limit, underexposed_limit))
-
-                if show_grey_zones and (mask_grey is not None):
-                    img[mask_grey > 0] = all_colors_dict[grey_zone_color]
-                if over_color != 'none':
-                    img[mask_over > 0] = all_colors_dict[over_color]
-                if under_color != 'none':
-                    img[mask_under > 0] = all_colors_dict[under_color]
-
-            rois = self.get_ipt_roi(wrapper=wrapper)
-            if len(rois) > 0:
-                roi = rois[0]
+                average_as = self.get_value_of('average_as')
+                avg_weight = self.get_value_of('avg_weight')
+                if average_as == 'average_as_lower':
+                    underexposed_limit = int(s_tuple[0][0][0] / 100 * avg_weight)
+                elif average_as == 'average_as_upper':
+                    overexposed_limit = int(s_tuple[0][0][0] / 100 * avg_weight)
             else:
-                roi = None
-            if roi is not None:
-                src = self.extract_source_from_args()
-                patch = wrapper.crop_to_roi(img=img, roi=roi)
-                src[roi.top:roi.bottom, roi.left:roi.right] = patch
-                self.result = src
+                br_dict = None
+
+            # Handle grey areas
+            if show_grey_zones:
+                avg = ((b.astype(np.int32) + g.astype(np.int32) + r.astype(np.int32)) / 3)
+                b_abs_diff = np.absolute(b - avg).astype(np.int32)
+                g_abs_diff = np.absolute(g - avg).astype(np.int32)
+                r_abs_diff = np.absolute(r - avg).astype(np.int32)
+                abs_avg_diff = ((b_abs_diff + g_abs_diff + r_abs_diff).astype(np.int32) / 3).astype(np.uint8)
+
+                mask_grey = cv2.inRange(abs_avg_diff, 0, grey_zone_limit)
+            else:
+                mask_grey = None
+
+            # Handle over & under exposure
+            mask_over = cv2.inRange(
+                img, (overexposed_limit, overexposed_limit, overexposed_limit), (255, 255, 255)
+            )
+            mask_under = cv2.inRange(
+                img, (0, 0, 0), (underexposed_limit, underexposed_limit, underexposed_limit)
+            )
+
+            if show_grey_zones and (mask_grey is not None):
+                img[mask_grey > 0] = all_colors_dict[grey_zone_color]
+            if over_color != 'none':
+                img[mask_over > 0] = all_colors_dict[over_color]
+            if under_color != 'none':
+                img[mask_under > 0] = all_colors_dict[under_color]
+
+            rois = self.get_ipt_roi(
+                wrapper=wrapper,
+                roi_names=self.get_value_of('roi_names').replace(' ', '').split(','),
+                selection_mode=self.get_value_of('roi_selection_mode')
+            )
+            if len(rois) > 0:
+                self.result = self.extract_source_from_args()
+                for roi in rois:
+                    patch = wrapper.crop_to_roi(img=img, roi=roi)
+                    self.result[roi.top:roi.bottom, roi.left:roi.right] = patch
             else:
                 self.result = img
 
