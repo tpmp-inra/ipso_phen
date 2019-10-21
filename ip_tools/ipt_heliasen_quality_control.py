@@ -257,7 +257,7 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 if error_level >= 2:
                     error_level += len(np.where(err_lst >= 2)[0]) - 1
                 wrapper.data_output["error_level"] = error_level
-                wrapper.data_output["report"] = "\n".join(report_lines)
+                wrapper.data_output["report"] = " ".join(report_lines).replace(",", "->")
 
                 # Build debug image
                 dbg_img = np.dstack((msk_dt.mask, msk_dt.mask, msk_dt.mask))

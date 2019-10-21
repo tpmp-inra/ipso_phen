@@ -734,7 +734,7 @@ class IptParamHolder(object):
                 prewitt="Prewitt",
             ),
         )
-        self.add_slider(
+        self.add_spin_box(
             name="canny_sigma",
             desc="Canny's sigma",
             default_value=2,
@@ -742,7 +742,7 @@ class IptParamHolder(object):
             maximum=20,
             hint="Sigma.",
         )
-        self.add_slider(
+        self.add_spin_box(
             name="canny_first",
             desc="Canny's first Threshold",
             default_value=0,
@@ -750,7 +750,7 @@ class IptParamHolder(object):
             maximum=255,
             hint="First threshold for the hysteresis procedure.",
         )
-        self.add_slider(
+        self.add_spin_box(
             name="canny_second",
             desc="Canny's second Threshold",
             default_value=255,
@@ -758,7 +758,7 @@ class IptParamHolder(object):
             maximum=255,
             hint="Second threshold for the hysteresis procedure.",
         )
-        self.add_slider(
+        self.add_spin_box(
             name="kernel_size", desc="Kernel size", default_value=5, minimum=0, maximum=27
         )
         self.add_spin_box(

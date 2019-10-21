@@ -8,6 +8,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
+
 class Ui_about_dialog(object):
     def setupUi(self, about_dialog):
         about_dialog.setObjectName("about_dialog")
@@ -70,5 +71,9 @@ class Ui_about_dialog(object):
         self.lbl_authors.setText(_translate("about_dialog", "Authors"))
         self.lbl_copyright.setText(_translate("about_dialog", "Copyright"))
         self.lbl_title.setText(_translate("about_dialog", "IPSO Phen"))
-        self.lbl_license_text.setText(_translate("about_dialog", "Used packages - Some packages may not be used, but are linked by used packages"))
-
+        self.lbl_license_text.setText(
+            _translate(
+                "about_dialog",
+                "Used packages - Some packages may not be used, but are linked by used packages",
+            )
+        )

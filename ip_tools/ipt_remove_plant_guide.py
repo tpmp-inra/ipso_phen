@@ -129,7 +129,7 @@ class IptRemovePlantGuide(IptBase):
                     )
                     return
 
-                wrapper.store_image(image=mask, text="mask_before_guide_removal")
+                wrapper.store_image(image=mask, text="mask_before_guide_removal", force_store=True)
 
                 delete_too_narrow_ = self.get_value_of("delete_too_narrow")
                 keep_and_stop_too_wide_ = self.get_value_of("keep_and_stop_too_wide")
