@@ -1,5 +1,4 @@
 class AbstractCsvWriter:
-
     def __init__(self):
         self.data_list = {}
 
@@ -7,10 +6,10 @@ class AbstractCsvWriter:
         self.data_list = {k: v for k, v in self.data_list.items() if v is not None}
 
     def header_to_list(self):
-        return [key.replace('-', '_') for key in self.data_list.keys()]
+        return [key.replace("-", "_") for key in self.data_list.keys()]
 
     def data_to_list(self):
-        return list(self.data_list.values())
+        return [v.replace(",", " ") if isinstance(v, str) else v for v in self.data_list.values()]
 
     def has_csv_key(self, key):
         return key in self.data_list.keys()
@@ -25,16 +24,16 @@ class AbstractCsvWriter:
         else:
             return None
 
-    def fill_values(self, value='na'):
+    def fill_values(self, value="na"):
         for k, v in self.data_list.items():
             if not v:
                 self.update_csv_value(k, value)
 
     def update_csv_dimensions(self, img, scale_width):
-        self.update_csv_value('image_width', img.shape[1])
-        self.update_csv_value('image_height', img.shape[0])
-        if 'scale_width' in self.data_list.keys():
+        self.update_csv_value("image_width", img.shape[1])
+        self.update_csv_value("image_height", img.shape[0])
+        if "scale_width" in self.data_list.keys():
             if scale_width == 1:
-                self.update_csv_value('scale_width', self.data_list['image_width'])
+                self.update_csv_value("scale_width", self.data_list["image_width"])
             else:
-                self.update_csv_value('scale_width', scale_width)
+                self.update_csv_value("scale_width", scale_width)

@@ -12,6 +12,6 @@ LOG_PIPELINE_PROCESSOR_STR = '<font color="aqua"><b>PIPELINE PROCESSOR</b></font
 # UI settings
 DISABLE_SPLASH_SCREEN = False
 
-FLAT_TOOLS_MENU = True
+FLAT_TOOLS_MENU = False
 
 ENABLE_POSTGRES = False

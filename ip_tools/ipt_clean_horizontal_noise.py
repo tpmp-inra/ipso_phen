@@ -88,7 +88,7 @@ class IptCleanHorizontalNoise(IptBase):
                 lines_removed_ = list(set([line[0][0] for line in all_lines]))
                 if lines_removed_:
                     if "hor_lines_removed" in wrapper.data_output:
-                        wrapper.data_output["hor_lines_removed"].append(lines_removed_)
+                        wrapper.data_output["hor_lines_removed"].extend(lines_removed_)
                     else:
                         wrapper.data_output["hor_lines_removed"] = lines_removed_
                 wrapper.data_output["hor_pixels_removed"] = nz_pixels - np.count_nonzero(mask)

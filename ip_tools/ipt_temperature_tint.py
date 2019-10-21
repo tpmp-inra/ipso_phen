@@ -18,13 +18,10 @@ class IptStub(IptBase):
             desc="Clip method",
             default_value="clip",
             values=dict(
-                clip="Set to 0 if lower 255 if upper",
-                rescale="Allow overflow and the rescale",
-                percentage_clip="Use adjustment values as percentage and then clip",
-                percentage_rescale="Use adjustment values as percentage and then rescale",
+                clip="Set to 0 if lower 255 if upper", rescale="Allow overflow and the rescale"
             ),
         )
-        self.add_slider(
+        self.add_spin_box(
             name="temperature_adjustment",
             desc="Temperature adjustment",
             default_value=0,
@@ -32,7 +29,7 @@ class IptStub(IptBase):
             maximum=100,
             hint="Adjust image temperature",
         )
-        self.add_slider(
+        self.add_spin_box(
             name="tint_adjustment",
             desc="Tint adjustment",
             default_value=0,
@@ -40,7 +37,6 @@ class IptStub(IptBase):
             maximum=100,
             hint="Adjust image tint",
         )
-        self.add_checkbox(name="build_mosaic", desc="Build mosaic", default_value=0)
 
     def process_wrapper(self, **kwargs):
         """
@@ -68,15 +64,10 @@ class IptStub(IptBase):
 
                 temperature_adjustment = self.get_value_of("temperature_adjustment")
                 tint_adjustment = self.get_value_of("tint_adjustment")
-                build_mosaic = self.get_value_of("build_mosaic") == 1
 
-                b = (b - temperature_adjustment).astype(np.float)
-                g = (g + tint_adjustment).astype(np.float)
-                r = (r + temperature_adjustment).astype(np.float)
-                if build_mosaic:
-                    wrapper.store_image(b, "b")
-                    wrapper.store_image(g, "g")
-                    wrapper.store_image(r, "g")
+                b = b.astype(np.float) - temperature_adjustment
+                g = g.astype(np.float) + tint_adjustment
+                r = r.astype(np.float) + temperature_adjustment
 
                 clip_method = self.get_value_of("clip_method")
 
@@ -92,21 +83,11 @@ class IptStub(IptBase):
                     )
                 elif clip_method == "rescale":
                     self.result = self.to_uint8(cv2.merge([b, g, r]))
-                elif clip_method == "percentage_clip":
-                    pass
-                elif clip_method == "percentage_rescale":
-                    pass
                 else:
                     wrapper.error_holder.add_error(f'Failed : unknown clip_method "{clip_method}"')
                     return
 
                 wrapper.store_image(self.result, "temp_tint")
-
-                if build_mosaic:
-                    canvas = wrapper.build_mosaic(
-                        image_names=np.array([["b", "g"], ["r", "", "temp_tint"]])
-                    )
-                    wrapper.store_image(canvas, "mosaic")
 
                 res = True
             else:

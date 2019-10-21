@@ -1,7 +1,18 @@
 from PyQt5.QtCore import Qt, pyqtSignal
 
-from PyQt5.QtWidgets import (QCheckBox, QSlider, QComboBox, QPushButton, QLineEdit, QTreeWidgetItem, QTreeWidget,
-                             QSpinBox)
+from PyQt5.QtWidgets import (
+    QCheckBox,
+    QSlider,
+    QComboBox,
+    QPushButton,
+    QLineEdit,
+    QTreeWidgetItem,
+    QTreeWidget,
+    QSpinBox,
+    QApplication,
+    QGraphicsView,
+    QGraphicsScene,
+)
 
 
 def scale(val, src, dst):
@@ -9,7 +20,6 @@ def scale(val, src, dst):
 
 
 class CTreeWidgetItem(QTreeWidgetItem):
-
     def setData(self, column, role, value):
         state = self.checkState(column)
         QTreeWidgetItem.setData(self, column, role, value)
@@ -35,7 +45,6 @@ class CTreeWidget(QTreeWidget):
 
 
 class QComboBoxWthParam(QComboBox):
-
     def __init__(self, tool, param, label, allow_real_time: bool = True, parent=None):
         QComboBox.__init__(self, parent)
         self._param = param
@@ -61,7 +70,6 @@ class QComboBoxWthParam(QComboBox):
 
 
 class QSliderWthParam(QSlider):
-
     def __init__(self, tool, param, label, allow_real_time: bool = True):
         QSlider.__init__(self, Qt.Horizontal)
         self._param = param
@@ -87,7 +95,6 @@ class QSliderWthParam(QSlider):
 
 
 class QSpinnerWthParam(QSpinBox):
-
     def __init__(self, tool, param, label, allow_real_time: bool = True):
         QSpinBox.__init__(self)
         self._param = param
@@ -113,7 +120,6 @@ class QSpinnerWthParam(QSpinBox):
 
 
 class QCheckBoxWthParam(QCheckBox):
-
     def __init__(self, tool, param, label, allow_real_time: bool = True, parent=None):
         QCheckBox.__init__(self, parent)
         self._param = param
@@ -139,7 +145,6 @@ class QCheckBoxWthParam(QCheckBox):
 
 
 class QLineEditWthParam(QLineEdit):
-
     def __init__(self, tool, param, allow_real_time: bool = True, parent=None):
         QLineEdit.__init__(self, parent)
         self._param = param
@@ -160,7 +165,6 @@ class QLineEditWthParam(QLineEdit):
 
 
 class QPushButtonWthParam(QPushButton):
-
     def __init__(self, tool, param, allow_real_time: bool = False, parent=None):
         QPushButton.__init__(self, parent)
         self._param = param
@@ -178,3 +182,58 @@ class QPushButtonWthParam(QPushButton):
     @property
     def allow_real_time(self):
         return self._allow_real_time
+
+
+class QMouseGraphicsView(QGraphicsView):
+    def __init__(self, scene: QGraphicsScene = None, parent=None):
+        super(QMouseGraphicsView, self).__init__(scene, parent)
+        self.auto_fit = False
+
+        self.zoom_in_factor = 1.1
+        self.zoom_out_factor = 0.9
+
+        # self.setDragMode(QGraphicsView.ScrollHandDrag)
+
+    def wheelEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ControlModifier:
+            self.auto_fit = False
+
+            # Set Anchors
+            self.setTransformationAnchor(QGraphicsView.NoAnchor)
+            self.setResizeAnchor(QGraphicsView.NoAnchor)
+
+            # Save the scene pos
+            oldPos = self.mapToScene(event.pos())
+
+            # Zoom
+            if event.angleDelta().y() > 0:
+                zoomFactor = self.zoom_in_factor
+            else:
+                zoomFactor = self.zoom_out_factor
+            self.scale(zoomFactor, zoomFactor)
+
+            # Get the new position
+            newPos = self.mapToScene(event.pos())
+
+            # Move scene to old position
+            delta = newPos - oldPos
+            self.translate(delta.x(), delta.y())
+        else:
+            super(QMouseGraphicsView, self).wheelEvent(event)
+
+    def resizeEvent(self, event):
+        if self.auto_fit:
+            self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
+        else:
+            super(QMouseGraphicsView, self).resizeEvent(event)
+
+    def fit_to_canvas(self):
+        self.auto_fit = True
+        self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
+
+    def zoom_in(self):
+        self.scale(self.zoom_in_factor, self.zoom_in_factor)
+
+    def zoom_out(self):
+        self.scale(self.zoom_out_factor, self.zoom_out_factor)
