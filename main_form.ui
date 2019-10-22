@@ -685,7 +685,7 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>559</width>
+                          <width>685</width>
                           <height>235</height>
                          </rect>
                         </property>
@@ -834,29 +834,6 @@
                     </layout>
                    </widget>
                   </widget>
-                  <widget class="QLabel" name="lbl_source_image">
-                   <property name="sizePolicy">
-                    <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-                     <horstretch>0</horstretch>
-                     <verstretch>0</verstretch>
-                    </sizepolicy>
-                   </property>
-                   <property name="autoFillBackground">
-                    <bool>false</bool>
-                   </property>
-                   <property name="frameShape">
-                    <enum>QFrame::NoFrame</enum>
-                   </property>
-                   <property name="text">
-                    <string/>
-                   </property>
-                   <property name="scaledContents">
-                    <bool>false</bool>
-                   </property>
-                   <property name="alignment">
-                    <set>Qt::AlignCenter</set>
-                   </property>
-                  </widget>
                  </widget>
                 </item>
                </layout>
@@ -948,7 +925,7 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>571</width>
+                           <width>683</width>
                            <height>70</height>
                           </rect>
                          </property>
@@ -1265,53 +1242,6 @@
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
-              <widget class="QLabel" name="lbl_output_image">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="frameShape">
-                <enum>QFrame::NoFrame</enum>
-               </property>
-               <property name="text">
-                <string/>
-               </property>
-               <property name="scaledContents">
-                <bool>false</bool>
-               </property>
-               <property name="alignment">
-                <set>Qt::AlignCenter</set>
-               </property>
-              </widget>
-              <widget class="QTableWidget" name="tw_script_sim_output">
-               <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
-               </property>
-               <property name="alternatingRowColors">
-                <bool>true</bool>
-               </property>
-               <property name="sortingEnabled">
-                <bool>true</bool>
-               </property>
-               <attribute name="horizontalHeaderStretchLastSection">
-                <bool>true</bool>
-               </attribute>
-               <attribute name="verticalHeaderStretchLastSection">
-                <bool>false</bool>
-               </attribute>
-               <column>
-                <property name="text">
-                 <string>Key</string>
-                </property>
-               </column>
-               <column>
-                <property name="text">
-                 <string>Value</string>
-                </property>
-               </column>
-              </widget>
              </widget>
             </item>
            </layout>
@@ -1325,36 +1255,6 @@
         <string>Pipeline processor</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_10">
-        <item row="3" column="0">
-         <widget class="QPushButton" name="bt_pp_reset">
-          <property name="font">
-           <font>
-            <weight>50</weight>
-            <bold>false</bold>
-           </font>
-          </property>
-          <property name="text">
-           <string>Reset</string>
-          </property>
-          <property name="icon">
-           <iconset resource="main_form.qrc">
-            <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <spacer name="horizontalSpacer_6">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>944</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
         <item row="3" column="2">
          <widget class="QPushButton" name="bt_pp_start">
           <property name="minimumSize">
@@ -1713,6 +1613,36 @@
           </layout>
          </widget>
         </item>
+        <item row="3" column="0">
+         <widget class="QPushButton" name="bt_pp_reset">
+          <property name="font">
+           <font>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
+          <property name="text">
+           <string>Reset</string>
+          </property>
+          <property name="icon">
+           <iconset resource="main_form.qrc">
+            <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>944</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
         <item row="1" column="0" colspan="3">
          <widget class="QCheckBox" name="chk_pp_show_last_item">
           <property name="text">
@@ -1720,8 +1650,8 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0" colspan="3">
-         <widget class="QLabel" name="lbl_last_processed_item">
+        <item row="2" column="0">
+         <widget class="QLabel" name="lbl_dummy">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Ignored" vsizetype="Ignored">
             <horstretch>0</horstretch>
