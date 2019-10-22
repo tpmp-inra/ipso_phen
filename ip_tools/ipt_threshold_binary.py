@@ -55,7 +55,6 @@ class IptThreshold(IptBase):
 
         res = False
         try:
-            wrapper.store_image(wrapper.current_image, "source")
             if self.get_value_of("enabled") == 1:
                 self.result = self.apply_binary_threshold(
                     wrapper=wrapper,

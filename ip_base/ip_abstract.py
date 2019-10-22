@@ -193,22 +193,32 @@ class AbstractImageProcessor(ImageWrapper):
             return len(self.msp_images_holder)
 
     @staticmethod
-    def _draw_text(img: Any, text: str, fnt_color: tuple = ipc.C_RED):
+    def _draw_text(img: Any, text: str, fnt_color: tuple = ipc.C_RED, position: str = "BOTTOM"):
         """Draw text into img, always draws on bottom left portion of the image
 
         :param img: target image
         :param text: text
         """
-
-        y = img.shape[0] - 20
         fnt_face = cv2.FONT_HERSHEY_DUPLEX
         fnt_scale = img.shape[0] / 1500
         fnt_thickness = max(round(img.shape[0] / 1080), 1)
-        for line in reversed(list(text.split("\n"))):
-            cv2.putText(
-                img, line, (10, y), fnt_face, fnt_scale, fnt_color, fnt_thickness, cv2.LINE_AA
-            )
-            y -= cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
+        if position.lower() == "bottom":
+            y = img.shape[0] - 20
+            for line in reversed(list(text.split("\n"))):
+                cv2.putText(
+                    img, line, (10, y), fnt_face, fnt_scale, fnt_color, fnt_thickness, cv2.LINE_AA
+                )
+                y -= cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
+        elif position.lower() == "top":
+            lines = list(text.split("\n"))
+            y = cv2.getTextSize(lines[0], fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
+            for line in lines:
+                cv2.putText(
+                    img, line, (10, y), fnt_face, fnt_scale, fnt_color, fnt_thickness, cv2.LINE_AA
+                )
+                y += cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
+        else:
+            print(f'Unknown position: "{position}"')
 
     def draw_image(self, **kwargs):
         """Build pseudo color image
@@ -421,7 +431,8 @@ class AbstractImageProcessor(ImageWrapper):
         mosaic_list: list = None,
         text_overlay: Any = False,
         force_store: bool = False,
-        font_color: tuple = ipc.C_RED
+        font_color: tuple = ipc.C_RED,
+        position: str = "BOTTOM",
     ) -> dict:
         """
         Store image for debug or result
@@ -467,9 +478,11 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Print text if needed
             if isinstance(text_overlay, str):
-                self._draw_text(img=cp, text=text_overlay, fnt_color=font_color)
+                self._draw_text(img=cp, text=text_overlay, fnt_color=font_color, position=position)
             elif text_overlay:
-                self._draw_text(img=cp, text=text.replace(", ", "\n"), fnt_color=font_color)
+                self._draw_text(
+                    img=cp, text=text.replace(", ", "\n"), fnt_color=font_color, position=position
+                )
 
             new_dict = dict(name=text, image=cp, written=False)
             target.image_list.append(new_dict)

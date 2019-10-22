@@ -1,9 +1,12 @@
+import numpy as np
+
 from PyQt5.QtCore import Qt, pyqtSignal
 
 from PyQt5.QtWidgets import (
     QCheckBox,
     QSlider,
     QComboBox,
+    QLabel,
     QPushButton,
     QLineEdit,
     QTreeWidgetItem,
@@ -13,6 +16,10 @@ from PyQt5.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
 )
+from PyQt5.QtGui import QImage, QPixmap
+
+# from ip_base import ip_common as ipc
+from tools import shapes
 
 
 def scale(val, src, dst):
@@ -185,12 +192,14 @@ class QPushButtonWthParam(QPushButton):
 
 
 class QMouseGraphicsView(QGraphicsView):
-    def __init__(self, scene: QGraphicsScene = None, parent=None):
-        super(QMouseGraphicsView, self).__init__(scene, parent)
-        self.auto_fit = False
+    def __init__(self, parent=None):
+        super(QMouseGraphicsView, self).__init__(parent)
+        self.auto_fit = True
 
+        self.setScene(QGraphicsScene())
         self.zoom_in_factor = 1.1
         self.zoom_out_factor = 0.9
+        self._main_image = None
 
         # self.setDragMode(QGraphicsView.ScrollHandDrag)
 
@@ -228,12 +237,63 @@ class QMouseGraphicsView(QGraphicsView):
         else:
             super(QMouseGraphicsView, self).resizeEvent(event)
 
+    def mouseDoubleClickEvent(self, event):
+        self.fit_to_canvas()
+
+    def mousePressEvent(self, event):
+        modifiers = QApplication.keyboardModifiers()
+        if modifiers == Qt.ControlModifier:
+            self.setDragMode(QGraphicsView.ScrollHandDrag)
+        super(QMouseGraphicsView, self).mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self.setDragMode(QGraphicsView.NoDrag)
+        super(QMouseGraphicsView, self).mouseReleaseEvent(event)
+
     def fit_to_canvas(self):
         self.auto_fit = True
         self.fitInView(self.sceneRect(), Qt.KeepAspectRatio)
 
+    def zoom_by_factor(self, factor):
+        self.auto_fit = False
+        self.scale(factor, factor)
+
     def zoom_in(self):
-        self.scale(self.zoom_in_factor, self.zoom_in_factor)
+        self.zoom_by_factor(self.zoom_in_factor)
 
     def zoom_out(self):
-        self.scale(self.zoom_out_factor, self.zoom_out_factor)
+        self.zoom_by_factor(self.zoom_out_factor)
+
+    @property
+    def main_image(self):
+        return self._main_image
+
+    @main_image.setter
+    def main_image(self, value):
+        if self._main_image is not None:
+            self.scene().removeItem(self._main_image)
+            self._main_image = None
+        if value is not None:
+            if isinstance(value, str):
+                q_pix = QPixmap(value)
+            else:
+                qformat = QImage.Format_Indexed8
+                if len(value.shape) == 3:
+                    if value.shape[2] == 4:
+                        qformat = QImage.Format_RGBA8888
+                    else:
+                        qformat = QImage.Format_RGB888
+                    height_, width_, *_ = value.shape
+                elif len(value.shape) == 2:
+                    value = np.dstack((value, value, value))
+                    qformat = QImage.Format_RGB888
+                    height_, width_, *_ = value.shape
+                else:
+                    height_, width_ = value.shape
+
+                q_pix = QPixmap.fromImage(
+                    QImage(value, width_, height_, width_ * 3, qformat).rgbSwapped()
+                )
+            self._main_image = self.scene().addPixmap(q_pix)
+            self.setSceneRect(self._main_image.boundingRect())
+            self.fit_to_canvas()

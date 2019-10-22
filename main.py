@@ -106,6 +106,7 @@ from ui.q_components import (
     QPushButtonWthParam,
     QSpinnerWthParam,
     QLineEditWthParam,
+    QMouseGraphicsView,
 )
 from ui.q_thread_handlers import IpsoRunnable, IpsoMassRunner, IpsoCsvBuilder
 
@@ -613,6 +614,32 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tv_queued_tools.setHeaderLabels(["Key", "Value", "Action", "up", "down", "Delete"])
         self.gl_pipeline_data.addWidget(self.tv_queued_tools, 1, 0, 1, 7)
 
+        self.gv_last_processed_item = QMouseGraphicsView(self)
+        self.gridLayout_10.addWidget(self.gv_last_processed_item, 2, 1, 1, 1)
+
+        self.gv_source_image = QMouseGraphicsView(self.spl_ver_main_tab_source)
+        self.gv_output_image = QMouseGraphicsView(self.spl_ver_main_img_data)
+
+        self.tw_script_sim_output = QtWidgets.QTableWidget(self.spl_ver_main_img_data)
+        self.tw_script_sim_output.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.tw_script_sim_output.setAlternatingRowColors(True)
+        self.tw_script_sim_output.setObjectName("tw_script_sim_output")
+        self.tw_script_sim_output.setColumnCount(2)
+        self.tw_script_sim_output.setRowCount(0)
+        item = QtWidgets.QTableWidgetItem()
+        self.tw_script_sim_output.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.tw_script_sim_output.setHorizontalHeaderItem(1, item)
+        self.tw_script_sim_output.horizontalHeader().setStretchLastSection(True)
+        self.tw_script_sim_output.verticalHeader().setStretchLastSection(False)
+        self.tw_script_sim_output.setSortingEnabled(True)
+        item = self.tw_script_sim_output.horizontalHeaderItem(0)
+        item.setText("Key")
+        item = self.tw_script_sim_output.horizontalHeaderItem(1)
+        item.setText("Value")
+        self.tw_script_sim_output.horizontalHeader().setStretchLastSection(True)
+        self.tw_script_sim_output.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.threads_waiting = 0
@@ -678,7 +705,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.file_name = ""
         self._src_image_wrapper = None
         self._image_dict = None
-        self._last_processed_item_image = None
 
         self._current_exp = ""
         self._current_plant = ""
@@ -804,8 +830,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.images_table.cellDoubleClicked.connect(self.on_cell_double_clicked)
         self.images_table.currentCellChanged.connect(self.on_current_cell_changed)
 
-        self.tabWidget.currentChanged.connect(self.on_tab_widget_current_changed)
-
         # Annotations
         self.bt_delete_annotation.clicked.connect(self.on_bt_delete_annotation)
 
@@ -894,12 +918,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.rb_pp_active_script.clicked.connect(self.on_rb_pp_active_script)
         self.rb_pp_load_script.clicked.connect(self.on_rb_pp_load_script)
 
-        # Resizing
-        self.spl_ver_main.splitterMoved.connect(self.on_splitter_moved)
-        self.spl_hor_main_left.splitterMoved.connect(self.on_splitter_moved)
-        self.spl_ver_main_tab_source.splitterMoved.connect(self.on_splitter_moved)
-        self.spl_ver_main_img_data.splitterMoved.connect(self.on_splitter_moved)
-
         self._default_pp_output = os.path.join(
             os.path.expanduser("~"), "Documents", "tpmp_pp_output", ""
         )
@@ -920,9 +938,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.images_table.setColumnWidth(5, 50)
         self.images_table.setColumnWidth(6, 110)
         self.images_table.setColumnWidth(7, 200)
-
-        self.tw_script_sim_output.horizontalHeader().setStretchLastSection(True)
-        self.tw_script_sim_output.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
     def _reset_log_counts(self):
         self._log_count_critical = 0
@@ -2063,43 +2078,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self._splash.finish(self)
             self._splash = None
             self._pg_splash = None
-        self._adapt_images()
-
-    def _adapt_images(self):
-        try:
-            if self.file_name:
-                lbl_widget = self.lbl_source_image
-                loaded_image = self._src_image_wrapper.current_image
-                if (loaded_image is not None) and self._src_image_wrapper.good_image:
-                    self.display_image(loaded_image, lbl_widget)
-                else:
-                    lbl_widget.setPixmap(QPixmap())
-
-            if self._image_dict:
-                self.display_image(self._image_dict["image"], self.lbl_output_image)
-            elif self._batch_is_active:
-                pass
-            elif self.file_name:
-                self.display_image(self._src_image_wrapper.current_image, self.lbl_output_image)
-            else:
-                self.lbl_output_image.setPixmap(QPixmap())
-
-            if self._last_processed_item_image is not None:
-                self.display_image(self._last_processed_item_image, self.lbl_last_processed_item)
-            else:
-                self.lbl_last_processed_item.setPixmap(QPixmap())
-        except Exception as e:
-            self.log_exception(f"Unable to update available images because: {repr(e)}")
-
-    def on_tab_widget_current_changed(self, _):
-        self._adapt_images()
-
-    def on_splitter_moved(self, *_):
-        self._adapt_images()
-
-    def resizeEvent(self, event):
-        # QtWidgets.QMainWindow.resizeEvent(self, event)
-        self._adapt_images()
 
     def update_feedback(
         self,
@@ -2595,8 +2573,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def do_pp_item_image_ready(self, image):
         if self.chk_pp_show_last_item.isChecked():
-            self._last_processed_item_image = image
-            self._adapt_images()
+            self.gv_last_processed_item.main_image = image
 
     def do_pp_launching(self, total_count: int):
         if threading.current_thread() is not threading.main_thread():
@@ -2925,7 +2902,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         finally:
             self._updating_process_modes = False
 
-    def add_images_to_viewer(self, wrapper, avoid_duplicates: bool = False):
+    def add_images_to_viewer(
+        self, wrapper, avoid_duplicates: bool = False, data_dict: dict = None
+    ):
         if wrapper is None:
             return
         self._updating_available_images = len(wrapper.image_list) != 1
@@ -2933,6 +2912,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             for dic in wrapper.image_list:
                 if avoid_duplicates and self.cb_available_outputs.findText(dic["name"]) >= 0:
                     continue
+                if data_dict is not None:
+                    dic["data"] = dict(**{"image_name": dic["name"]}, **data_dict)
                 self.cb_available_outputs.addItem(dic["name"], dic)
         except Exception as e:
             self.log_exception(f"Unable to update available images because: {repr(e)}")
@@ -3008,6 +2989,33 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.log_exception("Unable to update available images because: unknown argument")
             return
 
+        if isinstance(sender, IptParamHolder):
+            info_dict = dict(ipt=sender.name, ipt_class_name=type(sender).__name__)
+        info_dict = dict(
+            **info_dict,
+            **dict(
+                experiment=wrapper.experiment,
+                plant=wrapper.plant,
+                date_time=wrapper.date_time,
+                camera=wrapper.camera,
+                view_option=wrapper.view_option,
+            )
+        )
+        if isinstance(sender, IptParamHolder):
+            info_dict = dict(**info_dict, **sender.params_to_dict())
+        if isinstance(sender, IptParamHolder) and hasattr(sender, "data_dict"):
+            info_dict = dict(**info_dict, **sender.data_dict)
+        elif len(wrapper.csv_data_holder.data_list) > 0:
+            info_dict = dict(
+                **info_dict,
+                **{
+                    k: v
+                    for (k, v) in wrapper.csv_data_holder.data_list.items()
+                    if v is not None
+                    if k not in info_dict
+                },
+            )
+
         if batch_process:
             try:
                 img_lst_ = wrapper.image_list
@@ -3017,14 +3025,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         dic = wrapper.retrieve_image_dict("mosaic")
                         if dic is None:
                             dic = img_lst_[len(img_lst_) - 1]
-                    if wrapper.csv_data_holder.data_list:
-                        dic["data"] = wrapper.csv_data_holder.data_list
+                    dic["data"] = info_dict
                     self.cb_available_outputs.addItem(wrapper.short_name, dic)
             except Exception as e:
                 self.log_exception(f"Unable to update available images because: {repr(e)}")
             self.cb_available_outputs.setCurrentIndex(self.cb_available_outputs.count() - 1)
         else:
-            self.add_images_to_viewer(wrapper=wrapper, avoid_duplicates=False)
+            self.add_images_to_viewer(wrapper=wrapper, avoid_duplicates=False, data_dict=info_dict)
 
     def do_thread_update_data(self, csv_data: dict):
         self.update_output_tab(csv_data)
@@ -3274,8 +3281,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.cb_available_outputs.clear()
         if self._src_image_wrapper is not None:
             self._src_image_wrapper.image_list = []
-            self._image_dict = None
-        self._adapt_images()
+            self.gv_output_image.main_image = None
+        while self.tw_script_sim_output.rowCount() > 0:
+            self.tw_script_sim_output.removeRow(0)
         self.pb_script_gen_progress.setFormat(f"Empty")
         self.pb_script_gen_progress.setValue(0)
         self.update_feedback(status_message=f"Cleared {img_count} images", use_status_as_log=True)
@@ -3684,7 +3692,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def cb_available_outputs_current_index_changed(self, idx):
         if not self._updating_available_images and (0 <= idx < self.cb_available_outputs.count()):
             self._image_dict = self.cb_available_outputs.itemData(idx)
-            self.display_image(self._image_dict["image"], self.lbl_output_image)
+            self.gv_output_image.main_image = self._image_dict["image"]
             if "data" in self._image_dict:
                 self.update_output_tab(self._image_dict["data"])
 
@@ -3978,9 +3986,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     item_list=self.script_generator.get_operators(dict(kind=k)),
                     is_expand_root=True,
                 )
-            # add_nodes(root_name="Feature extraction",
-            #           item_list=self.script_generator.feature_list,
-            #           is_expand_root=False)
             add_nodes(
                 root_name="Settings",
                 item_list=[self.script_generator.settings],
@@ -4151,8 +4156,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def on_chk_pp_show_last_item(self):
         if not self.chk_pp_show_last_item.isChecked():
-            self._last_processed_item_image = None
-        self._adapt_images()
+            self.gv_last_processed_item.main_image = None
 
     def build_param_overrides(self, wrapper, tool):
         param_names_list = [p.kind for p in tool.gizmos]
@@ -4630,20 +4634,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         return True
 
-    def _build_image_wrapper(self, file_path):
-        if os.path.isfile(file_path):
-            return (
-                True,
-                ipo_factory(
-                    file_path=file_path,
-                    options=self._options,
-                    force_abstract=False,
-                    data_base=self.current_database,
-                ),
-            )
-        else:
-            return False, None
-
     def on_action_enable_annotations_checked(self):
         table = self.images_table
         try:
@@ -4718,7 +4708,16 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                             auto_text=plain_auto_text_,
                         )
 
-                res, self._src_image_wrapper = self._build_image_wrapper(value)
+                if os.path.isfile(value):
+                    self._src_image_wrapper = ipo_factory(
+                        file_path=value,
+                        options=self._options,
+                        force_abstract=False,
+                        data_base=self.current_database,
+                    )
+                    self.gv_source_image.main_image = self._src_image_wrapper.current_image
+                else:
+                    self._src_image_wrapper = None
 
                 # Restore annotation
                 self.te_annotations.clear()
@@ -4730,14 +4729,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         self._src_image_wrapper, self._src_image_wrapper.experiment
                     )
             except Exception as e:
-                res = False
+                self._src_image_wrapper = None
                 self.log_exception(f"Failed to load/save annotation: {repr(e)}")
 
-            if res:
+            if self._src_image_wrapper is not None:
                 self._updating_process_modes = True
                 try:
                     self._file_name = value
-                    self._adapt_images()
 
                     self._image_dict = None
                     selected_mode = self.current_tool
@@ -4758,14 +4756,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     )
                 except Exception as e:
                     self._file_name = ""
-                    self._adapt_images()
                     self.setWindowTitle(f"{_PRAGMA_NAME} -- Select input file")
                     self.log_exception(f"Failed to load/save annotation: {repr(e)}")
                 finally:
                     self._updating_process_modes = False
             else:
                 self._file_name = ""
-                self._adapt_images()
                 self.setWindowTitle(f"{_PRAGMA_NAME} -- Select input file")
 
     @property
@@ -4877,7 +4873,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 self._updating_process_modes = False
             if not self._initializing and value.real_time and self._src_image_wrapper is not None:
                 self.run_process(wrapper=self._src_image_wrapper, ipt=value)
-            self._adapt_images()
 
     @property
     def selected_main_tab(self):
