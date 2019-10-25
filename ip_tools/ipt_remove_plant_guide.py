@@ -196,6 +196,9 @@ class IptRemovePlantGuide(IptBase):
                         max_line_gap=0,
                     )
                     wrapper.store_image(mask, "mask_after_vertical_noise_removal")
+                else:
+                    wrapper.data_output["vert_lines_removed"] = 0
+                    wrapper.data_output["vert_pixels_removed"] = 0
 
                 # Remove vertical noise
                 stop_checking_ = False

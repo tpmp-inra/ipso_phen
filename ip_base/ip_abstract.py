@@ -139,9 +139,7 @@ class AbstractImageProcessor(ImageWrapper):
         src_img = cv2.imdecode(np_array, 3)
 
         try:
-            if self.is_nir and self.view_option == "top":
-                src_img = cv2.flip(src_img, 0)
-                src_img = cv2.flip(src_img, 1)
+            src_img = self.file_handler.fix_image(src_image=src_img)
         except Exception as e:
             self.error_holder.add_error(f"Failed to load {repr(self)} because {repr(e)}")
             self.good_image = False

@@ -132,7 +132,7 @@ class IptScriptGenerator(object):
         self._target_data_base = None
         self._settings = SettingsHolder()
         self._last_wrapper_luid = ""
-        self.use_cache = kwargs.get("use_cache")
+        self.use_cache = kwargs.get("use_cache", True)
 
     @staticmethod
     def _init_features():
@@ -236,10 +236,10 @@ class IptScriptGenerator(object):
             return None
 
     def copy(self, keep_last_res=False):
-        ret = IptScriptGenerator()
+        ret = IptScriptGenerator(use_cache=self.use_cache)
         ret.feature_list = self.feature_list[:]
         ret._target_data_base = self._target_data_base
-        ret._settings = self._settings.copy()
+        ret._settings = self._settings.copy()        
         for tool_dic in self.ip_operators:
             tmp_tool_dict = {}
             for k, v in tool_dic.items():

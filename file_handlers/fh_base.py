@@ -11,32 +11,31 @@ from tools.common_functions import get_module_classes
 
 
 class FileHandlerBase(ABC):
-
     def __init__(self, **kwargs):
-        self._file_path = ''
-        self._exp = ''
-        self._plant = ''
-        self._camera = ''
-        self._view_option = ''
+        self._file_path = ""
+        self._exp = ""
+        self._plant = ""
+        self._camera = ""
+        self._view_option = ""
         self._date_time = dt.now()
         self.update(**kwargs)
 
     def update(self, **kwargs):
-        if 'file_path' in kwargs:
-            self._file_path = kwargs.get('file_path')
-        if 'experiment' in kwargs:
-            self._exp = kwargs.get('experiment')
-        if 'plant' in kwargs:
-            self._plant = kwargs.get('plant')
-        if 'camera' in kwargs:
-            self._camera = kwargs.get('camera')
-        if 'view_option' in kwargs:
-            self._view_option = kwargs.get('view_option')
-        if 'date_time' in kwargs:
+        if "file_path" in kwargs:
+            self._file_path = kwargs.get("file_path")
+        if "experiment" in kwargs:
+            self._exp = kwargs.get("experiment")
+        if "plant" in kwargs:
+            self._plant = kwargs.get("plant")
+        if "camera" in kwargs:
+            self._camera = kwargs.get("camera")
+        if "view_option" in kwargs:
+            self._view_option = kwargs.get("view_option")
+        if "date_time" in kwargs:
             try:
-                ts = kwargs.get('date_time')
+                ts = kwargs.get("date_time")
                 if isinstance(ts, str):
-                    self._date_time = dt.strptime(ts, '%Y-%m-%d %Hh%Mm%Ss')
+                    self._date_time = dt.strptime(ts, "%Y-%m-%d %Hh%Mm%Ss")
                 else:
                     self._date_time = ts
             except Exception as e:
@@ -46,11 +45,16 @@ class FileHandlerBase(ABC):
         return self.file_path
 
     def __str__(self):  # Human readable
-        return f'[exp:{self.experiment}]' \
-               f'[plant:{self.plant}]' \
-               f'[date:{self.condensed_date}]' \
-               f'[camera:{self.camera}]' \
-               f'[view_option:{self.view_option}]'
+        return (
+            f"[exp:{self.experiment}]"
+            f"[plant:{self.plant}]"
+            f"[date:{self.condensed_date}]"
+            f"[camera:{self.camera}]"
+            f"[view_option:{self.view_option}]"
+        )
+
+    def fix_image(self, src_image):
+        return src_image
 
     def compare_date(self, **kwargs):
         """Compares wrapper's date to kwargs date
@@ -63,16 +67,16 @@ class FileHandlerBase(ABC):
             * wrapper: wrappers dates will be compared
         :return: 0 if equal, -1 if before, 1 if after
         """
-        dtc = kwargs.get('date', None)
+        dtc = kwargs.get("date", None)
         if dtc is None:
-            wrapper = kwargs.get('wrapper', None)
+            wrapper = kwargs.get("wrapper", None)
             if wrapper:
                 y, m, d = wrapper.year, wrapper.month, wrapper.day
             else:
-                y = str(kwargs.get('year', self.year))
-                m = str(kwargs.get('month', self.month))
-                d = str(kwargs.get('day', self.day))
-            dtc = dt.strptime(f'{y}_{m}_{d}', '%Y_%m_%d')
+                y = str(kwargs.get("year", self.year))
+                m = str(kwargs.get("month", self.month))
+                d = str(kwargs.get("day", self.day))
+            dtc = dt.strptime(f"{y}_{m}_{d}", "%Y_%m_%d")
         if dtc.date() == self.date:
             return 0
         elif self.date < dtc.date():
@@ -91,16 +95,16 @@ class FileHandlerBase(ABC):
             * wrapper: wrappers times will be compared
         :return: 0 if equal, -1 if before, 1 if after
         """
-        ttc = kwargs.get('date', None)
+        ttc = kwargs.get("date", None)
         if ttc is None:
-            wrapper = kwargs.get('wrapper', None)
+            wrapper = kwargs.get("wrapper", None)
             if wrapper:
                 h, m, s = wrapper.hour, wrapper.minute, wrapper.second
             else:
-                h = str(kwargs.get('hour', self.hour))
-                m = str(kwargs.get('minute', self.minute))
-                s = str(kwargs.get('second', self.second))
-            ttc = dt.strptime(f'{h}-{m}-{s}', '%H-%M-%S')
+                h = str(kwargs.get("hour", self.hour))
+                m = str(kwargs.get("minute", self.minute))
+                s = str(kwargs.get("second", self.second))
+            ttc = dt.strptime(f"{h}-{m}-{s}", "%H-%M-%S")
         if ttc.time() == self.time:
             return 0
         elif self.time < ttc.time():
@@ -215,7 +219,9 @@ class FileHandlerBase(ABC):
     def is_before_date_time(self, **kwargs):
         return self.compare_timestamp(**kwargs) < 0
 
-    def is_between_dates(self, start_date, end_date, date_format='%Y_%m_%d', include_start=True, include_end=False):
+    def is_between_dates(
+        self, start_date, end_date, date_format="%Y_%m_%d", include_start=True, include_end=False
+    ):
         if isinstance(start_date, str):
             start_date = dt.strptime(start_date, date_format)
         if isinstance(end_date, str):
@@ -227,17 +233,19 @@ class FileHandlerBase(ABC):
 
         return start_date.date() < self.date < end_date.date()
 
-    def is_between_times(self,
-                         start_hour='00',
-                         start_minute='00',
-                         start_second='00',
-                         end_hour='00',
-                         end_minute='00',
-                         end_second='00',
-                         include_start=True,
-                         include_end=False):
-        start = dt.strptime(f'{start_hour}-{start_minute}-{start_second}', '%H-%M-%S')
-        end = dt.strptime(f'{end_hour}-{end_minute}-{end_second}', '%H-%M-%S')
+    def is_between_times(
+        self,
+        start_hour="00",
+        start_minute="00",
+        start_second="00",
+        end_hour="00",
+        end_minute="00",
+        end_second="00",
+        include_start=True,
+        include_end=False,
+    ):
+        start = dt.strptime(f"{start_hour}-{start_minute}-{start_second}", "%H-%M-%S")
+        end = dt.strptime(f"{end_hour}-{end_minute}-{end_second}", "%H-%M-%S")
         if include_start:
             start -= datetime.timedelta(seconds=1)
         if include_end:
@@ -256,30 +264,30 @@ class FileHandlerBase(ABC):
             str -- value
         """
 
-        if key == 'exp':
+        if key == "exp":
             return self.experiment
-        elif key == 'plant':
+        elif key == "plant":
             return self.plant
-        elif key == 'cam':
+        elif key == "cam":
             return self.camera
-        elif key == 'view_option':
+        elif key == "view_option":
             return self.view_option
-        elif key == 'date':
+        elif key == "date":
             return self.date_str
-        elif key == 'year':
+        elif key == "year":
             return self.year
-        elif key == 'month':
+        elif key == "month":
             return self.month
-        elif key == 'day':
+        elif key == "day":
             return self.day
-        elif key == 'hour':
+        elif key == "hour":
             return self.hour
-        elif key == 'minute':
+        elif key == "minute":
             return self.minute
-        elif key == 'second':
+        elif key == "second":
             return self.second
         else:
-            return ''
+            return ""
 
     def matches(self, key, value):
         if isinstance(value, list):
@@ -304,7 +312,7 @@ class FileHandlerBase(ABC):
 
     @property
     def folder_path(self):
-        return os.path.join(os.path.dirname(self.file_path), '')
+        return os.path.join(os.path.dirname(self.file_path), "")
 
     @property
     def file_name(self):
@@ -426,19 +434,18 @@ class FileHandlerBase(ABC):
 
 
 class FileHandlerDefault(FileHandlerBase):
-
     def __init__(self, **kwargs):
-        self._file_path = kwargs.get('file_path', '')
+        self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             self._file_path = self.file_path
             self._plant = self.file_name_no_ext
-            self._camera = 'unknown'
+            self._camera = "unknown"
             _, ext_ = os.path.splitext(self.file_name)
-            self._view_option = ext_ if ext_ else 'unknown'
+            self._view_option = ext_ if ext_ else "unknown"
             try:
                 self._exp = os.path.basename(os.path.dirname(self.file_path))
             except:
-                self._exp = ''
+                self._exp = ""
             try:
                 self._date_time = dt.fromtimestamp(os.path.getmtime(self.file_path))
             except:
@@ -454,15 +461,19 @@ class FileHandlerDefault(FileHandlerBase):
 
 def file_handler_factory(file_path: str) -> FileHandlerBase:
     # Build unique class list
-    file_handlers_list = get_module_classes(package=file_handlers,
-                                            class_inherits_from=FileHandlerBase,
-                                            remove_abstract=True)
+    file_handlers_list = get_module_classes(
+        package=file_handlers, class_inherits_from=FileHandlerBase, remove_abstract=True
+    )
 
     # Create objects
     best_score = 0
     best_class = None
     for cls in file_handlers_list:
-        if inspect.isclass(cls) and callable(getattr(cls, 'probe', None)) and (cls.probe(file_path) > best_score):
+        if (
+            inspect.isclass(cls)
+            and callable(getattr(cls, "probe", None))
+            and (cls.probe(file_path) > best_score)
+        ):
             best_score = cls.probe(file_path)
             best_class = cls
 

@@ -1,6 +1,9 @@
-import numpy as np
+import os
 
-from PyQt5.QtCore import Qt, pyqtSignal
+import numpy as np
+import pandas as pd
+
+from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel
 
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -15,11 +18,15 @@ from PyQt5.QtWidgets import (
     QApplication,
     QGraphicsView,
     QGraphicsScene,
+    QFileDialog,
+    QTableView,
+    QItemDelegate,
+    QStyle,
 )
-from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtGui import QImage, QPixmap, QBrush, QPen, QPalette, QColor
 
-# from ip_base import ip_common as ipc
 from tools import shapes
+from ip_base import ip_common as ipc
 
 
 def scale(val, src, dst):
@@ -297,3 +304,204 @@ class QMouseGraphicsView(QGraphicsView):
             self._main_image = self.scene().addPixmap(q_pix)
             self.setSceneRect(self._main_image.boundingRect())
             self.fit_to_canvas()
+
+
+class QColorDelegate(QItemDelegate):
+    def __init__(self, parent=None, *args, **kwargs):
+        QItemDelegate.__init__(self, parent, *args)
+        self._palette: QPalette = kwargs.get("palette")
+
+    def paint(self, painter, option, index):
+        painter.save()
+
+        df: pd.DataFrame = self.parent().model().df
+        # set background color
+        is_error_column = "error" in df.columns[index.column()]
+        painter.setPen(QPen(Qt.NoPen))
+        if is_error_column:
+            try:
+                num_val = int(index.data(Qt.DisplayRole))
+                max_val = df[df.columns[index.column()]].max()
+            except ValueError:
+                num_val = None
+                max_val = None
+            if (num_val is not None) and (max_val is not None):
+                colors = ipc.build_color_steps(
+                    start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
+                )
+                painter.setBrush(QBrush(QColor(*ipc.bgr_to_rgb(colors[num_val]))))
+        else:
+            if option.state & QStyle.State_Selected:
+                painter.setBrush(self._palette.highlight())
+            else:
+                painter.setBrush(self._palette.window())
+        painter.drawRect(option.rect)
+
+        # set text color
+        value = index.data(Qt.DisplayRole)
+        if option.state & QStyle.State_Selected:
+            painter.setPen(QPen(self._palette.color(QPalette.HighlightedText)))
+        else:
+            painter.setPen(QPen(self._palette.color(QPalette.Text)))
+        painter.drawText(option.rect, Qt.AlignCenter, str(value))
+
+        painter.restore()
+
+    def set_palette(self, new_palette):
+        self._palette: QPalette = new_palette
+
+
+class QPandasModel(QAbstractTableModel):
+    def __init__(self, data):
+        QAbstractTableModel.__init__(self)
+        self._df = data
+
+    def rowCount(self, parent=None):
+        return 0 if self._df is None else self._df.shape[0]
+
+    def columnCount(self, parnet=None):
+        return 0 if self._df is None else self._df.shape[1]
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid() and (self._df is not None):
+            if role == Qt.DisplayRole:
+                return str(self._df.iloc[index.row(), index.column()])
+            elif role == Qt.ToolTipRole:
+                return str(self._df.iloc[index.row(), index.column()])
+        return None
+
+    def setData(self, index, value, role):
+        if (self._df is None) or not index.isValid() or (role != Qt.EditRole):
+            return False
+        row = index.row()
+        if row < 0 or row >= len(self._df.values):
+            return False
+        column = index.column()
+        if column < 0 or column >= self._df.columns.size:
+            return False
+        dt = self._df.iloc[:, column].dtypes
+        if dt in [np.int64, np.int32, np.int16]:
+            try:
+                val = int(value)
+            except ValueError:
+                return False
+        elif dt in [np.float64, np.float32, np.float16]:
+            try:
+                val = float(value)
+            except ValueError:
+                return False
+        else:
+            val = value
+        self._df.iloc[[row], [column]] = val
+        self.dataChanged.emit(index, index)
+        return True
+
+    def headerData(self, col, orientation, role):
+        if (self._df is not None) and (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
+            return self._df.columns[col]
+        return None
+
+    def flags(self, index):
+        flags = super(self.__class__, self).flags(index)
+        flags |= Qt.ItemIsEditable
+        flags |= Qt.ItemIsSelectable
+        flags |= Qt.ItemIsEnabled
+        flags |= Qt.ItemIsDragEnabled
+        flags |= Qt.ItemIsDropEnabled
+        return flags
+
+    @property
+    def df(self):
+        return self._df
+
+
+class QPandasColumnsModel(QAbstractTableModel):
+    def __init__(self, data):
+        QAbstractTableModel.__init__(self)
+        self._df = data
+
+    def rowCount(self, parent=None):
+        return 0 if self._df is None else len(list(self._df.columns))
+
+    def columnCount(self, parnet=None):
+        return 2
+
+    def data(self, index, role=Qt.DisplayRole):
+        if (
+            index.isValid()
+            and (self._df is not None)
+            and (role == Qt.DisplayRole)
+            or (role == Qt.ToolTipRole)
+        ):
+            if index.column() == 0:
+                return self._df.columns[index.row()]
+            elif index.column() == 1:
+                return str(self._df[self._df.columns[index.row()]].dtypes)
+        return None
+
+    def headerData(self, col, orientation, role):
+        if (self._df is not None) and (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
+            if col == 0:
+                return "Name"
+            elif col == 1:
+                return "Type"
+        return None
+
+    def flags(self, index):
+        flags = super(self.__class__, self).flags(index)
+        # flags |= Qt.ItemIsEditable
+        flags |= Qt.ItemIsSelectable
+        flags |= Qt.ItemIsEnabled
+        # flags |= Qt.ItemIsDragEnabled
+        # flags |= Qt.ItemIsDropEnabled
+        return flags
+
+    @property
+    def df(self):
+        return self._df
+
+
+class QImageDatabaseModel(QAbstractTableModel):
+    def __init__(self, dataframe, **kwargs):
+        QAbstractTableModel.__init__(self)
+        self.images = dataframe
+        self.annotations = {}
+
+    def rowCount(self, parent=None):
+        return 0 if self.images is None else self.images.shape[0]
+
+    def columnCount(self, parnet=None):
+        return 0 if self.images is None else self._df.shape[1]
+
+    def data(self, index, role=Qt.DisplayRole):
+        if index.isValid() and (self._df is not None):
+            if role == Qt.DisplayRole:
+                return str(self.images.iloc[index.row(), index.column()])
+            elif role == Qt.ToolTipRole:
+                return str(self.images.iloc[index.row(), index.column()])
+        return None
+
+    def headerData(self, col, orientation, role):
+        if (self._df is not None) and (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
+            return self._df.columns[col]
+        return None
+
+    def flags(self, index):
+        flags = super(self.__class__, self).flags(index)
+        flags |= Qt.ItemIsSelectable
+        flags |= Qt.ItemIsEnabled
+        return flags
+
+    def set_images(self, dataframe):
+        self.images = dataframe
+        self.modelReset.emit()
+
+    def append_images(self, dataframe):
+        self.columnsInserted.emit(0, 0)
+
+    def remove_images(self, luis: list = []):
+        self.modelReset.emit()
+
+    def clear_images(self):
+        self.images.drop(self.images.index, inplace=True)
+        self.modelReset.emit()

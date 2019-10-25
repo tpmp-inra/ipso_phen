@@ -8,7 +8,7 @@
     <x>0</x>
     <y>0</y>
     <width>1176</width>
-    <height>869</height>
+    <height>879</height>
    </rect>
   </property>
   <property name="font">
@@ -343,12 +343,15 @@
       <property name="tabPosition">
        <enum>QTabWidget::North</enum>
       </property>
+      <property name="tabShape">
+       <enum>QTabWidget::Rounded</enum>
+      </property>
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tab_image_viewer">
+      <widget class="QWidget" name="tab_pipeline_builder">
        <attribute name="title">
-        <string>Toolbox</string>
+        <string>Pipeline builder</string>
        </attribute>
        <layout class="QHBoxLayout" name="horizontalLayout_8">
         <item>
@@ -685,8 +688,8 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>685</width>
-                          <height>235</height>
+                          <width>799</width>
+                          <height>154</height>
                          </rect>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -925,7 +928,7 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>683</width>
+                           <width>797</width>
                            <height>70</height>
                           </rect>
                          </property>
@@ -1668,13 +1671,63 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_log">
+      <widget class="QWidget" name="tab_data_editor">
        <attribute name="title">
-        <string>Log</string>
+        <string>Data editor</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QTextBrowser" name="lv_log"/>
+       <layout class="QGridLayout" name="gridLayout_13">
+        <item row="0" column="0">
+         <widget class="QSplitter" name="spl_de_right">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QSplitter" name="spl_de_left">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <widget class="QTableView" name="tb_de_column_info">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="dragDropOverwriteMode">
+             <bool>false</bool>
+            </property>
+            <property name="alternatingRowColors">
+             <bool>true</bool>
+            </property>
+            <property name="selectionBehavior">
+             <enum>QAbstractItemView::SelectRows</enum>
+            </property>
+            <attribute name="horizontalHeaderStretchLastSection">
+             <bool>false</bool>
+            </attribute>
+           </widget>
+           <widget class="QSplitter" name="spl_de_hor">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <widget class="QTableView" name="tb_ge_dataframe">
+             <property name="selectionMode">
+              <enum>QAbstractItemView::SingleSelection</enum>
+             </property>
+            </widget>
+            <widget class="QTableView" name="tb_de_dataframe_info">
+             <property name="editTriggers">
+              <set>QAbstractItemView::NoEditTriggers</set>
+             </property>
+             <property name="dragDropOverwriteMode">
+              <bool>false</bool>
+             </property>
+             <property name="alternatingRowColors">
+              <bool>true</bool>
+             </property>
+             <property name="selectionBehavior">
+              <enum>QAbstractItemView::SelectRows</enum>
+             </property>
+            </widget>
+           </widget>
+          </widget>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -1691,7 +1744,7 @@
      <height>21</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuFile">
+   <widget class="QMenu" name="menu_file">
     <property name="title">
      <string>File</string>
     </property>
@@ -1719,7 +1772,7 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menuView">
+   <widget class="QMenu" name="menu_settings">
     <property name="title">
      <string>Settings</string>
     </property>
@@ -1807,7 +1860,7 @@
     <addaction name="separator"/>
     <addaction name="mnu_debug"/>
    </widget>
-   <widget class="QMenu" name="menuScript_generator">
+   <widget class="QMenu" name="menu_script_generator">
     <property name="title">
      <string>Pipeline</string>
     </property>
@@ -1831,7 +1884,7 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QMenu" name="menuHelp">
+   <widget class="QMenu" name="menu_help">
     <property name="title">
      <string>Help</string>
     </property>
@@ -1843,11 +1896,33 @@
     <addaction name="separator"/>
     <addaction name="action_about_form"/>
    </widget>
-   <addaction name="menuFile"/>
-   <addaction name="menuView"/>
+   <widget class="QMenu" name="menu_view">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="action_show_log"/>
+   </widget>
+   <widget class="QMenu" name="menu_data_editor">
+    <property name="title">
+     <string>Data editor</string>
+    </property>
+    <addaction name="action_de_new_sheet"/>
+    <addaction name="separator"/>
+    <addaction name="action_de_load_csv"/>
+    <addaction name="action_de_create_sheet_from_selection"/>
+    <addaction name="separator"/>
+    <addaction name="action_de_save_csv"/>
+    <addaction name="separator"/>
+    <addaction name="action_de_add_column"/>
+    <addaction name="action_de_delete_column"/>
+   </widget>
+   <addaction name="menu_file"/>
+   <addaction name="menu_settings"/>
    <addaction name="mnu_tools_root"/>
-   <addaction name="menuScript_generator"/>
-   <addaction name="menuHelp"/>
+   <addaction name="menu_script_generator"/>
+   <addaction name="menu_data_editor"/>
+   <addaction name="menu_view"/>
+   <addaction name="menu_help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar">
    <property name="font">
@@ -1856,6 +1931,21 @@
      <bold>true</bold>
     </font>
    </property>
+  </widget>
+  <widget class="QDockWidget" name="dk_log">
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QHBoxLayout" name="horizontalLayout_12">
+     <item>
+      <widget class="QTextBrowser" name="lv_log"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="actionTPMP">
    <property name="checkable">
@@ -2523,6 +2613,52 @@
    </property>
    <property name="text">
     <string>Use pipeline cache</string>
+   </property>
+  </action>
+  <action name="action_show_log">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Log</string>
+   </property>
+  </action>
+  <action name="action_de_load_csv">
+   <property name="text">
+    <string>Load CSV</string>
+   </property>
+  </action>
+  <action name="action_de_new_sheet">
+   <property name="text">
+    <string>New sheet</string>
+   </property>
+  </action>
+  <action name="action_de_create_sheet_from_selection">
+   <property name="text">
+    <string>Create sheet from selection</string>
+   </property>
+  </action>
+  <action name="action_de_create_sheet_from_query">
+   <property name="text">
+    <string>Create sheet from query</string>
+   </property>
+  </action>
+  <action name="action_de_add_column">
+   <property name="text">
+    <string>Add column</string>
+   </property>
+  </action>
+  <action name="action_de_delete_column">
+   <property name="text">
+    <string>Delete colomn</string>
+   </property>
+  </action>
+  <action name="action_de_save_csv">
+   <property name="text">
+    <string>Save CSV...</string>
    </property>
   </action>
  </widget>
