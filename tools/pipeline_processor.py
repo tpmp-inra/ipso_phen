@@ -17,11 +17,11 @@ from tools.common_functions import time_method, print_progress_bar, force_direct
 from tools.error_holder import ErrorHolder
 from tools.image_list import ImageList
 
-WorkerResult = namedtuple('WorkerResult', 'result, name, error')
+WorkerResult = namedtuple("WorkerResult", "result, name, error")
 
 
 def _run_process(file_path, script, options, list_res, data_base):
-    res = WorkerResult(False, 'None', '')
+    res = WorkerResult(False, "None", "")
     ipo = ipo_factory(file_path, options, force_abstract=script is not None, data_base=data_base)
     if ipo:
         if script is None:
@@ -54,36 +54,46 @@ def _pipeline_worker(arg):
         if isinstance(file_path, list):
             fh = file_handler_factory(file_path[0])
             series_id_ = f'{fh.camera}_{fh.date_time.strftime("%Y%m%d%H%M%S")}_{fh.plant}'
-            csv_file_path_ = ''
-            csv_header_ = ''
+            csv_file_path_ = ""
+            csv_header_ = ""
             csv_data_ = []
             is_write_csv_ = False
             for file_name_ in file_path:
                 res = _run_process(
-                    file_path=file_name_, script=script, options=options, data_base=db, list_res=list_res
+                    file_path=file_name_,
+                    script=script,
+                    options=options,
+                    data_base=db,
+                    list_res=list_res,
                 )
-                if res['res'].result:
-                    ipo = res['wrapper']
-                    if csv_file_path_ == '':
+                if res["res"].result:
+                    ipo = res["wrapper"]
+                    if csv_file_path_ == "":
                         csv_file_path_ = ipo.csv_file_path
                     if options.write_result_text:
-                        ipo.csv_data_holder.update_csv_value('series_id', series_id_, True)
-                        if csv_header_ == '':
+                        ipo.csv_data_holder.update_csv_value("series_id", series_id_, True)
+                        if csv_header_ == "":
                             csv_header_ = ipo.csv_data_holder.header_to_list()
                         csv_data_.append(ipo.csv_data_holder.data_to_list())
                     is_write_csv_ = True
 
             if is_write_csv_ and options.write_result_text and csv_header_ and csv_file_path_:
-                with open(csv_file_path_, "w", newline='') as csv_file_:
+                with open(csv_file_path_, "w", newline="") as csv_file_:
                     wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
                     wr.writerow(csv_header_)
                     for row_ in csv_data_:
                         wr.writerow(row_)
         else:
-            res = _run_process(file_path=file_path, script=script, options=options, data_base=db, list_res=list_res)
-            if res['res'].result and options.write_result_text:
-                ipo = res['wrapper']
-                with open(ipo.csv_file_path, "w", newline='') as csv_file_:
+            res = _run_process(
+                file_path=file_path,
+                script=script,
+                options=options,
+                data_base=db,
+                list_res=list_res,
+            )
+            if res["res"].result and options.write_result_text:
+                ipo = res["wrapper"]
+                with open(ipo.csv_file_path, "w", newline="") as csv_file_:
                     wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
                     wr.writerow(ipo.csv_data_holder.header_to_list())
                     wr.writerow(ipo.csv_data_holder.data_to_list())
@@ -116,7 +126,7 @@ class PipelineProcessor:
         self.options = ArgWrapper(**kwargs)
         self._process_errors = 0
         self.accepted_files = []
-        self._last_signature = ''
+        self._last_signature = ""
         self.progress_callback = None
         self.log_callback = None
         self.script = None
@@ -128,7 +138,7 @@ class PipelineProcessor:
         Returns:
             int -- number of files kept
         """
-        accepted_extensions_ = ('.jpg', '.tiff', '.png', '.bmp')
+        accepted_extensions_ = (".jpg", ".tiff", ".png", ".bmp")
 
         if os.path.isfile(src_path):  # File passed as argument
             self.accepted_files = [src_path]
@@ -155,8 +165,10 @@ class PipelineProcessor:
         res = False
         if not process_result:
             res = self.log_state(
-                status_message='Process error',
-                error_holder=ErrorHolder(self, (dict(text='UNKNOWN ERROR', type='unknown_error'), ))
+                status_message="Process error",
+                error_holder=ErrorHolder(
+                    self, (dict(text="UNKNOWN ERROR", type="unknown_error"),)
+                ),
             )
             self._process_errors += 1
         else:
@@ -170,43 +182,52 @@ class PipelineProcessor:
                     res = self.log_state(error_holder=wrapper_res.error)
                     self._process_errors += 1
             if self.options.group_by_series:
-                res = self.log_state(log_message='____________________________________________')
+                res = self.log_state(log_message="____________________________________________")
 
         if self._process_errors > 0:
-            suffix_ = f' {wrapper_index + 1}/{total} Complete, {self._process_errors} errors'
+            suffix_ = f" {wrapper_index + 1}/{total} Complete, {self._process_errors} errors"
         else:
-            suffix_ = f' {wrapper_index + 1}/{total} Complete'
-        self.update_progress(wrapper_index + 1, total=total, prefix='Processing images:', suffix=suffix_)
+            suffix_ = f" {wrapper_index + 1}/{total} Complete"
+        self.update_progress(
+            wrapper_index + 1, total=total, prefix="Processing images:", suffix=suffix_
+        )
 
         return res
 
     def log_state(
-            self,
-            status_message: str = '',
-            log_message: str = '',
-            error_holder: ErrorHolder = None,
-            use_status_as_log: bool = False
+        self,
+        status_message: str = "",
+        log_message: str = "",
+        error_holder: ErrorHolder = None,
+        use_status_as_log: bool = False,
     ):
         if self.log_callback is not None:
             return self.log_callback(status_message, log_message, error_holder, use_status_as_log)
         else:
             return True
 
-    def update_progress(self, iteration, total, prefix='', suffix='', bar_length=50, fill='#', forced_update=False):
+    def update_progress(
+        self, iteration, total, prefix="", suffix="", bar_length=50, fill="#", forced_update=False
+    ):
         if self.progress_callback is None:
             time_now_ = timer()
             if forced_update or (time_now_ - self._last_update > 0.5):
                 print_progress_bar(
-                    iteration=iteration, total=total, prefix=prefix, suffix=suffix, bar_length=bar_length, fill=fill
+                    iteration=iteration,
+                    total=total,
+                    prefix=prefix,
+                    suffix=suffix,
+                    bar_length=bar_length,
+                    fill=fill,
                 )
                 self._last_update = timer()
         else:
             self.progress_callback(step=iteration, total=total)
 
     def group_by_series(self, time_delta: int):
-        json_file = f'./saved_data/{self._last_signature}.json'
+        json_file = f"./saved_data/{self._last_signature}.json"
         if False and self.last_signature and os.path.isfile(json_file):
-            with open(json_file, 'r') as f:
+            with open(json_file, "r") as f:
                 files_to_process = json.load(f)
         else:
             self.update_progress(iteration=0, total=1)
@@ -215,66 +236,82 @@ class PipelineProcessor:
             plants_ = defaultdict(list)
             for i, item in enumerate(self.accepted_files):
                 self.update_progress(
-                    iteration=i, total=total, prefix='Building plants dictionaries:', suffix='Complete'
+                    iteration=i,
+                    total=total,
+                    prefix="Building plants dictionaries:",
+                    suffix="Complete",
                 )
                 fh = file_handler_factory(item)
                 plants_[fh.plant].append(fh)
             self.update_progress(
                 iteration=total,
                 total=total,
-                prefix='Building plants dictionaries:',
-                suffix='Finished',
-                forced_update=True
+                prefix="Building plants dictionaries:",
+                suffix="Finished",
+                forced_update=True,
             )
 
             # Sort all lists by timestamp
             total = len(plants_)
             for i, v in enumerate(plants_.values()):
-                self.update_progress(iteration=i, total=total, prefix='Sorting observations:', suffix='Complete')
+                self.update_progress(
+                    iteration=i, total=total, prefix="Sorting observations:", suffix="Complete"
+                )
                 v.sort(key=lambda x: x.date_time)
             self.update_progress(
-                iteration=total, total=total, prefix='Sorting observations:', suffix='Finished', forced_update=True
+                iteration=total,
+                total=total,
+                prefix="Sorting observations:",
+                suffix="Finished",
+                forced_update=True,
             )
 
             # Consume
             files_to_process = []
             for i, v in enumerate(plants_.values()):
-                self.update_progress(iteration=i, total=total, prefix='Grouping by series:', suffix='Complete')
+                self.update_progress(
+                    iteration=i, total=total, prefix="Grouping by series:", suffix="Complete"
+                )
                 while len(v) > 0:
                     main = v.pop(0)
                     file_list_ = [main.file_path]
-                    while (len(v) > 0) and ((v[0].date_time - main.date_time).total_seconds() / 60 < time_delta):
+                    while (len(v) > 0) and (
+                        (v[0].date_time - main.date_time).total_seconds() / 60 < time_delta
+                    ):
                         file_list_.append(v.pop(0).file_path)
                     files_to_process.append(file_list_)
-            self.update_progress(1, total=1, prefix='Grouping by series:', suffix='Finished', forced_update=True)
+            self.update_progress(
+                1, total=1, prefix="Grouping by series:", suffix="Finished", forced_update=True
+            )
 
             if self.last_signature:
-                with open(json_file, 'w') as f:
+                with open(json_file, "w") as f:
                     json.dump(files_to_process, f, indent=2)
 
         # Print stats
         stat_lst = [len(i) for i in files_to_process]
-        self.log_state(log_message='-- Series statistics  --')
-        self.log_state(log_message=f'Originale file count: {sum(stat_lst)}')
-        self.log_state(log_message=f'Group count: {len(stat_lst)}')
+        self.log_state(log_message="-- Series statistics  --")
+        self.log_state(log_message=f"Originale file count: {sum(stat_lst)}")
+        self.log_state(log_message=f"Group count: {len(stat_lst)}")
         for k, v in Counter(stat_lst).items():
-            self.log_state(log_message=f'Qtt: {k}, Mode frequency: {v}')
-            self.log_state(log_message=f'Min: {min(stat_lst)}, Max: {max(stat_lst)}')
+            self.log_state(log_message=f"Qtt: {k}, Mode frequency: {v}")
+            self.log_state(log_message=f"Min: {min(stat_lst)}, Max: {max(stat_lst)}")
 
-        if self.log_state(log_message='--'):
+        if self.log_state(log_message="--"):
             return files_to_process
         else:
             return None
 
     def remove_already_processed_images(self, files_to_process):
         if not self.log_state(
-                status_message='Checking completed files', log_message=f'   --- Checking completed files ---'
+            status_message="Checking completed files",
+            log_message=f"   --- Checking completed files ---",
         ):
             return None
         i = 0
         cpt = 1
         total = len(files_to_process)
-        print('')
+        print("")
         results_list_ = []
 
         self.update_progress(iteration=0, total=1)
@@ -284,7 +321,7 @@ class PipelineProcessor:
             elif isinstance(files_to_process[i], str):
                 fl = files_to_process[i]
             else:
-                print(f'Unable to handle {files_to_process[i]}')
+                print(f"Unable to handle {files_to_process[i]}")
                 continue
             img_wrapper = ImageWrapper(fl)
             fn = os.path.join(self.options.partials_path, img_wrapper.csv_file_name)
@@ -293,16 +330,21 @@ class PipelineProcessor:
                 results_list_.append(fl)
             else:
                 i += 1
-            self.update_progress(iteration=cpt, total=total, prefix='Checking completed tasks:', suffix='Complete')
+            self.update_progress(
+                iteration=cpt, total=total, prefix="Checking completed tasks:", suffix="Complete"
+            )
             cpt += 1
-        self.update_progress(1, total=1, prefix='Checking completed tasks:', suffix='Finished')
+        self.update_progress(1, total=1, prefix="Checking completed tasks:", suffix="Finished")
         if len(results_list_) > 0:
             res = self.log_state(
-                log_message='Already analyzed files: <ul>' + ''.join(f'<li>{s}</li>' for s in results_list_) + '</ul>'
+                log_message="Already analyzed files: <ul>"
+                + "".join(f"<li>{s}</li>" for s in results_list_)
+                + "</ul>"
             )
         else:
             res = self.log_state(
-                status_message='Completed files checked', log_message=f'   --- Completed files checking ---<br>'
+                status_message="Completed files checked",
+                log_message=f"   --- Completed files checking ---<br>",
             )
         if res:
             return files_to_process
@@ -311,69 +353,110 @@ class PipelineProcessor:
 
     def merge_result_files(self, csv_file_name: str) -> [None, pd.DataFrame]:
         if self.log_state(
-                status_message='Merging partial outputs', log_message=f'   --- Starting file merging ---'
+            status_message="Merging partial outputs",
+            log_message=f"   --- Starting file merging ---",
         ):
-            csv_lst = ImageList.match_end(self.options.partials_path, '_result.csv')
+            csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
             total = len(csv_lst)
             start_idx = 0
             self.update_progress(iteration=0, total=1)
             while start_idx < total:
                 try:
                     df = pd.read_csv(csv_lst[start_idx])
-                    df.index.name = 'obs_idx'
                 except Exception as e:
                     self.log_state(
-                        status_message='Merge error',
+                        status_message="Merge error",
                         error_holder=ErrorHolder(
-                            self, (
+                            self,
+                            (
                                 dict(
                                     text=f'Failed to merge text for : "{csv_lst[start_idx]}" because {repr(e)}',
-                                    type='merge_error'
-                                )
-                        ,)
-                        )
+                                    type="merge_error",
+                                ),
+                            ),
+                        ),
                     )
                     self.update_progress(
-                        iteration=start_idx, total=total, prefix='Merging CSV files:', suffix='Complete'
+                        iteration=start_idx,
+                        total=total,
+                        prefix="Merging CSV files:",
+                        suffix="Complete",
                     )
                 else:
                     break
             start_idx += 1
             if df is None:
                 self.log_state(
-                    status_message='Merge failed',
+                    status_message="Merge failed",
                     error_holder=ErrorHolder(
-                        self, (
-                            dict(text=f'Failed to merge result files', type='merge_error'),
-                            dict(text=f'No csv starting file was found', type='merge_error')
-                        ,)
-                    )
+                        self,
+                        (
+                            dict(text=f"Failed to merge result files", type="merge_error"),
+                            dict(text=f"No csv starting file was found", type="merge_error"),
+                        ),
+                    ),
                 )
                 return None
             for i, csv_file in enumerate(csv_lst[start_idx:]):
                 try:
                     df = df.append(pd.read_csv(csv_file))
                 except Exception as e:
-                    self.log_state(status_message='', log_message=f'')
+                    self.log_state(status_message="", log_message=f"")
                     self.log_state(
-                        status_message='Merge error',
+                        status_message="Merge error",
                         error_holder=ErrorHolder(
-                            self, (
+                            self,
+                            (
                                 dict(
                                     text=f'Failed to merge text for : "{csv_file}" because {repr(e)}',
-                                    type='merge_error'
-                                )
-                            ,)
-                        )
+                                    type="merge_error",
+                                ),
+                            ),
+                        ),
                     )
                 self.update_progress(
-                    iteration=i + start_idx, total=total, prefix='Merging CSV files:', suffix='Complete'
+                    iteration=i + start_idx,
+                    total=total,
+                    prefix="Merging CSV files:",
+                    suffix="Complete",
                 )
-            df.to_csv(os.path.join(self.options.dst_path, csv_file_name))
+
+            def put_column_in_front(col_name: str, dataframe):
+                df_cols = list(dataframe.columns)
+                if col_name not in df_cols:
+                    return dataframe
+                df_cols.pop(df_cols.index(col_name))
+                return dataframe.reindex(columns=[col_name] + df_cols)
+
+            df = put_column_in_front(col_name="area", dataframe=df)
+            df = put_column_in_front(col_name="source_path", dataframe=df)
+            df = put_column_in_front(col_name="luid", dataframe=df)
+            df = put_column_in_front(col_name="view_option", dataframe=df)
+            df = put_column_in_front(col_name="camera", dataframe=df)
+            df = put_column_in_front(col_name="date_time", dataframe=df)
+            df = put_column_in_front(col_name="condition", dataframe=df)
+            df = put_column_in_front(col_name="genotype", dataframe=df)
+            df = put_column_in_front(col_name="plant", dataframe=df)
+            df = put_column_in_front(col_name="experiment", dataframe=df)
+
+            sort_list = ["plant"] if "plant" in list(df.columns) else []
+            sort_list = sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+            df.sort_values(by=sort_list, axis=0, inplace=True, na_position='first')
+
+            df.reset_index(drop=True, inplace=True)
+
+            df.to_csv(path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False)
             self.update_progress(
-                iteration=total, total=total, prefix='Merging CSV files:', suffix='Finished', forced_update=True
+                iteration=total,
+                total=total,
+                prefix="Merging CSV files:",
+                suffix="Finished",
+                forced_update=True,
             )
-            self.log_state(status_message='Merged partial outputs', log_message='   --- Merged partial outputs ---<br>')
+            self.log_state(
+                status_message="Merged partial outputs",
+                log_message="   --- Merged partial outputs ---<br>",
+            )
 
             return df
 
@@ -396,11 +479,11 @@ class PipelineProcessor:
             force_directories(self.options.partials_path)
             handled_class = "groups" if self.options.group_by_series else "files"
             if not self.log_state(
-                    status_message='Processing files',
-                    log_message=f'   --- Processing {len(groups_list)} {handled_class} ---'
+                status_message="Processing files",
+                log_message=f"   --- Processing {len(groups_list)} {handled_class} ---",
             ):
                 return
-            self.update_progress(0, total=1, prefix='Processing images:')
+            self.update_progress(0, total=1, prefix="Processing images:")
 
             max_cores = min([10, mp.cpu_count()])
             if isinstance(self.multi_thread, int):
@@ -416,33 +499,48 @@ class PipelineProcessor:
                 pool = mp.Pool(num_cores)
                 chunky_size_ = num_cores
                 for i, res in enumerate(
-                        pool.imap_unordered(
-                            _pipeline_worker, ((
-                                    fl, False, self.options, self.script,
-                                    None if target_database is None else target_database.copy()
-                            ) for fl in groups_list), chunky_size_
-                        )
+                    pool.imap_unordered(
+                        _pipeline_worker,
+                        (
+                            (
+                                fl,
+                                False,
+                                self.options,
+                                self.script,
+                                None if target_database is None else target_database.copy(),
+                            )
+                            for fl in groups_list
+                        ),
+                        chunky_size_,
+                    )
                 ):
                     if not self.handle_result(res, i, len(groups_list)):
                         is_user_abort = True
                         break
             else:
                 for i, fl in enumerate(groups_list):
-                    res = _pipeline_worker([
-                        fl, self.log_times, self.options, self.script,
-                        None if target_database is None else target_database.copy()
-                    ])
+                    res = _pipeline_worker(
+                        [
+                            fl,
+                            self.log_times,
+                            self.options,
+                            self.script,
+                            None if target_database is None else target_database.copy(),
+                        ]
+                    )
                     if not self.handle_result(res, i, len(groups_list)):
                         is_user_abort = True
                         break
             if is_user_abort:
-                suffix_ = 'User abort'
+                suffix_ = "User abort"
             elif self._process_errors > 0:
-                suffix_ = f'Complete, {self._process_errors} errors'
+                suffix_ = f"Complete, {self._process_errors} errors"
             else:
-                suffix_ = 'Complete'
-            self.update_progress(1, total=1, prefix='Processing images:', suffix=suffix_)
-            self.log_state(status_message='Files processed', log_message=f'   --- Files processed ---<br>')
+                suffix_ = "Complete"
+            self.update_progress(1, total=1, prefix="Processing images:", suffix=suffix_)
+            self.log_state(
+                status_message="Files processed", log_message=f"   --- Files processed ---<br>"
+            )
 
     @time_method
     def run(self, target_database=None):
@@ -462,9 +560,11 @@ class PipelineProcessor:
             self.process_groups(files_to_process, target_database)
 
             # Build text merged file
-            self.merge_result_files('raw_output_data.csv')
+            self.merge_result_files("raw_output_data.csv")
         else:
-            self.log_state(status_message='Nothing to do', log_message=f'   --- Nothing to do ---<br>')
+            self.log_state(
+                status_message="Nothing to do", log_message=f"   --- Nothing to do ---<br>"
+            )
             print("Nothing to do")
 
     @property
@@ -500,10 +600,10 @@ class PipelineProcessor:
         self.options.multi_thread = value
 
     def _get_result_csv_file(self):
-        return f'{self.options.dst_path}global_results.csv'
+        return f"{self.options.dst_path}global_results.csv"
 
     def _get_success_text_file(self):
-        return f'{self.options.dst_path}success.txt'
+        return f"{self.options.dst_path}success.txt"
 
     options = property(_get_options, _set_options)
     log_times = property(_get_log_times, _set_log_times)

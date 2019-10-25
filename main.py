@@ -1,4 +1,6 @@
 import csv
+import gc
+import glob
 import itertools
 import json
 import multiprocessing as mp
@@ -8,108 +10,119 @@ import string
 import sys
 import threading
 import traceback
-from collections import namedtuple, defaultdict, Counter
+from collections import Counter, defaultdict, namedtuple
 from datetime import datetime as dt
 from timeit import default_timer as timer
 from typing import Any
-import glob
-import gc
 
 import cv2
 import numpy as np
 import pandas as pd
 import pkg_resources
 import psutil
-from unidecode import unidecode
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import (
-    pyqtSlot,
+    QObject,
+    QRunnable,
     QSettings,
     Qt,
-    pyqtSignal,
-    QObject,
     QThread,
-    QTimer,
-    QRunnable,
     QThreadPool,
+    QTimer,
+    pyqtSignal,
+    QItemSelectionModel,
+    pyqtSlot,
 )
 from PyQt5.QtGui import (
+    QColor,
+    QFont,
+    QFontMetrics,
+    QIcon,
     QImage,
+    QPalette,
     QPixmap,
     QShowEvent,
-    QColor,
-    QIcon,
     QTextCursor,
-    QFontMetrics,
-    QFont,
-    QPalette,
+    QTextOption,
 )
 from PyQt5.QtWidgets import (
-    QTableWidgetItem,
-    QMessageBox,
-    QTableWidget,
-    QLabel,
-    QFileDialog,
-    QLineEdit,
-    QTextBrowser,
-    QHeaderView,
     QAction,
-    QTreeWidgetItem,
-    QWidget,
-    QProgressBar,
-    QToolButton,
-    QTreeWidgetItemIterator,
-    QPushButton,
+    QActionGroup,
     QCheckBox,
     QComboBox,
+    QDialog,
+    QFileDialog,
+    QHeaderView,
+    QLabel,
+    QLineEdit,
+    QMenu,
+    QMessageBox,
+    QPlainTextEdit,
+    QProgressBar,
+    QPushButton,
     QSlider,
     QSpinBox,
-    QMenu,
-    QActionGroup,
-    QVBoxLayout,
-    QToolTip,
-    QStyleFactory,
-    qApp,
     QSplashScreen,
-    QDialog,
+    QStyleFactory,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextBrowser,
+    QGridLayout,
+    QSplitter,
+    QToolButton,
+    QToolTip,
+    QTreeWidgetItem,
+    QTreeWidgetItemIterator,
+    QVBoxLayout,
+    QWidget,
+    QTableView,
+    qApp,
 )
+from unidecode import unidecode
 
 import ip_base.ip_common as ipc
 import tools.db_wrapper as dbw
-from annotations.orm_annotations import OrmAnnotationsDbWrapper, OrmAnnotation
+from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 from class_pipelines.ip_factory import ipo_factory
 from file_handlers.fh_base import file_handler_factory
 from ip_base.ip_abstract import AbstractImageProcessor
 from ip_base.ipt_abstract import IptBase, IptParamHolder
+from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
 from ip_base.ipt_script_generator import IptScriptGenerator
-from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from tools import shapes
 from tools.comand_line_wrapper import ArgWrapper
-from tools.common_functions import format_time, open_file
-from tools.common_functions import make_safe_name, force_directories, natural_keys
+from tools.common_functions import (
+    force_directories,
+    format_time,
+    make_safe_name,
+    natural_keys,
+    open_file,
+)
 from tools.error_holder import ErrorHolder
 from tools.paths_factory import get_folders_paths
 from tools.pipeline_processor import PipelineProcessor
 from tools.shapes import Rect
 from ui import ui_consts
 from ui.about_form import Ui_about_dialog
-from ui.frm_new_tool import Ui_dlg_new_tool
 from ui.frm_folder_selector import Ui_folder_selector
+from ui.frm_new_tool import Ui_dlg_new_tool
 from ui.q_components import (
-    CTreeWidgetItem,
     CTreeWidget,
-    QComboBoxWthParam,
+    CTreeWidgetItem,
     QCheckBoxWthParam,
-    QSliderWthParam,
-    QPushButtonWthParam,
-    QSpinnerWthParam,
+    QComboBoxWthParam,
     QLineEditWthParam,
     QMouseGraphicsView,
+    QPandasModel,
+    QPandasColumnsModel,
+    QPushButtonWthParam,
+    QSliderWthParam,
+    QSpinnerWthParam,
+    QColorDelegate,
 )
-from ui.q_thread_handlers import IpsoRunnable, IpsoMassRunner, IpsoCsvBuilder
-
+from ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 from version import __version__
 
 try:
@@ -125,11 +138,6 @@ Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
-
-_TAB_MAIN = "tab_image_viewer"
-_TAB_PROCESSOR = "tab_pipeline_processor"
-_TAB_LOG = "tab_log"
-_TAB_VIDEO = "tab_video_player"
 
 _TAB_TOOLS = "tab_tools"
 _TAB_PIPELINE = "tab_pipeline"
@@ -640,6 +648,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tw_script_sim_output.horizontalHeader().setStretchLastSection(True)
         self.tw_script_sim_output.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
+        # Data editor
+        self.gv_de_image = QMouseGraphicsView(self.spl_de_left)
+        self.gv_de_image.setObjectName("gv_de_image")
+
         self.thread_pool = QThreadPool()
         self.thread_pool.setMaxThreadCount(1)
         self.threads_waiting = 0
@@ -693,6 +705,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             os.path.expanduser("~"), "Documents", "tpmp_pipelines", ""
         )
         force_directories(self._pipelines_folder)
+
+        self._csv_folder = os.path.join(os.path.expanduser("~"), "Documents", "")
 
         self._scripts_folder = "./script_pipelines/"
         force_directories(self._scripts_folder)
@@ -868,6 +882,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_build_ipso_phen_documentation.triggered.connect(
             self.on_action_build_ipso_phen_documentation
         )
+        self.action_show_log.triggered.connect(self.on_action_show_log)
 
         # Video
         self.action_video_1_24_second.triggered.connect(self.on_video_frame_duration_changed)
@@ -889,6 +904,16 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_video_bkg_color_silver.triggered.connect(
             self.on_action_video_bkg_color_changed
         )
+
+        # Data editor
+        self.action_de_new_sheet.triggered.connect(self.on_action_de_new_sheet)
+        self.action_de_load_csv.triggered.connect(self.on_action_de_load_csv)
+        self.action_de_create_sheet_from_selection.triggered.connect(
+            self.on_action_de_create_sheet_from_selection
+        )
+        self.action_de_add_column.triggered.connect(self.on_action_de_add_column)
+        self.action_de_delete_column.triggered.connect(self.on_action_de_delete_column)
+        self.action_de_save_csv.triggered.connect(self.on_action_de_save_csv)
 
         # Script generator
         self.actionAdd_white_balance_fixer.triggered.connect(
@@ -1666,6 +1691,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.background_color = palette.color(QPalette.Base)
             qApp.setPalette(palette)
 
+            item_delegate = self.tb_ge_dataframe.itemDelegate()
+            if item_delegate is not None and hasattr(item_delegate, 'set_palette'):
+                item_delegate.set_palette(new_palette=qApp.palette())
+
             if self.actionEnable_annotations.isChecked():
                 self.on_action_enable_annotations_checked()
 
@@ -1735,12 +1764,23 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
             self.apply_theme(style=self._selected_style, theme=self._selected_theme)
 
-            frame_rect = settings_.value("dimension", None)
-            if frame_rect is not None:
-                self.setGeometry(frame_rect)
+            geom = settings_.value("main_geometry", None)
+            if geom is not None:
+                self.restoreGeometry(geom)
+            state = settings_.value("main_state", None)
+            if state is not None:
+                self.restoreState(state)
 
             available_width = self.geometry().width()
             available_height = self.geometry().height()
+
+            frame_rect = settings_.value("log_geometry", None)
+            if frame_rect is not None:
+                self.dk_log.setGeometry(frame_rect)
+            state = settings_.value("log_state", None)
+            if state is not None:
+                self.dk_log.restoreState(state)
+            self.action_show_log.setChecked(self.dk_log.isVisible())
 
             spl_state = settings_.value("spl_ver_main", None)
             if spl_state is not None:
@@ -1770,12 +1810,35 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 w = (available_width - 50) // 7 * 3 // 3
                 self.spl_ver_main_tab_source.setSizes((w * 2, w * 1))
 
+            # Data editor splitters
+            spl_state = settings_.value("spl_de_left", None)
+            if spl_state is not None:
+                self.spl_de_left.restoreState(spl_state)
+            else:
+                w = (available_width - 50) // 5
+                self.spl_de_left.setSizes((w, w * 4))
+
+            spl_state = settings_.value("spl_de_right", None)
+            if spl_state is not None:
+                self.spl_de_right.restoreState(spl_state)
+            else:
+                w = (available_width - 50) // 5
+                self.spl_de_right.setSizes((w * 4, w))
+
+            spl_state = settings_.value("spl_de_hor", None)
+            if spl_state is not None:
+                self.spl_de_hor.restoreState(spl_state)
+            else:
+                h = (available_height - 50) // 5
+                self.spl_de_hor.setSizes((h * 4, h))
+
             self.selected_main_tab = settings_.value("global_tab_name", "")
             self.tw_tool_box.setCurrentIndex(int(settings_.value("toolbox_tab_index", 0)))
 
             self._pipelines_folder = settings_.value("pipelines_folder", self._pipelines_folder)
             self._scripts_folder = settings_.value("scripts_folder", self._scripts_folder)
             self._last_folder = settings_.value("last_folder", "")
+            self._csv_folder = settings_.value("csv_folder", self._csv_folder)
 
             # Fill main menu
             self.actionEnable_annotations.setChecked(
@@ -1966,6 +2029,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         settings_ = self.lock_settings()
         try:
             settings_.setValue("settings_exists", True)
+
+            settings_.setValue("main_geometry", self.saveGeometry())
+            settings_.setValue("main_state", self.saveState())
+            
             settings_.setValue("global_tab_name", self.selected_main_tab)
             settings_.setValue("toolbox_tab_index", self.tw_tool_box.currentIndex())
             settings_.setValue(
@@ -1982,10 +2049,17 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             settings_.setValue("selected_theme", self._selected_theme)
             settings_.setValue("multithread", self.action_use_multithreading.isChecked())
             settings_.setValue("use_pipeline_cache", self.action_use_pipeline_cache.isChecked())
+            settings_.setValue("log_geometry", self.dk_log.geometry())
+
+            # Data editor
+            settings_.setValue("spl_de_left", self.spl_de_left.saveState())
+            settings_.setValue("spl_de_right", self.spl_de_right.saveState())
+            settings_.setValue("spl_de_hor", self.spl_de_hor.saveState())
 
             settings_.setValue("pipelines_folder", self._pipelines_folder)
             settings_.setValue("scripts_folder", self._scripts_folder)
             settings_.setValue("last_folder", self._last_folder)
+            settings_.setValue("csv_folder", self._csv_folder)
 
             settings_.beginGroup("checkbox_status")
             settings_.setValue("experiment_checkbox_state", self.chk_experiment.isChecked())
@@ -2119,7 +2193,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             if log_msg:
                 self.lv_log.insertHtml(log_msg)
                 self.lv_log.verticalScrollBar().setValue(self.lv_log.verticalScrollBar().maximum())
-                log_title = "Log -"
+                log_title = "IPSO Phen - Log: "
                 # Add to proper category
                 if ui_consts.LOG_CRITICAL_STR in log_msg:
                     self._log_count_critical += 1
@@ -2160,18 +2234,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     log_title += f" [Other:{self._log_count_unknown}]"
                 if len(log_title) < 7:
                     log_title += " No log messages"
-                self.tabWidget.setTabText(2, log_title)
-                # Update tab icon
-                if self._log_count_critical > 0:
-                    self.tabWidget.setTabIcon(2, QIcon(":/annotation_level/resources/Danger.png"))
-                elif self._log_count_error > 0:
-                    self.tabWidget.setTabIcon(2, QIcon(":/annotation_level/resources/Error.png"))
-                elif self._log_count_exception > 0:
-                    self.tabWidget.setTabIcon(2, QIcon(":/annotation_level/resources/Problem.png"))
-                elif self._log_count_warning > 0:
-                    self.tabWidget.setTabIcon(2, QIcon(":/annotation_level/resources/Warning.png"))
-                else:
-                    self.tabWidget.setTabIcon(2, QIcon())
+                self.dk_log.setWindowTitle(log_title)
 
         if not self.multithread:
             self.process_events()
@@ -2300,6 +2363,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.build_tool_documentation(
             tool=self.current_tool, tool_name=f'ipt_{self.current_tool.name.replace(" ", "_")}'
         )
+
+    def on_action_show_log(self):
+        self.dk_log.setVisible(not self.dk_log.isVisible())
+        self.action_show_log.setChecked(self.dk_log.isVisible())
 
     def on_action_build_ipso_phen_documentation(self):
         # Build tools overview
@@ -2574,6 +2641,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def do_pp_item_image_ready(self, image):
         if self.chk_pp_show_last_item.isChecked():
             self.gv_last_processed_item.main_image = image
+            if not self.multithread:
+                self.process_events()
 
     def do_pp_launching(self, total_count: int):
         if threading.current_thread() is not threading.main_thread():
@@ -2991,6 +3060,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         if isinstance(sender, IptParamHolder):
             info_dict = dict(ipt=sender.name, ipt_class_name=type(sender).__name__)
+        else:
+            info_dict = {}
         info_dict = dict(
             **info_dict,
             **dict(
@@ -2999,7 +3070,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 date_time=wrapper.date_time,
                 camera=wrapper.camera,
                 view_option=wrapper.view_option,
-            )
+            ),
         )
         if isinstance(sender, IptParamHolder):
             info_dict = dict(**info_dict, **sender.params_to_dict())
@@ -3358,6 +3429,163 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sender() == self.action_video_bkg_color_silver
         )
 
+    def on_tb_ge_dataframe_selection_changed(self, selected, deselected):
+        image = None
+        color = qApp.palette().window()
+
+        qApp.palette().HighlightedText
+
+        for index in selected.indexes():
+            current_row = index.row()
+            break
+        else:
+            self.gv_de_image.scene().setBackgroundBrush(color)
+            self.gv_de_image.main_image = image
+
+        df = self.tb_ge_dataframe.model().df
+        if "source_path" in df:
+            src_path = "source_path"
+        elif "path" in df:
+            src_path = "path"
+        else:
+            src_path = ""
+        if src_path:
+            col = -1
+            for index in selected.indexes():
+                col = index.column()
+            if (col >= 0) and ("error" in df.columns[col]):
+                try:
+                    val = int(df.iloc[current_row, col])
+                except ValueError:
+                    pass
+                else:
+                    max_val = df[df.columns[col]].max()
+                    colors = ipc.build_color_steps(
+                        start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
+                    )
+                    color = QColor(*ipc.bgr_to_rgb(colors[val]))
+            image = df.iloc[current_row, df.columns.get_loc(src_path)]
+        else:
+            image = None
+
+        self.gv_de_image.scene().setBackgroundBrush(color)
+        self.gv_de_image.main_image = image
+
+    def init_data_editor(self, dataframe=None):
+        self.tb_ge_dataframe.setModel(QPandasModel(dataframe))
+        self.tb_ge_dataframe.setItemDelegate(
+            QColorDelegate(parent=self.tb_ge_dataframe, palette=qApp.palette())
+        )
+        if dataframe is not None:
+            selectionModel = self.tb_ge_dataframe.selectionModel()
+            selectionModel.selectionChanged.connect(self.on_tb_ge_dataframe_selection_changed)
+            self.de_fill_description(dataframe.describe(include="all"))
+            self.de_fill_columns_info(dataframe)
+        else:
+            self.de_fill_description(None)
+            self.de_fill_columns_info(None)
+        self.gv_de_image.scene().setBackgroundBrush(qApp.palette().window())
+        self.gv_de_image.main_image = None
+
+    def de_fill_description(self, dataframe):
+        self.tb_de_dataframe_info.setModel(None)
+        if dataframe is not None:
+            if dataframe.shape[0] == 8:
+                dataframe.insert(
+                    0, "", ["count", "mean", "std", "min", "25%", "50%", "75%", "max"]
+                )
+            elif dataframe.shape[0] == 11:
+                dataframe.insert(
+                    0,
+                    "",
+                    [
+                        "count",
+                        "top",
+                        "freq",
+                        "unique",
+                        "mean",
+                        "std",
+                        "min",
+                        "25%",
+                        "50%",
+                        "75%",
+                        "max",
+                    ],
+                )
+            elif dataframe.shape[0] == 4:
+                dataframe.insert(0, "", ["count", "top", "freq", "unique"])
+
+            self.tb_de_dataframe_info.setModel(QPandasModel(dataframe))
+
+    def de_fill_columns_info(self, dataframe):
+        self.tb_de_column_info.setModel(None)
+        if dataframe is not None:
+            self.tb_de_column_info.setModel(QPandasColumnsModel(dataframe))
+            self.tb_de_column_info.horizontalHeader().setStretchLastSection(False)
+            self.tb_de_column_info.horizontalHeader().setSectionResizeMode(
+                0, QHeaderView.ResizeToContents
+            )
+            self.tb_de_column_info.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)
+
+    def on_action_de_new_sheet(self):
+        self.init_data_editor(None)
+        self.update_feedback(
+            status_message='Cleared dataframe',
+            log_message=f"{ui_consts.LOG_INFO_STR} Cleared dataframe"
+        )
+
+    def on_action_de_load_csv(self):
+        file_name_ = QFileDialog.getOpenFileName(
+            parent=self,
+            caption="Load dataframe as CSV",
+            directory=self._csv_folder,
+            filter="CSV(*.csv)",
+        )[0]
+        if file_name_:
+            self._csv_folder = os.path.join(os.path.dirname(file_name_), "")
+            self.init_data_editor(pd.read_csv(file_name_))
+            self.update_feedback(
+                status_message='Dataframe loaded',
+                log_message=f"{ui_consts.LOG_INFO_STR} Loaded dataframe from {file_name_}"
+            )
+
+    def on_action_de_create_sheet_from_selection(self):
+        table: QTableWidget = self.images_table
+        noc = table.columnCount()
+        df = pd.DataFrame(
+            columns=[table.horizontalHeaderItem(x).text().lower() for x in range(noc)]
+        )
+        for row in range(table.rowCount()):
+            df.loc[row] = [str(table.item(row, column).text()) for column in range(noc)]
+        self.init_data_editor(df)
+
+    def on_action_de_add_column(self):
+        pass
+
+    def on_action_de_delete_column(self):
+        pass
+
+    def on_action_de_save_csv(self):
+        model = self.tb_de_column_info.model()
+        if model is not None:
+            file_name_ = QFileDialog.getSaveFileName(
+                parent=self,
+                caption="Save dataframe as CSV",
+                directory=self._csv_folder,
+                filter="CSV(*.csv)",
+            )[0]
+            if file_name_:
+                model.df.to_csv(file_name_)
+                self.update_feedback(
+                    status_message='Dataframe saved',
+                    log_message=f"{ui_consts.LOG_INFO_STR} Saved dataframe to {file_name_}"
+                )
+        else:
+            self.update_feedback(
+                status_message='No dataframe to save',
+                log_message=f"{ui_consts.LOG_WARNING_STR} No dataframe to save"
+            )
+
     def on_action_build_video_from_images(self):
         if self.cb_available_outputs.count() < 1:
             self.update_feedback(
@@ -3574,6 +3802,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         finally:
             self.end_edit_image_table()
 
+    @log_method_execution_time
     def inner_add_to_selection(self, cull: bool):
         self.begin_edit_image_table()
         self.update_feedback(
@@ -3611,12 +3840,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.end_edit_image_table()
 
     @pyqtSlot()
-    # @log_method_execution_time
     def on_bt_add_random(self):
         self.inner_add_to_selection(cull=True)
 
     @pyqtSlot()
-    # @log_method_execution_time
     def on_bt_add_to_selection(self):
         self.inner_add_to_selection(cull=False)
 
@@ -4269,7 +4496,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         return widget, label
 
     def print_image_callback(self, image):
-        self.display_image(image=image, widget=self.lbl_output_image)
+        self.gv_output_image.main_image = image
 
     def do_after_process_param_changed(self, widget):
         tool = widget.tool
@@ -4592,48 +4819,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             os.path.join(os.path.expanduser("~"), "Pictures", "TPMP_input", ""),
         )
 
-    def display_image(self, image, widget):
-        if not self.file_name or self._working:
-            return False
-
-        if not self._src_image_wrapper.good_image:
-            self.update_feedback(
-                status_message="Failed to display image",
-                log_message=self._src_image_wrapper.error_holder,
-            )
-            return False
-
-        self._working = True
-        try:
-            sz = widget.rect()
-
-            target_rect = Rect.from_lwth(
-                0, sz.width() - 2 * widget.lineWidth(), 0, sz.height() - 2 * widget.lineWidth()
-            )
-            image = ipc.resize_image(image, target_rect=target_rect, keep_aspect_ratio=True)
-            qformat = QImage.Format_Indexed8
-            if len(image.shape) == 3:
-                if image.shape[2] == 4:
-                    qformat = QImage.Format_RGBA8888
-                else:
-                    qformat = QImage.Format_RGB888
-                height_, width_, *_ = image.shape
-            else:
-                height_, width_ = image.shape
-
-            q_img = QImage(image, width_, height_, width_ * 3, qformat)
-            # q_img = QImage(image, image.shape[1], image.shape[0], image.shape[1] * 3, qformat)
-            q_img = q_img.rgbSwapped()
-            q_pix = QPixmap.fromImage(q_img)
-            widget.setPixmap(q_pix.scaled(sz.width(), sz.height(), Qt.KeepAspectRatio))
-
-        except Exception as e:
-            self.log_exception(f"Failed to display image: {repr(e)}")
-        finally:
-            self._working = False
-
-        return True
-
     def on_action_enable_annotations_checked(self):
         table = self.images_table
         try:
@@ -4750,7 +4935,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         elif not self._batch_is_active:
                             img = self._src_image_wrapper.current_image
                             if self._src_image_wrapper.good_image:
-                                self.display_image(img, self.lbl_output_image)
+                                self.gv_output_image.main_image = img
                     self.edt_csv_file_name.setText(
                         f"{self._src_image_wrapper.experiment}_raw_data"
                     )

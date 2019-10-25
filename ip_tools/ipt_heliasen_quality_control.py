@@ -67,6 +67,9 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 )
                 msk_height = mask_before_guide_removal.shape[0]
                 wrapper.data_output["final_plant_top_position"] = msk_dt.top_index
+                wrapper.data_output["guide_average_pixels"] = 0
+                wrapper.data_output["guide_average_span"] = 0
+                wrapper.data_output["guide_only_pixels"] = 0
                 if msk_dt.top_index and not isinstance(ept, bool):
                     line_stop = min(min(msk_dt.top_index, int(ept)), pt)
                     active_line_count = 0
@@ -257,7 +260,10 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 if error_level >= 2:
                     error_level += len(np.where(err_lst >= 2)[0]) - 1
                 wrapper.data_output["error_level"] = error_level
-                wrapper.data_output["report"] = " ".join(report_lines).replace(",", "->")
+                if report_lines:
+                    wrapper.data_output["report"] = " ".join(report_lines).replace(",", "->")
+                else:
+                    wrapper.data_output["report"] = " "
 
                 # Build debug image
                 dbg_img = np.dstack((msk_dt.mask, msk_dt.mask, msk_dt.mask))

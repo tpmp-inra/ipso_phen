@@ -7,7 +7,6 @@ import file_handlers.fh_base as fh
 # from file_handlers.fh_base import file_handler_factory
 
 
-
 class ImageWrapper:
     """Class wrapping an image item importing using the TPMP standard name
     """
@@ -19,11 +18,13 @@ class ImageWrapper:
         return self.file_path
 
     def __str__(self):  # Human readable
-        return f'[exp:{self.experiment}]' \
-               f'[plant:{self.plant}]' \
-               f'[date:{self.date_str}]' \
-               f'[camera:{self.camera}]' \
-               f'[view_option:{self.view_option}]'
+        return (
+            f"[exp:{self.experiment}]"
+            f"[plant:{self.plant}]"
+            f"[date:{self.date_str}]"
+            f"[camera:{self.camera}]"
+            f"[view_option:{self.view_option}]"
+        )
 
     def __eq__(self, other):
         return self.file_name == other.file_name
@@ -191,22 +192,34 @@ class ImageWrapper:
     def is_before_date_time(self, **kwargs):
         return self.compare_timestamp(**kwargs) < 0
 
-    def is_between_dates(self,
-                         start_date, end_date,
-                         date_format='%Y_%m_%d',
-                         include_start=True,
-                         include_end=False):
-        return self.file_handler.is_between_dates(start_date, end_date, date_format, include_start, include_end)
+    def is_between_dates(
+        self, start_date, end_date, date_format="%Y_%m_%d", include_start=True, include_end=False
+    ):
+        return self.file_handler.is_between_dates(
+            start_date, end_date, date_format, include_start, include_end
+        )
 
-    def is_between_times(self,
-                         start_hour='00', start_minute='00', start_second='00',
-                         end_hour='00', end_minute='00', end_second='00',
-                         include_start=True,
-                         include_end=False):
-        return self.file_handler.is_between_times(start_hour,  start_minute, start_second,
-                                                  end_hour, end_minute, end_second,
-                                                  include_start,
-                                                  include_end)
+    def is_between_times(
+        self,
+        start_hour="00",
+        start_minute="00",
+        start_second="00",
+        end_hour="00",
+        end_minute="00",
+        end_second="00",
+        include_start=True,
+        include_end=False,
+    ):
+        return self.file_handler.is_between_times(
+            start_hour,
+            start_minute,
+            start_second,
+            end_hour,
+            end_minute,
+            end_second,
+            include_start,
+            include_end,
+        )
 
     def is_camera_match(self, camera_type):
         """Does camera_type match own camera
@@ -218,13 +231,13 @@ class ImageWrapper:
             boolean -- does camera match
         """
 
-        if camera_type.lower() in ['*', '']:
+        if camera_type.lower() in ["*", ""]:
             return True
-        elif camera_type.lower() == 'nir':
+        elif camera_type.lower() == "nir":
             return self.is_nir
-        elif camera_type.lower() == 'vis':
+        elif camera_type.lower() == "vis":
             return self.is_vis
-        elif camera_type.lower() == 'fluo':
+        elif camera_type.lower() == "fluo":
             return self.is_fluo
         else:
             return False
@@ -322,11 +335,11 @@ class ImageWrapper:
     @property
     def camera(self):
         if self.is_vis:
-            return 'vis'
+            return "vis"
         elif self.is_fluo:
-            return 'fluo'
+            return "fluo"
         elif self.is_nir:
-            return 'nir'
+            return "nir"
         else:
             return self._file_handler.camera
 
@@ -336,7 +349,7 @@ class ImageWrapper:
 
     @property
     def csv_file_name(self):
-        return '{}_result.csv'.format(self.name)
+        return "{}_result.csv".format(self.name)
 
     @property
     def date_time(self):
@@ -356,45 +369,58 @@ class ImageWrapper:
 
     @property
     def is_drop_roi(self):
-        return ((self.is_fluo and
-                 self.view_option == 'side45' and
-                 self.is_after_date(year='2018', month='02', day='06')) or
-                (self.is_vis and
-                 self.view_option == 'side315' and
-                 self.is_at_date(year=2018, month='03', day=20)))
+        return (
+            self.is_fluo
+            and self.view_option == "side45"
+            and self.is_after_date(year="2018", month="02", day="06")
+        ) or (
+            self.is_vis
+            and self.view_option == "side315"
+            and self.is_at_date(year=2018, month="03", day=20)
+        )
 
     @property
     def is_blue_guide(self):
-        return (self.experiment.lower() == '008s1807_sym') or \
-               ((self.experiment.lower() == '013s1801_sym') and self.is_after_date(year='2018', month='02', day='27'))
+        return (self.experiment.lower() == "008s1807_sym") or (
+            (self.experiment.lower() == "013s1801_sym")
+            and self.is_after_date(year="2018", month="02", day="27")
+        )
 
     @property
     def is_green_guide(self):
-        return self.experiment.lower() == '009s1709_sym' and self.is_after_date(year='2017', month='10', day='12')
+        return self.experiment.lower() == "009s1709_sym" and self.is_after_date(
+            year="2017", month="10", day="12"
+        )
 
     @property
     def is_low_light(self):
-        return ((self.experiment == '009s1709_sym') and self.is_fluo) or ((self.experiment == '011s1801_sym') and self.is_vis)
+        return ((self.experiment == "009s1709_sym") and self.is_fluo) or (
+            (self.experiment == "011s1801_sym") and self.is_vis
+        )
 
     @property
     def is_blue_background(self):
-        return (self.is_vis and
-                self.is_after_date(year='2018', month='03', day='22') and
-                self.view_option != 'top')
+        return (
+            self.is_vis
+            and self.is_after_date(year="2018", month="03", day="22")
+            and self.view_option != "top"
+        )
 
     @property
     def is_wide_angle(self):
-        return self.is_vis and self.is_before_date(year='2018', month='02', day='07')
+        return self.is_vis and self.is_before_date(year="2018", month="02", day="07")
 
     @property
     def is_no_wb_fix(self):
-        return (self.is_vis and
-                self.is_after_date(year='2018', month='03', day='20') and
-                self.is_before_date(year='2018', month='03', day='27'))
+        return (
+            self.is_vis
+            and self.is_after_date(year="2018", month="03", day="20")
+            and self.is_before_date(year="2018", month="03", day="27")
+        )
 
     @property
     def is_overexposed(self):
-        return self.is_fluo and self.is_before_date(year='2018', month='02', day='14')
+        return self.is_fluo and self.is_before_date(year="2018", month="02", day="14")
 
     @property
     def scale_width(self):
@@ -408,16 +434,23 @@ class ImageWrapper:
 
     @property
     def short_name(self):
-        return f'[exp:{self.experiment}][plant:{self.plant}][vo:{self.view_option}][{self._file_handler.condensed_date}]'
+        return f"[exp:{self.experiment}][plant:{self.plant}][vo:{self.view_option}][{self._file_handler.condensed_date}]"
 
     @property
     def is_corrupted(self):
-        return (not os.path.isfile(self.file_path) or
-                (self.experiment in ['011s1801_sym', '013s1801_sym'] and
-                 self.is_before_date_time(year='2018', month='02', day='01',
-                                          hour='12', minute='00', seconds='00')) or
-                (self.experiment == '020s1804_nem' and
-                 self.is_before_date(year='2018', month='04', day='20')))
+        return (
+            not os.path.isfile(self.file_path)
+            or (
+                self.experiment in ["011s1801_sym", "013s1801_sym"]
+                and self.is_before_date_time(
+                    year="2018", month="02", day="01", hour="12", minute="00", seconds="00"
+                )
+            )
+            or (
+                self.experiment == "020s1804_nem"
+                and self.is_before_date(year="2018", month="04", day="20")
+            )
+        )
 
     @property
     def file_handler(self):

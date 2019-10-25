@@ -4,7 +4,6 @@ from file_handlers.fh_base import FileHandlerBase
 
 
 class FileHandlerStub(FileHandlerBase):
-
     def __init__(self, **kwargs):
         """ Fill plant, date, time, experiment, camera and view_option from file data
         """
