@@ -46,14 +46,15 @@ class IptParam(object):
         self.desc = kwargs.get("desc", "no desc")
         self.default_value = kwargs.get("default_value", "no default")
         self.allowed_values = kwargs.get("allowed_values", None)
+        if self.allowed_values is not None:
+            self.allowed_values = tuple(self.allowed_values)
         self.hint = kwargs.get("hint", "no clue")
         self.widget_type = kwargs.get("widget_type", "unk_wt")
         self.kind = kwargs.get("kind", "unk_k")
         self.options = kwargs.get("options", {})
-
-        self._value = self.default_value
+        self._value = kwargs.get("_value", self.default_value)
         self._widgets = {}
-        self._grid_search_options = str(self.default_value)
+        self._grid_search_options = kwargs.get("_grid_search_options", str(self.default_value))
 
     def __str__(self):
         return f"[{self.name}:{self.value}]"
@@ -360,13 +361,15 @@ class IptParam(object):
 
 class IptParamHolder(object):
     def __init__(self, **kwargs):
-        super(IptParamHolder, self).__init__()
-
-        self._param_list = []
+        super(IptParamHolder, self).__init__()        
+        
         self._kwargs = None
-        self.build_params()
-        for key, value in kwargs.items():
-            self.set_or_add_value(key, value)
+        self._param_list = kwargs.get("_param_list", None)
+        if self._param_list is None:
+            self._param_list = []            
+            self.build_params()
+            for key, value in kwargs.items():
+                self.set_or_add_value(key, value)
 
     def __eq__(self, other) -> bool:
         if (other is None) or (len(self.gizmos) != len(other.gizmos)):
@@ -736,7 +739,7 @@ class IptParamHolder(object):
         )
         self.add_spin_box(
             name="canny_sigma",
-            desc="Canny's sigma",
+            desc="Canny's sigma for scikit, aperture for OpenCV",
             default_value=2,
             minimum=0,
             maximum=20,
@@ -826,6 +829,9 @@ class IptParamHolder(object):
             name="proc_times", desc="Iterations", default_value=1, minimum=1, maximum=100
         )
 
+    def add_exposure_viewer_switch(self):
+        self.add_checkbox(name='show_over_under', desc='Show over an under exposed parts', default_value=0)
+
     def add_button(self, name: str, desc: str, index: int = 0, hint: str = "") -> IptParam:
         param = IptParam(
             name=name, desc=desc, default_value=index, allowed_values="input_button", hint=hint
@@ -888,7 +894,7 @@ class IptParamHolder(object):
                 return p
         return None
 
-    def get_value_of(self, key, default_value=None) -> str:
+    def get_value_of(self, key, default_value=None, scale_factor=1) -> str:
         if (self._kwargs is not None) and (key in self._kwargs):
             res = self._kwargs.get(key, None)
             if res is not None:
@@ -905,7 +911,10 @@ class IptParamHolder(object):
         except TypeError:
             return res
         else:
-            return tmp
+            if scale_factor != 1:
+                return round(tmp * scale_factor)
+            else:
+                return tmp
 
     def has_key(self, key: str) -> bool:
         d = {} if self._kwargs is None else dict(self._kwargs)

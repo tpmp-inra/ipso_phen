@@ -61,7 +61,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
             maximum=255
         )
         self.add_roi_selector()
-        self.add_checkbox(name='show_over_under', desc='Show over an under exposed parts', default_value=0)
+        self.add_exposure_viewer_switch()
         self.add_combobox(
             name='brg_calc',
             desc='Brightness calculation mode',

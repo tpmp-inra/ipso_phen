@@ -334,7 +334,7 @@ class PipelineProcessor:
                 iteration=cpt, total=total, prefix="Checking completed tasks:", suffix="Complete"
             )
             cpt += 1
-        self.update_progress(1, total=1, prefix="Checking completed tasks:", suffix="Finished")
+        # self.update_progress(1, total=1, prefix="Checking completed tasks:", suffix="Finished")
         if len(results_list_) > 0:
             res = self.log_state(
                 log_message="Already analyzed files: <ul>"
@@ -344,7 +344,7 @@ class PipelineProcessor:
         else:
             res = self.log_state(
                 status_message="Completed files checked",
-                log_message=f"   --- Completed files checking ---<br>",
+                log_message=f"   --- Completed files checked ---<br>",
             )
         if res:
             return files_to_process
@@ -537,7 +537,9 @@ class PipelineProcessor:
                 suffix_ = f"Complete, {self._process_errors} errors"
             else:
                 suffix_ = "Complete"
-            self.update_progress(1, total=1, prefix="Processing images:", suffix=suffix_)
+            self.update_progress(
+                1, total=1, prefix="Processing images:", suffix=suffix_, forced_update=True
+            )
             self.log_state(
                 status_message="Files processed", log_message=f"   --- Files processed ---<br>"
             )

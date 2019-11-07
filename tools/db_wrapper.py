@@ -187,18 +187,18 @@ class QueryHandlerPostgres(QueryHandler):
                     cols = self.connexion.execute(
                         f"select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='{table}'"
                     ).fetchall()
+                    cols = [c[0] for c in cols]
                 else:
                     cols = columns.replace(" ", "").split(",")
-                ret = self.connexion.execute(s, param_dict).fetchall()
-                df = pd.DataFrame(ret.fetchall(), columns=cols)
+                df = pd.DataFrame(self.connexion.execute(s, param_dict).fetchall(), columns=cols)
             except Exception as e:
                 self.last_error = f"Query failed because: {repr(e)}"
-                ret = None
+                df = None
             finally:
                 self.close_connexion()
         else:
-            ret = None
-        return ret
+            df = None
+        return df
 
     def query(
         self,
@@ -361,6 +361,7 @@ class DbWrapper(ABC):
         self.progress_call_back = None
         self.connexion = None
         self._last_error = ""
+        self.build_data = kwargs.get("build_data", None)
 
     def __del__(self):
         self.close_connexion()
@@ -375,6 +376,7 @@ class DbWrapper(ABC):
             display_name=self.display_name,
             main_table=self.main_table,
             path=self.path,
+            build_data=self.build_data
         )
 
     @abstractmethod
@@ -400,7 +402,7 @@ class DbWrapper(ABC):
 
     def _callback(self, step, total, msg):
         if self.progress_call_back is not None:
-            return self.progress_call_back(step, total)
+            return self.progress_call_back(step, total, True)
         else:
             print_progress_bar(
                 iteration=step, total=total, prefix=msg, suffix=f"Complete {step}/{total}"
@@ -760,11 +762,15 @@ def db_info_to_database(info: DbInfo) -> [DbWrapper, str]:
             display_name=info.name,
             db_name=info.db_name,
             path=info.path,
+            build_data=info,
         )
     elif info.dbms == "sqlite":
-        return SqLiteDbWrapper(display_name=info.name, db_name=info.db_name, path=info.path)
+        return SqLiteDbWrapper(
+            display_name=info.name, db_name=info.db_name, path=info.path, build_data=info
+        )
     elif info.dbms == "memory":
-        return SqLiteDbWrapper(display_name=info.name, db_name=":memory:", path=info.path)
+        return SqLiteDbWrapper(
+            display_name=info.name, db_name=":memory:", path=info.path, build_data=info
+        )
     else:
         return f"Unknown DBMS {info.dbms}"
-

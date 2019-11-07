@@ -8,14 +8,20 @@ from ip_base.ip_abstract import AbstractImageProcessor
 from tools.common_functions import get_module_classes
 
 
-def ipo_factory(file_path, options=None, force_abstract: bool = False, data_base=None):
+def ipo_factory(
+    file_path, options=None, force_abstract: bool = False, data_base=None, scale_factor=1
+):
     if force_abstract:
-        return AbstractImageProcessor(file_path, options, database=data_base)
+        return AbstractImageProcessor(
+            file_path, options, database=data_base, scale_factor=scale_factor
+        )
     else:
         # Build unique class list
-        ipt_classes_list = get_module_classes(package=class_pipelines,
-                                              class_inherits_from=AbstractImageProcessor,
-                                              remove_abstract=True)
+        ipt_classes_list = get_module_classes(
+            package=class_pipelines,
+            class_inherits_from=AbstractImageProcessor,
+            remove_abstract=True,
+        )
 
         # Create temporary image wrapper to detect experiment
         fh = file_handler_factory(file_path)
@@ -23,8 +29,11 @@ def ipo_factory(file_path, options=None, force_abstract: bool = False, data_base
         # Select able class
         ipt_classes_list = list(set(ipt_classes_list))
         for cls in ipt_classes_list:
-            if callable(getattr(cls, 'can_process', None)) and cls.can_process(
-                    dict(experiment=fh.experiment, robot=fh.__class__.__name__)):
-                return cls(file_path, options, database=data_base)
+            if callable(getattr(cls, "can_process", None)) and cls.can_process(
+                dict(experiment=fh.experiment, robot=fh.__class__.__name__)
+            ):
+                return cls(file_path, options, database=data_base, scale_factor=scale_factor)
 
-        return AbstractImageProcessor(file_path, options, database=data_base)
+        return AbstractImageProcessor(
+            file_path, options, database=data_base, scale_factor=scale_factor
+        )

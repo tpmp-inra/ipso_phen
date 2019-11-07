@@ -1,4 +1,5 @@
 import os
+from datetime import datetime as dt
 
 import numpy as np
 import pandas as pd
@@ -27,6 +28,7 @@ from PyQt5.QtGui import QImage, QPixmap, QBrush, QPen, QPalette, QColor
 
 from tools import shapes
 from ip_base import ip_common as ipc
+from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 
 
 def scale(val, src, dst):
@@ -53,7 +55,7 @@ class CTreeWidget(QTreeWidget):
         self.script_generator = None
 
     def handle_item_checked(self, item, column):
-        if not self.initializing_tree:
+        if not self.initializing_tree and (self.script_generator is not None):
             data = item.data(0, Qt.UserRole)
             self.script_generator.toggle_enabled_state(key=data)
 
@@ -370,6 +372,21 @@ class QPandasModel(QAbstractTableModel):
                 return str(self._df.iloc[index.row(), index.column()])
         return None
 
+    def sort(self, column: int, order=Qt.AscendingOrder):
+        if self._df is None:
+            return
+        self.layoutAboutToBeChanged.emit()
+        sort_columns = [self._df.columns[column]]
+        if ("date_time" in self._df.columns) and ("date_time" not in sort_columns):
+            sort_columns.append("date_time")
+        self._df.sort_values(
+            by=sort_columns,
+            inplace=True,
+            ascending=order == Qt.AscendingOrder,
+            na_position="first",
+        )
+        self.layoutChanged.emit()
+
     def setData(self, index, value, role):
         if (self._df is None) or not index.isValid() or (role != Qt.EditRole):
             return False
@@ -449,11 +466,8 @@ class QPandasColumnsModel(QAbstractTableModel):
 
     def flags(self, index):
         flags = super(self.__class__, self).flags(index)
-        # flags |= Qt.ItemIsEditable
         flags |= Qt.ItemIsSelectable
         flags |= Qt.ItemIsEnabled
-        # flags |= Qt.ItemIsDragEnabled
-        # flags |= Qt.ItemIsDropEnabled
         return flags
 
     @property
@@ -461,20 +475,203 @@ class QPandasColumnsModel(QAbstractTableModel):
         return self._df
 
 
+class QImageDrawerDelegate(QItemDelegate):
+
+    critical_base_color = QColor(200, 0, 0)
+    error_base_color = QColor(200, 165, 0)
+    warning_base_color = QColor(215, 215, 0)
+    ok_base_color = QColor(0, 0, 200)
+    info_base_color = QColor(200, 200, 255)
+    source_issue_base_color = QColor(180, 180, 180)
+    unknown_base_color = QColor(125, 125, 125)
+    font_base_color = QColor(255, 255, 255)
+    font_high_color = QColor(0, 0, 0)
+
+    colors = {
+        "critical": {
+            "bgd": critical_base_color,
+            "fnt": font_base_color,
+            "s_bgd": critical_base_color.lighter(150),
+            "s_fnt": font_high_color,
+        },
+        "error": {
+            "bgd": error_base_color,
+            "fnt": font_base_color,
+            "s_bgd": error_base_color.lighter(150),
+            "s_fnt": font_high_color,
+        },
+        "warning": {
+            "bgd": warning_base_color,
+            "fnt": font_base_color,
+            "s_bgd": warning_base_color.lighter(150),
+            "s_fnt": font_high_color,
+        },
+        "ok": {
+            "bgd": ok_base_color,
+            "fnt": font_base_color,
+            "s_bgd": ok_base_color.lighter(150),
+            "s_fnt": font_high_color,
+        },
+        "info": {
+            "bgd": info_base_color,
+            "fnt": font_base_color,
+            "s_bgd": info_base_color.lighter(110),
+            "s_fnt": font_high_color,
+        },
+        "source issue": {
+            "bgd": source_issue_base_color,
+            "fnt": font_base_color,
+            "s_bgd": source_issue_base_color.lighter(120),
+            "s_fnt": font_high_color,
+        },
+        "unknown": {
+            "bgd": unknown_base_color,
+            "fnt": font_base_color,
+            "s_bgd": unknown_base_color.lighter(150),
+            "s_fnt": font_high_color,
+        },
+    }
+
+    def __init__(self, parent=None, *args, **kwargs):
+        QItemDelegate.__init__(self, parent, *args)
+        self.set_palette(kwargs.get("palette"))
+        self._use_annotations = kwargs.get("use_annotations", True)
+        self.annotations = {}
+
+    def paint(self, painter, option, index):
+        painter.save()
+
+        df: pd.DataFrame = self.parent().model().images
+
+        # Try cache retrieval
+        data = self.get_annotation(row_number=index.row())
+        if data is not None:
+            color_dict = self.colors.get(data["kind"].lower(), self._default_colors)
+        else:
+            color_dict = self._default_colors
+        bg_color = color_dict["s_bgd" if option.state & QStyle.State_Selected else "bgd"]
+        fg_color = color_dict["s_fnt" if option.state & QStyle.State_Selected else "fnt"]
+
+        fnt = painter.font()
+        fnt.setBold(option.state & QStyle.State_Selected)
+        painter.setFont(fnt)
+
+        # Draw
+        painter.setPen(QPen(Qt.NoPen))
+        painter.setBrush(QBrush(bg_color))
+        painter.drawRect(option.rect)
+        painter.setPen(QPen(fg_color))
+        painter.drawText(option.rect, Qt.AlignVCenter | Qt.AlignCenter, str(index.data(Qt.DisplayRole)))
+
+        painter.restore()
+
+    def get_annotation(self, **kwargs):
+        if self.use_annotations is False:
+            return None
+        row_number = kwargs.get("row_number", None)
+        if row_number is None:
+            luid = kwargs.get("luid", None)
+            experiment = kwargs.get("experiment", None)
+        else:
+            luid = self.parent().model().get_cell_data(row_number, "Luid")
+            experiment = self.parent().model().get_cell_data(row_number, "Experiment")
+        if experiment is None or luid is None:
+            return None
+        ret = self.annotations.get(luid, None)
+        if ret is None:
+            with OrmAnnotationsDbWrapper(experiment) as session_:
+                data = session_.query(OrmAnnotation).filter(OrmAnnotation.idk == luid).first()
+                if data is not None:
+                    ret = dict(
+                        luid=data.idk, kind=data.kind, text=data.text, auto_text=data.auto_text
+                    )
+                else:
+                    ret = None
+            if ret is not None:
+                self.annotations[luid] = ret
+            else:
+                self.annotations[luid] = "no_data"
+        elif ret == "no_data":
+            ret = None
+        return ret
+
+    def set_annotation(self, **kwargs):
+        if self.use_annotations is False:
+            return
+        row_number = kwargs.get("row_number", None)
+        if row_number is None:
+            luid = kwargs.get("luid", None)
+            experiment = kwargs.get("experiment", None)
+        else:
+            luid = self.parent().model().get_cell_data(row_number, "Luid")
+            experiment = self.parent().model().get_cell_data(row_number, "Experiment")
+        if experiment is None or luid is None:
+            return None
+
+        kind = kwargs.get("kind", "unknown")
+        text = kwargs.get("text", "")
+        auto_text = kwargs.get("auto_text", "")
+        last_access = dt.now()
+
+        with OrmAnnotationsDbWrapper(experiment) as session_:
+            ann_ = session_.query(OrmAnnotation).filter(OrmAnnotation.idk == luid).first()
+            if ann_ is not None:
+                if not text and not auto_text:
+                    session_.delete(ann_)
+                    self.reset_cache(luid=luid)
+                else:
+                    ann_.kind = kind
+                    ann_.text = text
+                    ann_.auto_text = auto_text
+                    ann_.last_access = last_access
+                    self.annotations[luid] = dict(
+                        luid=luid, kind=ann_.kind, text=ann_.text, auto_text=ann_.auto_text
+                    )
+            elif text or auto_text:
+                session_.add(OrmAnnotation(idk=luid, kind=kind, text=text, auto_text=auto_text))
+                self.annotations[luid] = dict(luid=luid, kind=kind, text=text, auto_text=auto_text)
+
+    def reset_cache(self, luid: str = ""):
+        if not luid:
+            self.annotations = {}
+        else:
+            self.annotations.pop(luid)
+
+    def set_palette(self, new_palette):
+        self._palette: QPalette = new_palette
+        self._default_colors = {
+            "bgd": self._palette.color(QPalette.Base),
+            "fnt": self._palette.color(QPalette.Text),
+            "s_bgd": self._palette.color(QPalette.Highlight),
+            "s_fnt": self._palette.color(QPalette.HighlightedText),
+        }
+
+    @property
+    def use_annotations(self):
+        return self._use_annotations
+
+    @use_annotations.setter
+    def use_annotations(self, value):
+        if self._use_annotations != value:
+            self._use_annotations = value
+            self.parent().model().layoutChanged.emit()
+
+
 class QImageDatabaseModel(QAbstractTableModel):
     def __init__(self, dataframe, **kwargs):
         QAbstractTableModel.__init__(self)
         self.images = dataframe
         self.annotations = {}
+        self.group_by = []
 
     def rowCount(self, parent=None):
         return 0 if self.images is None else self.images.shape[0]
 
     def columnCount(self, parnet=None):
-        return 0 if self.images is None else self._df.shape[1]
+        return 0 if self.images is None else self.images.shape[1]
 
     def data(self, index, role=Qt.DisplayRole):
-        if index.isValid() and (self._df is not None):
+        if index.isValid() and (self.images is not None):
             if role == Qt.DisplayRole:
                 return str(self.images.iloc[index.row(), index.column()])
             elif role == Qt.ToolTipRole:
@@ -482,8 +679,11 @@ class QImageDatabaseModel(QAbstractTableModel):
         return None
 
     def headerData(self, col, orientation, role):
-        if (self._df is not None) and (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
-            return self._df.columns[col]
+        if (self.images is not None) and (role == Qt.DisplayRole):
+            if orientation == Qt.Horizontal:
+                return self.images.columns[col]
+            elif orientation == Qt.Vertical:
+                return str(col)
         return None
 
     def flags(self, index):
@@ -491,6 +691,21 @@ class QImageDatabaseModel(QAbstractTableModel):
         flags |= Qt.ItemIsSelectable
         flags |= Qt.ItemIsEnabled
         return flags
+
+    def sort(self, column: int, order=Qt.AscendingOrder):
+        if self.images is None:
+            return
+        self.layoutAboutToBeChanged.emit()
+        sort_columns = [self.images.columns[column]]
+        if ("date_time" in self.images.columns) and ("date_time" not in sort_columns):
+            sort_columns.append("date_time")
+        self.images.sort_values(
+            by=sort_columns,
+            inplace=True,
+            ascending=order == Qt.AscendingOrder,
+            na_position="first",
+        )
+        self.layoutChanged.emit()
 
     def set_images(self, dataframe):
         self.images = dataframe
@@ -505,3 +720,14 @@ class QImageDatabaseModel(QAbstractTableModel):
     def clear_images(self):
         self.images.drop(self.images.index, inplace=True)
         self.modelReset.emit()
+
+    def get_column_index_from_name(self, column_name):
+        if self.images is None:
+            return -1
+        return self.images.columns.get_loc(column_name)
+
+    def get_cell_data(self, row_number: int, column_name: str):
+        col = self.get_column_index_from_name(column_name=column_name)
+        if col < 0:
+            return None
+        return self.images.iloc[row_number, col]

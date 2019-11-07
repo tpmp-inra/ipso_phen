@@ -5,6 +5,7 @@ import pickle
 import sys
 from copy import copy
 from uuid import uuid4
+from importlib import import_module
 
 import cv2
 import numpy as np
@@ -25,40 +26,48 @@ from ip_base.ip_common import (
 from ip_base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ip_base.ipt_functional import call_ipt_code, call_ipt_func_code
 from tools.csv_writer import AbstractCsvWriter
+from tools.common_functions import get_module_classes
+
+
+CLASS_NAME_KEY = "class__name__"
+MODULE_NAME_KEY = "module__name__"
 
 
 def encode_ipt(o):
-    if isinstance(o, IptScriptGenerator):
-        return {**dict(__class_name__=type(o).__name__), **dict(o.__dict__)}
-    elif isinstance(o, IptParam):
-        return {**dict(__class_name__=type(o).__name__), **dict(o.__dict__), **dict(_wrapper=None)}
-    elif isinstance(o, IptParamHolder):
-        return {**dict(__class_name__=type(o).__name__), **dict(o.__dict__), **dict(_wrapper=None)}
-    elif issubclass(type(o), AbstractImageProcessor):
-        return None
+    if issubclass(type(o), object):
+        return {
+            **{CLASS_NAME_KEY: type(o).__name__, MODULE_NAME_KEY: type(o).__module__},
+            **dict(o.__dict__),
+            **dict(_wrapper=None),
+        }
     else:
         print(f"Object of type '{o.__class__.__name__}' is not JSON serializable, bummer")
+        raise TypeError
         return None
 
 
 def decode_ipt(dct):
-    if "__class_name__" in dct:
+    if (CLASS_NAME_KEY in dct.keys()) and (MODULE_NAME_KEY in dct.keys()):
         tmp = dict(dct)
-        class_name = tmp.pop("__class_name__")
-        for _, obj in inspect.getmembers(sys.modules["ip_tools"]):
+        class_name = tmp.pop(CLASS_NAME_KEY)
+        module_name = tmp.pop(MODULE_NAME_KEY)
+        ret = None
+        if module_name not in sys.modules:
+            import_module(module_name)
+        for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
                 try:
                     ret = obj(**tmp)
                 except Exception as e:
                     print(f"Failed to load ipt: {repr(e)}")
-                    ret = None
                 finally:
-                    return ret
-
-        ret = globals()[class_name](**tmp)
-        return ret
+                    break
+        else:
+            ret = globals()[class_name](**tmp)
     else:
-        return dct
+        ret = dct
+
+    return ret
 
 
 last_script_version = "0.3.0.0"
@@ -127,10 +136,9 @@ class SettingsHolder(IptParamHolder):
 
 class IptScriptGenerator(object):
     def __init__(self, **kwargs):
-        self._ip_operators = []
-        self._feature_list = self._init_features()
-        self._target_data_base = None
-        self._settings = SettingsHolder()
+        self._ip_operators = kwargs.get('_ip_operators', [])
+        self._target_data_base = kwargs.get('_target_data_base', None)
+        self._settings = kwargs.get('_settings', SettingsHolder())
         self._last_wrapper_luid = ""
         self.use_cache = kwargs.get("use_cache", True)
 
@@ -237,9 +245,8 @@ class IptScriptGenerator(object):
 
     def copy(self, keep_last_res=False):
         ret = IptScriptGenerator(use_cache=self.use_cache)
-        ret.feature_list = self.feature_list[:]
         ret._target_data_base = self._target_data_base
-        ret._settings = self._settings.copy()        
+        ret._settings = self._settings.copy()
         for tool_dic in self.ip_operators:
             tmp_tool_dict = {}
             for k, v in tool_dic.items():
@@ -1225,12 +1232,6 @@ class IptScriptGenerator(object):
         else:
             res += "No feature extraction\n"
 
-        res += (
-            "Extracted features: "
-            + ", ".join([f["feature"] for f in self.feature_list if f["enabled"] is True])
-            + "\n"
-        )
-        res += "\n"
         # Options
         res += "Options:\n"
         res += self.desc_merge_method + "\n"
@@ -1246,7 +1247,6 @@ class IptScriptGenerator(object):
 
     def reset(self):
         self.ip_operators = []
-        self._feature_list = self._init_features()
         self._settings.reset(is_update_widgets=True)
 
     def code(self):
@@ -1319,9 +1319,6 @@ class IptScriptGenerator(object):
         tool = self.get_operators(constraints=dict(uuid=key))
         if len(tool) > 0:
             return tool[0]
-        for feature in self.feature_list:
-            if feature["feature"] == key:
-                return feature
         return None
 
     @staticmethod
@@ -1368,10 +1365,6 @@ class IptScriptGenerator(object):
         if len(tool) > 0:
             tool[0]["enabled"] = not tool[0]["enabled"]
             self.delete_cache_if_tool_after(tool[0]["kind"])
-        for feature in self.feature_list:
-            if feature["feature"] == key:
-                feature["enabled"] = not feature["enabled"]
-                return
 
     @property
     def is_empty(self):
@@ -1388,31 +1381,6 @@ class IptScriptGenerator(object):
     @target_data_base.setter
     def target_data_base(self, value):
         self._target_data_base = value
-
-    @property
-    def feature_list(self):
-        if (len(self._feature_list) <= 0) or isinstance(self._feature_list[0], str):
-            self._feature_list = sorted(
-                [
-                    dict(feature=f, enabled=True if f in self._feature_list else False)
-                    for f in AVAILABLE_FEATURES
-                ],
-                key=lambda x: x["feature"],
-            )
-        return self._feature_list
-
-    @feature_list.setter
-    def feature_list(self, value):
-        if (len(value) > 0) and isinstance(self._feature_list[0], dict):
-            self._feature_list = value
-        else:
-            self._feature_list = sorted(
-                [
-                    dict(feature=f, enabled=True if f in value else False)
-                    for f in AVAILABLE_FEATURES
-                ],
-                key=lambda x: x["feature"],
-            )
 
     @property
     def desc_merge_method(self):
