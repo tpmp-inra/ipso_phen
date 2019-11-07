@@ -82,7 +82,6 @@ from unidecode import unidecode
 
 import ip_base.ip_common as ipc
 import tools.db_wrapper as dbw
-from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 from class_pipelines.ip_factory import ipo_factory
 from file_handlers.fh_base import file_handler_factory
 from ip_base.ip_abstract import AbstractImageProcessor
@@ -90,7 +89,7 @@ from ip_base.ipt_abstract import IptBase, IptParamHolder
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
-from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_script_generator import IptScriptGenerator, encode_ipt, decode_ipt
 from tools import shapes
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import (
@@ -121,6 +120,8 @@ from ui.q_components import (
     QSliderWthParam,
     QSpinnerWthParam,
     QColorDelegate,
+    QImageDrawerDelegate,
+    QImageDatabaseModel,
 )
 from ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 from version import __version__
@@ -148,12 +149,11 @@ _ACTIVE_SCRIPT_TAG = "Active script"
 _IMAGE_LISTS_PATH = "./saved_data/image_lists.json"
 
 _PRAGMA_NAME = "IPSO Phen"
-_PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} pipelines (*.tipp);;
-JSON compatible file (*.json);;All available (*.tipp *.json)"""
+_PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available (*.tipp *.json)
+;;pipelines (*.tipp);;JSON compatible file (*.json)"""
 
-FullQueryResultBase = namedtuple(
-    "FullQueryResult",
-    "Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, Luid",
+IMAGE_BROWSER_COLUMNS = (
+    "experiment, plant, date, camera, view_option, time, date_time, filepath, luid"
 )
 
 
@@ -172,23 +172,6 @@ def excepthook(excType, excValue, tracebackobj):
 
 
 sys.excepthook = excepthook
-
-
-class FullQueryResult(FullQueryResultBase):
-
-    # def __init__(self, Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, Luid):
-    #     self.Experiment = Experiment
-    #     self.Plant = Plant
-    #     self.Date = Date
-    #     self.Camera = Camera
-    #     self.view_option = view_option
-    #     self.Time = Time
-    #     self.date_time = date_time
-    #     self.FilePath = FilePath
-    #     self.Luid = Luid
-
-    def __str__(self):
-        return f"{self.Experiment}_{self.Plant}_{self.date_time}_{self.Camera}_{self.view_option}"
 
 
 def log_method_execution_time(f):
@@ -640,7 +623,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tw_script_sim_output.setHorizontalHeaderItem(1, item)
         self.tw_script_sim_output.horizontalHeader().setStretchLastSection(True)
         self.tw_script_sim_output.verticalHeader().setStretchLastSection(False)
-        self.tw_script_sim_output.setSortingEnabled(True)
+        self.tw_script_sim_output.setSortingEnabled(False)
         item = self.tw_script_sim_output.horizontalHeaderItem(0)
         item.setText("Key")
         item = self.tw_script_sim_output.horizontalHeaderItem(1)
@@ -666,8 +649,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.setWindowIcon(QIcon("./resources/leaf-24.ico"))
 
-        self._last_query_result = []
-
         self._image_list_holder_ref_count = 0
         self._image_list_holder = None
 
@@ -689,30 +670,55 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._status_label = QLabel("")
         self.statusBar().addWidget(self._status_label, stretch=0)
 
-        self.dst_image_path = get_folders_paths(dst_seed=dt.now().strftime("%Y_%B_%d %H-%M-%S"))
+        root_ipso_folder = "ipso_phen_data"
+        self.stored_folders = {
+            "pipeline": os.path.join(
+                os.path.expanduser("~"), "Documents", root_ipso_folder, "pipelines", ""
+            ),
+            "csv": os.path.join(os.path.expanduser("~"), "Documents", root_ipso_folder, "saved_csv", ""),
+            "image_list": os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                root_ipso_folder,
+                "image_lists",
+                ""
+            ),
+            "script": "./script_pipelines/",
+            "image_cache": os.path.join(
+                os.path.expanduser("~"), "Pictures", root_ipso_folder, "cache", ""
+            ),
+            "image_output": os.path.join(
+                os.path.expanduser("~"),
+                "Pictures",
+                root_ipso_folder,
+                "saved_images",
+                dt.now().strftime("%Y_%B_%d-%H%M%S"),
+                "",
+            ),
+            "pp_output": os.path.join(
+                os.path.expanduser("~"), "Documents", root_ipso_folder, "pipeline_output", ""
+            ),
+            "pp_state": os.path.join(
+                os.path.expanduser("~"), "Documents", root_ipso_folder, "pipeline_state", ""
+            ),
+        }
+        force_directories(self.stored_folders["pipeline"])
+        force_directories(self.stored_folders["csv"])
+        force_directories(self.stored_folders["image_list"])
+        force_directories(self.stored_folders["image_cache"])
+        force_directories(self.stored_folders["image_output"])
+        force_directories(self.stored_folders["pp_state"])
+        force_directories(self.stored_folders["pp_output"])
+        force_directories(self.stored_folders["pp_state"])
 
         self._options = ArgWrapper(
-            dst_path=self.dst_image_path,
+            dst_path=self.stored_folders["image_output"],
             store_images=True,
             write_images="none",
             write_result_text=False,
             overwrite=False,
             seed_output=False,
             threshold_only=False,
-        )
-
-        self._pipelines_folder = os.path.join(
-            os.path.expanduser("~"), "Documents", "tpmp_pipelines", ""
-        )
-        force_directories(self._pipelines_folder)
-
-        self._csv_folder = os.path.join(os.path.expanduser("~"), "Documents", "")
-
-        self._scripts_folder = "./script_pipelines/"
-        force_directories(self._scripts_folder)
-
-        self._image_cache_folder = os.path.join(
-            os.path.expanduser("~"), "Pictures", "ipso_phen_cache", ""
         )
 
         self._file_name = ""
@@ -731,7 +737,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._updating_available_images = False
         self._updating_script_sim_available_images = False
         self._updating_process_modes = False
-        self._updating_image_table = False
+        self._updating_image_browser = False
 
         self._batch_stop_current = False
         self._batch_is_in_progress = False
@@ -820,10 +826,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.bt_clear_selection.clicked.connect(self.on_bt_clear_selection)
         self.bt_remove_from_selection.clicked.connect(self.on_bt_remove_from_selection)
         self.bt_keep_annotated.clicked.connect(self.on_bt_keep_annotated)
-        self.bt_save_image_list.clicked.connect(self.on_bt_save_image_list)
-        self.bt_delete_saved_list.clicked.connect(self.on_bt_delete_saved_list)
-        self.cb_saved_batches.currentIndexChanged.connect(self.on_cb_saved_batches_index_changed)
-        self.bt_save_batch.clicked.connect(self.on_bt_save_batch)
 
         # Toolbox
         self.bt_process_image.clicked.connect(self.on_bt_process_image)
@@ -840,9 +842,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         # Batches
         self.bt_launch_batch.clicked.connect(self.on_bt_launch_batch)
 
-        # Images table
-        self.images_table.cellDoubleClicked.connect(self.on_cell_double_clicked)
-        self.images_table.currentCellChanged.connect(self.on_current_cell_changed)
+        # Images browser
+        self.tv_image_browser.doubleClicked.connect(self.on_tv_image_browser_double_clicked)
 
         # Annotations
         self.bt_delete_annotation.clicked.connect(self.on_bt_delete_annotation)
@@ -851,6 +852,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_new_tool.triggered.connect(self.on_action_new_tool)
         self.actionSave_selected_image.triggered.connect(self.on_bt_save_current_image)
         self.actionSave_all_images.triggered.connect(self.on_bt_save_all_images)
+        self.action_save_image_list.triggered.connect(self.on_action_save_image_list)
+        self.action_load_image_list.triggered.connect(self.on_action_load_image_list)
         self.actionExit.triggered.connect(self.close_application)
         self.actionEnable_annotations.triggered.connect(self.on_action_enable_annotations_checked)
         self.act_parse_folder_memory.triggered.connect(self.on_action_parse_folder)
@@ -873,6 +876,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_use_dark_theme.triggered.connect(self.on_color_theme_changed)
         self.action_use_multithreading.triggered.connect(self.on_action_use_multithreading)
         self.action_use_pipeline_cache.triggered.connect(self.on_action_use_pipeline_cache)
+        self.action_save_pipeline_processor_state.triggered.connect(
+            self.on_action_save_pipeline_processor_state
+        )
+
         # Help
         self.action_show_read_me.triggered.connect(self.on_action_show_read_me)
         self.action_show_documentation.triggered.connect(self.on_action_show_documentation)
@@ -904,6 +911,14 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_video_bkg_color_silver.triggered.connect(
             self.on_action_video_bkg_color_changed
         )
+
+        # Pipeline builder
+        self.act_settings_sir_keep.triggered.connect(self.on_sis_changed)
+        self.act_settings_sir_2x.triggered.connect(self.on_sis_changed)
+        self.act_settings_sir_3x.triggered.connect(self.on_sis_changed)
+        self.act_settings_sir_4x.triggered.connect(self.on_sis_changed)
+        self.act_settings_sir_5x.triggered.connect(self.on_sis_changed)
+        self.act_settings_sir_6x.triggered.connect(self.on_sis_changed)
 
         # Data editor
         self.action_de_new_sheet.triggered.connect(self.on_action_de_new_sheet)
@@ -943,9 +958,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.rb_pp_active_script.clicked.connect(self.on_rb_pp_active_script)
         self.rb_pp_load_script.clicked.connect(self.on_rb_pp_load_script)
 
-        self._default_pp_output = os.path.join(
-            os.path.expanduser("~"), "Documents", "tpmp_pp_output", ""
-        )
         self.sl_pp_thread_count.setMaximum(mp.cpu_count())
         self.sl_pp_thread_count.setMinimum(1)
         self._custom_csv_name = False
@@ -954,15 +966,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._settings_ref_count = 0
         self._settings = None
         self.load_settings()
-
-        self.images_table.setColumnWidth(0, 110)
-        self.images_table.setColumnWidth(1, 120)
-        self.images_table.setColumnWidth(2, 70)
-        self.images_table.setColumnWidth(3, 70)
-        self.images_table.setColumnWidth(4, 70)
-        self.images_table.setColumnWidth(5, 50)
-        self.images_table.setColumnWidth(6, 110)
-        self.images_table.setColumnWidth(7, 200)
 
     def _reset_log_counts(self):
         self._log_count_critical = 0
@@ -974,6 +977,133 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._log_count_important = 0
         self._log_count_mass_process = 0
         self._log_count_unknown = 0
+
+    def get_image_model(self) -> QImageDatabaseModel:
+        ret = self.tv_image_browser.model()
+        return ret if isinstance(ret, QImageDatabaseModel) else None
+
+    def get_image_dataframe(self) -> pd.DataFrame:
+        model = self.get_image_model()
+        return None if model is None else model.images
+
+    def has_image_dataframe(self) -> bool:
+        return self.get_image_dataframe() is not None
+
+    def get_image_delegate(self) -> QImageDrawerDelegate:
+        ret = self.tv_image_browser.itemDelegate()
+        return ret if isinstance(ret, QImageDrawerDelegate) else None
+
+    def init_image_browser(self, dataframe):
+        self.tv_image_browser.setModel(QImageDatabaseModel(dataframe))
+        self.tv_image_browser.setItemDelegate(
+            QImageDrawerDelegate(
+                parent=self.tv_image_browser,
+                palette=qApp.palette(),
+                use_annotations=self.actionEnable_annotations.isChecked(),
+            )
+        )
+        self.tv_image_browser.setSortingEnabled(True)
+        selectionModel = self.tv_image_browser.selectionModel()
+        selectionModel.selectionChanged.connect(self.on_tv_image_browser_selection_changed)
+
+        model = self.get_image_model()
+        if model is not None:
+            hh: QHeaderView = self.tv_image_browser.horizontalHeader()
+            hh.setMaximumSectionSize(150)
+            hh.setMinimumSectionSize(70)
+            if model.rowCount() <= 0:
+                for i in range(0, hh.count()):
+                    hh.resizeSection(i, hh.sectionSizeHint(i))
+            else:
+                for i in range(0, hh.count()):
+                    hh.resizeSection(
+                        i, self.tv_image_browser.sizeHintForIndex(model.createIndex(0, i)).width()
+                    )
+            hh.setMaximumSectionSize(-1)
+            self.tv_image_browser.setHorizontalHeader(hh)
+            vh: QHeaderView = self.tv_image_browser.verticalHeader()
+            vh.setSectionResizeMode(QHeaderView.Fixed)
+            self.tv_image_browser.setVerticalHeader(vh)
+
+    def on_tv_image_browser_double_clicked(self, index):
+        if not self._updating_image_browser:
+            self.run_process(wrapper=self._src_image_wrapper)
+
+    def on_tv_image_browser_selection_changed(self, selected, deselected):
+        for index in selected.indexes():
+            current_row = index.row()
+            break
+        else:
+            self.select_image_from_luid(None)
+            return
+
+        for index in deselected.indexes():
+            last_row = index.row()
+            break
+        else:
+            last_row = -1
+
+        if not self._updating_image_browser and (last_row != current_row):
+            self.select_image_from_luid(
+                self.get_image_model().get_cell_data(row_number=current_row, column_name="Luid")
+            )
+
+    def update_image_browser(self, dataframe, mode: str = "add"):
+        if mode == "add":
+            if not self.has_image_dataframe():
+                self.init_image_browser(dataframe=dataframe)
+            else:
+                model = self.get_image_model()
+                old_row_count = model.rowCount()
+                model.images = model.images.append(dataframe)
+                new_row_count = model.rowCount()
+                model.rowsInserted.emit(old_row_count, new_row_count)
+                self.update_feedback(
+                    status_message=f"Added {new_row_count-old_row_count} items to image browser",
+                    use_status_as_log=True,
+                )
+        elif mode == "remove":
+            if not self.has_image_dataframe():
+                return
+            else:
+                model = self.get_image_model()
+                df = model.images
+                old_row_count = model.rowCount()
+                model.images = df[~df["luid"]].isin(dataframe["luid"])
+                new_row_count = model.rowCount()
+                model.rowsRemoved.emit(new_row_count, old_row_count)
+                self.update_feedback(
+                    status_message=f"Added {old_row_count-new_row_count} items to image browser",
+                    use_status_as_log=True,
+                )
+        elif mode == "clear":
+            self.init_image_browser(None)
+        else:
+            self.log_exception(f'Failed to update image browser, unknown mode "{mode}"')
+
+    def on_action_save_image_list(self):
+        file_name_ = QFileDialog.getSaveFileName(
+            parent=self,
+            caption="Save image list as CSV",
+            directory=self.stored_folders["image_list"],
+            filter="CSV(*.csv)",
+        )[0]
+        if file_name_:
+            self.stored_folders["image_list"] = os.path.join(os.path.dirname(file_name_), "")
+            model = self.get_image_model()
+            if model is not None and model.images.shape[0] > 0:
+                model.images.to_csv(file_name_, index=False)
+
+    def on_action_load_image_list(self):
+        file_name_ = QFileDialog.getOpenFileName(
+            parent=self,
+            caption="Load image list from CSV",
+            directory=self.stored_folders["image_list"],
+            filter="CSV(*.csv)",
+        )[0]
+        if file_name_:
+            self.stored_folders["image_list"] = os.path.join(os.path.dirname(file_name_), "")
+            self.init_image_browser(pd.read_csv(file_name_))
 
     def build_recent_folders_menu(self, new_folder: str = ""):
         self.mnu_recent_parsed_folders.clear()
@@ -1089,7 +1219,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     port=dbw.DB_DEFAULT_PORT,
                     password="",
                     db_name=ddb.db_name,
-                    path=self._image_cache_folder,
+                    path=self.stored_folders["image_cache"],
                 )
                 break
 
@@ -1148,6 +1278,23 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             or self.update_database(db_wrapper=self.current_database)
         ):
             return self.current_database.query(
+                command=command, table=table, columns=columns, additional=additional, **kwargs
+            )
+        return None
+
+    def query_current_database_as_pandas(
+        self,
+        command: str,
+        table: str = "snapshots",
+        columns: str = "*",
+        additional: str = "",
+        **kwargs,
+    ):
+        if self.current_database is not None and (
+            self.current_database.is_exists()
+            or self.update_database(db_wrapper=self.current_database)
+        ):
+            return self.current_database.query_to_pandas(
                 command=command, table=table, columns=columns, additional=additional, **kwargs
             )
         return None
@@ -1246,13 +1393,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         if self._global_pb_label is not None:
             self.statusbar.removeWidget(self._global_pb_label)
 
-    def begin_edit_image_table(self):
-        self._updating_image_table = True
-        self.images_table.setSortingEnabled(False)
+    def begin_edit_image_browser(self):
+        self._updating_image_browser = True
+        self.tv_image_browser.setSortingEnabled(False)
 
-    def end_edit_image_table(self):
-        self.images_table.setSortingEnabled(True)
-        self._updating_image_table = False
+    def end_edit_image_browser(self):
+        self.tv_image_browser.setSortingEnabled(True)
+        self._updating_image_browser = False
 
     def lock_settings(self) -> QSettings:
         if not hasattr(self, "_settings") or (self._settings is None):
@@ -1265,197 +1412,64 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         if (self._settings_ref_count <= 0) and (self._settings is not None):
             del self._settings
 
-    def _tag_to_str(self, tag):
+    def restore_annotation(self, tag, experiment):
+        id = self.get_image_delegate()
+        if id is None:
+            return
         if isinstance(tag, AbstractImageProcessor):
-            return tag.luid
+            luid = tag.luid
         elif isinstance(tag, str):
-            return tag
+            luid = tag
         else:
             self.update_feedback(
-                status_message="Unable to retrieve annotation data",
-                log_message=f"Unable to retrieve annotation data for {str(tag)}",
+                status_message="Failed to retrieve annotation data",
+                log_message=f"unable to retrieve annotation data for {str(tag)}",
             )
-            return ""
-
-    def restore_annotation(self, tag, experiment):
-        if self.actionEnable_annotations.isChecked():
-            with OrmAnnotationsDbWrapper(experiment) as session_:
-                if isinstance(tag, AbstractImageProcessor):
-                    data = (
-                        session_.query(OrmAnnotation).filter(OrmAnnotation.idk == tag.luid).first()
-                    )
-                    if not tag.check_source():
-                        if data is not None:
-                            if not data.auto_text:
-                                data.auto_text = str(tag.error_holder)
-                        else:
-                            data = OrmAnnotation(
-                                tag.luid, "source issue", "", str(tag.error_holder)
-                            )
-                elif isinstance(tag, str):
-                    data = session_.query(OrmAnnotation).filter(OrmAnnotation.idk == tag).first()
-                else:
-                    self.update_feedback(
-                        status_message="Failed to retrieve annotation data",
-                        log_message=f"unable to retrieve annotation data for {str(tag)}",
-                    )
-                    self.bt_delete_annotation.setEnabled(False)
-                    return
-                self.bt_delete_annotation.setEnabled(data is not None)
-                if data:
-                    self.te_annotations.insertPlainText(data.text)
-                    self.tb_auto_annotation.insertPlainText(data.auto_text)
-                    if data.kind.lower() == "info":
-                        self.cb_annotation_level.setCurrentIndex(0)
-                        icon_ = QIcon(":/annotation_level/resources/Info.png")
-                    elif data.kind.lower() == "ok":
-                        self.cb_annotation_level.setCurrentIndex(1)
-                        icon_ = QIcon(":/annotation_level/resources/OK.png")
-                    elif data.kind.lower() == "warning":
-                        self.cb_annotation_level.setCurrentIndex(2)
-                        icon_ = QIcon(":/annotation_level/resources/Warning.png")
-                    elif data.kind.lower() == "error":
-                        self.cb_annotation_level.setCurrentIndex(3)
-                        icon_ = QIcon(":/annotation_level/resources/Error.png")
-                    elif data.kind.lower() == "critical":
-                        self.cb_annotation_level.setCurrentIndex(4)
-                        icon_ = QIcon(":/annotation_level/resources/Danger.png")
-                    elif data.kind.lower() == "source issue":
-                        self.cb_annotation_level.setCurrentIndex(5)
-                        icon_ = QIcon(":/annotation_level/resources/Problem.png")
-                    else:
-                        self.cb_annotation_level.setCurrentIndex(6)
-                        icon_ = QIcon(":/annotation_level/resources/Help.png")
-                else:
-                    self.cb_annotation_level.setCurrentIndex(0)
-                    self.te_annotations.clear()
-                    self.tb_auto_annotation.clear()
-                    icon_ = QIcon()
-
-                self.tw_tool_box.setTabIcon(1, icon_)
-
-    def save_annotation(self, luid, experiment, **kwargs):
-        try:
-            if self.actionEnable_annotations.isChecked():
-                with OrmAnnotationsDbWrapper(experiment) as session_:
-                    ann_ = (
-                        session_.query(OrmAnnotation)
-                        .filter(OrmAnnotation.idk == self._tag_to_str(luid))
-                        .first()
-                    )
-                    if ann_ is not None:
-                        if len(kwargs) == 0:
-                            session_.delete(ann_)
-                            self.cb_annotation_level.setCurrentIndex(0)
-                            self.te_annotations.clear()
-                            self.tb_auto_annotation.clear()
-                            icon_ = QIcon()
-                            self.tw_tool_box.setTabIcon(1, icon_)
-                        else:
-                            ann_.kind = kwargs.get("kind", "unknown")
-                            ann_.text = kwargs.get("text", "")
-                            ann_.auto_text = kwargs.get("auto_text", "")
-                            ann_.last_access = dt.now()
-                    else:
-                        session_.add(
-                            OrmAnnotation(
-                                self._tag_to_str(luid),
-                                kwargs.get("kind", "unknown"),
-                                kwargs.get("text", ""),
-                                kwargs.get("auto_text", ""),
-                            )
-                        )
-                self.update_table_line_color(self._tag_to_str(luid))
-        except Exception as e:
-            self.log_exception(f"Failed to save annotation data: {repr(e)}")
-
-    def update_entry_color(self, row: int, annotation_data):
-        default_bck = self.background_color
-        default_fnt = self.text_color
-        bg_color, fg_color = {
-            "critical": (QColor(255, 0, 0), QColor(0, 0, 0)),
-            "error": (QColor(255, 165, 0), QColor(0, 0, 0)),
-            "warning": (QColor(255, 215, 0), QColor(0, 0, 0)),
-            "ok": (QColor(125, 255, 125), QColor(0, 0, 0)),
-            "info": (QColor(200, 200, 255), QColor(0, 0, 0)),
-            "source issue": (QColor(200, 200, 200), QColor(245, 245, 245)),
-            "unknown": (QColor(125, 125, 255), QColor(0, 0, 0)),
-        }.get(
-            annotation_data.kind.lower() if annotation_data is not None else "",
-            (default_bck, default_fnt),
-        )
-
-        for j in range(self.images_table.columnCount()):
-            self.images_table.item(row, j).setBackground(bg_color)
-            self.images_table.item(row, j).setForeground(fg_color)
-
-    def update_table_line_color(self, index: Any, scroll_into_view: bool = False):
-        table = self.images_table
-        if (
-            not self.actionEnable_annotations.isChecked()
-            or (table is None)
-            or (table.rowCount() == 0)
-        ):
-            return False
-        tag_idx = self.get_column_index_from_name(table, "luid")
-        exp_idx = self.get_column_index_from_name(table, "experiment")
-        if isinstance(index, str):
-            for row_ in range(table.rowCount()):
-                if table.item(row_, tag_idx).text().lower() == index.lower():
-                    index = row_
-                    break
+            self.bt_delete_annotation.setEnabled(False)
+            return
+        data = id.get_annotation(luid=luid, experiment=experiment)
+        self.bt_delete_annotation.setEnabled(data is not None)
+        if data:
+            self.te_annotations.insertPlainText(data.get("text", ""))
+            self.tb_auto_annotation.insertPlainText(data.get("auto_text", ""))
+            data_kind = data.get("kind", "oops").lower()
+            if data_kind == "info":
+                self.cb_annotation_level.setCurrentIndex(0)
+                icon_ = QIcon(":/annotation_level/resources/Info.png")
+            elif data_kind == "ok":
+                self.cb_annotation_level.setCurrentIndex(1)
+                icon_ = QIcon(":/annotation_level/resources/OK.png")
+            elif data_kind == "warning":
+                self.cb_annotation_level.setCurrentIndex(2)
+                icon_ = QIcon(":/annotation_level/resources/Warning.png")
+            elif data_kind == "error":
+                self.cb_annotation_level.setCurrentIndex(3)
+                icon_ = QIcon(":/annotation_level/resources/Error.png")
+            elif data_kind == "critical":
+                self.cb_annotation_level.setCurrentIndex(4)
+                icon_ = QIcon(":/annotation_level/resources/Danger.png")
+            elif data_kind == "source issue":
+                self.cb_annotation_level.setCurrentIndex(5)
+                icon_ = QIcon(":/annotation_level/resources/Problem.png")
             else:
-                return False
-        if index >= table.rowCount():
-            return False
-        with OrmAnnotationsDbWrapper(table.item(index, exp_idx).text()) as session_:
-            self.update_entry_color(
-                index,
-                session_.query(OrmAnnotation)
-                .filter(OrmAnnotation.idk == table.item(index, tag_idx).text())
-                .first(),
-            )
-        if scroll_into_view:
-            pass
+                self.cb_annotation_level.setCurrentIndex(6)
+                icon_ = QIcon(":/annotation_level/resources/Help.png")
+        else:
+            self.cb_annotation_level.setCurrentIndex(0)
+            self.te_annotations.clear()
+            self.tb_auto_annotation.clear()
+            icon_ = QIcon()
 
-    def update_auto_selection_name(self):
-        table = self.images_table
+        self.tw_tool_box.setTabIcon(1, icon_)
+
+    def get_image_list_name(self):
+        table = self.tv_image_browser
         if table.rowCount() == 0:
-            self.le_selection_name.setText(f"Empty list")
+            return "Empty list"
         else:
-            exp_idx = self.get_column_index_from_name(table, "experiment")
-            self.le_selection_name.setText(f"")
-            self.le_selection_name.setText(
-                f'{table.item(0, exp_idx).text()}_{table.rowCount()}_{dt.now().strftime("%Y_%b_%d_%H-%M-%S")}'
-            )
-
-    def insert_item_into_table(self, row, data):
-        if isinstance(data, str):
-            data = self.query_one_current_database(
-                command="SELECT",
-                columns="Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, luid",
-                additional="ORDER BY Time ASC",
-                luid=data,
-            )
-        if data and os.path.isfile(data[7]):
-            table = self.images_table
-            table.insertRow(row)
-            for i, text in enumerate(data):
-                table.setItem(row, i, QTableWidgetItem("{}".format(text)))
-            tag_idx = self.get_column_index_from_name(table, "luid")
-            exp_idx = self.get_column_index_from_name(table, "experiment")
-            if self.actionEnable_annotations.isChecked():
-                with OrmAnnotationsDbWrapper(data[exp_idx]) as session_:
-                    self.update_entry_color(
-                        row,
-                        session_.query(OrmAnnotation)
-                        .filter(OrmAnnotation.idk == data[tag_idx])
-                        .first(),
-                    )
-            self.update_auto_selection_name()
-            return True
-        else:
-            return False
+            model = self.get_image_model()
+            exp_idx = model.get_column_index_from_name("experiment")
+            return f'{model.images.iloc[0, exp_idx]}_{table.rowCount()}_{dt.now().strftime("%Y_%b_%d_%H-%M-%S")}'
 
     def set_global_enabled_state(
         self, new_state: bool, force_enabled: tuple = (), force_disabled: tuple = ()
@@ -1492,140 +1506,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 tab_widget_.setEnabled(True)
             else:
                 tab_widget_.setEnabled(tab_name_ == self.selected_run_tab)
-
-    @staticmethod
-    def check_image_list_size(display_warning, list_size):
-        if display_warning and (list_size > 10000):
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Warning)
-            msg.setWindowTitle("Too many items in image list")
-            msg.setText(
-                f"Too many items in image list: {list_size}\n"
-                f"Do you really want to save the list?"
-            )
-            msg.setDetailedText("It may take really long to save and later load all this data")
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            return msg.exec_() == QMessageBox.Yes
-        else:
-            return True
-
-    def save_image_list(
-        self,
-        image_list: QTableWidget,
-        settings: QSettings,
-        group_name: str,
-        display_warning: bool = False,
-    ):
-        settings.beginGroup(group_name)
-        settings.remove("")
-        if self.check_image_list_size(
-            display_warning=display_warning, list_size=image_list.rowCount()
-        ):
-            tag_cl_idx = self.get_column_index_from_name(image_list, "luid")
-            for row_ in range(image_list.rowCount()):
-                settings.setValue(f"{row_}", image_list.item(row_, tag_cl_idx).text())
-        settings.endGroup()
-
-        self.update_feedback(
-            status_message=f"Saved {image_list.rowCount()} images in list", use_status_as_log=True
-        )
-
-    @log_method_execution_time
-    def load_image_list(self, image_list: QTableWidget, settings: QSettings, group_name: str):
-        self.begin_edit_image_table()
-        try:
-            luid_lst = []
-            i = 0
-            while settings.contains(f"{group_name}/{i}"):
-                luid_lst.append(settings.value(f"{group_name}/{i}", ""))
-                i += 1
-            luid_lst = [luid for luid in luid_lst if luid]
-            if len(luid_lst) > 0:
-                if dbw.DB_TYPE_SQLITE in self.current_database.type:
-                    all_data_ = []
-                    for luid in luid_lst:
-                        fetched = self.query_one_current_database(
-                            command="SELECT",
-                            columns="""Experiment, Plant, Date, Camera,
-                            view_option, Time, date_time, FilePath, Luid""",
-                            luid=luid,
-                        )
-                        all_data_.append(FullQueryResult(*fetched))
-                else:
-                    all_data_ = self.query_current_database(
-                        command="SELECT",
-                        columns="""Experiment, Plant, Date, Camera,
-                        view_option, Time, date_time, FilePath, Luid""",
-                        additional="ORDER BY Time ASC",
-                        luid=dict(operator="in", values=luid_lst),
-                    )
-                    all_data_ = [FullQueryResult(*fetched) for fetched in all_data_]
-                for i, data_row in enumerate(all_data_):
-                    self.insert_item_into_table(self.images_table.rowCount(), data_row)
-                    self.global_progress_update(i + 1, len(all_data_))
-                self.update_feedback(
-                    status_message=f"Restored {len(all_data_)} items to image browser from {group_name}",
-                    use_status_as_log=True,
-                )
-        except Exception as e:
-            self.log_exception(f"Failed to load image list: {repr(e)}")
-        else:
-            self.update_feedback(
-                status_message=f"Loaded {image_list.rowCount()} images in list",
-                use_status_as_log=True,
-            )
-        finally:
-            self.end_edit_image_table()
-
-    def image_lists_load_from_file(self, selected_item="------------------"):
-        self._updating_saved_image_lists = True
-        try:
-            if not os.path.isfile(_IMAGE_LISTS_PATH):
-                return
-            with open(_IMAGE_LISTS_PATH, "r") as f:
-                saved_lists = json.load(f)
-                self.cb_saved_batches.clear()
-                self.cb_saved_batches.addItem("------------------")
-                self.cb_saved_batches.addItems([item for item in saved_lists])
-                target_index = self.cb_saved_batches.findText(selected_item)
-                if target_index >= 0:
-                    self.cb_saved_batches.setCurrentIndex(target_index)
-                else:
-                    self.cb_saved_batches.setCurrentIndex(0)
-        except FileNotFoundError as e:
-            self.update_feedback(status_message="No image lists found", log_message=repr(e))
-        finally:
-            self._updating_saved_image_lists = False
-
-    def image_lists_update(self, new_list):
-        self._updating_saved_image_lists = True
-        try:
-            if os.path.isfile(_IMAGE_LISTS_PATH):
-                with open(_IMAGE_LISTS_PATH, "r") as f:
-                    saved_lists = json.load(f)
-                    saved_lists[new_list["name"]] = new_list
-            else:
-                saved_lists = {new_list["name"]: new_list}
-            with open(_IMAGE_LISTS_PATH, "w") as f:
-                json.dump(saved_lists, f, indent=2)
-            self.image_lists_load_from_file(new_list["name"])
-        finally:
-            self._updating_saved_image_lists = False
-
-    def image_lists_delete(self, old_list):
-        self._updating_saved_image_lists = True
-        try:
-            if not os.path.isfile(_IMAGE_LISTS_PATH):
-                return
-            with open(_IMAGE_LISTS_PATH, "r") as f:
-                saved_lists = json.load(f)
-            if old_list in saved_lists:
-                del saved_lists[old_list]
-                with open(_IMAGE_LISTS_PATH, "w") as f:
-                    json.dump(saved_lists, f, indent=2)
-                self.image_lists_load_from_file()
-        finally:
-            self._updating_saved_image_lists = False
 
     def apply_theme(self, style: str, theme: str):
         try:
@@ -1692,7 +1572,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             qApp.setPalette(palette)
 
             item_delegate = self.tb_ge_dataframe.itemDelegate()
-            if item_delegate is not None and hasattr(item_delegate, 'set_palette'):
+            if item_delegate is not None and hasattr(item_delegate, "set_palette"):
+                item_delegate.set_palette(new_palette=qApp.palette())
+
+            item_delegate = self.tv_image_browser.itemDelegate()
+            if item_delegate is not None and hasattr(item_delegate, "set_palette"):
                 item_delegate.set_palette(new_palette=qApp.palette())
 
             if self.actionEnable_annotations.isChecked():
@@ -1835,10 +1719,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.selected_main_tab = settings_.value("global_tab_name", "")
             self.tw_tool_box.setCurrentIndex(int(settings_.value("toolbox_tab_index", 0)))
 
-            self._pipelines_folder = settings_.value("pipelines_folder", self._pipelines_folder)
-            self._scripts_folder = settings_.value("scripts_folder", self._scripts_folder)
+            for k, v in self.stored_folders.items():
+                self.stored_folders[k] = settings_.value(k, self.stored_folders[k])
             self._last_folder = settings_.value("last_folder", "")
-            self._csv_folder = settings_.value("csv_folder", self._csv_folder)
 
             # Fill main menu
             self.actionEnable_annotations.setChecked(
@@ -1951,7 +1834,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
 
             # Fill image list
-            self.load_image_list(self.images_table, settings_, "plant_list")
+            file_path_ = settings_.value("last_image_browser_state", "")
+            if file_path_ and os.path.isfile(file_path_):
+                self.init_image_browser(pd.read_csv(file_path_))
 
             # Fill process modes
             lst = self._ip_tools_holder.ipt_list
@@ -1970,9 +1855,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             if not process_name:
                 process_name = lst[0].name
             self.select_tool_from_name(process_name)
-
-            # Fill selected plant
-            self.select_image_from_luid(settings_.value("selected_plant_luid", ""))
 
             # Fill pipeline processor
             self.le_pp_output_folder.setText(
@@ -2009,9 +1891,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 )
             )
 
-            self.image_lists_load_from_file()
-
             self.on_bt_clear_pipeline()
+
+            # Fill selected plant
+            self.select_image_from_luid(settings_.value("selected_plant_luid", ""))
 
         except Exception as e:
             self.log_exception(f"Failed to load settings because: {repr(e)}")
@@ -2032,7 +1915,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
             settings_.setValue("main_geometry", self.saveGeometry())
             settings_.setValue("main_state", self.saveState())
-            
+
             settings_.setValue("global_tab_name", self.selected_main_tab)
             settings_.setValue("toolbox_tab_index", self.tw_tool_box.currentIndex())
             settings_.setValue(
@@ -2056,10 +1939,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             settings_.setValue("spl_de_right", self.spl_de_right.saveState())
             settings_.setValue("spl_de_hor", self.spl_de_hor.saveState())
 
-            settings_.setValue("pipelines_folder", self._pipelines_folder)
-            settings_.setValue("scripts_folder", self._scripts_folder)
-            settings_.setValue("last_folder", self._last_folder)
-            settings_.setValue("csv_folder", self._csv_folder)
+            for k, v in self.stored_folders.items():
+                settings_.setValue(k, v)
 
             settings_.beginGroup("checkbox_status")
             settings_.setValue("experiment_checkbox_state", self.chk_experiment.isChecked())
@@ -2118,8 +1999,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             settings_.setValue("sp_pp_time_delta", self.sp_pp_time_delta.value())
             settings_.endGroup()
 
-            self.save_image_list(self.images_table, settings_, "plant_list", True)
-
             lst = self._ip_tools_holder.ipt_list
             for data_ in lst:
                 settings_.beginGroup(f"tools/{data_.name}")
@@ -2128,6 +2007,34 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         settings_.setValue(param.name, param.value)
                         settings_.setValue(f"{param.name}_gso", param.grid_search_options)
                 settings_.endGroup()
+
+            model = self.get_image_model()
+            if model is not None and model.rowCount() > 0:
+                if model.rowCount() > 100000:
+                    msg = QMessageBox()
+                    msg.setIcon(QMessageBox.Warning)
+                    msg.setWindowTitle("Too many items in image list")
+                    msg.setText(
+                        f"Too many items in image list: {model.rowCount()}\n"
+                        f"Do you really want to save the list?"
+                    )
+                    msg.setDetailedText(
+                        "It may take really long to save and later load all this data"
+                    )
+                    msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+                    save_lst_ = msg.exec_() == QMessageBox.Yes
+                else:
+                    save_lst_ = True
+            else:
+                save_lst_ = False
+
+            if save_lst_ is True:
+                model.images.to_csv("./saved_data/last_image_browser_state.csv", index=False)
+                settings_.setValue(
+                    "last_image_browser_state", "./saved_data/last_image_browser_state.csv"
+                )
+            else:
+                settings_.setValue("last_image_browser_state", "")
 
         except Exception as e:
             self.log_exception(f"Failed to save settings because: {repr(e)}")
@@ -2469,19 +2376,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             self.log_exception(f"Unable to output code: {repr(e)}")
 
-    @staticmethod
-    def get_column_index_from_name(widget, column_name):
-        match_col = -1
-        for x in range(widget.columnCount()):
-            header_text = widget.horizontalHeaderItem(x).text().lower()
-            if column_name.lower() == header_text:
-                match_col = x
-                break
-        return match_col
-
     @pyqtSlot()
     def on_bt_pp_reset(self):
-        self.le_pp_output_folder.setText(self._default_pp_output)
+        self.le_pp_output_folder.setText(self.stored_folders["pp_output"])
         self.on_rb_pp_default_process()
         self.le_pp_selected_pipeline.setText("")
         self.lbl_pipeline_name.setText("")
@@ -2699,7 +2596,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def on_bt_pp_start(self):
         self._batch_stop_current = False
-        if self.images_table.rowCount() <= 0:
+        model = self.get_image_model()
+        if (model is None) or (model.rowCount() == 0):
             self.update_feedback(
                 status_message="Pipeline start: nothing to process",
                 log_message=f"{ui_consts.LOG_WARNING_STR}: Pipeline start - nothing to process",
@@ -2714,24 +2612,17 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.thread_pool.clear()
             self.thread_pool.waitForDone(-1)
 
-            exp_idx = self.get_column_index_from_name(self.images_table, "Experiment")
-            if self.cb_pp_append_experience_name.isChecked() and (exp_idx >= 0):
-                exp_ = self.images_table.item(0, exp_idx).text()
-                output_folder_ = os.path.join(self.le_pp_output_folder.text(), exp_, "")
+            if self.cb_pp_append_experience_name.isChecked():
+                output_folder_ = os.path.join(
+                    self.le_pp_output_folder.text(),
+                    model.get_cell_data(row_number=0, column_name="Experiment"),
+                    "",
+                )
             else:
                 output_folder_ = os.path.join(self.le_pp_output_folder.text(), "")
 
             # Collect images
-            path_idx = self.get_column_index_from_name(self.images_table, "Path")
-            if path_idx < 0:
-                self.update_feedback(
-                    status_message="Pipeline start: unable to find paths column",
-                    use_status_as_log=True,
-                )
-                return False
-            image_list_ = []
-            for row_ in range(self.images_table.rowCount()):
-                image_list_.append(self.images_table.item(row_, path_idx).text())
+            image_list_ = list(model.images["FilePath"])
 
             if self.rb_pp_default_process.isChecked():
                 script_ = None
@@ -2799,118 +2690,51 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def on_bt_update_selection_stats(self):
-        table = self.images_table
-        sel_ct = table.rowCount()
-
-        if sel_ct == 0:
+        model = self.get_image_model()
+        no_good = model is None
+        if no_good is False:
+            delegate = self.tv_image_browser.itemDelegate()
+            sel_ct = model.rowCount()
+        else:
+            sel_ct = 0
+        if no_good:
             self.lv_stats.insertPlainText("No images selectted\n")
             self.lv_stats.insertPlainText("Please add images to selection to get statistics\n")
             self.lv_stats.insertPlainText("\n")
-            self.lv_stats.insertPlainText(
-                "_____________________________________________________________\n"
-            )
+            self.lv_stats.insertPlainText("________________________________________________\n")
+
+        include_annotations = self.cb_stat_include_annotations.isChecked()
         self.update_feedback(status_message="Building selection stats", use_status_as_log=True)
-        self.global_progress_start()
+        self.global_progress_start(add_stop_button=True)
         try:
-            lst = [
-                FullQueryResult(
-                    *[
-                        self.images_table.item(row_, i).text()
-                        for i in range(self.images_table.columnCount())
-                    ]
-                )
-                for row_ in range(sel_ct)
-            ]
-            ann_counter = defaultdict(int)
-            exp_counter = defaultdict(int)
-            plt_counter = defaultdict(int)
-            dt_counter = defaultdict(int)
-            cam_counter = defaultdict(int)
-            vo_counter = defaultdict(int)
-
-            gbl_cpt = 0
-
             self.lv_stats.insertPlainText("\n")
-            self.lv_stats.insertPlainText(
-                "_____________________________________________________________\n"
-            )
+            self.lv_stats.insertPlainText("________________________________________________\n")
             self.lv_stats.insertPlainText(f"Selected items count: {sel_ct}\n")
             self.lv_stats.insertPlainText("\n")
-
-            for idx, data in enumerate(lst):
-                # Annotations
-                with OrmAnnotationsDbWrapper(data.Experiment) as session_:
-                    ann_ = (
-                        session_.query(OrmAnnotation)
-                        .filter(OrmAnnotation.idk == data.Luid)
-                        .first()
-                    )
+            if include_annotations is True:
+                gbl_cpt = 0
+                ann_counter = defaultdict(int)
+                for i in range(0, model.rowCount()):
+                    ann_ = delegate.get_annotation(row_number=i)
                     if ann_ is not None:
                         gbl_cpt += 1
-                        ann_counter[ann_.kind.lower()] += 1
-
-                # Misc
-                exp_counter[data.Experiment] += 1
-                plt_counter[data.Plant] += 1
-                dt_counter[data.Date] += 1
-                cam_counter[data.Camera] += 1
-                vo_counter[data.view_option] += 1
-
-                # Update
-                self.global_progress_update(idx + 1, sel_ct)
-
-            self.lv_stats.insertPlainText(
-                f"Annotations: {gbl_cpt}, " f"{gbl_cpt / sel_ct * 100:.2f}%\n"
-            )
-            for k, v in ann_counter.items():
-                self.lv_stats.insertPlainText(f"  {k.ljust(13)}: {v}, {v / sel_ct * 100:.2f}%\n")
-            self.lv_stats.insertPlainText(
-                "_____________________________________________________________\n"
-            )
-            self.lv_stats.insertPlainText("\n")
-
-            self.lv_stats.insertPlainText("Miscellaneous:\n")
-            ws = "    "
-            mode_dev_ = lambda x: "" if mode_ == x else f"({x - mode_:+d})"
-
-            self.lv_stats.insertPlainText("  Experiments:\n")
-            for k, v in sorted(zip(exp_counter.keys(), exp_counter.values())):
-                self.lv_stats.insertPlainText(f"{ws}{k.ljust(13)}: {v}, {v / sel_ct * 100:.2f}%\n")
-
-            tmp_ = Counter(plt_counter.values()).most_common()
-            mode_, freq_ = tmp_[0][0], tmp_[0][1]
-            self.lv_stats.insertPlainText(
-                f"  Plants -  mode: {mode_}, found in {freq_} of {len(plt_counter.values())} observations\n"
-            )
-            for k, v in sorted(zip(plt_counter.keys(), plt_counter.values())):
+                        ann_counter[ann_["kind"].lower()] += 1
                 self.lv_stats.insertPlainText(
-                    f"{ws}{k.ljust(13)}: {v}{mode_dev_(v)}, {v / sel_ct * 100:.2f}%\n"
+                    f"Annotations: {gbl_cpt}, " f"{gbl_cpt / sel_ct * 100:.2f}%\n"
                 )
+                for k, v in ann_counter.items():
+                    self.lv_stats.insertPlainText(
+                        f"  {k.ljust(13)}: {v}, {v / sel_ct * 100:.2f}%\n"
+                    )
+                self.lv_stats.insertPlainText("________________________________________________\n")
+                self.lv_stats.insertPlainText("\n")
 
-            self.lv_stats.insertPlainText("  Dates:\n")
-            for k, v in sorted(zip(dt_counter.keys(), dt_counter.values())):
-                self.lv_stats.insertPlainText(f"{ws}{k.ljust(13)}: {v}, {v / sel_ct * 100:.2f}%\n")
-
-            self.lv_stats.insertPlainText("  Cameras:\n")
-            for k, v in sorted(zip(cam_counter.keys(), cam_counter.values())):
-                self.lv_stats.insertPlainText(f"{ws}{k.ljust(13)}: {v}, {v / sel_ct * 100:.2f}%\n")
-
-            tmp_ = Counter(vo_counter.values()).most_common()
-            mode_, freq_ = tmp_[0][0], tmp_[0][1]
-            self.lv_stats.insertPlainText(
-                f"  View Options -  mode: {mode_}, found in {freq_} of {len(vo_counter.values())} observations\n"
-            )
-            for k, v in sorted(
-                zip(vo_counter.keys(), vo_counter.values()), key=lambda t: natural_keys(t[0])
-            ):
-                self.lv_stats.insertPlainText(
-                    f"{ws}{k.ljust(13)}: {v}{mode_dev_(v)}, {v / sel_ct * 100:.2f}%\n"
-                )
-
-            self.lv_stats.insertPlainText(
-                "_____________________________________________________________\n"
-            )
-            self.lv_stats.insertPlainText("\n")
+            df: pd.DataFrame = model.images
+            for key in ["experiment", "plant", "date", "camera", "view_option"]:
+                self.lv_stats.insertPlainText(f"{key}:\n")
+                self.lv_stats.insertPlainText("\n".join(df[key].unique()))
+                self.lv_stats.insertPlainText(df.group(key).agg({key: "count"}))
+                self.lv_stats.insertPlainText("________________________________________________\n")
         except Exception as e:
             self.log_exception(f"Failed to update statistics: {repr(e)}")
         finally:
@@ -3070,6 +2894,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 date_time=wrapper.date_time,
                 camera=wrapper.camera,
                 view_option=wrapper.view_option,
+                width=wrapper.width,
+                height=wrapper.height,
             ),
         )
         if isinstance(sender, IptParamHolder):
@@ -3140,6 +2966,21 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         script: IptScriptGenerator,
         exec_param: int,
     ):
+        if self.act_settings_sir_keep.isChecked():
+            scale_factor = 1
+        elif self.act_settings_sir_2x.isChecked():
+            scale_factor = 1 / 2
+        elif self.act_settings_sir_3x.isChecked():
+            scale_factor = 1 / 3
+        elif self.act_settings_sir_4x.isChecked():
+            scale_factor = 1 / 4
+        elif self.act_settings_sir_5x.isChecked():
+            scale_factor = 1 / 5
+        elif self.act_settings_sir_6x.isChecked():
+            scale_factor = 1 / 6
+        else:
+            scale_factor = 1
+
         runner_ = IpsoRunnable(
             on_started=self.do_thread_started,
             on_ending=self.do_thread_ending,
@@ -3155,6 +2996,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             ipt=ipt,
             script=script,
             exec_param=exec_param,
+            scale_factor=scale_factor,
         )
         self.threads_waiting += 1
         if self.multithread:
@@ -3165,43 +3007,33 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def run_process(self, wrapper: AbstractImageProcessor = None, ipt=None, exec_param=None):
         if wrapper is None:
             # Collect images
-            path_idx = self.get_column_index_from_name(self.images_table, "Path")
-            tag_idx = self.get_column_index_from_name(self.images_table, "luid")
-            if path_idx < 0:
-                self.update_feedback(
-                    status_message="Run process: unable to find paths", use_status_as_log=True
-                )
-                return False
-            image_list_ = []
-            for row_ in range(self.images_table.rowCount()):
-                image_list_.append(
-                    dict(
-                        path=self.images_table.item(row_, path_idx).text(),
-                        luid=self.images_table.item(row_, tag_idx).text(),
-                    )
-                )
-
-            # Skim the list
-            skim_mode_ = self.cb_batch_mode.currentText().lower()
-            if skim_mode_ != "all":
-                keep_count_ = self.sb_batch_count.value()
-                if skim_mode_ == "first n":
-                    image_list_ = image_list_[:keep_count_]
+            df = self.get_image_dataframe()
+            if df is None:
+                image_list_ = None
+            else:
+                skim_mode_ = self.cb_batch_mode.currentText().lower()
+                dff = df[["Luid", "FilePath"]]
+                if skim_mode_ == "all":
+                    pass
+                elif skim_mode_ == "first n":
+                    dff = dff.iloc[0 : min(df.shape[0], self.sb_batch_count.value())]
                 elif skim_mode_ == "random n":
-                    random.shuffle(image_list_)
-                    image_list_ = image_list_[:keep_count_]
+                    dff = dff.sample(n=min(df.shape[0], self.sb_batch_count.value()))
                 else:
                     self.update_feedback(
                         status_message="Run process: unknown filter mode", use_status_as_log=True
                     )
                     return False
+                image_list_ = [
+                    {"luid": k, "path": v}
+                    for k, v in zip(list(dff["Luid"]), list(dff["FilePath"]))
+                ]
 
-            # Update "Last batch" data
-            self.txtb_last_batch.clear()
-            self.txtb_last_batch.insertPlainText("\n".join([img["luid"] for img in image_list_]))
-            self.le_batch_name.setText(
-                f'{skim_mode_.replace(" ", "_")}_{len(image_list_)}_{dt.now().strftime("%Y_%b_%d_%H-%M-%S")}'
-            )
+                # Update "Last batch" data
+                self.txtb_last_batch.clear()
+                self.txtb_last_batch.insertPlainText(
+                    "\n".join([img["luid"] for img in image_list_])
+                )
         else:
             image_list_ = [dict(path=wrapper.file_path, luid=wrapper.luid)]
 
@@ -3366,9 +3198,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             return False
         if not image_path:
-            if not os.path.exists(self.dst_image_path):
-                os.makedirs(self.dst_image_path)
-            image_path = os.path.join(self.dst_image_path, f"{text}.jpg")
+            image_path = os.path.join(self.stored_folders["image_output"], f"{text}.jpg")
         else:
             image_path = os.path.join(image_path, f"{text}.jpg")
         cv2.imwrite(image_path, image_data["image"])
@@ -3383,7 +3213,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.update_feedback(
                 status_message=f"Saved {cb.currentText()}", use_status_as_log=True
             )
-            open_file((self.dst_image_path, ""))
+            open_file((self.stored_folders["image_output"], ""))
 
     @pyqtSlot()
     def on_bt_save_all_images(self):
@@ -3394,7 +3224,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.save_image(text=image_name, image_data=cb.itemData(i))
             self.update_feedback(status_message=f"Saved {image_name} -- {i + 1}/{cb.count()}")
         self.update_feedback(status_message=f"Saved {cb.count()} images", use_status_as_log=True)
-        open_file((self.dst_image_path, ""))
+        open_file((self.stored_folders["image_output"], ""))
 
     def on_video_frame_duration_changed(self):
         self.action_video_1_24_second.setChecked(self.sender() == self.action_video_1_24_second)
@@ -3429,6 +3259,14 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.sender() == self.action_video_bkg_color_silver
         )
 
+    def on_sis_changed(self):
+        self.act_settings_sir_keep.setChecked(self.sender() == self.act_settings_sir_keep)
+        self.act_settings_sir_2x.setChecked(self.sender() == self.act_settings_sir_2x)
+        self.act_settings_sir_3x.setChecked(self.sender() == self.act_settings_sir_3x)
+        self.act_settings_sir_4x.setChecked(self.sender() == self.act_settings_sir_4x)
+        self.act_settings_sir_5x.setChecked(self.sender() == self.act_settings_sir_5x)
+        self.act_settings_sir_6x.setChecked(self.sender() == self.act_settings_sir_6x)
+
     def on_tb_ge_dataframe_selection_changed(self, selected, deselected):
         image = None
         color = qApp.palette().window()
@@ -3442,11 +3280,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gv_de_image.scene().setBackgroundBrush(color)
             self.gv_de_image.main_image = image
 
-        df = self.tb_ge_dataframe.model().df
+        df = self.get_image_dataframe()
         if "source_path" in df:
             src_path = "source_path"
         elif "path" in df:
             src_path = "path"
+        elif "FilePath" in df:
+            src_path = "FilePath"
         else:
             src_path = ""
         if src_path:
@@ -3476,6 +3316,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tb_ge_dataframe.setItemDelegate(
             QColorDelegate(parent=self.tb_ge_dataframe, palette=qApp.palette())
         )
+        self.tb_ge_dataframe.setSortingEnabled(True)
         if dataframe is not None:
             selectionModel = self.tb_ge_dataframe.selectionModel()
             selectionModel.selectionChanged.connect(self.on_tb_ge_dataframe_selection_changed)
@@ -3530,34 +3371,29 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def on_action_de_new_sheet(self):
         self.init_data_editor(None)
         self.update_feedback(
-            status_message='Cleared dataframe',
-            log_message=f"{ui_consts.LOG_INFO_STR} Cleared dataframe"
+            status_message="Cleared dataframe",
+            log_message=f"{ui_consts.LOG_INFO_STR} Cleared dataframe",
         )
 
     def on_action_de_load_csv(self):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load dataframe as CSV",
-            directory=self._csv_folder,
+            directory=self.stored_folders["csv"],
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
-            self._csv_folder = os.path.join(os.path.dirname(file_name_), "")
+            self.stored_folders["csv"] = os.path.join(os.path.dirname(file_name_), "")
             self.init_data_editor(pd.read_csv(file_name_))
             self.update_feedback(
-                status_message='Dataframe loaded',
-                log_message=f"{ui_consts.LOG_INFO_STR} Loaded dataframe from {file_name_}"
+                status_message="Dataframe loaded",
+                log_message=f"{ui_consts.LOG_INFO_STR} Loaded dataframe from {file_name_}",
             )
 
     def on_action_de_create_sheet_from_selection(self):
-        table: QTableWidget = self.images_table
-        noc = table.columnCount()
-        df = pd.DataFrame(
-            columns=[table.horizontalHeaderItem(x).text().lower() for x in range(noc)]
-        )
-        for row in range(table.rowCount()):
-            df.loc[row] = [str(table.item(row, column).text()) for column in range(noc)]
-        self.init_data_editor(df)
+        df = self.get_image_dataframe()
+        if df is not None:
+            self.init_data_editor(df.copy())
 
     def on_action_de_add_column(self):
         pass
@@ -3566,24 +3402,24 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         pass
 
     def on_action_de_save_csv(self):
-        model = self.tb_de_column_info.model()
+        model = self.get_image_model()
         if model is not None:
             file_name_ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="Save dataframe as CSV",
-                directory=self._csv_folder,
+                directory=self.stored_folders["csv"],
                 filter="CSV(*.csv)",
             )[0]
             if file_name_:
-                model.df.to_csv(file_name_)
+                model.df.to_csv(file_name_, index=False)
                 self.update_feedback(
-                    status_message='Dataframe saved',
-                    log_message=f"{ui_consts.LOG_INFO_STR} Saved dataframe to {file_name_}"
+                    status_message="Dataframe saved",
+                    log_message=f"{ui_consts.LOG_INFO_STR} Saved dataframe to {file_name_}",
                 )
         else:
             self.update_feedback(
-                status_message='No dataframe to save',
-                log_message=f"{ui_consts.LOG_WARNING_STR} No dataframe to save"
+                status_message="No dataframe to save",
+                log_message=f"{ui_consts.LOG_WARNING_STR} No dataframe to save",
             )
 
     def on_action_build_video_from_images(self):
@@ -3592,9 +3428,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 status_message="No images to build video from", use_status_as_log=True
             )
             return
-
-        if not os.path.exists(self.dst_image_path):
-            os.makedirs(self.dst_image_path)
 
         frame_rate = 24.0
 
@@ -3645,7 +3478,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         selected_mode = self.current_tool
         total_ = self.cb_available_outputs.count()
         vid_name = f'{make_safe_name(selected_mode.name)}_{dt.now().strftime("%Y%B%d_%H%M%S")}_{total_}.mp4'
-        v_output = os.path.join(self.dst_image_path, vid_name)
+        v_output = os.path.join(self.stored_folders["image_output"], vid_name)
 
         frame_rect = shapes.Rect.from_lwth(0, v_width, 0, v_height)
 
@@ -3701,7 +3534,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.update_feedback(
                 status_message=f'Generated video "{vid_name}"', use_status_as_log=True
             )
-            open_file((self.dst_image_path, ""))
+            open_file((self.stored_folders["image_output"], ""))
         finally:
             out.release()
             cv2.destroyAllWindows()
@@ -3709,7 +3542,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def execute_current_query(self, **kwargs):
         sql_dict = {}
-        self._last_query_result = []
 
         for couple in (
             (self.chk_experiment, self.cb_experiment.currentText(), "Experiment"),
@@ -3734,110 +3566,71 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     else:
                         sql_dict[label_] = cb_text
 
-        all_data_ = self.query_current_database(
+        return self.query_current_database_as_pandas(
             command="SELECT",
             columns="Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, Luid",
             additional="ORDER BY Time ASC",
             **sql_dict,
         )
-        self._last_query_result = [FullQueryResult(*fetched) for fetched in all_data_]
 
     @pyqtSlot()
     def on_bt_delete_annotation(self):
         if self._src_image_wrapper is not None:
-            self.save_annotation(self._src_image_wrapper.luid, self._src_image_wrapper.experiment)
+            id = self.get_image_delegate()
+            if id is None:
+                return
+            id.set_annotation(
+                luid=self._src_image_wrapper.luid, experiment=self._src_image_wrapper.experiment
+            )
+            self.cb_annotation_level.setCurrentIndex(0)
+            self.te_annotations.clear()
+            self.tb_auto_annotation.clear()
+            self.tw_tool_box.setTabIcon(1, QIcon())
 
     @pyqtSlot()
     def on_bt_clear_selection(self):
-        self.begin_edit_image_table()
+        self.begin_edit_image_browser()
         try:
-            while self.images_table.rowCount() > 0:
-                self.images_table.removeRow(0)
+            self.update_image_browser(None, mode="clear")
         finally:
-            self.end_edit_image_table()
-
-    def parse_and_delete(self, table, img_lst):
-        i = 0
-        luid_idx = self.get_column_index_from_name(table, "luid")
-        while i < table.rowCount():
-            if table.item(i, luid_idx).text() in img_lst:
-                table.removeRow(i)
-            else:
-                i += 1
+            self.end_edit_image_browser()
 
     @pyqtSlot()
     def on_bt_remove_from_selection(self):
-        self.begin_edit_image_table()
+        self.begin_edit_image_browser()
         try:
-            self.execute_current_query()
+            self.update_image_browser(dataframe=self.execute_current_query(), mode="remove")
             images_to_delete = [item.Luid for item in self._last_query_result]
-            self.parse_and_delete(self.images_table, images_to_delete)
         finally:
-            self.end_edit_image_table()
+            self.end_edit_image_browser()
 
     @pyqtSlot()
     def on_bt_keep_annotated(self):
-        self.begin_edit_image_table()
+        raise NotImplementedError
+        self.begin_edit_image_browser()
         try:
-            table = self.images_table
-            tag_idx = self.get_column_index_from_name(table, "luid")
-            exp_idx = self.get_column_index_from_name(table, "experiment")
-            row_list = [
-                (table.item(idx, exp_idx).text(), table.item(idx, tag_idx).text())
-                for idx in range(table.rowCount())
-            ]
-            exp_dict = defaultdict(list)
-            for row_ in row_list:
-                exp_dict[row_[0]].append(row_[1])
-            images_to_delete = []
-            for k, v in exp_dict.items():
-                with OrmAnnotationsDbWrapper(k) as session_:
-                    for luid in v:
-                        ann_ = (
-                            session_.query(OrmAnnotation).filter(OrmAnnotation.idk == luid).first()
-                        )
-                        if ann_ is None:
-                            images_to_delete.append(luid)
-            self.parse_and_delete(self.images_table, images_to_delete)
+            pass
         finally:
-            self.end_edit_image_table()
+            self.end_edit_image_browser()
 
     @log_method_execution_time
     def inner_add_to_selection(self, cull: bool):
-        self.begin_edit_image_table()
+        self.begin_edit_image_browser()
         self.update_feedback(
             status_message="Adding observations to selection", use_status_as_log=True
         )
         self._batch_stop_current = False
-        self.global_progress_start(add_stop_button=True)
+        self.global_progress_start(add_stop_button=False)
         try:
-            self.execute_current_query()
-            ct = 0
+            dataframe = self.execute_current_query()
             if cull:
-                random.shuffle(self._last_query_result)
-                keep_count_ = self.sp_add_random_count.value()
-                self._last_query_result = self._last_query_result[:keep_count_]
-
-            for i, data_row in enumerate(self._last_query_result):
-                self.insert_item_into_table(self.images_table.rowCount(), data_row)
-                self.global_progress_update(
-                    i + 1, len(self._last_query_result), process_events=True
-                )
-                ct += 1
-                if self._batch_stop_current:
-                    self.update_feedback(
-                        status_message=f"User stopped adding images after {ct} items.",
-                        use_status_as_log=True,
-                    )
-                    break
-            self.update_feedback(
-                status_message=f"Added {ct} items to image browser", use_status_as_log=True
-            )
+                dataframe = dataframe.sample(n=self.sp_add_random_count.value())
+            self.update_image_browser(dataframe=dataframe, mode="add")
         except Exception as e:
             self.log_exception(f"Add to selection failed: {repr(e)}")
         finally:
             self.global_progress_stop()
-            self.end_edit_image_table()
+            self.end_edit_image_browser()
 
     @pyqtSlot()
     def on_bt_add_random(self):
@@ -3846,75 +3639,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def on_bt_add_to_selection(self):
         self.inner_add_to_selection(cull=False)
-
-    @pyqtSlot()
-    def on_bt_save_batch(self):
-        if self._updating_saved_image_lists:
-            return
-        img_lst = self.txtb_last_batch.toPlainText().split("\n")
-        self.image_lists_update(
-            dict(name=self.le_batch_name.text(), images=img_lst, count=len(img_lst))
-        )
-
-    @pyqtSlot()
-    def on_bt_save_image_list(self):
-        if self._updating_saved_image_lists:
-            return
-
-        tag_cl_idx = self.get_column_index_from_name(self.images_table, "luid")
-        img_lst = [
-            self.images_table.item(row_, tag_cl_idx).text()
-            for row_ in range(self.images_table.rowCount())
-        ]
-        self.image_lists_update(
-            dict(name=self.le_selection_name.text(), images=img_lst, count=len(img_lst))
-        )
-
-    @pyqtSlot()
-    def on_bt_delete_saved_list(self):
-        if self._updating_saved_image_lists:
-            return
-        self.image_lists_delete(self.cb_saved_batches.currentText())
-
-    def on_cb_saved_batches_index_changed(self, index):
-        self.bt_delete_saved_list.setEnabled(index != 0)
-        if self._updating_saved_image_lists:
-            return
-        self.begin_edit_image_table()
-        self.update_feedback(status_message="Restoring files to selection", use_status_as_log=True)
-        self.global_progress_start()
-        try:
-            with open(_IMAGE_LISTS_PATH, "r") as f:
-                saved_lists = json.load(f)
-                current_text = self.cb_saved_batches.currentText()
-                if current_text in saved_lists:
-                    lst_lst = saved_lists[current_text]["images"]
-                    row_ = 0
-                    for i, tag in enumerate(lst_lst):
-                        if self.insert_item_into_table(row_, tag):
-                            row_ += 1
-                        self.global_progress_update(i + 1, len(lst_lst))
-                        self.process_events()
-        except Exception as e:
-            self.log_exception(f"Batch load failed: {repr(e)}")
-        else:
-            self.update_feedback(
-                status_message=f"Loaded {self.images_table.rowCount()} images in list",
-                use_status_as_log=True,
-            )
-        finally:
-            self.global_progress_stop()
-            self.end_edit_image_table()
-
-    def on_cell_double_clicked(self, row, column):
-        if not self._updating_image_table:
-            self.run_process(wrapper=self._src_image_wrapper)
-
-    def on_current_cell_changed(self, currentRow, currentColumn, previousRow, previousColumn):
-        if not self._updating_image_table and (previousRow != currentRow):
-            tag_cl_idx = self.get_column_index_from_name(self.images_table, "luid")
-            luid_ = self.images_table.item(currentRow, tag_cl_idx).text()
-            self.select_image_from_luid(luid_)
 
     def cb_available_outputs_current_index_changed(self, idx):
         if not self._updating_available_images and (0 <= idx < self.cb_available_outputs.count()):
@@ -4099,13 +3823,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
 
         def add_nodes(root_name: str, item_list: list, is_expand_root: bool):
-            root_ = QTreeWidgetItem(
-                self.tv_queued_tools,
-                [
-                    f"{root_name} "
-                    f"({len(item_list[0].gizmos) if (len(item_list) > 0) and isinstance(item_list[0], IptParamHolder) else len(item_list)})"
-                ],
+            rc = (
+                len(item_list[0].gizmos)
+                if (len(item_list) > 0) and isinstance(item_list[0], IptParamHolder)
+                else len(item_list)
             )
+            root_ = QTreeWidgetItem(self.tv_queued_tools, [f"{root_name} ({rc})"])
             root_.setExpanded(is_expand_root)
             item_count = len(item_list)
             for j, item in enumerate(item_list):
@@ -4283,11 +4006,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load pipeline",
-            directory=self._pipelines_folder,
+            directory=self.stored_folders["pipeline"],
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
-            self._pipelines_folder = os.path.join(os.path.dirname(file_name_), "")
+            self.stored_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
             self.on_bt_clear_pipeline()
             try:
                 script_ = IptScriptGenerator.load(file_name_)
@@ -4339,11 +4062,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save pipeline",
-            directory=self._pipelines_folder,
+            directory=self.stored_folders["pipeline"],
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
-            self._pipelines_folder = os.path.join(os.path.dirname(file_name_), "")
+            self.stored_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
             if not file_name_.lower().endswith(".tipp") and not file_name_.lower().endswith(
                 ".json"
             ):
@@ -4360,11 +4083,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save script",
-            directory=self._scripts_folder,
+            directory=self.stored_folders["script"],
             filter="Python script (*.py)",
         )[0]
         if file_name_:
-            self._scripts_folder = os.path.join(os.path.dirname(file_name_), "")
+            self.stored_folders["script"] = os.path.join(os.path.dirname(file_name_), "")
             res = self.script_generator.save_as_script(file_name_)
             if res is None:
                 self.update_feedback(
@@ -4445,14 +4168,15 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     status_message="Widget initialization: unknown param", use_status_as_log=True
                 )
                 return None, None
-        elif isinstance(param.allowed_values, tuple):
-            if param.allowed_values == (0, 1):
+        elif isinstance(param.allowed_values, tuple) or isinstance(param.allowed_values, list):
+            pa = tuple(param.allowed_values)
+            if pa == (0, 1):
                 label = None
                 widget = QCheckBoxWthParam(
                     tool=tool, param=param, label=label, allow_real_time=allow_real_time
                 )
                 call_back = self.on_process_param_changed_chk
-            elif len(param.allowed_values) == 2:
+            elif len(pa) == 2:
                 label = QLabel(param.desc)
                 if param.widget_type == "slider":
                     widget = QSliderWthParam(
@@ -4578,12 +4302,18 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         widget.param.value = new_text
         self.do_after_process_param_changed(widget=widget)
 
+    def get_query_items(self, column: str, **kwargs):
+        items = self.query_current_database(
+            command="SELECT DISTINCT",
+            columns=column,
+            additional=f"ORDER BY {column} ASC",
+            **kwargs,
+        )
+        return [item[0] for item in items]
+
     def fill_exp_combo_box(self):
         self.clear_exp_combo_box()
-        ret = self.query_current_database(
-            command="SELECT DISTINCT", columns="Experiment", additional="ORDER BY Experiment ASC"
-        )
-        exp_list = [item[0] for item in ret]
+        exp_list = self.get_query_items(column="Experiment")
         self.chk_experiment.setText(f"Experiment ({len(exp_list)}): ")
         self.cb_experiment.addItems(exp_list)
         self.cb_experiment.setEnabled(self.cb_experiment.count() > 1)
@@ -4596,13 +4326,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def fill_plant_combo_box(self):
         self.clear_plant_combo_box()
-        ret = self.query_current_database(
-            command="SELECT DISTINCT",
-            columns="Plant",
-            additional="ORDER BY Plant ASC",
-            experiment=self._current_exp,
-        )
-        plant_lst = [item[0] for item in ret]
+        plant_lst = self.get_query_items(column="Plant", experiment=self._current_exp)
         self.chk_plant.setText(f"Plant ({len(plant_lst)}): ")
         self.cb_plant.addItems(sorted(plant_lst, key=lambda x: natural_keys(x)))
         self.cb_plant.setEnabled(self.cb_plant.count() > 1)
@@ -4615,18 +4339,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def fill_date_combo_box(self):
         self.clear_date_combo_box()
-        ret = self.query_current_database(
-            command="SELECT DISTINCT",
-            columns="Date",
-            additional="ORDER BY Date ASC",
-            experiment=self._current_exp,
-            plant=self._current_plant,
-        )
         date_list = [
-            item[0].replace("-", "/")
-            if isinstance(item[0], str)
-            else item[0].strftime(_DATE_FORMAT)
-            for item in ret
+            item.replace("-", "/") if isinstance(item, str) else item.strftime(_DATE_FORMAT)
+            for item in self.get_query_items(
+                column="Date", experiment=self._current_exp, plant=self._current_plant
+            )
         ]
         self.chk_date.setText(f"Date ({len(date_list)}): ")
         self.cb_date.addItems(date_list)
@@ -4640,15 +4357,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def fill_camera_combo_box(self):
         self.clear_camera_combo_box()
-        ret = self.query_current_database(
-            command="SELECT DISTINCT",
-            columns="Camera",
-            additional="ORDER BY Camera ASC",
+        cam_list = self.get_query_items(
+            column="Camera",
             experiment=self._current_exp,
             plant=self._current_plant,
             date=self._current_date,
         )
-        cam_list = [item[0] for item in ret]
         self.chk_camera.setText(f"Camera ({len(cam_list)}): ")
         self.cb_camera.addItems(cam_list)
         self.cb_camera.setEnabled(self.cb_camera.count() > 1)
@@ -4661,16 +4375,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def fill_view_option_combo_box(self):
         self.clear_view_option_combo_box()
-        ret = self.query_current_database(
-            command="SELECT DISTINCT",
-            columns="view_option",
-            additional="ORDER BY view_option ASC",
+        opt_lst = self.get_query_items(
+            column="view_option",
             experiment=self._current_exp,
             plant=self._current_plant,
             date=self._current_date,
             camera=self._current_camera,
         )
-        opt_lst = [item[0] for item in ret]
         self.chk_view_option.setText(f"View option ({len(opt_lst)}): ")
         self.cb_view_option.addItems(sorted(opt_lst, key=lambda x: natural_keys(x)))
         self.cb_view_option.setEnabled(self.cb_view_option.count() > 1)
@@ -4684,19 +4395,16 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def fill_time_combo_box(self):
         try:
             self.clear_time_combo_box()
-            ret = self.query_current_database(
-                command="SELECT DISTINCT",
-                columns="Time",
-                additional="ORDER BY Time ASC",
-                experiment=self._current_exp,
-                plant=self._current_plant,
-                date=self._current_date,
-                camera=self._current_camera,
-                view_option=self._current_view_option,
-            )
             time_lst = [
-                item[0] if isinstance(item[0], str) else item[0].strftime(_TIME_FORMAT)
-                for item in ret
+                item if isinstance(item, str) else item.strftime(_TIME_FORMAT)
+                for item in self.get_query_items(
+                    column="Time",
+                    experiment=self._current_exp,
+                    plant=self._current_plant,
+                    date=self._current_date,
+                    camera=self._current_camera,
+                    view_option=self._current_view_option,
+                )
             ]
             self.chk_time.setText(f"Time ({len(time_lst)}): ")
             self.cb_time.addItems(time_lst)
@@ -4785,11 +4493,14 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             return ""
 
     def select_image_from_luid(self, luid):
-        data = self.query_one_current_database(
-            command="SELECT",
-            columns="Experiment, Plant, Date, Camera, view_option, Time",
-            Luid=luid,
-        )
+        if not luid:
+            data = None
+        else:
+            data = self.query_one_current_database(
+                command="SELECT",
+                columns="Experiment, Plant, Date, Camera, view_option, Time",
+                Luid=luid,
+            )
         if data is not None:
             self._updating_combo_boxes = True
             try:
@@ -4820,24 +4531,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         )
 
     def on_action_enable_annotations_checked(self):
-        table = self.images_table
         try:
-            tag_idx = self.get_column_index_from_name(table, "luid")
-            exp_idx = self.get_column_index_from_name(table, "experiment")
-            if self.actionEnable_annotations.isChecked():
-                for row_ in range(table.rowCount()):
-                    with OrmAnnotationsDbWrapper(table.item(row_, exp_idx).text()) as session_:
-                        self.update_entry_color(
-                            row_,
-                            session_.query(OrmAnnotation)
-                            .filter(
-                                OrmAnnotation.idk == self.images_table.item(row_, tag_idx).text()
-                            )
-                            .first(),
-                        )
-            else:
-                for row_ in range(table.rowCount()):
-                    self.update_entry_color(row_, None)
+            id = self.tv_image_browser.itemDelegate()
+            if id is None:
+                return
+            id.use_annotations = self.actionEnable_annotations.isChecked()
         except Exception as e:
             self.log_exception(f"Failed to add annotation data: {repr(e)}")
 
@@ -4847,6 +4545,62 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def on_action_use_pipeline_cache(self):
         self.use_pipeline_cache = self.action_use_pipeline_cache.isChecked()
         self.script_generator.use_cache = self.use_pipeline_cache
+
+    def on_action_save_pipeline_processor_state(self):
+        model = self.get_image_model()
+        if (model is None) or (model.rowCount() == 0):
+            self.update_feedback(
+                status_message="Pipeline state save: no images",
+                log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no images",
+            )
+            return
+        if (self.script_generator is not None) and not self.script_generator.is_empty:
+            script_ = self.script_generator.copy()
+        else:
+            self.update_feedback(
+                status_message="Pipeline state save: no script",
+                log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no script",
+            )
+            return
+        file_name_ = QFileDialog.getSaveFileName(
+            parent=self,
+            caption="Save pipeline processor state",
+            directory=self.stored_folders["pp_state"],
+            filter="JSON(*.json)",
+        )[0]
+        if file_name_:
+            self.stored_folders["pp_state"] = os.path.join(os.path.dirname(file_name_), "")
+            append_experience_name = (
+                model.get_cell_data(row_number=0, column_name="Experiment")
+                if self.cb_pp_append_experience_name.isChecked()
+                else ""
+            )
+            database_data = (
+                None if self.current_database is None else self.current_database.build_data
+            )
+            with open(file_name_, "w") as jw:
+                json.dump(
+                    dict(
+                        output_folder=self.le_pp_output_folder.text(),
+                        csv_file_name=self.edt_csv_file_name.text(),
+                        overwrite_existing=self.cb_pp_overwrite.isChecked(),
+                        append_experience_name=append_experience_name,
+                        append_time_stamp=self.cb_pp_append_timestamp_to_output_folder.isChecked(),
+                        script=script_,
+                        generate_series_id=self.cb_pp_generate_series_id.isChecked(),
+                        series_id_time_delta=self.sp_pp_time_delta.value(),
+                        data_frame=model.images.to_dict(orient="list"),
+                        database_data=database_data,
+                        thread_count=self.sl_pp_thread_count.value()
+                    ),
+                    jw,
+                    indent=2,
+                    default=encode_ipt,
+                )
+                self.update_feedback(
+                    status_message="Pipeline processor state saved",
+                    log_message=f'Pipeline state saved to: "{file_name_}"',
+                )
 
     def select_tool_from_name(self, tool_name):
         lst = self._ip_tools_holder.ipt_list
@@ -4879,18 +4633,15 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         if value != self._file_name:
             try:
                 # Backup annotation
-                if self.actionEnable_annotations.isChecked() and (
-                    self._src_image_wrapper is not None
-                ):
-                    plain_text_ = self.te_annotations.toPlainText()
-                    plain_auto_text_ = self.tb_auto_annotation.toPlainText()
-                    if plain_text_ or plain_auto_text_:
-                        self.save_annotation(
-                            self._src_image_wrapper,
-                            self._src_image_wrapper.experiment,
+                if self._src_image_wrapper is not None:
+                    id = self.get_image_delegate()
+                    if id is not None:
+                        id.set_annotation(
+                            luid=self._src_image_wrapper.luid,
+                            experiment=self._src_image_wrapper.experiment,
                             kind=self.cb_annotation_level.currentText(),
-                            text=plain_text_,
-                            auto_text=plain_auto_text_,
+                            text=self.te_annotations.toPlainText(),
+                            auto_text=self.tb_auto_annotation.toPlainText(),
                         )
 
                 if os.path.isfile(value):
@@ -5134,28 +4885,29 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         use_status_as_log=True,
                     )
             self._updating_combo_boxes = True
-            try:
-                self.set_enabled_database_controls(True)
-                if reset_selection:
-                    self._current_exp = ""
-                    self._current_plant = ""
-                    self._current_date = dt.now().date()
-                    self._current_time = dt.now().time()
-                    self._current_camera = ""
-                    self._current_view_option = ""
-                self.fill_exp_combo_box()
-                self.fill_plant_combo_box()
-                self.fill_date_combo_box()
-                self.fill_camera_combo_box()
-                self.fill_view_option_combo_box()
-                self.fill_time_combo_box()
-                self.file_name = self.current_selected_image_path()
-            except Exception as e:
-                self.log_exception(f"Failed to select plant because: {repr(e)}")
-            else:
-                pass
-            finally:
-                self._updating_combo_boxes = False
+            if not self._initializing:
+                try:
+                    self.set_enabled_database_controls(True)
+                    if reset_selection:
+                        self._current_exp = ""
+                        self._current_plant = ""
+                        self._current_date = dt.now().date()
+                        self._current_time = dt.now().time()
+                        self._current_camera = ""
+                        self._current_view_option = ""
+                    self.fill_exp_combo_box()
+                    self.fill_plant_combo_box()
+                    self.fill_date_combo_box()
+                    self.fill_camera_combo_box()
+                    self.fill_view_option_combo_box()
+                    self.fill_time_combo_box()
+                    self.file_name = self.current_selected_image_path()
+                except Exception as e:
+                    self.log_exception(f"Failed to select plant because: {repr(e)}")
+                else:
+                    pass
+                finally:
+                    self._updating_combo_boxes = False
 
 
 if __name__ == "__main__":

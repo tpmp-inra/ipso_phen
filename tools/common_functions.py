@@ -66,16 +66,14 @@ def print_progress_bar(iteration, total, prefix='', suffix='', bar_length=50, fi
         sys.stdout.flush()
 
 
-def open_file(filename:[tuple, str]) -> None:
+def open_file(filename: [tuple, str]) -> None:
     if isinstance(filename, tuple):
         filename = os.path.join(*filename)
     if sys.platform == "win32":
         os.startfile(filename)
     else:
         opener = "open" if sys.platform == "darwin" else "xdg-open"
-        subprocess.call(
-           [opener, filename] 
-        )       
+        subprocess.call([opener, filename])       
 
 def make_safe_name(text):
     ret = ''.join(c if c not in '*"/\[]:;|=,<>' else '_' for c in text)

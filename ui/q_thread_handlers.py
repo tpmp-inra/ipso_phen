@@ -46,6 +46,7 @@ class IpsoRunnable(QRunnable):
         self.file_data = kwargs.get("file_data", {})
         self.data_base = kwargs.get("database", None)
         self.batch_process = kwargs.get("batch_process", False)
+        self.scale_factor = kwargs.get("scale_factor", 1)
 
         self.ipt = kwargs.get("ipt", None)
         self.exec_param = kwargs.get("exec_param", None)
@@ -82,6 +83,7 @@ class IpsoRunnable(QRunnable):
                     threshold_only=False,
                 ),
                 data_base=self.data_base.copy(),
+                scale_factor=self.scale_factor
             )
             wrapper.lock = True
             if (self.ipt is not None) and (self.script is not None):
@@ -306,10 +308,18 @@ class IpsoGroupProcessor(QRunnable):
         super().__init__()
         # Signals
         self.signals_holder = IpsoGroupProcessorSignals()
-        self.signals_holder.on_ended.connect(kwargs.get("on_ended", None))
-        self.signals_holder.on_log_failure.connect(kwargs.get("on_log_failure", None))
-        self.signals_holder.on_log_str.connect(kwargs.get("on_log_str", None))
-        self.signals_holder.on_image_ready.connect(kwargs.get("on_image_ready", None))
+        on_ended = kwargs.get("on_ended", None)
+        if on_ended is not None:
+            self.signals_holder.on_ended.connect(on_ended)
+        on_log_failure = kwargs.get("on_log_failure", None)
+        if on_log_failure is not None:
+            self.signals_holder.on_log_failure.connect(on_log_failure)
+        on_log_str = kwargs.get("on_log_str", None)
+        if on_log_str is not None:
+            self.signals_holder.on_log_str.connect(on_log_str)
+        on_image_ready = kwargs.get("on_image_ready", None)
+        if on_image_ready is not None:
+            self.signals_holder.on_image_ready.connect(on_image_ready)
 
         self.file_path = kwargs.get("file_path")
         self.database = kwargs.get("database")
@@ -561,7 +571,7 @@ class IpsoMassRunner(QRunnable):
             self.signals_holder.on_started.emit(launch_state)
 
     def is_continue(self):
-        self._is_continue = not self.check_stop()
+        self._is_continue = (self.check_stop is None) or not self.check_stop()
         if not self._is_continue and not self._reported_stop:
             self.signals_holder.on_feedback_log_str.emit(
                 "Stopping mass process, please wait...", "", True
@@ -626,7 +636,7 @@ class IpsoCsvBuilder(QRunnable):
         in_time = timer()
         if in_time - self._last_process_events > 1:
             self._last_process_events = in_time
-            self._is_continue = not self.check_stop()
+            self._is_continue = self.check_stop is None or not self.check_stop()
             if not self._is_continue and not self._reported_stop:
                 self.signals_holder.on_feedback_log_str.emit(
                     "Stopping mass process, please wait...", "", True
@@ -651,11 +661,7 @@ class IpsoCsvBuilder(QRunnable):
         self.signals_holder.on_start.emit()
         try:
             # Build text merged file
-            if (
-                self.pipeline.options.write_result_text
-                and not self.pipeline.options.threshold_only
-            ):
-                # df = pd.read_csv(os.path.join(self.pipeline.options.dst_path, self.root_csv_name + '.csv'))
+            if (self.pipeline.options.write_result_text and not self.pipeline.options.threshold_only):
                 df = self.pipeline.merge_result_files(csv_file_name=self.root_csv_name + ".csv")
             if df is None:
                 return

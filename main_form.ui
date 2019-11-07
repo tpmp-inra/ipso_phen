@@ -211,7 +211,7 @@
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0">
+     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0">
       <item>
        <widget class="QLabel" name="lbl_selection">
         <property name="font">
@@ -264,62 +264,6 @@
        <widget class="QSpinBox" name="sp_add_random_count">
         <property name="maximum">
          <number>10000</number>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::Fixed</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>20</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="bt_save_image_list">
-        <property name="text">
-         <string>Save as:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="le_selection_name">
-        <property name="maximumSize">
-         <size>
-          <width>240</width>
-          <height>16777215</height>
-         </size>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="cb_saved_batches">
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToContents</enum>
-        </property>
-        <item>
-         <property name="text">
-          <string>-------------------</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
-       <widget class="QToolButton" name="bt_delete_saved_list">
-        <property name="text">
-         <string>...</string>
-        </property>
-        <property name="icon">
-         <iconset resource="main_form.qrc">
-          <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
         </property>
        </widget>
       </item>
@@ -393,106 +337,19 @@
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
-                 <widget class="QTableWidget" name="images_table">
-                  <property name="sizePolicy">
-                   <sizepolicy hsizetype="Ignored" vsizetype="Expanding">
-                    <horstretch>0</horstretch>
-                    <verstretch>0</verstretch>
-                   </sizepolicy>
-                  </property>
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>100</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>16777215</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="editTriggers">
-                   <set>QAbstractItemView::NoEditTriggers</set>
-                  </property>
-                  <property name="dragDropOverwriteMode">
-                   <bool>false</bool>
-                  </property>
+                 <widget class="QTableView" name="tv_image_browser">
                   <property name="alternatingRowColors">
-                   <bool>true</bool>
-                  </property>
-                  <property name="selectionMode">
-                   <enum>QAbstractItemView::SingleSelection</enum>
+                   <bool>false</bool>
                   </property>
                   <property name="selectionBehavior">
                    <enum>QAbstractItemView::SelectRows</enum>
                   </property>
-                  <property name="textElideMode">
-                   <enum>Qt::ElideMiddle</enum>
+                  <property name="horizontalScrollMode">
+                   <enum>QAbstractItemView::ScrollPerPixel</enum>
                   </property>
-                  <property name="gridStyle">
-                   <enum>Qt::SolidLine</enum>
-                  </property>
-                  <property name="sortingEnabled">
-                   <bool>true</bool>
-                  </property>
-                  <attribute name="horizontalHeaderDefaultSectionSize">
-                   <number>70</number>
-                  </attribute>
-                  <attribute name="horizontalHeaderHighlightSections">
-                   <bool>false</bool>
-                  </attribute>
-                  <attribute name="horizontalHeaderStretchLastSection">
-                   <bool>false</bool>
-                  </attribute>
                   <attribute name="verticalHeaderShowSortIndicator" stdset="0">
-                   <bool>true</bool>
+                   <bool>false</bool>
                   </attribute>
-                  <column>
-                   <property name="text">
-                    <string>Experiment</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Plant</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Date</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Camera</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>View option</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Time</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>date_time</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Path</string>
-                   </property>
-                  </column>
-                  <column>
-                   <property name="text">
-                    <string>Luid</string>
-                   </property>
-                  </column>
                  </widget>
                 </item>
                </layout>
@@ -688,7 +545,7 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>799</width>
+                          <width>810</width>
                           <height>154</height>
                          </rect>
                         </property>
@@ -738,26 +595,6 @@
                      <string>Last batch</string>
                     </attribute>
                     <layout class="QGridLayout" name="gridLayout_9">
-                     <item row="0" column="0" colspan="5">
-                      <widget class="QTextBrowser" name="txtb_last_batch"/>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QPushButton" name="bt_save_batch">
-                       <property name="text">
-                        <string>Save batch</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="0">
-                      <widget class="QPushButton" name="bt_set_batch_as_selection">
-                       <property name="text">
-                        <string>Set as selection</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="3">
-                      <widget class="QLineEdit" name="le_batch_name"/>
-                     </item>
                      <item row="1" column="1">
                       <spacer name="horizontalSpacer_10">
                        <property name="orientation">
@@ -770,6 +607,19 @@
                         </size>
                        </property>
                       </spacer>
+                     </item>
+                     <item row="0" column="0" colspan="4">
+                      <widget class="QTextBrowser" name="txtb_last_batch"/>
+                     </item>
+                     <item row="1" column="2">
+                      <widget class="QLineEdit" name="le_batch_name"/>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QPushButton" name="bt_set_batch_as_selection">
+                       <property name="text">
+                        <string>Set as selection</string>
+                       </property>
+                      </widget>
                      </item>
                     </layout>
                    </widget>
@@ -798,21 +648,7 @@
                      <string>Statistics</string>
                     </attribute>
                     <layout class="QGridLayout" name="gridLayout_8">
-                     <item row="1" column="0">
-                      <widget class="QPushButton" name="bt_update_selection_stats">
-                       <property name="text">
-                        <string>Build selection statistics</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QPushButton" name="bt_clear_statistics">
-                       <property name="text">
-                        <string>Clear</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="0" colspan="3">
+                     <item row="0" column="0" colspan="4">
                       <widget class="QTextBrowser" name="lv_stats">
                        <property name="font">
                         <font>
@@ -821,7 +657,21 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="1" column="1">
+                     <item row="1" column="0">
+                      <widget class="QPushButton" name="bt_update_selection_stats">
+                       <property name="text">
+                        <string>Build selection statistics</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="3">
+                      <widget class="QPushButton" name="bt_clear_statistics">
+                       <property name="text">
+                        <string>Clear</string>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="2">
                       <spacer name="horizontalSpacer_5">
                        <property name="orientation">
                         <enum>Qt::Horizontal</enum>
@@ -833,6 +683,13 @@
                         </size>
                        </property>
                       </spacer>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QCheckBox" name="cb_stat_include_annotations">
+                       <property name="text">
+                        <string>Include annotations (much slower)</string>
+                       </property>
+                      </widget>
                      </item>
                     </layout>
                    </widget>
@@ -928,7 +785,7 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>797</width>
+                           <width>808</width>
                            <height>70</height>
                           </rect>
                          </property>
@@ -1710,6 +1567,9 @@
              <property name="selectionMode">
               <enum>QAbstractItemView::SingleSelection</enum>
              </property>
+             <attribute name="horizontalHeaderShowSortIndicator" stdset="0">
+              <bool>true</bool>
+             </attribute>
             </widget>
             <widget class="QTableView" name="tb_de_dataframe_info">
              <property name="editTriggers">
@@ -1759,12 +1619,22 @@
       <string>Databases</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuImage_lists">
+     <property name="title">
+      <string>Image lists</string>
+     </property>
+     <addaction name="action_save_image_list"/>
+     <addaction name="action_load_image_list"/>
+    </widget>
     <addaction name="act_parse_folder_memory"/>
     <addaction name="mnu_recent_parsed_folders"/>
     <addaction name="mnu_connect_to_db"/>
+    <addaction name="menuImage_lists"/>
     <addaction name="separator"/>
     <addaction name="actionSave_selected_image"/>
     <addaction name="actionSave_all_images"/>
+    <addaction name="separator"/>
+    <addaction name="action_save_pipeline_processor_state"/>
     <addaction name="separator"/>
     <addaction name="action_build_video_from_images"/>
     <addaction name="separator"/>
@@ -1851,10 +1721,29 @@
      <addaction name="action_use_multithreading"/>
      <addaction name="action_use_pipeline_cache"/>
     </widget>
+    <widget class="QMenu" name="menuPipeline_builder">
+     <property name="title">
+      <string>Pipeline builder</string>
+     </property>
+     <widget class="QMenu" name="menu_source_image_scale_factor">
+      <property name="title">
+       <string>Source image down scale factor</string>
+      </property>
+      <addaction name="act_settings_sir_keep"/>
+      <addaction name="act_settings_sir_2x"/>
+      <addaction name="act_settings_sir_3x"/>
+      <addaction name="act_settings_sir_4x"/>
+      <addaction name="act_settings_sir_5x"/>
+      <addaction name="act_settings_sir_6x"/>
+     </widget>
+     <addaction name="menu_source_image_scale_factor"/>
+    </widget>
     <addaction name="actionEnable_annotations"/>
     <addaction name="actionEnable_log"/>
     <addaction name="menuVideo"/>
     <addaction name="menu_theme"/>
+    <addaction name="separator"/>
+    <addaction name="menuPipeline_builder"/>
     <addaction name="separator"/>
     <addaction name="menuCode_generation_mode"/>
     <addaction name="separator"/>
@@ -2659,6 +2548,72 @@
   <action name="action_de_save_csv">
    <property name="text">
     <string>Save CSV...</string>
+   </property>
+  </action>
+  <action name="action_save_image_list">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="action_load_image_list">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="act_settings_sir_keep">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Keep original</string>
+   </property>
+  </action>
+  <action name="act_settings_sir_2x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2x</string>
+   </property>
+  </action>
+  <action name="act_settings_sir_3x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>3x</string>
+   </property>
+  </action>
+  <action name="act_settings_sir_4x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>4x</string>
+   </property>
+  </action>
+  <action name="act_settings_sir_5x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>5x</string>
+   </property>
+  </action>
+  <action name="act_settings_sir_6x">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>6x</string>
+   </property>
+  </action>
+  <action name="action_save_pipeline_processor_state">
+   <property name="text">
+    <string>Save pipeline processor state</string>
    </property>
   </action>
  </widget>

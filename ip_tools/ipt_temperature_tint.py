@@ -2,10 +2,15 @@ import numpy as np
 import cv2
 
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import TOOL_GROUP_EXPOSURE_FIXING_STR, TOOL_GROUP_PRE_PROCESSING_STR
+from ip_base.ip_common import (
+    TOOL_GROUP_EXPOSURE_FIXING_STR,
+    TOOL_GROUP_PRE_PROCESSING_STR,
+    C_FUCHSIA,
+    C_ORANGE,
+)
 
 
-class IptStub(IptBase):
+class IptTemperatureTint(IptBase):
     def build_params(self):
         self.add_checkbox(
             name="enabled",
@@ -37,6 +42,7 @@ class IptStub(IptBase):
             maximum=100,
             hint="Adjust image tint",
         )
+        self.add_exposure_viewer_switch()
 
     def process_wrapper(self, **kwargs):
         """
@@ -86,6 +92,12 @@ class IptStub(IptBase):
                 else:
                     wrapper.error_holder.add_error(f'Failed : unknown clip_method "{clip_method}"')
                     return
+
+                if self.get_value_of("show_over_under") == 1:
+                    mask_over = cv2.inRange(self.result, (255, 255, 255), (255, 255, 255))
+                    mask_under = cv2.inRange(self.result, (0, 0, 0), (0, 0, 0))
+                    self.result[mask_over > 0] = C_FUCHSIA
+                    self.result[mask_under > 0] = C_ORANGE
 
                 wrapper.store_image(self.result, "temp_tint")
 

@@ -334,14 +334,7 @@ class ImageWrapper:
 
     @property
     def camera(self):
-        if self.is_vis:
-            return "vis"
-        elif self.is_fluo:
-            return "fluo"
-        elif self.is_nir:
-            return "nir"
-        else:
-            return self._file_handler.camera
+        return self._file_handler.camera
 
     @property
     def view_option(self):

@@ -379,17 +379,21 @@ def build_color_steps(
         ]
 
 
-def ensure_odd(i: int) -> int:
+def ensure_odd(i: int, min_val: [None, int] = None, max_val: [None, int] = None) -> int:
     """Transforms an odd number into pair number by adding one
-    
+
     Arguments:
         i {int} -- number
-    
+
     Returns:
         int -- Odd number
     """
     if (i > 0) and (i % 2 == 0):
         i += 1
+    if min_val is not None:
+        return max(i, min_val)
+    if max_val is not None:
+        return min(i, max_val)
     return i
 
 
@@ -421,7 +425,7 @@ def resize_image(src_img, **kwargs):
         n_w = int(w)
         n_h = int(h)
 
-    if len(src_img.shape) == 2:
+    if (len(src_img.shape) == 2) and kwargs.get('output_as_bgr', True):
         src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
 
     src_img = cv2.resize(src_img, (n_w, n_h), interpolation=cv2.INTER_CUBIC)

@@ -59,3 +59,7 @@ class FileHandlerPhenopsys(FileHandlerBase):
     @property
     def is_msp(self):
         return ("msp" in self.camera) or ("msp" in self.view_option)
+
+    @property
+    def is_vis(self):
+        return False

@@ -57,7 +57,7 @@ class ImageListHolder:
 class AbstractImageProcessor(ImageWrapper):
     process_dict = None
 
-    def __init__(self, file_path: str, options: ArgWrapper = None, database=None) -> None:
+    def __init__(self, file_path: str, options: ArgWrapper = None, database=None, scale_factor=1) -> None:
         super().__init__(file_path)
 
         if options is None:
@@ -66,6 +66,7 @@ class AbstractImageProcessor(ImageWrapper):
             self._options = dict(options.__dict__)
 
         self.target_database = database
+        self.scale_factor = scale_factor
 
         self._source_image = None
         self._current_image = None
@@ -148,6 +149,14 @@ class AbstractImageProcessor(ImageWrapper):
 
         if self.good_image:
             src_img = self._fix_source_image(src_img)
+            if self.scale_factor != 1:
+                src_img = ipc.resize_image(
+                    src_img=src_img,
+                    width=round(src_img.shape[1] * self.scale_factor),
+                    height=round(src_img.shape[0] * self.scale_factor),
+                    keep_aspect_ratio=False,
+                    output_as_bgr=False
+                )
 
         if self.good_image and store_source:
             self.store_image(src_img, "source")
@@ -2697,7 +2706,7 @@ class AbstractImageProcessor(ImageWrapper):
                 keep_roi_as_rest.left : keep_roi_as_rest.right,
             ]
             if dbg_str:
-                self.store_image(img, dbg_str)
+                self.store_image(img_, dbg_str)
 
         return img_
 
@@ -3054,6 +3063,8 @@ class AbstractImageProcessor(ImageWrapper):
             dbg_str = "{}_normalized".format(dbg_str)
         if median_filter_size > 1:
             dbg_str = "{}_median_{}".format(dbg_str, median_filter_size)
+
+        min_t, max_t = min(min_t, max_t), max(min_t, max_t)
 
         mask = cv2.inRange(c, min_t, max_t)
         stored_string = "{}_min_{}_max{}".format(dbg_str, min_t, max_t)
