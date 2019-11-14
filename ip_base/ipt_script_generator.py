@@ -136,9 +136,9 @@ class SettingsHolder(IptParamHolder):
 
 class IptScriptGenerator(object):
     def __init__(self, **kwargs):
-        self._ip_operators = kwargs.get('_ip_operators', [])
-        self._target_data_base = kwargs.get('_target_data_base', None)
-        self._settings = kwargs.get('_settings', SettingsHolder())
+        self._ip_operators = kwargs.get("_ip_operators", [])
+        self._target_data_base = kwargs.get("_target_data_base", None)
+        self._settings = kwargs.get("_settings", SettingsHolder())
         self._last_wrapper_luid = ""
         self.use_cache = kwargs.get("use_cache", True)
 
@@ -660,7 +660,7 @@ class IptScriptGenerator(object):
                     if len(enforcers_list) > 0:
                         for i, enforcer in enumerate(enforcers_list):
                             mask = wrapper.mask.copy()
-                            mask = wrapper.keep_roi(mask, enforcer)
+                            mask = enforcer.keep(mask)
                             partial_ok = np.count_nonzero(mask) > 0
                             res = partial_ok and res
                             if partial_ok:
@@ -720,33 +720,59 @@ class IptScriptGenerator(object):
                 current_step = self.add_progress(
                     progress_callback, current_step, total_steps, "Checked mask enforcers", wrapper
                 )
+            else:
+                handled_rois = ["keep", "delete", "erode", "dilate", "open", "close"]
+                rois_list = [
+                    roi
+                    for roi in wrapper.rois_list
+                    if roi.tag in handled_rois and not (roi.target and roi.target != "none")
+                ]
+                wrapper.store_image(
+                    image=wrapper.draw_rois(
+                        img=wrapper.draw_image(
+                            src_image=wrapper.retrieve_stored_image("exposure_fixed"),
+                            src_mask=wrapper.mask,
+                            foreground="source",
+                            background="bw",
+                        ),
+                        rois=rois_list,
+                    ),
+                    text="used_rois",
+                )
+                wrapper.current_image = wrapper.apply_roi_list(
+                    img=wrapper.current_image, rois=rois_list, print_dbg=self.display_images
+                )
+                current_step = self.add_progress(
+                    progress_callback, current_step, total_steps, "Applied ROIs", wrapper
+                )
 
-                # Extract features
-                if (
-                    res
-                    and not self.threshold_only
-                    and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0
-                ):
-                    wrapper.current_image = wrapper.retrieve_stored_image("exposure_fixed")
-                    wrapper.csv_data_holder = AbstractCsvWriter()
-                    for tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
-                        current_data, use_last_result = self.process_tool(
-                            tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result
-                        )
-                        if isinstance(current_data, dict):
-                            wrapper.csv_data_holder.data_list.update(current_data)
-                        current_step = self.add_progress(
-                            progress_callback,
-                            current_step,
-                            total_steps,
-                            "Extracting features",
-                            wrapper,
-                        )
-                    res = len(wrapper.csv_data_holder.data_list) > 0
+            # Extract features
+            if (
+                res
+                and not self.threshold_only
+                and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0
+            ):
+                wrapper.current_image = wrapper.retrieve_stored_image("exposure_fixed")
+                wrapper.csv_data_holder = AbstractCsvWriter()
+                for tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
+                    current_data, use_last_result = self.process_tool(
+                        tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result
+                    )
+                    if isinstance(current_data, dict):
+                        wrapper.csv_data_holder.data_list.update(current_data)
+                    current_step = self.add_progress(
+                        progress_callback,
+                        current_step,
+                        total_steps,
+                        "Extracting features",
+                        wrapper,
+                    )
+                res = len(wrapper.csv_data_holder.data_list) > 0
 
-                if self.build_mosaic:
-                    old_mosaic = wrapper.store_mosaic
-                    wrapper.store_mosaic = "result"
+            if self.build_mosaic:
+                old_mosaic = wrapper.store_mosaic
+                wrapper.store_mosaic = "result"
+                if wrapper.mask is not None:
                     wrapper.mosaic_data = np.array(
                         [
                             ["source", "exposure_fixed", "pre_processed_image"],
@@ -769,8 +795,10 @@ class IptScriptGenerator(object):
                             ],
                         ]
                     )
-                    wrapper.print_mosaic(padding=(-4, -4, -4, -4))
-                    wrapper.store_mosaic = old_mosaic
+                else:
+                    wrapper.mosaic_data = np.array(["source", "exposure_fixed", "current_image"])
+                wrapper.print_mosaic(padding=(-4, -4, -4, -4))
+                wrapper.store_mosaic = old_mosaic
             else:
                 res = True
 
@@ -1051,7 +1079,7 @@ class IptScriptGenerator(object):
         code_ += ws_ct + "for i, enforcer in enumerate(enforcers_list):\n"
         ws_ct = add_tab(ws_ct)
         code_ += ws_ct + "mask = wrapper.mask.copy()\n"
-        code_ += ws_ct + "mask = wrapper.keep_roi(mask, enforcer)\n"
+        code_ += ws_ct + "mask = enforcer.keep(mask))\n"
         code_ += ws_ct + "partial_ok = np.count_nonzero(mask) > 0\n"
         code_ += ws_ct + "res = partial_ok and res\n"
         code_ += ws_ct + "if partial_ok:\n"

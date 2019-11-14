@@ -5,7 +5,7 @@ from skimage.feature import local_binary_pattern
 
 from ip_base.ipt_abstract import IptBase
 import ip_base.ip_common as ipc
-from tools import shapes
+from tools.regions import RectangleRegion
 
 
 class IptLocalBinaryPatternThreshold(IptBase):
@@ -88,7 +88,7 @@ class IptLocalBinaryPatternThreshold(IptBase):
             if self.get_value_of("enabled") == 1:
                 c = ipc.resize_image(
                     wrapper.get_channel(wrapper.current_image, self.get_value_of("channel")),
-                    target_rect=shapes.Rect.from_coordinates(0, 800, 0, 600),
+                    target_rect=RectangleRegion(width=800, height=600),
                     keep_aspect_ratio=True,
                     output_as_bgr=False,
                 )

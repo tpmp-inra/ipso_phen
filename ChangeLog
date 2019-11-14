@@ -1,6 +1,16 @@
 CHANGES
 =======
 
+* Sem-Ver: feature
+* Sem-Ver: feature
+* Sem-ver: feature
+* Sem-Ver: Feature
+* Sem-ver: bugfix
+* Sem-ver: feature
+* Sem-Ver: bugfix Improved Pipelines documentation
+* Sem-Ver: bugfix Script generator: - Fixed bug on feature extraction - Fixed bug with cache - Added feedbag
+* Sem-Ver: bugfix Fixed typo
+* Sem-Ver: bugfix Updated documentation for X installation
 * Sem-Ver:: bugfix
 * Sem-Ver: feature
 * Update ui\_consts.py

@@ -26,7 +26,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QImage, QPixmap, QBrush, QPen, QPalette, QColor
 
-from tools import shapes
 from ip_base import ip_common as ipc
 from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 

@@ -2,33 +2,32 @@ from ip_base.ip_common import C_LIME, C_RED, C_ORANGE
 from ip_base.ipt_abstract import IptBase
 from ip_tools.ipt_default import IptDefault
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
-from tools import shapes
+from tools.regions import RectangleRegion
 from ip_base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
 
 
 class IptHeliasenQualityControlOld(IptBaseAnalyzer):
-
     def build_params(self):
-        self.add_checkbox(name='threshold_only', desc='Threshold only', default_value=1)
+        self.add_checkbox(name="threshold_only", desc="Threshold only", default_value=1)
         self.add_combobox(
-            name='build_mosaic',
-            desc='Build mosaic',
-            default_value='debug',
-            values=dict(none='none', debug='debug', result='result')
+            name="build_mosaic",
+            desc="Build mosaic",
+            default_value="debug",
+            values=dict(none="none", debug="debug", result="result"),
         )
-        self.add_channel_selector(default_value='l')
+        self.add_channel_selector(default_value="l")
         self.add_combobox(
-            name='horizontal_cleaning_method',
-            desc='Horizontal noise handling method',
-            default_value='mask_data',
-            values=dict(mask_data='Mask data analysis', hough='Hough transformation'),
-            hint='Selects how horizontal noisy lines will be removed'
+            name="horizontal_cleaning_method",
+            desc="Horizontal noise handling method",
+            default_value="mask_data",
+            values=dict(mask_data="Mask data analysis", hough="Hough transformation"),
+            hint="Selects how horizontal noisy lines will be removed",
         )
 
-        self.add_separator('sep_1')
-        self.add_text_output(is_single_line=True, name='error_level', desc='Error level:')
-        self.add_text_output(is_single_line=False, name='report', desc='Quality control:')
-        self.add_table_output(name='csv_output', desc=('variable', 'value'))
+        self.add_separator("sep_1")
+        self.add_text_output(is_single_line=True, name="error_level", desc="Error level:")
+        self.add_text_output(is_single_line=False, name="report", desc="Quality control:")
+        self.add_table_output(name="csv_output", desc=("variable", "value"))
 
     def process_wrapper(self, **kwargs):
         """
@@ -64,13 +63,15 @@ class IptHeliasenQualityControlOld(IptBaseAnalyzer):
                 self.add_value(k, v, True)
 
             # Display the result
-            p = self.find_by_name('csv_output')
-            p.update_output(output_value=output_data, ignore_list=('error_level', 'report'), invert=True)
+            p = self.find_by_name("csv_output")
+            p.update_output(
+                output_value=output_data, ignore_list=("error_level", "report"), invert=True
+            )
 
             self.update_output_from_dict(output_data)
             mosaic = wrapper.build_mosaic()
 
-            err_lvl = output_data.get('error_level', 0)
+            err_lvl = output_data.get("error_level", 0)
             if err_lvl >= 3:
                 colour = C_RED
             elif err_lvl >= 2:
@@ -80,12 +81,18 @@ class IptHeliasenQualityControlOld(IptBaseAnalyzer):
             else:
                 colour = None
             if colour is not None:
-                r = shapes.RectangleOfInterest.from_lwth(
-                    0, wrapper.width, 0, wrapper.height, 'warning', 'none', colour
+                r = RectangleRegion(
+                    left=0,
+                    width=wrapper.width,
+                    top=0,
+                    height=wrapper.height,
+                    name="warning",
+                    tag="none",
+                    color=colour,
                 )
                 r.draw_to(mosaic, 4)
-            text_overlay = [f'{k}: {v}' for k, v in output_data.items()]
-            wrapper.store_image(mosaic, 'mosaic_out', text_overlay='\n'.join(text_overlay))
+            text_overlay = [f"{k}: {v}" for k, v in output_data.items()]
+            wrapper.store_image(mosaic, "mosaic_out", text_overlay="\n".join(text_overlay))
 
             res = True
         except Exception as e:
@@ -99,7 +106,7 @@ class IptHeliasenQualityControlOld(IptBaseAnalyzer):
 
     @property
     def name(self):
-        return 'Heliasen Quality Control (Old)'
+        return "Heliasen Quality Control (Old)"
 
     @property
     def real_time(self):
@@ -107,16 +114,15 @@ class IptHeliasenQualityControlOld(IptBaseAnalyzer):
 
     @property
     def result_name(self):
-        return 'dic'
+        return "dic"
 
     @property
     def description(self):
-        return 'Checks light barrier image quality\n' \
-               'Outputs main error and partial errors\n'
+        return "Checks light barrier image quality\n" "Outputs main error and partial errors\n"
 
     @property
     def output_kind(self):
-        return 'data'
+        return "data"
 
     @property
     def use_case(self):
@@ -124,4 +130,4 @@ class IptHeliasenQualityControlOld(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return 'Heliasen Quality Control.\nChecks light barrier image quality.\nOutputs main error and partial errors.'
+        return "Heliasen Quality Control.\nChecks light barrier image quality.\nOutputs main error and partial errors."

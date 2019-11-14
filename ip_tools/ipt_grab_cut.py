@@ -3,37 +3,37 @@ import numpy as np
 from distutils.version import LooseVersion
 
 from ip_base.ipt_abstract import IptBase
-from tools import shapes
 from ip_base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR, C_BLACK, ensure_odd
 
 
 class IptGrabCut(IptBase):
-
     def build_params(self):
         self.add_roi_selector()
         self.add_spin_box(
-            name='prob_dilate_size',
+            name="prob_dilate_size",
             desc="Size of dilation's kernel",
             default_value=0,
             minimum=0,
             maximum=101,
-            hint=
-            'Size of kernel for the morphology operator applied to grow the source mask to set a probable mask'
+            hint="Size of kernel for the morphology operator applied to grow the source mask to set a probable mask",
         )
         self.add_spin_box(
-            name='sure_erode_size',
+            name="sure_erode_size",
             desc="Size of errode's kernel",
             default_value=0,
             minimum=0,
             maximum=101,
-            hint=
-            'Size of kernel for the morphology operator applied to shrink the source mask to set a sure mask'
+            hint="Size of kernel for the morphology operator applied to shrink the source mask to set a sure mask",
         )
         self.add_color_map_selector()
         self.add_spin_box(
-            name='gc_iter_count', desc='GraphCut iterations allowed', default_value=5, minimum=1, maximum=100
+            name="gc_iter_count",
+            desc="GraphCut iterations allowed",
+            default_value=5,
+            minimum=1,
+            maximum=100,
         )
-        self.add_checkbox(name='build_mosaic', desc='Build mosaic', default_value=0)
+        self.add_checkbox(name="build_mosaic", desc="Build mosaic", default_value=0)
 
     def process_wrapper(self, **kwargs):
         """
@@ -63,14 +63,14 @@ class IptGrabCut(IptBase):
             # Get starting mask
             mask = wrapper.mask
             if mask is None:
-                wrapper.error_holder.add_error('Missing mask')
+                wrapper.error_holder.add_error("Missing mask")
                 return
 
             # Get ROI
             rois = self.get_ipt_roi(
                 wrapper=wrapper,
-                roi_names=self.get_value_of('roi_names').replace(' ', '').split(','),
-                selection_mode=self.get_value_of('roi_selection_mode')
+                roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
+                selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if len(rois) > 0:
                 roi = rois[0]
@@ -82,14 +82,14 @@ class IptGrabCut(IptBase):
             gc_in_mask = roi.draw_to(gc_in_mask, line_width=-1, color=cv2.GC_PR_BGD)
 
             # Apply dilation
-            dks = self.get_value_of('prob_dilate_size')
+            dks = self.get_value_of("prob_dilate_size")
             0 if dks == 1 else ensure_odd(dks)
             if dks > 0:
                 d_mask = wrapper.dilate(image=mask, kernel_size=dks)
                 gc_in_mask[d_mask != 0] = cv2.GC_PR_FGD
 
             # Apply erosion
-            eks = self.get_value_of('sure_erode_size')
+            eks = self.get_value_of("sure_erode_size")
             0 if eks == 1 else ensure_odd(eks)
             if eks > 0:
                 e_mask = wrapper.erode(image=mask, kernel_size=eks)
@@ -97,12 +97,12 @@ class IptGrabCut(IptBase):
             else:
                 gc_in_mask[mask != 0] = cv2.GC_FGD
 
-            color_map = self.get_value_of('color_map')
-            _, color_map = color_map.split('_')
+            color_map = self.get_value_of("color_map")
+            _, color_map = color_map.split("_")
             dbg_img = cv2.applyColorMap(self.to_uint8(gc_in_mask, normalize=True), int(color_map))
             if roi is not None:
                 dbg_img = roi.draw_to(dbg_img, line_width=wrapper.width // 200)
-            wrapper.store_image(dbg_img, 'grabcut_initialized_mask')
+            wrapper.store_image(dbg_img, "grabcut_initialized_mask")
 
             # Initialize the other ones
             bgd_model = np.zeros((1, 65), np.float64)
@@ -115,34 +115,41 @@ class IptGrabCut(IptBase):
                 rect=None if roi is None else roi.to_opencv(),
                 bgdModel=bgd_model,
                 fgdModel=fgd_model,
-                iterCount=self.get_value_of('gc_iter_count'),
-                mode=cv2.GC_INIT_WITH_MASK
+                iterCount=self.get_value_of("gc_iter_count"),
+                mode=cv2.GC_INIT_WITH_MASK,
             )
 
             wrapper.store_image(
                 cv2.applyColorMap(self.to_uint8(gc_in_mask, normalize=True), int(color_map)),
-                'grabcut_false_color_mask'
+                "grabcut_false_color_mask",
             )
 
-            self.result = np.where(gc_in_mask == cv2.GC_FGD, 255, 0).astype('uint8')
-            wrapper.store_image(self.result, 'grabcut_mask')
+            self.result = np.where(gc_in_mask == cv2.GC_FGD, 255, 0).astype("uint8")
+            wrapper.store_image(self.result, "grabcut_mask")
 
             wrapper.store_image(
                 image=self.wrapper.draw_image(
-                    src_image=img, src_mask=self.result, background='bw', foreground='source'
+                    src_image=img, src_mask=self.result, background="bw", foreground="source"
                 ),
-                text='result_on_bw'
+                text="result_on_bw",
             )
 
             res = True
 
-            if self.get_value_of('build_mosaic') == 1:
+            if self.get_value_of("build_mosaic") == 1:
                 canvas = wrapper.build_mosaic(
-                    image_names=np.array([[
-                        'current_image', 'grabcut_initialized_mask', 'grabcut_false_color_mask'
-                    ], ['grabcut_mask', '', 'result_on_bw']])
+                    image_names=np.array(
+                        [
+                            [
+                                "current_image",
+                                "grabcut_initialized_mask",
+                                "grabcut_false_color_mask",
+                            ],
+                            ["grabcut_mask", "", "result_on_bw"],
+                        ]
+                    )
                 )
-                wrapper.store_image(canvas, 'mosaic')
+                wrapper.store_image(canvas, "mosaic")
 
         except Exception as e:
             wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
@@ -154,7 +161,7 @@ class IptGrabCut(IptBase):
 
     @property
     def name(self):
-        return 'Grab cut'
+        return "Grab cut"
 
     @property
     def real_time(self):
@@ -162,11 +169,11 @@ class IptGrabCut(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):

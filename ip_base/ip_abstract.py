@@ -13,7 +13,7 @@ from file_handlers.fh_base import file_handler_factory
 from ip_base.image_wrapper import ImageWrapper
 import ip_base.ip_common as ipc
 from tools.comand_line_wrapper import ArgWrapper
-from tools import shapes
+from tools.regions import CircleRegion, RectangleRegion, EmptyRegion, Point, AbstractRegion
 from tools.common_functions import time_method, force_directories
 from tools.error_holder import ErrorHolder
 from tools.db_wrapper import DB_TYPE_MEMORY
@@ -57,7 +57,9 @@ class ImageListHolder:
 class AbstractImageProcessor(ImageWrapper):
     process_dict = None
 
-    def __init__(self, file_path: str, options: ArgWrapper = None, database=None, scale_factor=1) -> None:
+    def __init__(
+        self, file_path: str, options: ArgWrapper = None, database=None, scale_factor=1
+    ) -> None:
         super().__init__(file_path)
 
         if options is None:
@@ -155,7 +157,7 @@ class AbstractImageProcessor(ImageWrapper):
                     width=round(src_img.shape[1] * self.scale_factor),
                     height=round(src_img.shape[0] * self.scale_factor),
                     keep_aspect_ratio=False,
-                    output_as_bgr=False
+                    output_as_bgr=False,
                 )
 
         if self.good_image and store_source:
@@ -272,7 +274,7 @@ class AbstractImageProcessor(ImageWrapper):
 
         # Apply roi to mask
         if (roi is not None) and (mask is not None):
-            mask_ = self.keep_roi(src_mask=mask, roi=roi)
+            mask_ = roi.keep(mask)
         elif mask is not None:
             mask_ = mask.copy()
         else:
@@ -481,7 +483,7 @@ class AbstractImageProcessor(ImageWrapper):
                 rois = self.rois
             if rois:
                 for roi in rois:
-                    cp = roi.draw_to(cp, 2)
+                    cp = roi.draw_to(cp, line_width=2)
 
             # Print text if needed
             if isinstance(text_overlay, str):
@@ -580,7 +582,7 @@ class AbstractImageProcessor(ImageWrapper):
                 img_dict["name"],
                 ipc.resize_image(
                     img_dict["image"].copy(),
-                    target_rect=shapes.Rect.from_lwth(0, 800, 0, 600),
+                    target_rect=RectangleRegion(left=0, width=800, top=0, height=600),
                     keep_aspect_ratio=True,
                 ),
             )
@@ -975,9 +977,15 @@ class AbstractImageProcessor(ImageWrapper):
                         qtl_img = np.zeros_like(mask)
                         qtl_img = np.dstack((qtl_img, qtl_img, qtl_img))
                         for i in range(n):
-                            total_, hull_, solidity_, min_, max_, avg_, std_ = msk_dt.width_quantile_stats(
-                                n, i, tag=i
-                            )
+                            (
+                                total_,
+                                hull_,
+                                solidity_,
+                                min_,
+                                max_,
+                                avg_,
+                                std_,
+                            ) = msk_dt.width_quantile_stats(n, i, tag=i)
                             self.csv_data_holder.update_csv_value(
                                 f"quantile_width_{i + 1}_{n}_area", total_, True
                             )
@@ -1034,9 +1042,15 @@ class AbstractImageProcessor(ImageWrapper):
 
         self.csv_data_holder.data_list.pop("bound_data", None)
 
-        roi_top = shapes.RectangleOfInterest.from_lwth(0, self.width, 0, line_position, "roi_top")
-        roi_bottom = shapes.RectangleOfInterest.from_lwth(
-            0, self.width, line_position, self.height - line_position, "roi_bottom"
+        roi_top = RectangleRegion(
+            left=0, width=self.width, top=0, height=line_position, name="roi_top"
+        )
+        roi_bottom = RectangleRegion(
+            left=0,
+            width=self.width,
+            top=line_position,
+            height=self.height - line_position,
+            name="roi_bottom",
         )
 
         mask_top = self.crop_to_roi(img=mask, roi=roi_top)
@@ -1476,7 +1490,7 @@ class AbstractImageProcessor(ImageWrapper):
         is_protected = False
         min_dist = mask.shape[0] * mask.shape[1]
         for pt in cmp_hull:
-            cnt_point = shapes.Point(pt[0][0], pt[0][1])
+            cnt_point = Point(pt[0][0], pt[0][1])
             cur_dist = cv2.pointPolygonTest(master_hull, (cnt_point.x, cnt_point.y), True)
             if cur_dist >= 0:
                 is_inside = True
@@ -1651,7 +1665,7 @@ class AbstractImageProcessor(ImageWrapper):
         dilation_iter = kwargs.get("dilation_iter", 0)
         tolerance_distance = kwargs.get("tolerance_distance", 0)
         tolerance_area = kwargs.get("tolerance_area", 0)
-        roi = kwargs.get("roi", self.get_roi("main_roi"))
+        roi: AbstractRegion = kwargs.get("roi", self.get_roi("main_roi"))
         root_position = kwargs.get("root_position", "BOTTOM_CENTER")
         trusted_safe_zone = kwargs.get("trusted_safe_zone", False)
         area_override_size = kwargs.get("area_override_size", 0)
@@ -2523,7 +2537,7 @@ class AbstractImageProcessor(ImageWrapper):
         else:
             return None
 
-    def keep_roi(self, src_mask, roi: Union[shapes.Shape, str], dbg_str: str = ""):
+    def keep_roi(self, src_mask, roi: AbstractRegion, dbg_str: str = ""):
         """Delete all data outside of the mask
 
         Arguments:
@@ -2535,24 +2549,13 @@ class AbstractImageProcessor(ImageWrapper):
             [numpy array] -- [output mask]
         """
 
-        cp = src_mask.copy()
-
-        if isinstance(roi, str):
-            roi = self.get_roi(roi)
-
-        if (len(cp.shape) == 2) or (len(cp.shape) == 3 and cp.shape[2] == 1):
-            cr = cp.copy()
-        else:
-            cr, *_ = cv2.split(cp)
-        cr[:] = 0
-        cr = roi.fill(cr, 255)
-        cp = cv2.bitwise_and(cp, cp, mask=cr)
+        cp = roi.keep(src_mask)
         if dbg_str:
             self.store_image(cp, dbg_str)
 
         return cp
 
-    def delete_roi(self, src_mask, roi, dbg_str=""):
+    def delete_roi(self, src_mask, roi: AbstractRegion, dbg_str=""):
         """Delete data inside roi
 
         Arguments:
@@ -2564,18 +2567,7 @@ class AbstractImageProcessor(ImageWrapper):
             [numpy array] -- [output mask]
         """
 
-        cp = src_mask.copy()
-
-        if isinstance(roi, str):
-            roi = self.get_roi(roi)
-
-        if (len(cp.shape) == 2) or (len(cp.shape) == 3 and cp.shape[2] == 1):
-            cr = cp.copy()
-        else:
-            cr, *_ = cv2.split(cp)
-        cr[:] = 255
-        cr = roi.fill(cr, 0)
-        cp = cv2.bitwise_and(cp, cp, mask=cr)
+        cp = roi.delete(src_mask)
         if dbg_str:
             self.store_image(cp, dbg_str)
 
@@ -2598,7 +2590,7 @@ class AbstractImageProcessor(ImageWrapper):
                 roi_list.append(tag)
         if roi_list:
             for roi in roi_list:
-                images_.append(self.keep_roi(src_mask, roi, ""))
+                images_.append(roi.keep(src_mask))
             res = self.multi_or(tuple(images_), False)
         else:
             res = src_mask
@@ -2615,7 +2607,7 @@ class AbstractImageProcessor(ImageWrapper):
             else:
                 roi_list.append(tag)
         for roi in roi_list:
-            src_mask = self.delete_roi(src_mask, roi, "")
+            src_mask = roi.delete(src_mask)
         if dbg_str:
             self.store_image(image=src_mask, text=dbg_str, rois=roi_list if dbg_str else ())
 
@@ -2697,14 +2689,7 @@ class AbstractImageProcessor(ImageWrapper):
 
         img_ = img.copy()
         if roi is not None:
-            if erase_outside_if_circle and isinstance(roi, shapes.CircleOfInterest):
-                img_ = self.keep_roi(img_, roi)
-            keep_roi_as_rest = roi.as_rect()
-            keep_roi_as_rest.bound(shapes.Rect.from_lwth(0, self.width, 0, self.height))
-            img_ = img_[
-                keep_roi_as_rest.top : keep_roi_as_rest.bottom,
-                keep_roi_as_rest.left : keep_roi_as_rest.right,
-            ]
+            img_ = roi.crop(img, erase_outside_if_circle)
             if dbg_str:
                 self.store_image(img_, dbg_str)
 
@@ -2725,7 +2710,7 @@ class AbstractImageProcessor(ImageWrapper):
                 keep_roi = roi
                 break
         if keep_roi is not None:
-            return self.crop_to_roi(img, keep_roi, erase_outside_if_circle)
+            return roi.crop(img, erase_outside_if_circle)
         else:
             return img
 
@@ -3224,11 +3209,12 @@ class AbstractImageProcessor(ImageWrapper):
                 if src_img is None:
                     continue
                 else:
-                    r = shapes.Rect.empty()
-                    r.left = int((shape[1] / column_count) * c)
-                    r.width = int(shape[1] / column_count)
-                    r.top = int((shape[0] / line_count) * a_line_idx)
-                    r.height = int(shape[0] / line_count)
+                    r = RectangleRegion(
+                        left=int((shape[1] / column_count) * c),
+                        width=int(shape[1] / column_count),
+                        top=int((shape[0] / line_count) * a_line_idx),
+                        height=int(shape[0] / line_count),
+                    )
                     r.inflate(*padding)
                     a_cnv = ipc.enclose_image(a_cnv, src_img, r)
 
@@ -3455,7 +3441,7 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         for pt in cnt:
-            cnt_point = shapes.Point(pt[0][0], pt[0][1])
+            cnt_point = Point(pt[0][0], pt[0][1])
             if self.rois_contains(tag, cnt_point):
                 return True
         return False
@@ -3474,7 +3460,7 @@ class AbstractImageProcessor(ImageWrapper):
         return x, y
 
     # Accessors
-    def get_roi(self, roi_name, exists_only: bool = False) -> shapes.Shape:
+    def get_roi(self, roi_name, exists_only: bool = False) -> AbstractRegion:
         """Returns the ROI corresponding to roi_name
 
         Arguments:
@@ -3490,10 +3476,10 @@ class AbstractImageProcessor(ImageWrapper):
         if exists_only is True:
             return None
         if self.current_image is None:
-            return shapes.RectangleOfInterest.empty()
+            return EmptyRegion
         else:
-            return shapes.RectangleOfInterest.from_lwth(
-                0, self.width, 0, self.height, "main_roi", "keep", (0, 255, 0)
+            return RectangleRegion(
+                left=0, width=self.width, top=0, height=self.height, name="main_roi", tag="keep"
             )
 
     def get_rois(self, tags: set = None):
@@ -3508,16 +3494,14 @@ class AbstractImageProcessor(ImageWrapper):
         Add an already existing ROI object
         
         Arguments:
-            new_roi {shapes.Shape} -- Rectangle or Circle of interrest
+            new_roi {Region} -- Rectangle or Circle of interrest
         """
         roi = self.get_roi(roi_name=new_roi.name, exists_only=True)
         if roi is not None:
             self.rois_list.remove(roi)
         self._rois_list.append(new_roi)
 
-    def add_circle_roi(
-        self, left, top, radius, name, tag="", color=None
-    ) -> shapes.CircleOfInterest:
+    def add_circle_roi(self, left, top, radius, name, tag="", color=None) -> CircleRegion:
         """Add Circle of Interest to list
 
         Arguments:
@@ -3530,21 +3514,11 @@ class AbstractImageProcessor(ImageWrapper):
             tag {str} -- ROI associated tag (default: {''})
             color {tuple} -- ROI print color (default: {None})
         """
-        circle = shapes.CircleOfInterest(shapes.Point(left, top), radius, name, tag, color)
+        circle = CircleRegion(cx=left, cy=top, radius=radius, name=name, tag=tag, color=color)
         self._rois_list.append(circle)
         return circle
 
-    def add_rect_roi(
-        self,
-        left=None,
-        width=None,
-        top=None,
-        height=None,
-        name: str = "no_name",
-        tag="",
-        color=None,
-        **kwargs,
-    ) -> shapes.RectangleOfInterest:
+    def add_rect_roi(self, **kwargs) -> RectangleRegion:
         """Add Rectangle of Interest to list
 
         Arguments:
@@ -3558,52 +3532,7 @@ class AbstractImageProcessor(ImageWrapper):
             tag {str} -- ROI associated tag (default: {''})
             color {tuple} -- ROI print color (default: {None})
         """
-        right = kwargs.get("right", None)
-        bottom = kwargs.get("bottom", None)
-
-        if left is None and right is None:
-            if width is None or width == 0:
-                left = 0
-                width = self.width
-            elif width > 0:
-                left = 0
-            elif width < 0:
-                left = self.width + width
-                width = -width
-        elif left is not None:
-            if right is not None:
-                width = right - left
-            elif width is None:
-                width = self.width - left
-        elif right is not None:
-            if width is not None:
-                left = right - width
-            else:
-                left = 0
-                width = self.width - right
-
-        if top is None and bottom is None:
-            if height is None or height == 0:
-                top = 0
-                height = self.height
-            elif height > 0:
-                top = 0
-            elif height < 0:
-                top = self.height + height
-                height = -height
-        elif top is not None:
-            if bottom is not None:
-                height = bottom - top
-            elif height is None:
-                height = self.height - top
-        elif bottom is not None:
-            if height is not None:
-                top = bottom - height
-            else:
-                top = 0
-                height = self.height - bottom
-
-        rect = shapes.RectangleOfInterest.from_lwth(left, width, top, height, name, tag, color)
+        rect = RectangleRegion(**kwargs)
         self._rois_list.append(rect)
         return rect
 

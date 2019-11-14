@@ -3,6 +3,8 @@ import itertools
 import random
 from abc import ABC, abstractproperty
 from distutils.version import LooseVersion
+import base64
+import hashlib
 
 import cv2
 import numpy as np
@@ -38,6 +40,7 @@ from ip_base.ip_common import (
     TOOL_GROUP_UNKNOWN_STR,
 )
 from ip_base.ip_abstract import AbstractImageProcessor
+from tools.common_functions import make_safe_name
 
 
 class IptParam(object):
@@ -46,7 +49,7 @@ class IptParam(object):
         self.desc = kwargs.get("desc", "no desc")
         self.default_value = kwargs.get("default_value", "no default")
         self.allowed_values = kwargs.get("allowed_values", None)
-        if self.allowed_values is not None:
+        if self.allowed_values is not None and isinstance(self.allowed_values, list):
             self.allowed_values = tuple(self.allowed_values)
         self.hint = kwargs.get("hint", "no clue")
         self.widget_type = kwargs.get("widget_type", "unk_wt")
@@ -361,12 +364,12 @@ class IptParam(object):
 
 class IptParamHolder(object):
     def __init__(self, **kwargs):
-        super(IptParamHolder, self).__init__()        
-        
+        super(IptParamHolder, self).__init__()
+
         self._kwargs = None
         self._param_list = kwargs.get("_param_list", None)
         if self._param_list is None:
-            self._param_list = []            
+            self._param_list = []
             self.build_params()
             for key, value in kwargs.items():
                 self.set_or_add_value(key, value)
@@ -704,11 +707,12 @@ class IptParamHolder(object):
         self,
         default_name: str = "unnamed_roi",
         default_type: str = "other",
-        default_shape: str = "rectangle",
+        default_shape: str = "",
     ) -> IptParam:
         self.add_roi_name(default_value=default_name)
         self.add_roi_type(default_value=default_type)
-        self.add_roi_shape(default_value=default_shape)
+        if default_shape:
+            self.add_roi_shape(default_value=default_shape)
         self.add_tool_target()
 
     def add_hierarchy_threshold(self, default_value: int = 35) -> IptParam:
@@ -830,7 +834,9 @@ class IptParamHolder(object):
         )
 
     def add_exposure_viewer_switch(self):
-        self.add_checkbox(name='show_over_under', desc='Show over an under exposed parts', default_value=0)
+        self.add_checkbox(
+            name="show_over_under", desc="Show over an under exposed parts", default_value=0
+        )
 
     def add_button(self, name: str, desc: str, index: int = 0, hint: str = "") -> IptParam:
         param = IptParam(
@@ -1298,6 +1304,23 @@ class IptBase(IptParamHolder, ABC):
                 raise NotImplementedError
         return res
 
+    def get_short_hash(self, exclude_list: tuple) -> [str, None]:
+        wrapper = self.wrapper
+        if wrapper is None:
+            return None
+        p_str = self.input_params_as_str(
+            exclude_defaults=False, excluded_params=exclude_list
+        ).encode("utf-8")
+        w_str = str(wrapper).encode("utf-8")
+        long_hash = hashlib.sha1(p_str + w_str)
+        return (
+            wrapper.plant
+            + "_"
+            + make_safe_name(str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))).replace(
+                "_", ""
+            )
+        )
+
     def extract_source_from_args(self, source_mode: str = "source_file", ignore_list: tuple = ()):
         if not (source_mode in ignore_list):
             source_type = self.get_value_of(source_mode, "source")
@@ -1389,7 +1412,7 @@ class IptBase(IptParamHolder, ABC):
 
         return self.apply_morphology_from_params(mask)
 
-    def apply_morphology_from_params(self, mask):
+    def apply_morphology_from_params(self, mask, store_result: bool = False):
         kernel_size = self.get_value_of("kernel_size", 0)
         iter_ = self.get_value_of("proc_times", 1)
         kernel_shape = self.get_value_of("kernel_shape", None)
@@ -1412,9 +1435,13 @@ class IptBase(IptParamHolder, ABC):
 
         func = getattr(self._wrapper, self.get_value_of("morph_op"), None)
         if func:
-            return func(mask, kernel_size=kernel_size, proc_times=iter_, kernel_shape=k_shape)
-        else:
-            return mask
+            mask = func(mask, kernel_size=kernel_size, proc_times=iter_, kernel_shape=k_shape)
+
+        if store_result:
+            self.wrapper.store_image(image=mask, text='morphology_applied')
+
+        return mask
+        
 
     def print_segmentation_labels(
         self, watershed_image, labels, dbg_suffix="", min_size=-1, source_image=None
