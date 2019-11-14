@@ -1,3 +1,6 @@
+import os
+import pickle
+
 import cv2
 import numpy as np
 from skimage.transform import hough_circle, hough_circle_peaks
@@ -13,11 +16,17 @@ from ip_base.ip_common import (
 from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 from ip_base.ipt_abstract import IptBase
 from ip_tools.ipt_edge_detector import IptEdgeDetector
-from tools import shapes
+from tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
 
 
 class IptHoughCircles(IptBase):
     def build_params(self):
+        self.add_checkbox(
+            name="enable_cache",
+            desc="Allow retrieving data from cache",
+            default_value=1,
+            hint="Data will be retrieved only if params are identical.",
+        )
         self.add_roi_settings(
             default_name="unnamed_roi", default_type="keep", default_shape="rectangle"
         )
@@ -44,6 +53,14 @@ class IptHoughCircles(IptBase):
             minimum=0,
             maximum=2000,
             hint="All circles bigger than this will be ignored",
+        )
+        self.add_spin_box(
+            name="annulus_size",
+            desc="Annulus secondary radius delta",
+            default_value=0,
+            minimum=0,
+            maximum=2000,
+            hint="Annulus size, 0 means full disc",
         )
         self.add_spin_box(
             name="step_radius",
@@ -122,110 +139,145 @@ class IptHoughCircles(IptBase):
 
         res = False
         try:
-            # Get the edge
-            with IptEdgeDetector(wrapper=wrapper, **self.params_to_dict()) as (res, ed):
-                if not res:
-                    return
-                edges = ed.result
-                if self.get_value_of("edge_only") == 1:
-                    self.result = ed.result
-                    return True
-
-            # Read params
-            min_radius = self.get_value_of("min_radius", scale_factor=wrapper.scale_factor)
-            max_radius = self.get_value_of("max_radius", scale_factor=wrapper.scale_factor)
-            step_radius = self.get_value_of("step_radius", scale_factor=wrapper.scale_factor)
-            max_peaks = self.get_value_of("max_peaks")
-            min_distance = self.get_value_of("min_distance", scale_factor=wrapper.scale_factor)
-            line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
-            draw_candidates = self.get_value_of("draw_candidates") == 1
-
-            roi = self.get_ipt_roi(
-                wrapper=wrapper,
-                roi_names=[self.get_value_of("crop_roi_name")],
-                selection_mode="all_named",
-            )
-            roi = roi[0] if roi else None
-            if roi is not None:
-                edges = wrapper.crop_to_roi(
-                    img=edges, roi=roi, erase_outside_if_circle=True, dbg_str="cropped_edges"
+            edge_only = self.get_value_of("edge_only") == 1
+            pkl_file = os.path.join(
+                "stored_data",
+                self.get_short_hash(
+                    exclude_list=("annulus_size", "roi_name", "tool_target", "roi_shape")
                 )
-
-            img = self.extract_source_from_args()
-
-            # Detect circles
-            hough_radii = np.arange(min_radius, max_radius, step_radius)
-            hough_res = hough_circle(edges, hough_radii)
-
-            # Draw the result
-            if len(img.shape) == 2:
-                img = np.dstack((img, img, img))
-
-            # Select the most prominent n circles
-            accu, cx, cy, radii = hough_circle_peaks(
-                hough_res,
-                hough_radii,
-                min_xdistance=min_distance,
-                min_ydistance=min_distance,
-                total_num_peaks=max_peaks,
+                + ".pkl",
             )
-            if roi is not None:
-                roi = roi.as_rect()
-                cx += roi.left
-                cy += roi.top
-            if self.get_value_of("keep_only_one") == 1:
-                candidates = [[a, x, y, z] for a, x, y, z in zip(accu, cx, cy, radii)]
-                h, w = img.shape[:2]
-                roi = shapes.Rect.from_coordinates(0, w, 0, h)
-                roi_root = roi.point_at_position(self.get_value_of("target_position"), True)
-                min_dist = h * w
-                min_idx = -1
-                min_accu = -1
-                i = 0
-                colors = build_color_steps(C_YELLOW, (0, 125, 125), len(candidates))
-                max_dist_to_root = self.get_value_of(
-                    "max_dist_to_root", scale_factor=wrapper.scale_factor
-                )
-                for c_accu, center_x, center_y, radius in candidates:
-                    if draw_candidates:
-                        cv2.circle(
-                            img, (center_x, center_y), radius, colors[i], max(1, line_width // 2)
-                        )
-                    cur_dist = roi_root.distance_to(shapes.Point(center_x, center_y))
-                    if (
-                        (cur_dist < min_dist)
-                        and (cur_dist < max_dist_to_root)
-                        and ((cur_dist / min_dist > min_accu / c_accu) or (min_accu == -1))
-                    ):
-                        min_dist = cur_dist
-                        min_idx = i
-                        min_accu = c_accu
-
-                    i += 1
-                if min_idx >= 0:
-                    self.result = [
-                        [candidates[min_idx][1], candidates[min_idx][2], candidates[min_idx][3]]
-                    ]
-                    self.result[0][2] += self.get_value_of(
-                        "expand_circle", scale_factor=wrapper.scale_factor
-                    )
-                    if self.get_value_of("draw_boundaries") == 1:
-                        cv2.circle(
-                            img, (roi_root.x, roi_root.y), min_radius, C_RED, line_width + 4
-                        )
-                        cv2.circle(
-                            img, (roi_root.x, roi_root.y), max_radius, C_BLUE, line_width + 4
-                        )
-                else:
-                    self.result = None
+            if (
+                (self.get_value_of("enable_cache") == 1)
+                and edge_only is False
+                and os.path.isfile(pkl_file)
+            ):
+                with open(pkl_file, "rb") as f:
+                    self.result = pickle.load(f)
+                img = self.extract_source_from_args()
+                line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
             else:
-                self.result = [[x, y, r] for x, y, r in zip(cx, cy, radii)]
+                # Get the edge
+                with IptEdgeDetector(wrapper=wrapper, **self.params_to_dict()) as (res, ed):
+                    if not res:
+                        return
+                    edges = ed.result
+                    if edge_only is True:
+                        self.result = ed.result
+                        return True
+
+                # Read params
+                min_radius = self.get_value_of("min_radius", scale_factor=wrapper.scale_factor)
+                max_radius = self.get_value_of("max_radius", scale_factor=wrapper.scale_factor)
+                step_radius = self.get_value_of("step_radius", scale_factor=wrapper.scale_factor)
+                max_peaks = self.get_value_of("max_peaks")
+                min_distance = self.get_value_of("min_distance", scale_factor=wrapper.scale_factor)
+                line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
+                draw_candidates = self.get_value_of("draw_candidates") == 1
+
+                roi = self.get_ipt_roi(
+                    wrapper=wrapper,
+                    roi_names=[self.get_value_of("crop_roi_name")],
+                    selection_mode="all_named",
+                )
+                roi = roi[0] if roi else None
+                if roi is not None:
+                    edges = wrapper.crop_to_roi(
+                        img=edges, roi=roi, erase_outside_if_circle=True, dbg_str="cropped_edges"
+                    )
+
+                img = self.extract_source_from_args()
+
+                # Detect circles
+                hough_radii = np.arange(min_radius, max_radius, step_radius)
+                hough_res = hough_circle(edges, hough_radii)
+
+                # Draw the result
+                if len(img.shape) == 2:
+                    img = np.dstack((img, img, img))
+
+                # Select the most prominent n circles
+                accu, cx, cy, radii = hough_circle_peaks(
+                    hough_res,
+                    hough_radii,
+                    min_xdistance=min_distance,
+                    min_ydistance=min_distance,
+                    total_num_peaks=max_peaks,
+                )
+                if roi is not None:
+                    roi = roi.as_rect()
+                    cx += roi.left
+                    cy += roi.top
+                if self.get_value_of("keep_only_one") == 1:
+                    candidates = [[a, x, y, z] for a, x, y, z in zip(accu, cx, cy, radii)]
+                    h, w = img.shape[:2]
+                    roi = RectangleRegion(left=0, right=w, top=0, bottom=h)
+                    roi_root = roi.point_at_position(self.get_value_of("target_position"), True)
+                    min_dist = h * w
+                    min_idx = -1
+                    min_accu = -1
+                    i = 0
+                    colors = build_color_steps(C_YELLOW, (0, 125, 125), len(candidates))
+                    max_dist_to_root = self.get_value_of(
+                        "max_dist_to_root", scale_factor=wrapper.scale_factor
+                    )
+                    for c_accu, center_x, center_y, radius in candidates:
+                        if draw_candidates:
+                            cv2.circle(
+                                img,
+                                (center_x, center_y),
+                                radius,
+                                colors[i],
+                                max(1, line_width // 2),
+                            )
+                        cur_dist = roi_root.distance_to(Point(center_x, center_y))
+                        if (
+                            (cur_dist < min_dist)
+                            and (cur_dist < max_dist_to_root)
+                            and ((cur_dist / min_dist > min_accu / c_accu) or (min_accu == -1))
+                        ):
+                            min_dist = cur_dist
+                            min_idx = i
+                            min_accu = c_accu
+
+                        i += 1
+                    if min_idx >= 0:
+                        self.result = [
+                            [
+                                candidates[min_idx][1],
+                                candidates[min_idx][2],
+                                candidates[min_idx][3],
+                            ]
+                        ]
+                        self.result[0][2] += self.get_value_of(
+                            "expand_circle", scale_factor=wrapper.scale_factor
+                        )
+                        if self.get_value_of("draw_boundaries") == 1:
+                            cv2.circle(
+                                img, (roi_root.x, roi_root.y), min_radius, C_RED, line_width + 4
+                            )
+                            cv2.circle(
+                                img, (roi_root.x, roi_root.y), max_radius, C_BLUE, line_width + 4
+                            )
+                    else:
+                        self.result = None
+                else:
+                    self.result = [[x, y, r] for x, y, r in zip(cx, cy, radii)]
+
+                if self.get_value_of("enable_cache") == 1:
+                    with open(pkl_file, "wb") as f:
+                        pickle.dump(self.result, f)
 
             if self.result is not None:
                 colors = build_color_steps(C_ORANGE, (0, 0, 255), len(self.result))
                 i = 0
+                annulus_size = self.get_value_of("annulus_size")
                 for center_x, center_y, radius in self.result:
                     cv2.circle(img, (center_x, center_y), radius, colors[i], line_width)
+                    if annulus_size > 0 and radius - annulus_size > 0:
+                        cv2.circle(
+                            img, (center_x, center_y), radius - annulus_size, colors[i], line_width
+                        )
                     i += 1
             wrapper.store_image(
                 image=img,
@@ -253,10 +305,8 @@ class IptHoughCircles(IptBase):
             circles = sorted(self.result, key=lambda circle_: circle_[2])
             circle = circles[0]
             if roi_shape == "rectangle":
-                r = shapes.Circle(
-                    center=shapes.Point(circle[0], circle[1]), radius=circle[2]
-                ).as_rect()
-                return shapes.RectangleOfInterest.from_lwth(
+                r = CircleRegion(cx=circle[0], cy=circle[1], radius=circle[2]).as_rect()
+                return RectangleRegion(
                     left=r.left,
                     width=r.width,
                     top=r.top,
@@ -266,13 +316,26 @@ class IptHoughCircles(IptBase):
                     target=tool_target,
                 )
             elif roi_shape == "circle":
-                return shapes.CircleOfInterest(
-                    center=shapes.Point(circle[0], circle[1]),
-                    radius=circle[2],
-                    name=roi_name,
-                    tag=roi_type,
-                    target=tool_target,
-                )
+                annulus_size = self.get_value_of("annulus_size")
+                if annulus_size == 0 or (circle[2] - annulus_size <= 0):
+                    return CircleRegion(
+                        cx=circle[0],
+                        cy=circle[1],
+                        radius=circle[2],
+                        name=roi_name,
+                        tag=roi_type,
+                        target=tool_target,
+                    )
+                else:
+                    return AnnulusRegion(
+                        cx=circle[0],
+                        cy=circle[1],
+                        radius=circle[2],
+                        in_radius=circle[2] - annulus_size,
+                        name=roi_name,
+                        tag=roi_type,
+                        target=tool_target,
+                    )
             else:
                 return None
         else:
@@ -323,4 +386,3 @@ class IptHoughCircles(IptBase):
     @property
     def description(self):
         return "Hough circles detector: Perform a circular Hough transform.\nCan generate ROIs"
-

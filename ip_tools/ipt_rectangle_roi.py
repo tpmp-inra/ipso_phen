@@ -1,23 +1,16 @@
 import cv2
 
-from ip_base.ip_common import resize_image, TOOL_GROUP_ROI_STATIC_STR
+from ip_base.ip_common import resize_image
 from ip_base.ipt_abstract import IptBase
 from tools.regions import CircleRegion, RectangleRegion
-from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 
 
-class IptRoiManager(IptBase):
+class IptRectangleRoi(IptBase):
     def build_params(self):
-        self.add_roi_settings(
-            default_name="unnamed_roi", default_type="keep", default_shape="rectangle"
-        )
+        self.add_roi_settings(default_name="unnamed_roi", default_type="keep")
         self.add_spin_box(name="left", desc="Left", default_value=0, minimum=-10000, maximum=10000)
         self.add_spin_box(
-            name="width",
-            desc="Width (Diameter for circles)",
-            default_value=0,
-            minimum=-10000,
-            maximum=10000,
+            name="width", desc="Width", default_value=0, minimum=-10000, maximum=10000,
         )
         self.add_spin_box(name="top", desc="Top", default_value=0, minimum=-10000, maximum=10000)
         self.add_spin_box(
@@ -72,19 +65,18 @@ class IptRoiManager(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-        ROI manager:
-        Handles ROI edition
-        Real time : True
+        Rectangle ROI:
+        Create rectangle ROIs
+        Real time: True
 
         Keyword Arguments (in parentheses, argument name):
-            * ROI name (roi_name): 
+            * ROI name (roi_name):
             * Select action linked to ROI (roi_type): no clue
-            * Select ROI shape (roi_shape): no clue
             * Target IPT (tool_target): no clue
-            * Left (left): 
-            * Width (Diameter for circles) (width): 
-            * Top (top): 
-            * Height (height): 
+            * Left (left):
+            * Width (width):
+            * Top (top):
+            * Height (height):
             * Launch ROI draw form (draw_roi): Launch OpenCV window to select a ROI
         """
         wrapper = self.init_wrapper(**kwargs)
@@ -124,43 +116,34 @@ class IptRoiManager(IptBase):
         if (width == 0) or (height == 0):
             return None
 
-        if roi_shape == "rectangle":
-            wrapper = self.init_wrapper(**kwargs)
-            if wrapper is None:
-                return False
+        wrapper = self.init_wrapper(**kwargs)
+        if wrapper is None:
+            return False
 
-            if width < 0:
-                left = None
-            if height < 0:
-                top = None
+        if width < 0:
+            left = None
+        if height < 0:
+            top = None
 
-            return RectangleRegion(
-                source_width=wrapper.width,
-                source_height=wrapper.height,
-                left=left,
-                width=width,
-                top=top,
-                height=height,
-                name=roi_name,
-                tag=roi_type,
-                target=tool_target,
-            )
-        elif roi_shape == "circle":
-            radius_ = width // 2
-            return CircleRegion(
-                cx=left + radius_,
-                cy=top + radius_,
-                radius=radius_,
-                name=roi_name,
-                tag=roi_type,
-                target=tool_target,
-            )
-        else:
-            return None
+        return RectangleRegion(
+            source_width=wrapper.width,
+            source_height=wrapper.height,
+            left=left,
+            width=width,
+            top=top,
+            height=height,
+            name=roi_name,
+            tag=roi_type,
+            target=tool_target,
+        )
 
     @property
     def name(self):
-        return "ROI manager (deprecated)"
+        return "Rectangle ROI"
+
+    @property
+    def package(self):
+        return "IPSO Phen"
 
     @property
     def real_time(self):
@@ -176,12 +159,8 @@ class IptRoiManager(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_ROI_STATIC_STR, TOOL_GROUP_VISUALIZATION_STR]
+        return ["ROI (static)", "Visualization"]
 
     @property
     def description(self):
-        return "Handles ROI edition via user input"
-
-    @property
-    def lock_once_added(self):
-        return False
+        return "Create rectangle ROIs"

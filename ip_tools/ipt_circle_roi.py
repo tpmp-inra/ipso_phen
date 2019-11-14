@@ -1,27 +1,21 @@
 import cv2
 
-from ip_base.ip_common import resize_image, TOOL_GROUP_ROI_STATIC_STR
+from ip_base.ip_common import resize_image
 from ip_base.ipt_abstract import IptBase
-from tools.regions import CircleRegion, RectangleRegion
-from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
+from tools.regions import CircleRegion, EmptyRegion
 
 
-class IptRoiManager(IptBase):
+class IptCircleRoi(IptBase):
     def build_params(self):
-        self.add_roi_settings(
-            default_name="unnamed_roi", default_type="keep", default_shape="rectangle"
-        )
-        self.add_spin_box(name="left", desc="Left", default_value=0, minimum=-10000, maximum=10000)
+        self.add_roi_settings(default_name="unnamed_roi", default_type="keep")
         self.add_spin_box(
-            name="width",
-            desc="Width (Diameter for circles)",
-            default_value=0,
-            minimum=-10000,
-            maximum=10000,
+            name="cx", desc="Center x coordinate", default_value=0, minimum=-10000, maximum=10000
         )
-        self.add_spin_box(name="top", desc="Top", default_value=0, minimum=-10000, maximum=10000)
         self.add_spin_box(
-            name="height", desc="Height", default_value=0, minimum=-10000, maximum=10000
+            name="cy", desc="Center y coordinate", default_value=0, minimum=-10000, maximum=10000,
+        )
+        self.add_spin_box(
+            name="radius", desc="Radius", default_value=0, minimum=-10000, maximum=10000
         )
         self.add_button(
             name="draw_roi",
@@ -51,10 +45,9 @@ class IptRoiManager(IptBase):
                 cv2.destroyAllWindows()
                 r = int(r[0] * factor), int(r[1] * factor), int(r[2] * factor), int(r[3] * factor)
 
-                self.set_value_of(key="left", value=r[0], update_widgets=True)
-                self.set_value_of(key="width", value=r[2], update_widgets=True)
-                self.set_value_of(key="top", value=r[1], update_widgets=True)
-                self.set_value_of(key="height", value=r[3], update_widgets=True)
+                self.set_value_of(key="cx", value=r[0] + r[2] // 2, update_widgets=True)
+                self.set_value_of(key="cy", value=r[1] + r[2] // 2, update_widgets=True)
+                self.set_value_of(key="radius", value=r[2] // 2, update_widgets=True)
 
                 res = True
             else:
@@ -72,19 +65,17 @@ class IptRoiManager(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-        ROI manager:
-        Handles ROI edition
-        Real time : True
+        Circle ROI:
+        Create circle ROIs
+        Real time: True
 
         Keyword Arguments (in parentheses, argument name):
-            * ROI name (roi_name): 
+            * ROI name (roi_name):
             * Select action linked to ROI (roi_type): no clue
-            * Select ROI shape (roi_shape): no clue
             * Target IPT (tool_target): no clue
-            * Left (left): 
-            * Width (Diameter for circles) (width): 
-            * Top (top): 
-            * Height (height): 
+            * Center x coordinate (cx):
+            * Center y coordinate (cy):
+            * Radius (radius):
             * Launch ROI draw form (draw_roi): Launch OpenCV window to select a ROI
         """
         wrapper = self.init_wrapper(**kwargs)
@@ -116,51 +107,24 @@ class IptRoiManager(IptBase):
         roi_type = self.get_value_of("roi_type")
         roi_name = self.get_value_of("roi_name")
         tool_target = self.get_value_of("tool_target")
-        left = self.get_value_of("left")
-        width = self.get_value_of("width")
-        top = self.get_value_of("top")
-        height = self.get_value_of("height")
+        cx = self.get_value_of("cx")
+        cy = self.get_value_of("cy")
+        radius = self.get_value_of("radius")
 
-        if (width == 0) or (height == 0):
-            return None
+        if radius == 0:
+            return EmptyRegion()
 
-        if roi_shape == "rectangle":
-            wrapper = self.init_wrapper(**kwargs)
-            if wrapper is None:
-                return False
-
-            if width < 0:
-                left = None
-            if height < 0:
-                top = None
-
-            return RectangleRegion(
-                source_width=wrapper.width,
-                source_height=wrapper.height,
-                left=left,
-                width=width,
-                top=top,
-                height=height,
-                name=roi_name,
-                tag=roi_type,
-                target=tool_target,
-            )
-        elif roi_shape == "circle":
-            radius_ = width // 2
-            return CircleRegion(
-                cx=left + radius_,
-                cy=top + radius_,
-                radius=radius_,
-                name=roi_name,
-                tag=roi_type,
-                target=tool_target,
-            )
-        else:
-            return None
+        return CircleRegion(
+            cx=cx, cy=cy, radius=radius, name=roi_name, tag=roi_type, target=tool_target,
+        )
 
     @property
     def name(self):
-        return "ROI manager (deprecated)"
+        return "Circle ROI"
+
+    @property
+    def package(self):
+        return "IPSO Phen"
 
     @property
     def real_time(self):
@@ -176,12 +140,8 @@ class IptRoiManager(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_ROI_STATIC_STR, TOOL_GROUP_VISUALIZATION_STR]
+        return ["ROI (static)", "Visualization"]
 
     @property
     def description(self):
-        return "Handles ROI edition via user input"
-
-    @property
-    def lock_once_added(self):
-        return False
+        return "Create circle ROIs"

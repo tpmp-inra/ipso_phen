@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import random
 
-from tools import shapes
 from tools.csv_writer import AbstractCsvWriter
 
 TOOL_GROUP_ANCILLARY_STR = "Ancillary"
@@ -425,7 +424,7 @@ def resize_image(src_img, **kwargs):
         n_w = int(w)
         n_h = int(h)
 
-    if (len(src_img.shape) == 2) and kwargs.get('output_as_bgr', True):
+    if (len(src_img.shape) == 2) and kwargs.get("output_as_bgr", True):
         src_img = cv2.cvtColor(src_img, cv2.COLOR_GRAY2BGR)
 
     src_img = cv2.resize(src_img, (n_w, n_h), interpolation=cv2.INTER_CUBIC)
@@ -433,7 +432,7 @@ def resize_image(src_img, **kwargs):
     return src_img
 
 
-def enclose_image(a_cnv, img, rect: shapes.Rect, frame_width: int = 0):
+def enclose_image(a_cnv, img, rect, frame_width: int = 0):
     """Resize and copy source image to canvas rect while conserving aspect ratio
 
     Arguments:

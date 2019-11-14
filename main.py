@@ -90,7 +90,7 @@ from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
 from ip_base.ipt_script_generator import IptScriptGenerator, encode_ipt, decode_ipt
-from tools import shapes
+from tools.regions import RectangleRegion, AbstractRegion
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import (
     force_directories,
@@ -102,7 +102,6 @@ from tools.common_functions import (
 from tools.error_holder import ErrorHolder
 from tools.paths_factory import get_folders_paths
 from tools.pipeline_processor import PipelineProcessor
-from tools.shapes import Rect
 from ui import ui_consts
 from ui.about_form import Ui_about_dialog
 from ui.frm_folder_selector import Ui_folder_selector
@@ -151,10 +150,6 @@ _IMAGE_LISTS_PATH = "./saved_data/image_lists.json"
 _PRAGMA_NAME = "IPSO Phen"
 _PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available (*.tipp *.json)
 ;;pipelines (*.tipp);;JSON compatible file (*.json)"""
-
-IMAGE_BROWSER_COLUMNS = (
-    "experiment, plant, date, camera, view_option, time, date_time, filepath, luid"
-)
 
 
 def excepthook(excType, excValue, tracebackobj):
@@ -675,13 +670,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             "pipeline": os.path.join(
                 os.path.expanduser("~"), "Documents", root_ipso_folder, "pipelines", ""
             ),
-            "csv": os.path.join(os.path.expanduser("~"), "Documents", root_ipso_folder, "saved_csv", ""),
+            "csv": os.path.join(
+                os.path.expanduser("~"), "Documents", root_ipso_folder, "saved_csv", ""
+            ),
             "image_list": os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                root_ipso_folder,
-                "image_lists",
-                ""
+                os.path.expanduser("~"), "Documents", root_ipso_folder, "image_lists", ""
             ),
             "script": "./script_pipelines/",
             "image_cache": os.path.join(
@@ -1069,11 +1062,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 model = self.get_image_model()
                 df = model.images
                 old_row_count = model.rowCount()
-                model.images = df[~df["luid"]].isin(dataframe["luid"])
+                model.images = df[~df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
-                model.rowsRemoved.emit(new_row_count, old_row_count)
+                # model.rowsRemoved.emit(new_row_count, old_row_count)
                 self.update_feedback(
-                    status_message=f"Added {old_row_count-new_row_count} items to image browser",
+                    status_message=f"Removed {old_row_count-new_row_count} items to image browser",
                     use_status_as_log=True,
                 )
         elif mode == "clear":
@@ -2894,8 +2887,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 date_time=wrapper.date_time,
                 camera=wrapper.camera,
                 view_option=wrapper.view_option,
-                width=wrapper.width,
-                height=wrapper.height,
+                img_width=wrapper.width,
+                img_height=wrapper.height,
             ),
         )
         if isinstance(sender, IptParamHolder):
@@ -3012,7 +3005,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 image_list_ = None
             else:
                 skim_mode_ = self.cb_batch_mode.currentText().lower()
-                dff = df[["Luid", "FilePath"]]
+                dff = df[["Luid", "FilePath", "date_time"]]
                 if skim_mode_ == "all":
                     pass
                 elif skim_mode_ == "first n":
@@ -3024,6 +3017,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         status_message="Run process: unknown filter mode", use_status_as_log=True
                     )
                     return False
+                dff.sort_values(by=["date_time"], axis=0, inplace=True, na_position="first")
                 image_list_ = [
                     {"luid": k, "path": v}
                     for k, v in zip(list(dff["Luid"]), list(dff["FilePath"]))
@@ -3090,6 +3084,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
             batch_process = len(image_list_) > 1
             for image_data in image_list_:
+                if self._batch_stop_current is True:
+                    break
                 self.run_runnable(
                     image_data=image_data,
                     is_batch_process=batch_process,
@@ -3159,7 +3155,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 path=self._src_image_wrapper.file_path, luid=self._src_image_wrapper.luid
             )
             for p in procs:
-                if self._batch_stop_current == True:
+                if self._batch_stop_current is True:
                     break
                 self.run_runnable(
                     image_data=image_data,
@@ -3480,7 +3476,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         vid_name = f'{make_safe_name(selected_mode.name)}_{dt.now().strftime("%Y%B%d_%H%M%S")}_{total_}.mp4'
         v_output = os.path.join(self.stored_folders["image_output"], vid_name)
 
-        frame_rect = shapes.Rect.from_lwth(0, v_width, 0, v_height)
+        frame_rect = RectangleRegion(width=v_width, height=v_height)
 
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         out = cv2.VideoWriter(v_output, fourcc, frame_rate, (v_width, v_height))
@@ -3502,19 +3498,22 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     new_top = int(frame_rect.height * random.uniform(0, 0.7))
                     new_width = int((frame_rect.width - new_left) * random.uniform(0.5, 1))
                     new_height = int((frame_rect.height - new_top) * random.uniform(0.5, 1))
-                    r = Rect.from_lwth(
+                    r = RectangleRegion(
                         left=new_left, width=new_width, top=new_top, height=new_height
                     )
                 else:
                     if not self.action_video_stack_and_jitter.isChecked():
                         canvas = np.full((v_height, v_width, 3), bkg_color, np.uint8)
-                    r = Rect.from_coordinates(
-                        frame_rect.left, frame_rect.right, frame_rect.top, frame_rect.bottom
+                    r = RectangleRegion(
+                        left=frame_rect.left,
+                        right=frame_rect.right,
+                        top=frame_rect.top,
+                        bottom=frame_rect.bottom,
                     )
                 img = ipc.enclose_image(
                     a_cnv=canvas,
                     img=self.cb_available_outputs.itemData(i)["image"],
-                    rect=Rect.from_coordinates(r.left, r.right, r.top, r.bottom),
+                    rect=RectangleRegion(left=r.left, right=r.right, top=r.top, bottom=r.bottom),
                     frame_width=2 if self.action_video_stack_and_jitter.isChecked() else 0,
                 )
 
@@ -3600,16 +3599,35 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.begin_edit_image_browser()
         try:
             self.update_image_browser(dataframe=self.execute_current_query(), mode="remove")
-            images_to_delete = [item.Luid for item in self._last_query_result]
         finally:
             self.end_edit_image_browser()
 
     @pyqtSlot()
     def on_bt_keep_annotated(self):
-        raise NotImplementedError
         self.begin_edit_image_browser()
         try:
-            pass
+            id = self.get_image_delegate()
+            df = self.get_image_dataframe()
+            if id is None or df is None:
+                return
+            df = df[["Experiment", "Luid"]]
+            luids = []
+            self.update_feedback(
+                status_message="Keeping only tagged images", use_status_as_log=True
+            )
+            self.global_progress_start(add_stop_button=False)
+            total_ = df.shape[0]
+            i = 1
+            for _, row in df.iterrows():
+                if id.get_annotation(experiment=row[0], luid=row[1]) is None:
+                    luids.append(row[1])
+                self.global_progress_update(step=i, total=total_, process_events=True)
+                i += 1
+            self.global_progress_stop()
+            if luids:
+                self.update_image_browser(
+                    dataframe=pd.DataFrame(data=dict(Luid=luids)), mode="remove"
+                )
         finally:
             self.end_edit_image_browser()
 
@@ -3910,7 +3928,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     node_.setToolTip(1, f"{item[0]}: {item[1]}")
                 elif isinstance(item, IptParamHolder):
                     add_params_as_nodes(item, root_)
-                elif isinstance(item, shapes.Shape):
+                elif inhisinstance(item, AbstractRegion):
                     node_ = QTreeWidgetItem(root_, [repr(item)])
                     node_.setToolTip(1, repr(item))
                 else:
@@ -4591,7 +4609,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         series_id_time_delta=self.sp_pp_time_delta.value(),
                         data_frame=model.images.to_dict(orient="list"),
                         database_data=database_data,
-                        thread_count=self.sl_pp_thread_count.value()
+                        thread_count=self.sl_pp_thread_count.value(),
                     ),
                     jw,
                     indent=2,
