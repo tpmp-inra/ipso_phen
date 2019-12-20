@@ -209,7 +209,7 @@ class AbstractImageProcessor(ImageWrapper):
         :param text: text
         """
         fnt_face = cv2.FONT_HERSHEY_DUPLEX
-        fnt_scale = img.shape[0] / 1500
+        fnt_scale = img.shape[0] / 1000
         fnt_thickness = max(round(img.shape[0] / 1080), 1)
         if position.lower() == "bottom":
             y = img.shape[0] - 20
@@ -283,7 +283,8 @@ class AbstractImageProcessor(ImageWrapper):
         # Build foreground
         if len(src.shape) == 2 or (len(src.shape) == 3 and src.shape[2] == 1):
             foreground_img = np.dstack((src, src, src))
-            background = "source"
+        elif isinstance(foreground, tuple):
+            foreground_img = np.full(src.shape, foreground, np.uint8)
         elif foreground == "source":
             foreground_img = src.copy()
         elif foreground == "false_colour":

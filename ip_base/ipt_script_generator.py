@@ -22,6 +22,7 @@ from ip_base.ip_common import (
     TOOL_GROUP_ROI_DYNAMIC_STR,
     TOOL_GROUP_ROI_STATIC_STR,
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
+    TOOL_GROUP_IMAGE_GENERATOR_STR,
 )
 from ip_base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ip_base.ipt_functional import call_ipt_code, call_ipt_func_code
@@ -120,7 +121,13 @@ class SettingsHolder(IptParamHolder):
         self.add_checkbox(
             name="use_default_script", desc="Use default script if present", default_value=0
         )
-
+        self.add_text_output(
+            is_single_line=True,
+            name="image_output_path",
+            desc="Images output folder",
+            default_value="",
+            hint="Path where images will be copied, if not absolute, will be relative to output CSV data file",
+        )
         self.update_feedback_items = [
             "bound_level",
             "pseudo_channel",
@@ -130,8 +137,9 @@ class SettingsHolder(IptParamHolder):
 
     def reset(self, is_update_widgets: bool = True):
         for p in self._param_list:
-            p.value = p.default_value
-            p.clear_widgets()
+            if p.is_input:
+                p.value = p.default_value
+                p.clear_widgets()
 
 
 class IptScriptGenerator(object):
@@ -141,6 +149,7 @@ class IptScriptGenerator(object):
         self._settings = kwargs.get("_settings", SettingsHolder())
         self._last_wrapper_luid = ""
         self.use_cache = kwargs.get("use_cache", True)
+        self.image_output_path = kwargs.get("image_output_path", "./images")
 
     @staticmethod
     def _init_features():
@@ -203,6 +212,8 @@ class IptScriptGenerator(object):
                     tool_dict["kind"] = TOOL_GROUP_ROI_STATIC_STR
                 elif current_kind == "feature_extractor":
                     tool_dict["kind"] = TOOL_GROUP_FEATURE_EXTRACTION_STR
+                elif current_kind == "Image generator":
+                    tool_dict["kind"] = TOOL_GROUP_IMAGE_GENERATOR_STR
                 else:
                     tool_dict["kind"] = tool_dict["kind"]
 
@@ -272,6 +283,7 @@ class IptScriptGenerator(object):
             TOOL_GROUP_ROI_STATIC_STR,
             TOOL_GROUP_MASK_CLEANUP_STR,
             TOOL_GROUP_FEATURE_EXTRACTION_STR,
+            TOOL_GROUP_IMAGE_GENERATOR_STR,
         ),
         conditions: dict = None,
     ) -> dict:
@@ -315,7 +327,7 @@ class IptScriptGenerator(object):
         else:
             return False
 
-    def pre_process_image(
+    def fix_exposure(
         self,
         wrapper,
         use_last_result: bool,
@@ -323,7 +335,7 @@ class IptScriptGenerator(object):
         current_step: int = -1,
         total_steps: int = -1,
     ):
-        """Fixes exposition and preprocesses image
+        """ Applies exposure fixing modules
 
         Arguments:
             wrapper {AbstractImageProcessor} -- Current wrapper
@@ -349,6 +361,38 @@ class IptScriptGenerator(object):
                     progress_callback, current_step, total_steps, "Fixing exposure", wrapper
                 )
         wrapper.store_image(wrapper.current_image, "exposure_fixed", force_store=True)
+
+        return use_last_result, current_step
+
+    def pre_process_image(
+        self,
+        wrapper,
+        use_last_result: bool,
+        progress_callback=None,
+        current_step: int = -1,
+        total_steps: int = -1,
+    ):
+        """Fixes exposition and preprocesses image
+
+        Arguments:
+            wrapper {AbstractImageProcessor} -- Current wrapper
+            use_last_result {bool} -- Wether or not result can be retrieved from the cache
+
+        Keyword Arguments:
+            progress_callback {function} -- Progress call back function (default: {None})
+            current_step {int} -- current global progress step (default: {-1})
+            total_steps {int} -- Global steps count (default: {-1})
+
+        Returns:
+            tuple -- use_last_result, current_step
+        """
+        use_last_result, current_step = self.fix_exposure(
+            wrapper=wrapper,
+            use_last_result=use_last_result,
+            progress_callback=progress_callback,
+            current_step=current_step,
+            total_steps=total_steps,
+        )
         use_last_result, current_step = self.build_rois(
             wrapper=wrapper,
             tools=None,
@@ -478,9 +522,10 @@ class IptScriptGenerator(object):
         else:
             tool = tool_dict["tool"].copy()
             if tool.process_wrapper(wrapper=wrapper):
-                if (tool_dict["kind"] == TOOL_GROUP_FEATURE_EXTRACTION_STR) and (
-                    hasattr(tool, "data_dict")
-                ):
+                if (
+                    tool_dict["kind"]
+                    in [TOOL_GROUP_FEATURE_EXTRACTION_STR, TOOL_GROUP_IMAGE_GENERATOR_STR]
+                ) and (hasattr(tool, "data_dict")):
                     ret = tool.data_dict
                 else:
                     ret = tool.result
@@ -500,7 +545,7 @@ class IptScriptGenerator(object):
             raise AttributeError("ROI tools should never be fed to process_tool")
         elif tool_kind == TOOL_GROUP_MASK_CLEANUP_STR:
             return ret, use_last_result
-        elif tool_kind == TOOL_GROUP_FEATURE_EXTRACTION_STR:
+        elif tool_kind in [TOOL_GROUP_FEATURE_EXTRACTION_STR, TOOL_GROUP_IMAGE_GENERATOR_STR]:
             return ret, use_last_result
         else:
             self._last_wrapper_luid = ""
@@ -526,6 +571,7 @@ class IptScriptGenerator(object):
                         TOOL_GROUP_ROI_STATIC_STR,
                         TOOL_GROUP_MASK_CLEANUP_STR,
                         TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                        TOOL_GROUP_IMAGE_GENERATOR_STR,
                     ),
                     enabled=True,
                 )
@@ -745,6 +791,14 @@ class IptScriptGenerator(object):
                 current_step = self.add_progress(
                     progress_callback, current_step, total_steps, "Applied ROIs", wrapper
                 )
+                res = True
+
+            # Prepare data holder
+            if res and (
+                (not self.threshold_only and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0)
+                or (len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0)
+            ):
+                wrapper.csv_data_holder = AbstractCsvWriter()
 
             # Extract features
             if (
@@ -753,7 +807,6 @@ class IptScriptGenerator(object):
                 and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0
             ):
                 wrapper.current_image = wrapper.retrieve_stored_image("exposure_fixed")
-                wrapper.csv_data_holder = AbstractCsvWriter()
                 for tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
                     current_data, use_last_result = self.process_tool(
                         tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result
@@ -766,6 +819,22 @@ class IptScriptGenerator(object):
                         total_steps,
                         "Extracting features",
                         wrapper,
+                    )
+                res = len(wrapper.csv_data_holder.data_list) > 0
+
+            # Generate images
+            if res and len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
+                for tool in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
+                    tool["tool"].set_value_of(key="path", value=self.image_output_path)
+                    current_data, use_last_result = self.process_tool(
+                        tool_dict=tool,
+                        wrapper=wrapper,
+                        use_last_result=use_last_result,
+                    )
+                    if isinstance(current_data, dict):
+                        wrapper.csv_data_holder.data_list.update(current_data)
+                    current_step = self.add_progress(
+                        progress_callback, current_step, total_steps, "Copying images", wrapper,
                     )
                 res = len(wrapper.csv_data_holder.data_list) > 0
 
@@ -1121,6 +1190,15 @@ class IptScriptGenerator(object):
         ws_ct = remove_tab(ws_ct)
         code_ += "\n"
 
+        # Prepare data holder
+        # ___________________
+        if (not self.threshold_only and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0) or (
+            len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0
+        ):
+            code_ += ws_ct + "# Prepare data holder\n"
+            code_ += ws_ct + "# ___________________\n"
+            code_ += ws_ct + "wrapper.csv_data_holder = AbstractCsvWriter()\n"
+
         # Extract features
         # ________________
         if not self.threshold_only and (len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0):
@@ -1129,7 +1207,6 @@ class IptScriptGenerator(object):
             code_ += (
                 ws_ct + "wrapper.current_image = wrapper.retrieve_stored_image('exposure_fixed')\n"
             )
-            code_ += ws_ct + "wrapper.csv_data_holder = AbstractCsvWriter()\n"
             for fe_tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
                 code_ += call_ipt_code(
                     ipt=fe_tool,
@@ -1172,6 +1249,29 @@ class IptScriptGenerator(object):
                 + "wrapper.object_composition(wrapper.current_image, id_objects, obj_hierarchy)\n"
             )
         code_ += "\n"
+
+        # Generate images
+        if len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
+            code_ += ws_ct + "# Generate images\n"
+            code_ += ws_ct + "# _______________\n"
+            for ig_tool in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
+                ig_tool.set_value_of(key="path", value=self.image_output_path)
+                code_ += call_ipt_code(
+                    ipt=ig_tool,
+                    white_spaces=ws_ct,
+                    result_name="current_data",
+                    generate_imports=False,
+                    return_type="data",
+                )
+                code_ += f"{ws_ct}if isinstance(current_data, dict):\n"
+                ws_ct = add_tab(ws_ct)
+                code_ += ws_ct + "wrapper.csv_data_holder.data_list.update(current_data)\n"
+                ws_ct = remove_tab(ws_ct)
+                code_ += ws_ct + "else:\n"
+                ws_ct = add_tab(ws_ct)
+                code_ += ws_ct + 'wrapper.error_holder.add_error("Failed to add generate image")\n'
+                ws_ct = remove_tab(ws_ct)
+                code_ += "\n"
 
         # Build mosaic
         # ____________
@@ -1235,7 +1335,7 @@ class IptScriptGenerator(object):
         # Coarse mask generation
         if len(tools_[TOOL_GROUP_THRESHOLD_STR]) > 0:
             for cmg in tools_[TOOL_GROUP_THRESHOLD_STR]:
-                res += f"Partial channel mask: : {str(cmg)}\n"
+                res += f"Partial channel mask: {str(cmg)}\n"
         else:
             res += "No coarse mask generation\n"
 
@@ -1249,14 +1349,21 @@ class IptScriptGenerator(object):
         # Mask cleaning
         if len(tools_[TOOL_GROUP_MASK_CLEANUP_STR]) > 0:
             for cm in tools_[TOOL_GROUP_MASK_CLEANUP_STR]:
-                res += f"Partial channel mask: : {str(cm)}\n"
+                res += f"Partial channel mask: {str(cm)}\n"
         else:
             res += "No mask cleaner selected\n"
 
         # Extracted features
         if len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0:
             for cm in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
-                res += f"Feature extraction: : {str(cm)}\n"
+                res += f"Feature extraction: {str(cm)}\n"
+        else:
+            res += "No feature extraction\n"
+
+        # Images generated
+        if len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
+            for cm in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
+                res += f"Image generation: {str(cm)}\n"
         else:
             res += "No feature extraction\n"
 
@@ -1377,6 +1484,8 @@ class IptScriptGenerator(object):
             return [TOOL_GROUP_MASK_CLEANUP_STR]
         elif tool_kind == TOOL_GROUP_FEATURE_EXTRACTION_STR:
             return [TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        elif tool_kind == TOOL_GROUP_IMAGE_GENERATOR_STR:
+            return [TOOL_GROUP_IMAGE_GENERATOR_STR]
         else:
             return []
 
@@ -1483,6 +1592,14 @@ class IptScriptGenerator(object):
     @property
     def pseudo_color_channel(self):
         return self._settings.get_value_of("pseudo_channel")
+
+    @property
+    def image_output_path(self):
+        return self._settings.get_value_of("image_output_path")
+
+    @image_output_path.setter
+    def image_output_path(self, value):
+        self._settings.set_value_of("image_output_path", value)
 
     @property
     def pseudo_background_type(self):

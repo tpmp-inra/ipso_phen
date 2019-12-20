@@ -26,6 +26,9 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             default_value="",
             hint='names separate by "," with no spaces',
         )
+        self.add_text_input(
+            name="add_columns", desc="Add as empty columns", default_value="",
+        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -71,6 +74,11 @@ class IptAnalyseObservation(IptBaseAnalyzer):
                         else:
                             key = f"key_{i}"
                         self.add_value(key=key, value=value, force_add=True)
+
+            new_columns = self.get_value_of("add_columns").replace(" ", "").split(",")
+            if new_columns:
+                for new_column in new_columns:
+                    self.add_value(new_column, None, force_add=True)
 
             res = True
         except Exception as e:

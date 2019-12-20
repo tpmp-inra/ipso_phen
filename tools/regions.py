@@ -159,6 +159,7 @@ class AbstractRegion(object):
         self.tag = kwargs.get("tag", "None")
         self.target = kwargs.get("target", "")
         self.color = kwargs.get("color", tag_to_color(self.tag))
+        self.apply_case = kwargs.get("apply_case", {})
 
     def __repr__(self) -> str:
         raise NotImplementedError
@@ -252,7 +253,7 @@ class AbstractRegion(object):
         if erase_outside_if_not_rect is True:
             img = self.keep(src_image)
         else:
-            img = src_image.copy
+            img = src_image.copy()
         r = self.as_rect()
         if r is None:
             return None
@@ -745,11 +746,7 @@ class AnnulusRegion(CircleRegion):
                 line_width,
             )
             return cv2.circle(
-                img_,
-                (self.center.x, self.center.y),
-                self.in_radius,
-                self.color,
-                line_width,
+                img_, (self.center.x, self.center.y), self.in_radius, self.color, line_width,
             )
         else:
             return self.fill(dst_img=dst_img, color=color)

@@ -52,14 +52,14 @@ class IptAnalyzeBound(IptBaseAnalyzer):
         Real time : False
 
         Keyword Arguments (in parentheses, argument name):
-            * Height above bound level (above_bound_height): 
-            * Area above bound level (above_bound_area): 
-            * Percentage area above bound level (above_bound_percent_area): 
-            * Height below bound level (below_bound_height): 
-            * Area below bound level (below_bound_area): 
-            * Percentage area below bound level (below_bound_percent_area): 
+            * Height above bound level (above_bound_height):
+            * Area above bound level (above_bound_area):
+            * Percentage area above bound level (above_bound_percent_area):
+            * Height below bound level (below_bound_height):
+            * Area below bound level (below_bound_area):
+            * Percentage area below bound level (below_bound_percent_area):
             * Horizontal bound position (line_position): Horizontal bound normally used to separate above from below ground
-            * Channel (channel): 
+            * Channel (channel):
         --------------
         """
         wrapper = self.init_wrapper(**kwargs)
@@ -178,4 +178,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return "Analyses object bound.\nNeeds a mask as an input.\nNormally used in a pipeline after a clean mask is created."
+        return """Analyses object bound.\n
+        Needs a mask as an input.\n
+        Normally used in a pipeline after a clean mask is created.
+        """
