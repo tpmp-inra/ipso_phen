@@ -16,6 +16,12 @@ class IptRectangleRoi(IptBase):
         self.add_spin_box(
             name="height", desc="Height", default_value=0, minimum=-10000, maximum=10000
         )
+        self.add_text_input(
+            name="apply_case",
+            desc="Apply to images that match",
+            default_value="",
+            hint="List of key values pairs separated by |, to use list as value separate with ','",
+        )
         self.add_button(
             name="draw_roi",
             desc="Launch ROI draw form",
@@ -125,6 +131,16 @@ class IptRectangleRoi(IptBase):
         if height < 0:
             top = None
 
+        d = {}
+        kv = self.get_value_of("apply_case")
+        if kv:
+            pairs = kv.split("|")
+            for pair in pairs:
+                k, v = pair.split("=")
+                v = v.split(",")
+                if k is not None and v is not None:
+                    d.update({k: v})
+
         return RectangleRegion(
             source_width=wrapper.width,
             source_height=wrapper.height,
@@ -135,6 +151,7 @@ class IptRectangleRoi(IptBase):
             name=roi_name,
             tag=roi_type,
             target=tool_target,
+            apply_case=d,
         )
 
     @property

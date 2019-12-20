@@ -23,9 +23,11 @@ def log_event(event: [list, str], print_to_console: bool = False):
     if IS_LOG_DATA is True:
         with open(g_log_file, "a+") as lf:
             if isinstance(event, str):
+                lf.write("event\n")
+            elif isinstance(event, object):
                 lf.write(f"{str(event)}\n")
             else:
-                lf.write('\n'.join(event))
+                lf.write("\n".join(event))
     if print_to_console:
         print(event)
 
@@ -47,10 +49,19 @@ def main():
 
     parser = argparse.ArgumentParser(description="Process a pipeline on images with stored state")
     parser.add_argument("-s", "--stored_state", required=True, help="Path to the stored state")
+    parser.add_argument(
+        "-p",
+        "--process_count",
+        required=False,
+        help="Override number of concurrent processes",
+        default=None,
+    )
+
     args = vars(parser.parse_args())
 
     src = args["stored_state"]
-    # src = "C:\\Users\\fmavianemac\\Documents\\ipso_phen_data\\pipeline_state\\pp_state_test.json"
+
+    # src = "..\\..\\..\\ipso_phen_data\\pipeline_state\\18as_stress_1908.json"
 
     with open(src, "r") as f:
         res = json.load(f, object_hook=decode_ipt)
@@ -70,11 +81,12 @@ def main():
     g_log_file = os.path.join(output_folder_, "log.txt")
     force_directories(output_folder_)
     csv_file_name = res["csv_file_name"]
+    mpc = int(args.get("process_count", res["thread_count"])) if IS_USE_MULTI_THREAD else False
 
     log_event(
         event=[
-            'Process summary',
-            '_______________',
+            "Process summary",
+            "_______________",
             f'database: {res["database_data"]}',
             f'Output folder: {res["output_folder"]}',
             f'CSV file name: {res["csv_file_name"]}',
@@ -83,12 +95,13 @@ def main():
             f'Append timestamp to root folder: {res["append_time_stamp"]}',
             f'Generate series ID: {res["generate_series_id"]}',
             f'Series ID time delta allowed: {res["series_id_time_delta"]}',
-            f'Dataframe rows: {df.shape[1]}',
+            f"Dataframe rows: {df.shape[1]}",
+            f"Concurrent processes count: {mpc}",
             f'Script summary: {str(res["script"])}',
-            '_______________',
-            ''
+            "_______________",
+            "",
         ],
-        print_to_console=False
+        print_to_console=False,
     )
 
     # Retrieve images
@@ -114,8 +127,10 @@ def main():
         groups_to_process = pp.handle_existing_data(groups_to_process)
         groups_to_process_count = len(groups_to_process)
         if groups_to_process_count > 0:
-            log_event(f'Starting {groups_to_process_count} groups processing', print_to_console=True)
-            pp.multi_thread = res["thread_count"] if IS_USE_MULTI_THREAD else False
+            log_event(
+                f"Starting {groups_to_process_count} groups processing", print_to_console=True
+            )
+            pp.multi_thread = mpc
             pp.process_groups(groups_list=groups_to_process, target_database=db)
 
     # Merge dataframe
@@ -159,20 +174,14 @@ def main():
                 df.groupby("series_id").median().merge(df).drop(
                     ["series_id"], axis=1
                 ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
-                    os.path.join(
-                        pp.options.dst_path, f"{csv_sid_root_name}_median.csv"
-                    )
+                    os.path.join(pp.options.dst_path, f"{csv_sid_root_name}_median.csv")
                 )
                 step_ += 1
                 do_pp_progress(step_, steps_)
             if build_mean_df:
-                df.groupby("series_id").mean().drop(
-                    ["series_id"]
-                ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
-                    os.path.join(
-                        pp.options.dst_path, f"{csv_sid_root_name}_mean.csv"
-                    )
-                )
+                df.groupby("series_id").mean().drop(["series_id"]).drop_duplicates().sort_values(
+                    by=["plant", "date_time"]
+                ).to_csv(os.path.join(pp.options.dst_path, f"{csv_sid_root_name}_mean.csv"))
                 step_ += 1
                 do_pp_progress(step_, steps_)
         if group_by_hour:
@@ -190,28 +199,20 @@ def main():
             if build_median_df:
                 df.groupby("date").median().drop_duplicates().sort_values(
                     by=["plant", "date"]
-                ).to_csv(
-                    os.path.join(
-                        pp.options.dst_path, f"{csv_day_root_name}_median.csv"
-                    )
-                )
+                ).to_csv(os.path.join(pp.options.dst_path, f"{csv_day_root_name}_median.csv"))
                 step_ += 1
                 do_pp_progress(step_, steps_)
             if build_mean_df:
                 df.groupby("date").mean().drop_duplicates().sort_values(
                     by=["plant", "date"]
-                ).to_csv(
-                    os.path.join(
-                        pp.options.dst_path, f"{csv_day_root_name}_mean.csv"
-                    )
-                )
+                ).to_csv(os.path.join(pp.options.dst_path, f"{csv_day_root_name}_mean.csv"))
                 step_ += 1
                 do_pp_progress(step_, steps_)
         log_event(" --- Built additional CSV files ---", print_to_console=True)
 
     log_event(
         event=f"Processed {groups_to_process_count} groups/images in {format_time(timer() - start)}",
-        print_to_console=True
+        print_to_console=True,
     )
 
     return 0

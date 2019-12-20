@@ -19,27 +19,27 @@ from ip_base import ip_common as ipc
 from tools.common_functions import print_progress_bar
 
 
-_EXPERIMENT = "13as_19tp01_1904".lower()
-# PLANTS = ["13a0007_su_ww_xx", "13a0024_su_wd_xx"]
-PLANTS = ["13a0014_w3_wd_xx", "13a0022_w3_wd_xx"]
-# PLANTS = ["13a0019_hr_ww_xx", "13a0020_hr_wd_xx"]
+_EXPERIMENT = "19ac_atsys1_1909".lower()
+PLANTS = ["19ac311_9m_mo_14", "19ac164_9u_mo_14"]
 PLANTS_STORED_NAME = [f"{p}_output" for p in PLANTS]
 MOSAIC_HEIGHT = 1
 MOSAIC_WIDTH = 2
 
-VIEW_OPTION = "side90"
-CAMERA = "vis"
+VIEW_OPTION = "sw755"
+CAMERA = "msp"
 MOSAIC_DATA = np.array(PLANTS_STORED_NAME)
 MOSAIC_DATA = np.reshape(MOSAIC_DATA, (MOSAIC_HEIGHT, MOSAIC_WIDTH))
 
-SCRIPT_PATH = "C:/Users/fmavianemac/Documents/tpmp_pipelines/13as_19tp01_1904_v2.tipp"
+SCRIPT_PATH = (
+    "C:/Users/fmavianemac/Documents/ipso_phen_data/pipelines/19ac_atsys1_1909_fill_first_v2.tipp"
+)
 
 DST_PATH = f"C:\\Users\\fmavianemac\\Videos\\TPMP_output\\{_EXPERIMENT}_side\\"
 
 BACKGROUND_COLOR, FONT_COLOR = (0, 0, 0), (255, 255, 255)
 
 
-def build_image(
+def build_masked_image(
     image_path: str,
     main_wrapper: AbstractImageProcessor = None,
     index: tuple = (0,),
@@ -60,6 +60,33 @@ def build_image(
                 foreground="source",
                 bck_grd_luma=120,
             ),
+            text=PLANTS_STORED_NAME[index[0]],
+            force_store=True,
+            text_overlay=f"{wrapper.plant} - {wrapper.date_time.strftime('%d/%b/%Y')}",
+            font_color=ipc.C_WHITE,
+            position="TOP",
+        )
+    else:
+        w.store_image(image=wrapper.current_image, text=PLANTS_STORED_NAME[index[0]])
+    return w
+
+
+def build_fixed_image(
+    image_path: str,
+    main_wrapper: AbstractImageProcessor = None,
+    index: tuple = (0,),
+    script: IptScriptGenerator = None,
+):
+    wrapper = AbstractImageProcessor(image_path)
+    script.fix_exposure(wrapper=wrapper, use_last_result=False)
+    if main_wrapper is not None:
+        w = main_wrapper
+    else:
+        w = wrapper
+    img_ = wrapper.retrieve_stored_image("exposure_fixed")
+    if img_ is not None:
+        w.store_image(
+            image=img_,
             text=PLANTS_STORED_NAME[index[0]],
             force_store=True,
             text_overlay=f"{wrapper.plant} - {wrapper.date_time.strftime('%d/%b/%Y')}",
@@ -108,7 +135,7 @@ def main():
         if not (source_vis_plant and os.path.isfile(source_vis_plant)):
             continue
         # Handle first image
-        main_wrapper = build_image(
+        main_wrapper = build_fixed_image(
             image_path=source_vis_plant, main_wrapper=None, index=(0,), script=script_.copy()
         )
         current_date_time = main_wrapper.date_time
@@ -126,14 +153,14 @@ def main():
                 view_option=VIEW_OPTION,
                 date_time=dict(
                     operator="BETWEEN",
-                    date_min=current_date_time - datetime.timedelta(hours=2),
-                    date_max=current_date_time + datetime.timedelta(hours=2),
+                    date_min=current_date_time - datetime.timedelta(hours=10),
+                    date_max=current_date_time + datetime.timedelta(hours=10),
                 ),
             )
             if file_name_:
                 file_name_ = file_name_[0]
             if file_name_ and os.path.isfile(file_name_):
-                build_image(
+                build_fixed_image(
                     image_path=file_name_,
                     main_wrapper=main_wrapper,
                     index=(counter + 1,),
@@ -141,15 +168,15 @@ def main():
                 )
             else:
                 has_missing_ = True
-        if has_missing_:
-            continue
+        # if has_missing_:
+        #     continue
 
         mosaic = main_wrapper.build_mosaic(
             (vid_height, vid_width, 3), MOSAIC_DATA, BACKGROUND_COLOR
         )
         time_counter += 1
 
-        cv2.imwrite(f"{DST_PATH}{main_wrapper.plant}_{time_counter}.jpg", mosaic)
+        # cv2.imwrite(f"{DST_PATH}{main_wrapper.plant}_{time_counter}.jpg", mosaic)
 
         def write_image_times(out_writer, img_, times=12):
             for _ in range(0, times):

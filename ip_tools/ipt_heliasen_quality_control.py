@@ -10,6 +10,9 @@ from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 class IptHeliasenQualityControl(IptBaseAnalyzer):
     def build_params(self):
         self.add_enabled_checkbox()
+        self.add_checkbox(
+            name="binary_error", desc="Encode final error as binary option", default_value=0
+        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -256,9 +259,12 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 err_lst.append(plant_top_error)
 
                 err_lst = np.array(err_lst)
-                error_level = np.max(err_lst)
-                if error_level >= 2:
-                    error_level += len(np.where(err_lst >= 2)[0]) - 1
+                if self.get_value_of("binary_error") == 1:
+                    error_level = 0 if np.max(err_lst) == 0 else 1
+                else:
+                    error_level = np.max(err_lst)
+                    if error_level >= 2:
+                        error_level += len(np.where(err_lst >= 2)[0]) - 1
                 wrapper.data_output["error_level"] = error_level
                 if report_lines:
                     wrapper.data_output["report"] = " ".join(report_lines).replace(",", "->")

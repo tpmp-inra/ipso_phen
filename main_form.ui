@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1176</width>
-    <height>879</height>
+    <width>962</width>
+    <height>806</height>
    </rect>
   </property>
   <property name="font">
@@ -545,8 +545,8 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>810</width>
-                          <height>154</height>
+                          <width>642</width>
+                          <height>139</height>
                          </rect>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -785,8 +785,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>808</width>
-                           <height>70</height>
+                           <width>642</width>
+                           <height>62</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">
@@ -1600,8 +1600,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1176</width>
-     <height>21</height>
+     <width>962</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -1764,6 +1764,7 @@
     <addaction name="action_add_roi"/>
     <addaction name="actionSet_contour_cleaner"/>
     <addaction name="action_add_feature_extractor"/>
+    <addaction name="action_add_image_generator"/>
    </widget>
    <widget class="QMenu" name="mnu_tools_root">
     <property name="title">
@@ -2614,6 +2615,11 @@
   <action name="action_save_pipeline_processor_state">
    <property name="text">
     <string>Save pipeline processor state</string>
+   </property>
+  </action>
+  <action name="action_add_image_generator">
+   <property name="text">
+    <string>Add Image Generator</string>
    </property>
   </action>
  </widget>

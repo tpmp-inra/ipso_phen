@@ -211,7 +211,7 @@ class PipelineProcessor:
     ):
         if self.progress_callback is None:
             time_now_ = timer()
-            if forced_update or (time_now_ - self._last_update > 0.5):
+            if forced_update or (time_now_ - self._last_update > 0.5) or (iteration == total):
                 print_progress_bar(
                     iteration=iteration,
                     total=total,

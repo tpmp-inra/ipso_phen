@@ -1005,6 +1005,36 @@ class IptParamHolder(object):
             or (p.name in forced_params)
         ]
 
+    def output_params(
+        self,
+        exclude_defaults: bool = False,
+        excluded_params: tuple = (),
+        forced_params: tuple = (),
+    ):
+        return [
+            p
+            for p in self.gizmos
+            if (
+                p.is_output
+                and not (exclude_defaults and p.is_default)
+                and (p.name not in excluded_params)
+            )
+            or (p.name in forced_params)
+        ]
+
+    def all_params(
+        self,
+        exclude_defaults: bool = False,
+        excluded_params: tuple = (),
+        forced_params: tuple = (),
+    ):
+        return [
+            p
+            for p in self.gizmos
+            if (not (exclude_defaults and p.is_default) and (p.name not in excluded_params))
+            or (p.name in forced_params)
+        ]
+
     def params_to_dict(self):
         dic = {}
         for p in self.gizmos:
@@ -1092,12 +1122,6 @@ class IptBase(IptParamHolder, ABC):
             return self.__class__(wrapper=self.wrapper, **self.params_to_dict())
         else:
             return self.__class__(**self.params_to_dict())
-
-    def clone_params(self, source):
-        for dst in self.gizmos:
-            src = source.params.find_by_name(dst.name)
-            if src is not None:
-                dst.value = src.value
 
     def execute(self, param, **kwargs):
         pass
@@ -1438,10 +1462,9 @@ class IptBase(IptParamHolder, ABC):
             mask = func(mask, kernel_size=kernel_size, proc_times=iter_, kernel_shape=k_shape)
 
         if store_result:
-            self.wrapper.store_image(image=mask, text='morphology_applied')
+            self.wrapper.store_image(image=mask, text="morphology_applied")
 
         return mask
-        
 
     def print_segmentation_labels(
         self, watershed_image, labels, dbg_suffix="", min_size=-1, source_image=None
@@ -1715,7 +1738,7 @@ class IptBase(IptParamHolder, ABC):
             return 5
         elif TOOL_GROUP_FEATURE_EXTRACTION_STR in self.use_case:
             return 6
-        elif TOOL_GROUP_ANCILLARY_STR in self.use_case:
+        elif TOOL_GROUP_IMAGE_GENERATOR_STR in self.use_case:
             return 7
         elif TOOL_GROUP_CLUSTERING_STR in self.use_case:
             return 8
@@ -1725,7 +1748,7 @@ class IptBase(IptParamHolder, ABC):
             return 10
         elif TOOL_GROUP_IMAGE_CHECK_STR in self.use_case:
             return 11
-        elif TOOL_GROUP_IMAGE_GENERATOR_STR in self.use_case:
+        elif TOOL_GROUP_ANCILLARY_STR in self.use_case:
             return 12
         elif TOOL_GROUP_IMAGE_INFO_STR in self.use_case:
             return 13

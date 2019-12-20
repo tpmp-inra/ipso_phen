@@ -27,7 +27,8 @@ tool_group_hints = {
     TOOL_GROUP_ANCILLARY_STR: "Tools mostly used inside other tools",
     TOOL_GROUP_CLUSTERING_STR: "Clustering tools",
     TOOL_GROUP_DEMO_STR: "Demo tools, start here if you want to understand how to create/edit tools",
-    TOOL_GROUP_DEFAULT_PROCESS_STR: "Execute a class pipeline linked to the selected image experiment, if no class pipeline is available an error will be reported",
+    TOOL_GROUP_DEFAULT_PROCESS_STR: """Execute a class pipeline linked to the selected image experiment,
+    if no class pipeline is available an error will be reported""",
     TOOL_GROUP_FEATURE_EXTRACTION_STR: "Tools to extract features from a segmented image",
     TOOL_GROUP_EXPOSURE_FIXING_STR: "Fix image exposure, the resulting image will be used for color analysis",
     TOOL_GROUP_IMAGE_CHECK_STR: "Check different aspects of an image",
@@ -55,6 +56,7 @@ tool_groups_pipeline = [
     TOOL_GROUP_ROI_STATIC_STR,
     TOOL_GROUP_THRESHOLD_STR,
     TOOL_GROUP_WHITE_BALANCE_STR,
+    TOOL_GROUP_IMAGE_GENERATOR_STR,
 ]
 
 AVAILABLE_FEATURES = sorted(
@@ -283,7 +285,8 @@ def create_channel_generator(
 
         for cs in groups:
             for k, v in CHANNELS_BY_SPACE[cs].items():
-                yield cs, k, v
+                if (k in channels) or not channels:
+                    yield cs, k, v
 
 
 def channel_color(channel: str):
