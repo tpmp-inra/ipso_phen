@@ -46,11 +46,9 @@ class IptCleanHorizontalNoise(IptBase):
         try:
             if self.get_value_of("enabled") == 1:
                 img = wrapper.current_image
-                mask = wrapper.mask
+                mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        "Failure Clean horizontal noise: mask must be initialized"
-                    )
+                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 nz_pixels = np.count_nonzero(mask)
@@ -111,7 +109,7 @@ class IptCleanHorizontalNoise(IptBase):
 
     @property
     def name(self):
-        return "Clean horizontal noise (WIP)"
+        return "Clean horizontal noise"
 
     @property
     def package(self):

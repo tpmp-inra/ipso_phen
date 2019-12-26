@@ -35,6 +35,24 @@ class IptFillMaskHoles(IptBase):
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Fill mask holes:
+        Fills holes in mask
+        Real time: False
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
+            * Invert mask before filling (invert): Mask will be inverted once again at the end
+            * Max contour size (max_size): Contour above this size will be ignored
+            * Min contour size (min_size): Contour below this size will be ignored
+        --------------
+        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -42,12 +60,10 @@ class IptFillMaskHoles(IptBase):
         res = False
         try:
             if self.get_value_of("enabled") == 1:
-                img = wrapper.current_image
-                mask = wrapper.mask
+                img = wrapper.current_image                
+                mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        "Failure Fill mask holes: mask must be initialized"
-                    )
+                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 rois = self.get_ipt_roi(
@@ -114,7 +130,7 @@ class IptFillMaskHoles(IptBase):
 
     @property
     def name(self):
-        return "Fill mask holes (WIP)"
+        return "Fill mask holes"
 
     @property
     def package(self):

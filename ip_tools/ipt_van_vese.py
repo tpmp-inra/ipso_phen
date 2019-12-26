@@ -6,14 +6,15 @@ from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR
 
 
 class IptChanVese(IptBase):
-
     def build_params(self):
-        self.add_channel_selector(default_value='h')
-        self.add_slider(name='max_iter', desc='Max iterations', default_value=100, minimum=0, maximum=500)
-        self.add_slider(name='mu', desc='mu', default_value=25, minimum=0, maximum=100)
-        self.add_slider(name='lambda1', desc='Lambda1', default_value=1, minimum=0, maximum=10)
-        self.add_slider(name='lambda2', desc='Lambda2', default_value=1, minimum=0, maximum=10)
-        self.add_slider(name='dt', desc='dt', default_value=25, minimum=0, maximum=200)
+        self.add_channel_selector(default_value="h")
+        self.add_slider(
+            name="max_iter", desc="Max iterations", default_value=100, minimum=0, maximum=500
+        )
+        self.add_slider(name="mu", desc="mu", default_value=25, minimum=0, maximum=100)
+        self.add_slider(name="lambda1", desc="Lambda1", default_value=1, minimum=0, maximum=10)
+        self.add_slider(name="lambda2", desc="Lambda2", default_value=1, minimum=0, maximum=10)
+        self.add_slider(name="dt", desc="dt", default_value=25, minimum=0, maximum=200)
 
     def process_wrapper(self, **kwargs):
         """
@@ -35,12 +36,12 @@ class IptChanVese(IptBase):
         if wrapper is None:
             return False
 
-        max_iter = self.get_value_of('max_iter')
-        mu = self.get_value_of('mu') / 100
-        dt = self.get_value_of('dt') / 100
-        lambda1 = self.get_value_of('lambda1')
-        lambda2 = self.get_value_of('lambda2')
-        channel = self.get_value_of('channel')
+        max_iter = self.get_value_of("max_iter")
+        mu = self.get_value_of("mu") / 100
+        dt = self.get_value_of("dt") / 100
+        lambda1 = self.get_value_of("lambda1")
+        lambda2 = self.get_value_of("lambda2")
+        channel = self.get_value_of("channel")
 
         res = False
         try:
@@ -54,19 +55,15 @@ class IptChanVese(IptBase):
                 max_iter=max_iter,
                 dt=dt,
                 init_level_set="checkerboard",
-                extended_output=True
+                extended_output=True,
             )
             cv_0 = cv[0] + 1
             cv_0 = ((cv_0 - cv_0.min()) / (cv_0.max() - cv_0.min()) * 255).astype(np.uint8)
             cv_1 = ((cv[1] - cv[1].min()) / (cv[1].max() - cv[1].min()) * 255).astype(np.uint8)
-            wrapper.store_image(
-                cv_0,
-                f"Chan-Vese segmentation - {len(cv[2])} ite_{self.input_params_as_str()}",
-                text_overlay=True
-            )
 
-            self.result = cv_1
-            wrapper.store_image(cv_1, f'Final Level Set_{self.input_params_as_str()}', text_overlay=True)
+            wrapper.store_image(cv_1, f"Chan_Vese_final_level_set", text_overlay=False)
+            wrapper.store_image(cv_0, f"Chan-Vese_segmentation", text_overlay=True)
+            self.result = cv_0
 
         except Exception as e:
             res = False
@@ -78,7 +75,7 @@ class IptChanVese(IptBase):
 
     @property
     def name(self):
-        return 'Chan Vese'
+        return "Chan Vese"
 
     @property
     def real_time(self):
@@ -86,11 +83,11 @@ class IptChanVese(IptBase):
 
     @property
     def result_name(self):
-        return 'channel'
+        return "channel"
 
     @property
     def output_kind(self):
-        return 'channel'
+        return "channel"
 
     @property
     def use_case(self):

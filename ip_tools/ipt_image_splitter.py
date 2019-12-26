@@ -117,7 +117,7 @@ class IptImageSplitter(IptBase):
 
     @property
     def name(self):
-        return "Image slicer"
+        return "Image slicer (WIP)"
 
     @property
     def real_time(self):

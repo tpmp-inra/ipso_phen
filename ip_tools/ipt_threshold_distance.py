@@ -310,6 +310,12 @@ class IptThresholdDistance(IptBase):
             np.seterr(divide="warn")
             return res
 
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if TOOL_GROUP_THRESHOLD_STR in use_cases:
+            self.set_value_of("post_processing", "threshold")
+        if TOOL_GROUP_PRE_PROCESSING_STR in use_cases:
+            pass
+
     @property
     def name(self):
         return "Distance threshold"

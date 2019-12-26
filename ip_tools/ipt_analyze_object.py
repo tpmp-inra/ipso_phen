@@ -146,9 +146,10 @@ class IptAnalyzeObject(IptBaseAnalyzer):
         res = False
         try:
             img = self.extract_source_from_args()
-            mask = wrapper.mask
+            mask = self.get_mask()
             if mask is None:
-                res = False
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                return
 
             obj, mask = wrapper.prepare_analysis(
                 wrapper.draw_image(src_mask=mask, background="silver", foreground="source"), mask
@@ -223,10 +224,10 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                         background="bw",
                         foreground="source",
                         contour_thickness=line_width,
-                        hull_thickness=line_width if self.has_key("hull_area") else 0,
-                        width_thickness=line_width if self.has_key("shape_width") else 0,
-                        height_thickness=line_width if self.has_key("shape_height") else 0,
-                        centroid_width=centroid_width if self.has_key("centroid_x") else 0,
+                        hull_thickness=line_width if self.has_param("hull_area") else 0,
+                        width_thickness=line_width if self.has_param("shape_width") else 0,
+                        height_thickness=line_width if self.has_param("shape_height") else 0,
+                        centroid_width=centroid_width if self.has_param("centroid_x") else 0,
                         centroid_line_width=line_width,
                     ),
                     text="shapes",
@@ -239,10 +240,10 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                         background="source",
                         foreground="source",
                         contour_thickness=line_width,
-                        hull_thickness=line_width if self.has_key("hull_area") else 0,
-                        width_thickness=line_width if self.has_key("shape_width") else 0,
-                        height_thickness=line_width if self.has_key("shape_height") else 0,
-                        centroid_width=centroid_width if self.has_key("centroid_x") else 0,
+                        hull_thickness=line_width if self.has_param("hull_area") else 0,
+                        width_thickness=line_width if self.has_param("shape_width") else 0,
+                        height_thickness=line_width if self.has_param("shape_height") else 0,
+                        centroid_width=centroid_width if self.has_param("centroid_x") else 0,
                         centroid_line_width=line_width,
                     ),
                     text="shapes_on_mask",

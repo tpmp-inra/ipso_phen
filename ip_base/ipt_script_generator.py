@@ -149,7 +149,7 @@ class IptScriptGenerator(object):
         self._settings = kwargs.get("_settings", SettingsHolder())
         self._last_wrapper_luid = ""
         self.use_cache = kwargs.get("use_cache", True)
-        self.image_output_path = kwargs.get("image_output_path", "./images")
+        self.image_output_path = kwargs.get("image_output_path", "")
 
     @staticmethod
     def _init_features():
@@ -258,6 +258,7 @@ class IptScriptGenerator(object):
         ret = IptScriptGenerator(use_cache=self.use_cache)
         ret._target_data_base = self._target_data_base
         ret._settings = self._settings.copy()
+        ret.image_output_path = self.image_output_path
         for tool_dic in self.ip_operators:
             tmp_tool_dict = {}
             for k, v in tool_dic.items():
@@ -825,7 +826,8 @@ class IptScriptGenerator(object):
             # Generate images
             if res and len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
                 for tool in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
-                    tool["tool"].set_value_of(key="path", value=self.image_output_path)
+                    if self.image_output_path:
+                        tool["tool"].set_value_of(key="path", value=self.image_output_path)
                     current_data, use_last_result = self.process_tool(
                         tool_dict=tool,
                         wrapper=wrapper,

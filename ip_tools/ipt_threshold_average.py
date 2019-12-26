@@ -5,74 +5,72 @@ from scipy.special import expit
 
 from ip_base.ipt_abstract import IptBase
 from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
-from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR
 
 
 class IptCustomChannel(IptBase):
-
     def build_params(self):
         self.add_checkbox(
-            name='enabled',
-            desc='Activate tool',
+            name="enabled",
+            desc="Activate tool",
             default_value=1,
-            hint='Toggle whether or not tool is active'
+            hint="Toggle whether or not tool is active",
         )
-        self.add_source_selector(default_value='source')
-        self.add_separator('sep_1')
-        self.add_channel_selector(name='channel_1', desc='Channel 1:', default_value='bl')
-        self.add_checkbox(name='invert_channel_1', desc='Invert channel 1', default_value=0)
+        self.add_source_selector(default_value="source")
+        self.add_separator("sep_1")
+        self.add_channel_selector(name="channel_1", desc="Channel 1:", default_value="bl")
+        self.add_checkbox(name="invert_channel_1", desc="Invert channel 1", default_value=0)
         self.add_combobox(
-            name='transformation_channel_1',
-            desc='Transformation applied to channel 1',
-            default_value='none',
-            values=dict(none='None', sigmoid='Sigmoid', normalize='Normalize')
+            name="transformation_channel_1",
+            desc="Transformation applied to channel 1",
+            default_value="none",
+            values=dict(none="None", sigmoid="Sigmoid", normalize="Normalize"),
         )
-        self.add_separator('sep_2')
-        self.add_channel_selector(name='channel_2', desc='Channel 2:', default_value='gr')
-        self.add_checkbox(name='invert_channel_2', desc='Invert channel 2', default_value=0)
+        self.add_separator("sep_2")
+        self.add_channel_selector(name="channel_2", desc="Channel 2:", default_value="gr")
+        self.add_checkbox(name="invert_channel_2", desc="Invert channel 2", default_value=0)
         self.add_combobox(
-            name='transformation_channel_2',
-            desc='Transformation applied to channel 2',
-            default_value='none',
-            values=dict(none='None', sigmoid='Sigmoid', normalize='Normalize')
+            name="transformation_channel_2",
+            desc="Transformation applied to channel 2",
+            default_value="none",
+            values=dict(none="None", sigmoid="Sigmoid", normalize="Normalize"),
         )
-        self.add_separator('sep_3')
-        self.add_channel_selector(name='channel_3', desc='Channel 3:', default_value='rd')
-        self.add_checkbox(name='invert_channel_3', desc='Invert channel 3', default_value=0)
+        self.add_separator("sep_3")
+        self.add_channel_selector(name="channel_3", desc="Channel 3:", default_value="rd")
+        self.add_checkbox(name="invert_channel_3", desc="Invert channel 3", default_value=0)
         self.add_combobox(
-            name='transformation_channel_3',
-            desc='Transformation applied to channel 3',
-            default_value='none',
-            values=dict(none='None', sigmoid='Sigmoid', normalize='Normalize')
+            name="transformation_channel_3",
+            desc="Transformation applied to channel 3",
+            default_value="none",
+            values=dict(none="None", sigmoid="Sigmoid", normalize="Normalize"),
         )
-        self.add_separator('sep_4')
+        self.add_separator("sep_4")
         self.add_combobox(
-            name='post_process',
-            desc='Output mode:',
-            default_value='rgb',
+            name="post_process",
+            desc="Output mode:",
+            default_value="rgb",
             values=dict(
-                rgb='RGB image',
-                hsv='HSV image',
-                lab='LAB image',
-                grey_avg='Grey scale, average of values',
-                grey_std='Gery scale, standard'
-            )
+                rgb="RGB image",
+                hsv="HSV image",
+                lab="LAB image",
+                grey_avg="Grey scale, average of values",
+                grey_std="Gery scale, standard",
+            ),
         )
         self.add_color_map_selector(
-            default_value='c_2',
-            desc='Grey scale palette:',
-            hint='Grey scale palette (grey scale output only)'
+            default_value="c_2",
+            desc="Grey scale palette:",
+            hint="Grey scale palette (grey scale output only)",
         )
         self.add_combobox(
-            name='build_mosaic',
-            desc='Build mosaic',
-            default_value='no',
+            name="build_mosaic",
+            desc="Build mosaic",
+            default_value="no",
             values=dict(
-                no='None',
-                channels='Channels and result in bottom right',
-                sbs='Source and result side by side'
+                no="None",
+                channels="Channels and result in bottom right",
+                sbs="Source and result side by side",
             ),
-            hint='Choose mosaic type to display'
+            hint="Choose mosaic type to display",
         )
         self.add_text_overlay(0)
 
@@ -108,69 +106,75 @@ class IptCustomChannel(IptBase):
         res = False
         try:
             img = self.extract_source_from_args()
-            if self.get_value_of('enabled') == 1:
+            if self.get_value_of("enabled") == 1:
                 channels = []
                 channel_names = []
-                for i in ['1', '2', '3']:
-                    channel = self.get_value_of(f'channel_{i}')
-                    ct = self.get_value_of(f'transformation_channel_{i}')
-                    if ct == 'sigmoid':
+                for i in ["1", "2", "3"]:
+                    channel = self.get_value_of(f"channel_{i}")
+                    ct = self.get_value_of(f"transformation_channel_{i}")
+                    if ct == "sigmoid":
                         c = wrapper.get_channel(src_img=img, channel=channel)
                         c = np.interp(c, (c.min(), c.max()), (-5, 5))
                         c = expit(c)
                         c = np.interp(c, (c.min(), c.max()), (0, 255)).astype(np.uint8)
-                    elif ct == 'normalize':
+                    elif ct == "normalize":
                         c = wrapper.get_channel(src_img=img, channel=channel, normalize=True)
                     else:
                         c = wrapper.get_channel(src_img=img, channel=channel)
-                    if self.get_value_of(f'invert_channel_{i}') == 1:
+                    if self.get_value_of(f"invert_channel_{i}") == 1:
                         c = 255 - c
                     channels.append(c)
-                    channel_names.append(f'c{i}_{channel}')
-                    wrapper.store_image(c, f'c{i}_{channel}')
+                    channel_names.append(f"c{i}_{channel}")
+                    wrapper.store_image(c, f"c{i}_{channel}")
 
                 img = np.dstack(channels)
-                post_process = self.get_value_of('post_process')
-                color_map = self.get_value_of('color_map')
-                _, color_map = color_map.split('_')
-                if post_process == 'rgb':
+                post_process = self.get_value_of("post_process")
+                color_map = self.get_value_of("color_map")
+                _, color_map = color_map.split("_")
+                if post_process == "rgb":
                     pass
-                elif post_process == 'hsv':
+                elif post_process == "hsv":
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-                elif post_process == 'lab':
+                elif post_process == "lab":
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
-                elif post_process == 'grey_std':
+                elif post_process == "grey_std":
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     img = cv2.applyColorMap(img, int(color_map))
-                elif post_process == 'grey_avg':
+                elif post_process == "grey_avg":
                     img = ((img[:, :, 0] + img[:, :, 1] + img[:, :, 2]) / 3).astype(np.uint8)
                     img = cv2.applyColorMap(img, int(color_map))
 
-                if self.get_value_of('text_overlay') == 1:
+                if self.get_value_of("text_overlay") == 1:
                     text_overlay = self.input_params_as_str(
-                        exclude_defaults=True, excluded_params=('progress_callback',)
-                    ).replace(', ', '\n')
+                        exclude_defaults=True, excluded_params=("progress_callback",)
+                    ).replace(", ", "\n")
                 else:
                     text_overlay = False
                 self.result = self.to_uint8(img, normalize=False)
 
-                wrapper.store_image(self.result, 'threshold_by_average', text_overlay=text_overlay)
-                build_mosaic = self.get_value_of('build_mosaic')
-                if (build_mosaic == 'channels') and self.result is not None:
-                    wrapper.store_image(self.result, 'threshold_by_average', text_overlay=False)
+                wrapper.store_image(self.result, "threshold_by_average", text_overlay=text_overlay)
+                build_mosaic = self.get_value_of("build_mosaic")
+                if (build_mosaic == "channels") and self.result is not None:
+                    wrapper.store_image(self.result, "threshold_by_average", text_overlay=False)
                     canvas = wrapper.build_mosaic(
                         shape=(img.shape[0], img.shape[1], 3),
-                        image_names=np.array([[channel_names[0], channel_names[1]],
-                                              [channel_names[2], 'threshold_by_average']])
+                        image_names=np.array(
+                            [
+                                [channel_names[0], channel_names[1]],
+                                [channel_names[2], "threshold_by_average"],
+                            ]
+                        ),
                     )
-                    wrapper.store_image(canvas, 'mosaic', text_overlay=text_overlay)
-                elif build_mosaic == 'sbs':
-                    canvas = wrapper.build_mosaic(image_names=np.array(['source', 'threshold_by_average']))
-                    wrapper.store_image(canvas, 'mosaic')
+                    wrapper.store_image(canvas, "mosaic", text_overlay=text_overlay)
+                elif build_mosaic == "sbs":
+                    canvas = wrapper.build_mosaic(
+                        image_names=np.array(["source", "threshold_by_average"])
+                    )
+                    wrapper.store_image(canvas, "mosaic")
 
                 res = True
             else:
-                wrapper.store_image(image=img, text='source')
+                wrapper.store_image(image=img, text="source")
                 res = True
 
         except Exception as e:
@@ -183,7 +187,7 @@ class IptCustomChannel(IptBase):
 
     @property
     def name(self):
-        return 'Custom channels'
+        return "Custom channels"
 
     @property
     def real_time(self):
@@ -191,15 +195,15 @@ class IptCustomChannel(IptBase):
 
     @property
     def result_name(self):
-        return 'image'
+        return "image"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_THRESHOLD_STR]
+        return [TOOL_GROUP_PRE_PROCESSING_STR]
 
     @property
     def description(self):

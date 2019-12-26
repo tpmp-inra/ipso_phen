@@ -87,10 +87,10 @@ class IptAugmentData(IptBaseAnalyzer):
         ):
             if is_write:
                 new_name = f"{root_file_name}{text}.{file_ext}"
+                self.add_value(key=f"img{text}", value=new_name, force_add=True)
                 if test_only:
-                    self.wrapper.store_image(img, new_name)
+                    self.wrapper.store_image(image, new_name)
                 else:
-                    self.add_value(key=f"img{text}", value=new_name, force_add=True)
                     cv2.imwrite(filename=os.path.join(path, new_name), img=image)
 
     def process_wrapper(self, **kwargs):
@@ -160,6 +160,11 @@ class IptAugmentData(IptBaseAnalyzer):
     @property
     def result_name(self):
         return "none"
+
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        self.set_value_of(
+            "path", os.path.join(os.path.dirname(__file__), "..", "test", "output_files", "")
+        )
 
     @property
     def output_kind(self):

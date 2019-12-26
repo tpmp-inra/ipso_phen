@@ -83,7 +83,7 @@ class IptRotate(IptBase):
 
     @property
     def use_case(self):
-        return ["Exposure fixing", "Image generator", "Pre processing", "Visualization"]
+        return ["Exposure fixing", "Pre processing", "Visualization"]
 
     @property
     def description(self):

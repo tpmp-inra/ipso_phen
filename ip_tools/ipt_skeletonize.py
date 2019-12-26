@@ -4,30 +4,30 @@ from skimage.morphology import skeletonize, skeletonize_3d, medial_axis, thin
 
 from ip_base.ipt_abstract import IptBase
 from ip_base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
-from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 
 
 class IptSkeletonize(IptBase):
-
     def build_params(self):
         self.add_combobox(
-            name='mode',
-            desc='Skeletonize mode',
-            default_value='skeletonize',
+            name="mode",
+            desc="Skeletonize mode",
+            default_value="skeletonize",
             values=dict(
-                skeletonize='Skeletonize',
-                skeletonize_3d='Skeletonize 3D',
-                medial_axis='Medial axis skeletonization',
-                morphological_thinning='Morphological thinning'
+                skeletonize="Skeletonize",
+                skeletonize_3d="Skeletonize 3D",
+                medial_axis="Medial axis skeletonization",
+                morphological_thinning="Morphological thinning",
             ),
-            hint='Select skeletonize method among 4 available'
+            hint="Select skeletonize method among 4 available",
         )
-        self.add_color_map_selector(default_value='k_10', desc='Color map for medial axis skeletonization')
+        self.add_color_map_selector(
+            default_value="k_10", desc="Color map for medial axis skeletonization"
+        )
         self.add_checkbox(
-            name='build_mosaic',
-            desc='Build mosaic',
+            name="build_mosaic",
+            desc="Build mosaic",
             default_value=0,
-            hint='If true source and result will be displayed side by side'
+            hint="If true source and result will be displayed side by side",
         )
         self.add_text_overlay(1)
 
@@ -47,38 +47,36 @@ class IptSkeletonize(IptBase):
         if wrapper is None:
             return False
 
-        mode = self.get_value_of('mode')
-        text_overlay = self.get_value_of('text_overlay') == 1
-        build_mosaic = self.get_value_of('build_mosaic') == 1
-        color_map = self.get_value_of('color_map')
-        _, color_map = color_map.split('_')
+        mode = self.get_value_of("mode")
+        text_overlay = self.get_value_of("text_overlay") == 1
+        build_mosaic = self.get_value_of("build_mosaic") == 1
+        color_map = self.get_value_of("color_map")
+        _, color_map = color_map.split("_")
         color_map = int(color_map)
 
         try:
             # Build mask
-            mask = wrapper.mask
+            mask = self.get_mask()
             if mask is None:
-                wrapper.process_image(threshold_only=True)
-                mask = wrapper.mask
-                if mask is None:
-                    wrapper.error_holder.add_error('Watershed needs a calculated mask to start')
-                    return False
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                return
 
             res = True
 
-            if mode == 'skeletonize':
+            if mode == "skeletonize":
                 mask[mask != 0] = 1
                 skeleton = skeletonize(mask).astype(np.uint8)
                 skeleton[skeleton != 0] = 255
-            elif mode == 'skeletonize_3d':
+            elif mode == "skeletonize_3d":
                 skeleton = skeletonize_3d(mask)
-            elif mode == 'medial_axis':
+            elif mode == "medial_axis":
                 skel, distance = medial_axis(mask, return_distance=True)
                 skeleton = skel * distance
-                skeleton = ((skeleton - skeleton.min()) / (skeleton.max() - skeleton.min()) *
-                            255).astype(np.uint8)
+                skeleton = (
+                    (skeleton - skeleton.min()) / (skeleton.max() - skeleton.min()) * 255
+                ).astype(np.uint8)
                 skeleton = cv2.applyColorMap(skeleton, color_map)
-            elif mode == 'morphological_thinning':
+            elif mode == "morphological_thinning":
                 skeleton = thin(mask).astype(np.uint8)
                 skeleton[skeleton != 0] = 255
             else:
@@ -87,19 +85,23 @@ class IptSkeletonize(IptBase):
 
             if res:
                 wrapper.store_image(
-                    skeleton, f'skeletonize_{self.input_params_as_str()}', text_overlay=text_overlay
+                    skeleton,
+                    f"skeletonize_{self.input_params_as_str()}",
+                    text_overlay=text_overlay,
                 )
             else:
-                wrapper.error_holder.add_error(f'Unknown skeletonize mode {mode}')
+                wrapper.error_holder.add_error(f"Unknown skeletonize mode {mode}")
 
             self.result = skeleton
 
             if build_mosaic:
-                wrapper.store_image(self.to_uint8(mask), 'source_mask')
+                wrapper.store_image(self.to_uint8(mask), "source_mask")
                 canvas = wrapper.build_mosaic(
-                    image_names=np.array(['source_mask', f'skeletonize_{self.input_params_as_str()}'])
+                    image_names=np.array(
+                        ["source_mask", f"skeletonize_{self.input_params_as_str()}"]
+                    )
                 )
-                wrapper.store_image(canvas, 'mosaic')
+                wrapper.store_image(canvas, "mosaic")
         except Exception as e:
             wrapper.error_holder.add_error(f'Failed to build skeleton exception: "{repr(e)}"')
             return False
@@ -108,7 +110,7 @@ class IptSkeletonize(IptBase):
 
     @property
     def name(self):
-        return 'Skeletonize'
+        return "Skeletonize"
 
     @property
     def real_time(self):
@@ -116,15 +118,15 @@ class IptSkeletonize(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'channel'
+        return "channel"
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_VISUALIZATION_STR, TOOL_GROUP_MASK_CLEANUP_STR]
+        return [TOOL_GROUP_MASK_CLEANUP_STR]
 
     @property
     def description(self):

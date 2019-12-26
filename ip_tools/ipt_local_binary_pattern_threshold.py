@@ -79,6 +79,32 @@ class IptLocalBinaryPatternThreshold(IptBase):
         self.add_color_map_selector()
 
     def process_wrapper(self, **kwargs):
+        """
+        Local binary pattern threshold (WIP):
+        Gray scale and rotation invariant LBP (Local Binary Patterns).
+                LBP is an invariant descriptor that can be used for texture classification.
+        Real time: False
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Channel (channel):
+            * Number of circularly symmetric neighbor (P): Number of circularly symmetric neighbor set points (quantization of the angular space)
+            * Radius of circle (R): Radius of circle (spatial resolution of the operator)
+            * Method to determine the pattern (method):
+            * Transformation applied to output (transformation):
+            * Cut x%% lower values (lower_cut): Increase to smooth low frequency textures regions and add detail to high frequencies
+            * Cut x%% upper values (upper_cut): Increase to smooth high frequency textures regions and add detail to low frequencies
+            * Postprocessing option (post_processing):
+            * Threshold min value (min_t):
+            * Threshold max value (max_t):
+            * Median filter size (odd values only) (median_filter_size):
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
+            * Select pseudo color map (color_map):
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -187,7 +213,11 @@ class IptLocalBinaryPatternThreshold(IptBase):
 
     @property
     def use_case(self):
-        return ["Threshold", "Visualization"]
+        return [
+            ipc.TOOL_GROUP_THRESHOLD_STR,
+            ipc.TOOL_GROUP_VISUALIZATION_STR,
+            ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+        ]
 
     @property
     def description(self):

@@ -6,50 +6,51 @@ from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
 
 class IptChannelMixer(IptBase):
-
     def build_params(self):
-        self.add_source_selector(default_value='source')
-        self.add_color_space(default_value='HSV')
-        self.add_separator('sep_1')
+        self.add_source_selector(default_value="source")
+        self.add_color_space(default_value="HSV")
+        self.add_separator("sep_1")
         self.add_slider(
-            name='channel_1_weight',
-            desc='Weight of channel 1',
+            name="channel_1_weight",
+            desc="Weight of channel 1",
             default_value=100,
             minimum=0,
             maximum=100,
-            hint='Factor used to multiply channel 1 values'
+            hint="Factor used to multiply channel 1 values",
         )
         self.add_slider(
-            name='channel_2_weight',
-            desc='Weight of channel 2',
+            name="channel_2_weight",
+            desc="Weight of channel 2",
             default_value=100,
             minimum=0,
             maximum=100,
-            hint='Factor used to multiply channel 2 values'
+            hint="Factor used to multiply channel 2 values",
         )
         self.add_slider(
-            name='channel_3_weight',
-            desc='Weight of channel 3',
+            name="channel_3_weight",
+            desc="Weight of channel 3",
             default_value=100,
             minimum=0,
             maximum=100,
-            hint='Factor used to multiply channel 3 values'
+            hint="Factor used to multiply channel 3 values",
         )
-        self.add_separator('sep_4')
+        self.add_separator("sep_4")
         self.add_combobox(
-            name='post_process',
-            desc='Output mode:',
-            default_value='rgb',
+            name="post_process",
+            desc="Output mode:",
+            default_value="rgb",
             values=dict(
-                rgb='RGB image', grey_avg='Grey scale, average of values', grey_std='Gery scale, standard'
-            )
+                rgb="RGB image",
+                grey_avg="Grey scale, average of values",
+                grey_std="Gery scale, standard",
+            ),
         )
         self.add_color_map_selector(
-            default_value='c_2',
-            desc='Grey scale palette:',
-            hint='Grey scale palette (grey scale output only)'
+            default_value="c_2",
+            desc="Grey scale palette:",
+            hint="Grey scale palette (grey scale output only)",
         )
-        self.add_checkbox(name='build_mosaic', desc='Build mosaic', default_value=0)
+        self.add_checkbox(name="build_mosaic", desc="Build mosaic", default_value=0)
 
     def process_wrapper(self, **kwargs):
         """
@@ -80,40 +81,41 @@ class IptChannelMixer(IptBase):
 
             channels = []
             for i in range(0, 3):
-                m = self.get_value_of(f'channel_{i+1}_weight') / 100
+                m = self.get_value_of(f"channel_{i+1}_weight") / 100
                 c = img[:, :, i].astype(np.float)
                 c *= m
                 c = c.astype(np.uint8)
                 channels.append(c)
-                wrapper.store_image(c, f'c{i+1}')
+                wrapper.store_image(c, f"c{i+1}")
 
             img = np.dstack(channels)
-            color_space = self.get_value_of('color_space')
-            if color_space == 'HSV':
+            color_space = self.get_value_of("color_space")
+            if color_space == "HSV":
                 img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-            elif color_space == 'LAB':
+            elif color_space == "LAB":
                 img = cv2.cvtColor(img, cv2.COLOR_LAB2BGR)
-            post_process = self.get_value_of('post_process')
-            if post_process != 'rgb':
-                color_map = self.get_value_of('color_map')
-                _, color_map = color_map.split('_')
-                if post_process == 'grey_std':
+            post_process = self.get_value_of("post_process")
+            if post_process != "rgb":
+                color_map = self.get_value_of("color_map")
+                _, color_map = color_map.split("_")
+                if post_process == "grey_std":
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     img = cv2.applyColorMap(img, int(color_map))
-                elif post_process == 'grey_avg':
+                elif post_process == "grey_avg":
                     img = ((img[:, :, 0] + img[:, :, 1] + img[:, :, 2]) / 3).astype(np.uint8)
                     img = cv2.applyColorMap(img, int(color_map))
 
-            wrapper.store_image(img, 'channel_mixer')
+            wrapper.store_image(img, "channel_mixer")
+            self.result = img
 
             res = True
 
-            if self.get_value_of('build_mosaic') == 1:
+            if self.get_value_of("build_mosaic") == 1:
                 canvas = wrapper.build_mosaic(
                     shape=(img.shape[0], img.shape[1], 3),
-                    image_names=np.array([['c1', 'c2'], ['c3', 'channel_mixer']])
+                    image_names=np.array([["c1", "c2"], ["c3", "channel_mixer"]]),
                 )
-                wrapper.store_image(canvas, 'mosaic')
+                wrapper.store_image(canvas, "mosaic")
 
         except Exception as e:
             wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
@@ -125,7 +127,7 @@ class IptChannelMixer(IptBase):
 
     @property
     def name(self):
-        return 'Channel mixer'
+        return "Channel mixer"
 
     @property
     def real_time(self):
@@ -133,11 +135,11 @@ class IptChannelMixer(IptBase):
 
     @property
     def result_name(self):
-        return 'image'
+        return "image"
 
     @property
     def output_kind(self):
-        return 'image'
+        return "image"
 
     @property
     def use_case(self):
@@ -145,4 +147,4 @@ class IptChannelMixer(IptBase):
 
     @property
     def description(self):
-        return 'Creates an new image by combining 3 channels from of the color spaces available.'
+        return "Creates an new image by combining 3 channels from of the color spaces available."

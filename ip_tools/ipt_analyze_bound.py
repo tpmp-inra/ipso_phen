@@ -69,8 +69,9 @@ class IptAnalyzeBound(IptBaseAnalyzer):
         res = False
         try:
             img = self.extract_source_from_args()
-            mask = wrapper.mask
+            mask = self.get_mask()
             if mask is None:
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             res = True
@@ -155,6 +156,9 @@ class IptAnalyzeBound(IptBaseAnalyzer):
         finally:
             self.result = len(self.data_dict) > 0
             return res
+
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        self.set_value_of("line_position", 100)
 
     @property
     def name(self):

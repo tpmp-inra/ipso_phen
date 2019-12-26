@@ -38,6 +38,19 @@ class IptHoughCircles(IptBase):
             hint="Circles will only be detected inside ROI",
         )
         self.add_channel_selector(default_value="l")
+        self.add_checkbox(
+            name="normalize",
+            desc="Normalize channel",
+            default_value=0,
+            hint="Normalize channel before edge detection",
+        )
+        self.add_slider(
+            name="median_filter_size",
+            desc="Median filter size (odd values only)",
+            default_value=0,
+            minimum=0,
+            maximum=51,
+        )
         self.add_spin_box(
             name="min_radius",
             desc="Minimal radius to consider",
@@ -133,6 +146,47 @@ class IptHoughCircles(IptBase):
         self.add_text_overlay()
 
     def process_wrapper(self, **kwargs):
+        """
+        Hough circles detector:
+        Hough circles detector: Perform a circular Hough transform.
+        Can generate ROIs
+        Real time: False
+
+        Keyword Arguments (in parentheses, argument name):
+            * Allow retrieving data from cache (enable_cache): Data will be retrieved only if params are identical.
+            * ROI name (roi_name):
+            * Select action linked to ROI (roi_type): no clue
+            * Select ROI shape (roi_shape): no clue
+            * Target IPT (tool_target): no clue
+            * Name of ROI to be used (crop_roi_name): Circles will only be detected inside ROI
+            * Channel (channel):
+            * Normalize channel (normalize): Normalize channel before edge detection
+            * Median filter size (odd values only) (median_filter_size):
+            * Minimal radius to consider (min_radius): All circles smaller than this will be ignored
+            * Maximal radius to consider (max_radius): All circles bigger than this will be ignored
+            * Annulus secondary radius delta (annulus_size): Annulus size, 0 means full disc
+            * Radius granularity (step_radius): Steps for scanning radius
+            * Maximum number of detected circles (max_peaks): Keeps only n best circles
+            * Minimum distance between two circles (min_distance): Remove circles that are too close
+            * Draw line width (line_width):
+            * Keep only closest, if not, ROI is larger circle (keep_only_one):
+            * Keep the closest circle closest to (target_position):
+            * Maximum distance to root position (max_dist_to_root):
+            * Draw max and min circles (draw_boundaries):
+            * Draw discarded candidates (draw_candidates):
+            * Contract/expand circle (expand_circle):
+            * Edge detection only (edge_only):
+            * Select edge detection operator (operator):
+            * Canny's sigma for scikit, aperture for OpenCV (canny_sigma): Sigma.
+            * Canny's first Threshold (canny_first): First threshold for the hysteresis procedure.
+            * Canny's second Threshold (canny_second): Second threshold for the hysteresis procedure.
+            * Kernel size (kernel_size):
+            * Threshold (threshold): Threshold for kernel based operators
+            * Apply threshold (apply_threshold):
+            * Overlay text on top of images (text_overlay): Draw description text on top of images
+        --------------
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -381,7 +435,7 @@ class IptHoughCircles(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_VISUALIZATION_STR]
+        return [TOOL_GROUP_ROI_DYNAMIC_STR]
 
     @property
     def description(self):

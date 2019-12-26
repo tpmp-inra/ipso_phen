@@ -1,4 +1,4 @@
-# Clean horizontal noise (WIP)
+# Clean horizontal noise
 
 ## Description
 

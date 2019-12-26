@@ -3,11 +3,10 @@ from ip_base.ip_common import TOOL_GROUP_IMAGE_CHECK_STR
 
 
 class IptCheckSource(IptBase):
-
     def build_params(self):
-        self.add_checkbox(name='show_images', desc='Show images', default_value=0)
-        self.add_checkbox(name='thorough_test', desc='Thorough test', default_value=0)
-        self.add_checkbox(name='print_rois', desc='Print ROIs', default_value=0)
+        self.add_checkbox(name="show_images", desc="Show images", default_value=0)
+        self.add_checkbox(name="thorough_test", desc="Thorough test", default_value=0)
+        self.add_checkbox(name="print_rois", desc="Print ROIs", default_value=0)
 
     def process_wrapper(self, **kwargs):
         """
@@ -25,9 +24,9 @@ class IptCheckSource(IptBase):
         if wrapper is None:
             return False
 
-        show_images = bool(self.get_value_of('show_images'))
-        thorough_test = bool(self.get_value_of('thorough_test'))
-        print_rois = bool(self.get_value_of('print_rois'))
+        show_images = bool(self.get_value_of("show_images"))
+        thorough_test = bool(self.get_value_of("thorough_test"))
+        print_rois = bool(self.get_value_of("print_rois"))
 
         res = False
         try:
@@ -38,11 +37,11 @@ class IptCheckSource(IptBase):
             if show_images or print_rois:
                 if print_rois:
                     wrapper.init_rois()
-                wrapper.store_image(wrapper.current_image, 'source', print_rois)
+                wrapper.store_image(wrapper.current_image, "source", print_rois)
         except Exception as e:
             wrapper.error_holder.add_error(
                 f'Failed to check source for {str(self)}, exception: "{repr(e)}"',
-                new_error_kind='source_issue'
+                new_error_kind="source_issue",
             )
             res = False
         else:
@@ -53,7 +52,7 @@ class IptCheckSource(IptBase):
 
     @property
     def name(self):
-        return 'Check source image'
+        return "Check source image"
 
     @property
     def real_time(self):
@@ -61,11 +60,11 @@ class IptCheckSource(IptBase):
 
     @property
     def result_name(self):
-        return 'image_check'
+        return "image_check"
 
     @property
     def output_kind(self):
-        return 'boolean'
+        return "boolean"
 
     @property
     def use_case(self):
@@ -73,4 +72,4 @@ class IptCheckSource(IptBase):
 
     @property
     def description(self):
-        return 'Checks image and returns error if something is wrong.'
+        return "Checks image and returns error if something is wrong."

@@ -16,10 +16,44 @@ class IptEdgeDetector(IptBase):
         )
         self.add_source_selector(default_value="source")
         self.add_channel_selector(default_value="l")
+        self.add_checkbox(
+            name="normalize",
+            desc="Normalize channel",
+            default_value=0,
+            hint="Normalize channel before edge detection",
+        )
+        self.add_slider(
+            name="median_filter_size",
+            desc="Median filter size (odd values only)",
+            default_value=0,
+            minimum=0,
+            maximum=51,
+        )
         self.add_edge_detector()
         self.add_text_overlay()
 
     def process_wrapper(self, **kwargs):
+        """
+        Edge detectors:
+        Performs edge detection with various common operators.
+        Mostly used by other tools.
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Select source file type (source_file): no clue
+            * Channel (channel):
+            * Normalize channel (normalize): Normalize channel before edge detection
+            * Median filter size (odd values only) (median_filter_size):
+            * Select edge detection operator (operator):
+            * Canny's sigma for scikit, aperture for OpenCV (canny_sigma): Sigma.
+            * Canny's first Threshold (canny_first): First threshold for the hysteresis procedure.
+            * Canny's second Threshold (canny_second): Second threshold for the hysteresis procedure.
+            * Kernel size (kernel_size):
+            * Threshold (threshold): Threshold for kernel based operators
+            * Apply threshold (apply_threshold):
+            * Overlay text on top of images (text_overlay): Draw description text on top of images
+        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -36,7 +70,12 @@ class IptEdgeDetector(IptBase):
         try:
             src_img = self.extract_source_from_args()
             if self.get_value_of("enabled") == 1:
-                c = wrapper.get_channel(src_img, channel)
+                c = wrapper.get_channel(
+                    src_img=src_img,
+                    channel=channel,
+                    normalize=self.get_value_of("normalize") == 1,
+                    median_filter_size=self.get_value_of("median_filter_size"),
+                )
                 if c is None:
                     self.do_channel_failure(channel)
                     return

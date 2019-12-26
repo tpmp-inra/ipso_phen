@@ -4,23 +4,34 @@ from scipy import ndimage
 from skimage.feature import peak_local_max
 from skimage.morphology import watershed
 
-from ip_base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR
+from ip_base.ip_common import (
+    DEFAULT_COLOR_MAP,
+    TOOL_GROUP_CLUSTERING_STR,
+    TOOL_GROUP_FEATURE_EXTRACTION_STR,
+)
 from ip_base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptWatershedSkimage(IptBaseMerger):
-
     def build_params(self):
         self.add_slider(
-            name='morph_op', desc="Close/Open, <0 Close, >0 Open", default_value=0, minimum=-31, maximum=31
+            name="morph_op",
+            desc="Close/Open, <0 Close, >0 Open",
+            default_value=0,
+            minimum=-31,
+            maximum=31,
         )
-        self.add_slider(name='min_area', desc='Min zone area ', default_value=1200, minimum=-1, maximum=50000)
-        self.add_slider(name='compactness', desc='Compactness', default_value=0, minimum=0, maximum=1000)
+        self.add_slider(
+            name="min_area", desc="Min zone area ", default_value=1200, minimum=-1, maximum=50000
+        )
+        self.add_slider(
+            name="compactness", desc="Compactness", default_value=0, minimum=0, maximum=1000
+        )
         self.add_combobox(
-            name='post_process',
-            desc='Post process',
-            default_value='none',
-            values=dict(none='none', merge_labels='merge labels')
+            name="post_process",
+            desc="Post process",
+            default_value="none",
+            values=dict(none="none", merge_labels="merge labels"),
         )
         self.add_hierarchy_threshold()
 
@@ -41,10 +52,10 @@ class IptWatershedSkimage(IptBaseMerger):
         if wrapper is None:
             return False
 
-        min_area = self.get_value_of('min_area')
-        morph_op = self.get_value_of('morph_op')
-        compactness = self.get_value_of('compactness') / 1000
-        post_process = self.get_value_of('post_process')
+        min_area = self.get_value_of("min_area")
+        morph_op = self.get_value_of("morph_op")
+        compactness = self.get_value_of("compactness") / 1000
+        post_process = self.get_value_of("post_process")
 
         res = False
         try:
@@ -53,7 +64,7 @@ class IptWatershedSkimage(IptBaseMerger):
                 wrapper.process_image(threshold_only=True)
                 thresh = wrapper.mask
                 if thresh is None:
-                    wrapper.error_holder.add_error('Watershed needs a calculated mask to start')
+                    wrapper.error_holder.add_error("Watershed needs a calculated mask to start")
                     return False
 
             if morph_op > 0:
@@ -68,10 +79,12 @@ class IptWatershedSkimage(IptBaseMerger):
             dist_transform = ndimage.distance_transform_edt(thresh)
             wrapper.store_image(
                 cv2.applyColorMap(np.uint8(dist_transform), DEFAULT_COLOR_MAP),
-                f'dist_transform_{self.input_params_as_str()}',
-                text_overlay=True
+                f"dist_transform_{self.input_params_as_str()}",
+                text_overlay=True,
             )
-            local_max = peak_local_max(dist_transform, indices=False, min_distance=20, labels=thresh)
+            local_max = peak_local_max(
+                dist_transform, indices=False, min_distance=20, labels=thresh
+            )
 
             # perform a connected component analysis on the local peaks,
             # using 8-connectivity, then appy the Watershed algorithm
@@ -79,28 +92,34 @@ class IptWatershedSkimage(IptBaseMerger):
             labels = watershed(
                 -dist_transform, markers, mask=wrapper.erode(thresh, 5), compactness=compactness
             )
-            if post_process != 'none':
+            if post_process != "none":
                 post_labels = labels.copy()
             else:
                 post_labels = None
 
             self.result = labels.copy()
             labels[labels == -1] = 0
-            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(np.uint8)
+            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(
+                np.uint8
+            )
             water_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
-            wrapper.store_image(water_img, f'watershed_vis_{self.input_params_as_str()}', text_overlay=True)
-
-            self.print_segmentation_labels(
-                water_img, labels, dbg_suffix='watershed_skimage', min_size=min_area
+            wrapper.store_image(
+                water_img, f"watershed_vis_{self.input_params_as_str()}", text_overlay=True
             )
 
-            if post_process == 'merge_labels':
+            self.print_segmentation_labels(
+                water_img, labels, dbg_suffix="watershed_skimage", min_size=min_area
+            )
+
+            if post_process == "merge_labels":
                 res = self._merge_labels(wrapper.current_image, labels=post_labels, **kwargs)
             else:
                 res = True
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(f'Watershed scikit FAILED, exception: "{repr(e)}"')
+            self._wrapper.error_holder.add_error(
+                f'Watershed scikit FAILED, exception: "{repr(e)}"'
+            )
         else:
             res = True
         finally:
@@ -108,7 +127,7 @@ class IptWatershedSkimage(IptBaseMerger):
 
     @property
     def name(self):
-        return 'Watershed Skimage'
+        return "Watershed Skimage (WIP)"
 
     @property
     def real_time(self):
@@ -116,11 +135,11 @@ class IptWatershedSkimage(IptBaseMerger):
 
     @property
     def result_name(self):
-        return 'labels'
+        return "labels"
 
     @property
     def output_kind(self):
-        return 'labels'
+        return "labels"
 
     @property
     def use_case(self):

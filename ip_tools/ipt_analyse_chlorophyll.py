@@ -6,19 +6,22 @@ from ip_base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
 
 
 class IptAnalyzeChlorophyll(IptBaseAnalyzer):
-
     def build_params(self):
-        self.add_checkbox(name='chlorophyll_mean', desc='chlorophyll_mean', default_value=1)
-        self.add_checkbox(name='chlorophyll_std_dev', desc='chlorophyll_std_dev', default_value=1)
-        self.add_separator(name='sep_1')
+        self.add_checkbox(name="chlorophyll_mean", desc="chlorophyll_mean", default_value=1)
+        self.add_checkbox(name="chlorophyll_std_dev", desc="chlorophyll_std_dev", default_value=1)
+        self.add_separator(name="sep_1")
         self.add_color_map_selector()
         self.add_combobox(
-            name='background',
-            desc='Debug image background',
-            default_value='bw',
+            name="background",
+            desc="Debug image background",
+            default_value="bw",
             values=dict(
-                source='Source image', black='Black', white='White', silver='Silver', bw='Black and white'
-            )
+                source="Source image",
+                black="Black",
+                white="White",
+                silver="Silver",
+                bw="Black and white",
+            ),
         )
 
     def process_wrapper(self, **kwargs):
@@ -40,31 +43,39 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
 
         res = False
         try:
-            if not self.has_key_matching('chlorophyll'):
+            if not self.has_key_matching("chlorophyll"):
                 return
 
             img = self.extract_source_from_args()
-            mask = wrapper.mask
+            mask = self.get_mask()
+            if mask is None:
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                return
 
             b, g, r = cv2.split(cv2.bitwise_and(img, img, mask=mask))
-            c = np.exp((-0.0280 * r * 1.04938271604938) + (0.0190*g*1.04938271604938) +
-                       (-0.0030 * b * 1.04115226337449) + 5.780)
+            c = np.exp(
+                (-0.0280 * r * 1.04938271604938)
+                + (0.0190 * g * 1.04938271604938)
+                + (-0.0030 * b * 1.04115226337449)
+                + 5.780
+            )
             if wrapper.store_images:
                 calc_img = self.to_uint8(cv2.bitwise_and(c, c, mask=mask), normalize=True)
                 pseudo = wrapper.draw_image(
                     src_image=img,
                     channel=calc_img,
-                    background=self.get_value_of('background'),
-                    foreground='false_colour',
-                    color_map=self.get_value_of('color_map')
+                    background=self.get_value_of("background"),
+                    foreground="false_colour",
+                    color_map=self.get_value_of("color_map"),
                 )
-                wrapper.store_image(pseudo, 'pseudo_chlorophyll_on_img')
-                wrapper.store_image(calc_img, 'chlorophyll_calculated')
+                wrapper.store_image(pseudo, "pseudo_chlorophyll_on_img")
+                wrapper.store_image(calc_img, "chlorophyll_calculated")
             tmp_tuple = cv2.meanStdDev(
-                c.reshape(c.shape[1] * c.shape[0]), mask=mask.reshape(mask.shape[1] * mask.shape[0])
+                c.reshape(c.shape[1] * c.shape[0]),
+                mask=mask.reshape(mask.shape[1] * mask.shape[0]),
             )
-            self.add_value(key='chlorophyll_mean', value=tmp_tuple[0][0][0])
-            self.add_value(key='chlorophyll_std_dev', value=tmp_tuple[1][0][0])
+            self.add_value(key="chlorophyll_mean", value=tmp_tuple[0][0][0])
+            self.add_value(key="chlorophyll_std_dev", value=tmp_tuple[1][0][0])
         except Exception as e:
             wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
             res = False
@@ -76,7 +87,7 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
 
     @property
     def name(self):
-        return 'Analyze chlorophyll'
+        return "Analyze chlorophyll"
 
     @property
     def real_time(self):
@@ -84,11 +95,11 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
 
     @property
     def result_name(self):
-        return 'dictionary'
+        return "dictionary"
 
     @property
     def output_kind(self):
-        return 'dictionnary'
+        return "dictionnary"
 
     @property
     def use_case(self):
@@ -96,4 +107,4 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return 'Analyses chlorophyll data and returns mean and standard deviation '
+        return "Analyses chlorophyll data and returns mean and standard deviation "

@@ -3,50 +3,56 @@ import numpy as np
 
 from ip_base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
-from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR
+from ip_base.ip_common import (
+    TOOL_GROUP_PRE_PROCESSING_STR,
+    TOOL_GROUP_THRESHOLD_STR,
+    TOOL_GROUP_VISUALIZATION_STR,
+)
 
 
 class IptOtsuOverthinked(IptBase):
-
     def build_params(self):
-        self.add_source_selector(default_value='source')
+        self.add_source_selector(default_value="source")
         self.add_combobox(
-            name='merge_method',
-            desc='Merge method:',
-            default_value='squares',
-            values=dict(squares='Powers of 2', l_and='Logical AND', l_or='Logical OR', w_and='Add hits'),
-            hint='Selected merge method'
+            name="merge_method",
+            desc="Merge method:",
+            default_value="squares",
+            values=dict(
+                squares="Powers of 2", l_and="Logical AND", l_or="Logical OR", w_and="Add hits"
+            ),
+            hint="Selected merge method",
         )
-        self.add_label(name='lbl_channel', desc='Channels:')
-        choices_dict = dict(disabled='disabled', active='active', inverted='inverted')
+        self.add_label(name="lbl_channel", desc="Channels:")
+        choices_dict = dict(disabled="disabled", active="active", inverted="inverted")
         for color_space, channel, channel_name in create_channel_generator(
-            ('h', 's', 'l', 'a', 'b', 'rd', 'gr', 'bl')
+            ("h", "s", "l", "a", "b", "rd", "gr", "bl")
         ):
             self.add_combobox(
-                name=f'{channel}',
-                desc=f'Channel {channel_name} behaviour:',
-                default_value='active',
+                name=f"{channel}",
+                desc=f"Channel {channel_name} behaviour:",
+                default_value="active",
                 values=choices_dict,
-                hint=f'Select channel {get_hr_channel_name(channel)} behaviour'
+                hint=f"Select channel {get_hr_channel_name(channel)} behaviour",
             )
-        self.add_label(name='lbl_disp', desc='Display options:')
-        self.add_color_map_selector(name='color_map', default_value='c_2')
+        self.add_label(name="lbl_disp", desc="Display options:")
+        self.add_color_map_selector(name="color_map", default_value="c_2")
         self.add_checkbox(
-            name='use_palette',
-            desc='use color palette',
+            name="use_palette",
+            desc="use color palette",
             default_value=0,
-            hint='Use color palette in postprocessing'
+            hint="Use color palette in postprocessing",
         )
-        self.add_checkbox(name='normalize', desc='Normalize channel', default_value=0)
+        self.add_checkbox(name="normalize", desc="Normalize channel", default_value=0)
         self.add_combobox(
-            name='build_mosaic',
-            desc='Build mosaic',
-            default_value='no',
+            name="build_mosaic",
+            desc="Build mosaic",
+            default_value="no",
             values=dict(
-                no='None', channels='Channels and result in the middle', sbs='Source and result side by side'
+                no="None",
+                channels="Channels and result in the middle",
+                sbs="Source and result side by side",
             ),
-            hint='Choose mosaic type to display'
+            hint="Choose mosaic type to display",
         )
 
     def process_wrapper(self, **kwargs):
@@ -79,54 +85,57 @@ class IptOtsuOverthinked(IptBase):
 
         res = False
         try:
-            color_map = self.get_value_of('color_map')
-            _, color_map = color_map.split('_')
-            normalize = self.get_value_of('normalize') == 1
-            build_mosaic = self.get_value_of('build_mosaic')
-            merge_method = self.get_value_of('merge_method')
+            color_map = self.get_value_of("color_map")
+            _, color_map = color_map.split("_")
+            normalize = self.get_value_of("normalize") == 1
+            build_mosaic = self.get_value_of("build_mosaic")
+            merge_method = self.get_value_of("merge_method")
             masks = []
             power_ = 0
 
-            wrapper.store_image(wrapper.current_image, 'current_image')
+            wrapper.store_image(wrapper.current_image, "current_image")
 
             mask = None
             for p in self.gizmos:
-                if (p.name not in CHANNELS_FLAT) or (p.value == 'disabled'):
+                if (p.name not in CHANNELS_FLAT) or (p.value == "disabled"):
                     continue
                 _, mask = cv2.threshold(
-                    wrapper.get_channel(channel=p.name), 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+                    wrapper.get_channel(channel=p.name),
+                    0,
+                    255,
+                    cv2.THRESH_BINARY + cv2.THRESH_OTSU,
                 )
-                if p.value == 'inverted':
+                if p.value == "inverted":
                     mask = 255 - mask
-                wrapper.store_image(mask, f'Otsu_{get_hr_channel_name(p.name)}')
-                if merge_method == 'squares':
-                    mask[mask == 255] = 2**power_
-                elif merge_method == 'w_and':
+                wrapper.store_image(mask, f"Otsu_{get_hr_channel_name(p.name)}")
+                if merge_method == "squares":
+                    mask[mask == 255] = 2 ** power_
+                elif merge_method == "w_and":
                     mask[mask == 255] = 1
                 power_ += 1
                 masks.append(mask)
 
             if masks:
-                if merge_method in ['squares', 'w_and']:
+                if merge_method in ["squares", "w_and"]:
                     mask = masks[0]
                     for tmp_mask in masks[1:]:
                         mask = np.add(mask, tmp_mask)
-                elif merge_method == 'l_and':
+                elif merge_method == "l_and":
                     mask = wrapper.multi_and(masks)
-                elif merge_method == 'l_or':
+                elif merge_method == "l_or":
                     mask = wrapper.multi_or(masks)
                 else:
-                    wrapper.error_holder.add_error('Unknown merge method')
+                    wrapper.error_holder.add_error("Unknown merge method")
                     return
 
                 if normalize:
                     mask = cv2.equalizeHist(mask)
-                wrapper.store_image(mask, f'OO_{self.input_params_as_str(exclude_defaults=True)}')
-                if self.get_value_of('use_palette') == 1:
+                wrapper.store_image(mask, f"OO_{self.input_params_as_str(exclude_defaults=True)}")
+                if self.get_value_of("use_palette") == 1:
                     mask = cv2.applyColorMap(mask, int(color_map))
 
                 wrapper.store_image(
-                    mask, f'OO_false_colour_{self.input_params_as_str(exclude_defaults=True)}'
+                    mask, f"OO_false_colour_{self.input_params_as_str(exclude_defaults=True)}"
                 )
 
                 self.result = mask
@@ -134,25 +143,32 @@ class IptOtsuOverthinked(IptBase):
                 img = wrapper.current_image
                 self.result = None
 
-            if (build_mosaic == 'channels') and mask is not None:
+            if (build_mosaic == "channels") and mask is not None:
                 canvas = wrapper.build_mosaic(
                     shape=(mask.shape[0] * 3, mask.shape[1] * 3, 3),
                     image_names=np.array(
-                        [[f'OTSU_{get_hr_channel_name(c)}' for c in ['h', 's', 'l']],
-                         [
-                             f'OTSU_{get_hr_channel_name("a")}',
-                             f'OO_false_colour_{self.input_params_as_str(exclude_defaults=True)}',
-                             f'OTSU_{get_hr_channel_name("b")}'
-                         ], [f'OTSU_{get_hr_channel_name(c)}' for c in ['rd', 'gr', 'bl']]]
+                        [
+                            [f"OTSU_{get_hr_channel_name(c)}" for c in ["h", "s", "l"]],
+                            [
+                                f'OTSU_{get_hr_channel_name("a")}',
+                                f"OO_false_colour_{self.input_params_as_str(exclude_defaults=True)}",
+                                f'OTSU_{get_hr_channel_name("b")}',
+                            ],
+                            [f"OTSU_{get_hr_channel_name(c)}" for c in ["rd", "gr", "bl"]],
+                        ]
+                    ),
+                )
+                wrapper.store_image(canvas, "mosaic")
+            elif build_mosaic == "sbs":
+                canvas = wrapper.build_mosaic(
+                    image_names=np.array(
+                        [
+                            "source",
+                            f"OO_false_colour_{self.input_params_as_str(exclude_defaults=True)}",
+                        ]
                     )
                 )
-                wrapper.store_image(canvas, 'mosaic')
-            elif build_mosaic == 'sbs':
-                canvas = wrapper.build_mosaic(
-                    image_names=np.
-                    array(['source', f'OO_false_colour_{self.input_params_as_str(exclude_defaults=True)}'])
-                )
-                wrapper.store_image(canvas, 'mosaic')
+                wrapper.store_image(canvas, "mosaic")
 
             res = True
 
@@ -164,9 +180,13 @@ class IptOtsuOverthinked(IptBase):
         finally:
             return res
 
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if TOOL_GROUP_THRESHOLD_STR in use_cases:
+            self.set_value_of("merge_method", "l_or")
+
     @property
     def name(self):
-        return 'Otsu overthinked'
+        return "Otsu overthinked"
 
     @property
     def real_time(self):
@@ -174,11 +194,11 @@ class IptOtsuOverthinked(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):

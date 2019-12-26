@@ -14,6 +14,7 @@ from collections import Counter, defaultdict, namedtuple
 from datetime import datetime as dt
 from timeit import default_timer as timer
 from typing import Any
+import shutil
 
 import cv2
 import numpy as np
@@ -330,9 +331,6 @@ class NewToolDialog(QDialog):
                 f.write(f'{spaces}desc="Target folder",\n')
                 f.write(f'{spaces}default_value="",\n')
                 f.write(f'{spaces}hint="Can be overridden at process call",\n')
-                f.write(
-                    f'{spaces}hint="If true, tool image will be processed when widget is modified"\n'
-                )
                 spaces = remove_tab(spaces)
                 f.write(f"{spaces})\n")
             f.write(f"\n")
@@ -760,16 +758,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.statusBar().addWidget(self._status_label, stretch=0)
 
-        # Build tools selectors
-        def update_font_(op, act):
-            tool_name = f'ipt_{op.name.replace(" ", "_")}'
-            needs_doc = not os.path.isfile(os.path.join("docs", f"{tool_name}.md"))
-            if op.needs_doc_string or needs_doc:
-                fnt = act.font()
-                fnt.setBold(op.needs_doc_string)
-                fnt.setUnderline(needs_doc)
-                act.setFont(fnt)
-
         self._ip_tools_holder = IptHolder()
         try:
             if hasattr(self, "bt_select_tool"):
@@ -779,7 +767,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     for op in lst:
                         act = QAction(op.name, self)
                         act.setToolTip(op.hint)
-                        update_font_(op, act)
                         tool_menu.addAction(act)
                 else:
                     for use_case in self._ip_tools_holder.use_cases:
@@ -792,7 +779,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         for op in op_lst:
                             act = QAction(op.name, self)
                             act.setToolTip(op.hint)
-                            update_font_(op, act)
                             use_case_root.addAction(act)
                         use_case_root.setToolTipsVisible(True)
                 tool_menu.triggered[QAction].connect(self.on_menu_tool_selection)
@@ -808,7 +794,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 for op in op_lst:
                     act = QAction(op.name, self)
                     act.setToolTip(op.hint)
-                    update_font_(op, act)
                     use_case_root.addAction(act)
                 use_case_root.setToolTipsVisible(True)
             self.mnu_tools_root.setToolTipsVisible(True)
@@ -904,6 +889,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_build_ipso_phen_documentation.triggered.connect(
             self.on_action_build_ipso_phen_documentation
         )
+        self.action_build_test_files.triggered.connect(self.on_action_build_test_files)
         self.action_show_log.triggered.connect(self.on_action_show_log)
 
         # Video
@@ -2241,18 +2227,18 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 for p in tool.gizmos:
                     if p.is_input:
                         f.write(f"- {p.desc} ({p.name}): {p.hint} (default: {p.default_value})\n")
-            if tool.has_input and tool.has_output:
-                f.write("--------------\n")
-            if tool.has_output:
-                for p in tool.gizmos:
-                    if p.is_output and not p.is_neutral:
-                        f.write(f"- output  ({p.name}): {p.desc}\n")
+            f.write("\n")
             f.write("## Example\n\n")
-            f.write("\n### Source\n\n")
+            f.write("### Source\n\n")
             f.write(f"![Source image](images/{self._src_image_wrapper.name}.jpg)\n")
+            if not os.path.isfile(os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg")):
+                shutil.copyfile(
+                    src=self._src_image_wrapper.file_path,
+                    dst=os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg"),
+                )
             f.write("\n")
             f.write("### Parameters/Code\n\n")
-            f.write("Default values are not needed when calling function\n")
+            f.write("Default values are not needed when calling function\n\n")
             f.write("```python\n")
             f.write(
                 call_ipt_code(
@@ -2272,19 +2258,31 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 image_path="./docs/images/",
             )
             f.write(f"![Result image](images/{tool_name}.jpg)\n")
-            if hasattr(tool, "data_dict") and self.script_generator is not None:
-                f.write("### Result data\n")
+            if hasattr(tool, "data_dict"):
+                f.write("\n### Result data\n\n")
                 f.write("|         key         |        Value        |\n")
                 f.write("|:-------------------:|:-------------------:|\n")
-                for tool_dict in self.script_generator.ip_operators:
-                    if tool_dict["tool"].name == tool.name:
-                        for k, v in tool_dict["last_result"].items():
-                            f.write(f"|{k}|{v}|\n")
-                        break
+                for r in range(self.tw_script_sim_output.rowCount()):
+                    f.write(
+                        f"|{self.tw_script_sim_output.item(r,0).text()}|{self.tw_script_sim_output.item(r,1).text()}|\n"
+                    )
 
     def on_action_build_tool_documentation(self):
         self.build_tool_documentation(
             tool=self.current_tool, tool_name=f'ipt_{self.current_tool.name.replace(" ", "_")}'
+        )
+
+    def on_action_build_test_files(self):
+        tmp_ip_holder = IptHolder()
+        self.update_feedback(
+            status_message="Building test scripts",
+            log_message=f"""{ui_consts.LOG_IMPORTANT_STR}:
+            Building test scripts""",
+        )
+        tmp_ip_holder.build_test_files(log_callback=self.update_feedback)
+        self.update_feedback(
+            status_message="Test scripts built",
+            log_message=f"{ui_consts.LOG_IMPORTANT_STR}: Test scripts built",
         )
 
     def on_action_show_log(self):
@@ -4942,10 +4940,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     @property
     def script_generator(self):
         if self._script_generator is None:
-            self._script_generator = IptScriptGenerator(
-                use_cache=self.use_pipeline_cache,
-                image_output_path=self.static_folders["image_output"],
-            )
+            self._script_generator = IptScriptGenerator(use_cache=self.use_pipeline_cache)
+        self._script_generator.image_output_path = self.static_folders["image_output"]
         self._script_generator.use_cache = self.use_pipeline_cache
         return self._script_generator
 

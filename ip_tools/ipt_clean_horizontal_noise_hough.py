@@ -37,11 +37,9 @@ class IptCleanHorizontalNoiseHough(IptBase):
         try:
             if self.get_value_of("enabled") == 1:
                 img = wrapper.current_image
-                mask = wrapper.mask
+                mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        "Failure Clean horizontal noise (Hough): mask must be initialized"
-                    )
+                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                     return
                 votes_threshold = self.get_value_of("votes_threshold", 100)
 
@@ -140,7 +138,7 @@ class IptCleanHorizontalNoiseHough(IptBase):
 
     @property
     def package(self):
-        return "IPSO Phen"
+        return "Heliasen"
 
     @property
     def real_time(self):

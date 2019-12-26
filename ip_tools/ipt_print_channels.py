@@ -3,16 +3,15 @@ from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR, ensure_odd
 
 
 class IptPrintChannels(IptBase):
-
     def build_params(self):
-        self.add_channel_selector(default_value='h')
-        self.add_checkbox(name='normalize', desc='Normalize channel', default_value=0)
+        self.add_channel_selector(default_value="h")
+        self.add_checkbox(name="normalize", desc="Normalize channel", default_value=0)
         self.add_slider(
-            name='median_filter_size',
-            desc='Median filter size (odd values only)',
+            name="median_filter_size",
+            desc="Median filter size (odd values only)",
             default_value=0,
             minimum=1,
-            maximum=51
+            maximum=51,
         )
         self.add_text_overlay()
 
@@ -24,9 +23,9 @@ class IptPrintChannels(IptBase):
         Real time : True
 
         Keyword Arguments (in parentheses, argument name):
-            * Channel (channel): 
-            * Normalize channel (normalize): 
-            * Median filter size (odd values only) (median_filter_size): 
+            * Channel (channel):
+            * Normalize channel (normalize):
+            * Median filter size (odd values only) (median_filter_size):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
         """
 
@@ -36,10 +35,10 @@ class IptPrintChannels(IptBase):
 
         res = False
         try:
-            median_filter_size = self.get_value_of('median_filter_size')
-            channel = self.get_value_of('channel')
-            text_overlay = self.get_value_of('text_overlay') == 1
-            normalize = self.get_value_of('normalize') == 1
+            median_filter_size = self.get_value_of("median_filter_size")
+            channel = self.get_value_of("channel")
+            text_overlay = self.get_value_of("text_overlay") == 1
+            normalize = self.get_value_of("normalize") == 1
 
             median_filter_size = 0 if median_filter_size == 1 else ensure_odd(median_filter_size)
 
@@ -47,10 +46,16 @@ class IptPrintChannels(IptBase):
                 channel=channel, median_filter_size=median_filter_size, normalize=normalize
             )
 
-            wrapper.store_image(c, f'channel_{self.input_params_as_str()}', text_overlay=text_overlay)
+            wrapper.store_image(
+                c, f"channel_{self.input_params_as_str()}", text_overlay=text_overlay
+            )
+
+            self.result = c
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(f'Failed to print channels, exception: "{repr(e)}"')
+            self._wrapper.error_holder.add_error(
+                f'Failed to print channels, exception: "{repr(e)}"'
+            )
         else:
             res = True
         finally:
@@ -58,7 +63,7 @@ class IptPrintChannels(IptBase):
 
     @property
     def name(self):
-        return 'Print channels'
+        return "Print channels"
 
     @property
     def real_time(self):
@@ -66,11 +71,11 @@ class IptPrintChannels(IptBase):
 
     @property
     def result_name(self):
-        return 'none'
+        return "none"
 
     @property
     def output_kind(self):
-        return 'none'
+        return "none"
 
     @property
     def use_case(self):

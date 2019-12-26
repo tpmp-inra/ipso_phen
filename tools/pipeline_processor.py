@@ -27,6 +27,7 @@ def _run_process(file_path, script, options, list_res, data_base):
         if script is None:
             bool_res = ipo.process_image(threshold_only=options.threshold_only)
         else:
+            script.image_output_path = ipo.dst_path
             bool_res = script.process_image(progress_callback=None, wrapper=ipo)
         res = WorkerResult(bool_res, str(ipo), ipo.error_holder)
         list_res.append(res)

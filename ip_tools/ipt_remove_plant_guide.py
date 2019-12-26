@@ -122,11 +122,9 @@ class IptRemovePlantGuide(IptBase):
         try:
             if self.get_value_of("enabled") == 1:
                 img = wrapper.current_image
-                mask = wrapper.mask
+                mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        "Failure Remove plant guide: mask must be initialized"
-                    )
+                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 wrapper.store_image(image=mask, text="mask_before_guide_removal", force_store=True)

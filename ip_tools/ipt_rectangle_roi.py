@@ -2,7 +2,7 @@ import cv2
 
 from ip_base.ip_common import resize_image
 from ip_base.ipt_abstract import IptBase
-from tools.regions import CircleRegion, RectangleRegion
+from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
 
 
 class IptRectangleRoi(IptBase):
@@ -120,16 +120,16 @@ class IptRectangleRoi(IptBase):
         height = self.get_value_of("height")
 
         if (width == 0) or (height == 0):
-            return None
+            return EmptyRegion()
 
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
-            return False
+            return EmptyRegion()
 
         if width < 0:
-            left = None
+            left = EmptyRegion()
         if height < 0:
-            top = None
+            top = EmptyRegion()
 
         d = {}
         kv = self.get_value_of("apply_case")
@@ -176,7 +176,7 @@ class IptRectangleRoi(IptBase):
 
     @property
     def use_case(self):
-        return ["ROI (static)", "Visualization"]
+        return ["ROI (static)"]
 
     @property
     def description(self):

@@ -94,7 +94,32 @@ class IptExposureChecker(IptBaseAnalyzer):
         self.add_text_overlay()
 
     def process_wrapper(self, **kwargs):
+        """
+        Check exposure:
+        Displays over/under exposed parts of the image
+        Also displays average brightness of the image
+        Real time: True
 
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Overexposed if over:  (overexposed_limit):
+            * Color for overexposed parts (over_color):
+            * Underexposed if under:  (underexposed_limit):
+            * Color for underexposed parts (under_color):
+            * Display grey zones (show_grey_zones):
+            * Grey if more than x apart:  (grey_zone_limit): How little different must the 3 components be to be considered grey
+            * Color for grey parts (grey_zone_color):
+            * Calculate source brightness on (source_brightness): no clue
+            * Source brightness calculation mode (brg_calc):
+            * Use average brightness as: (average_as):
+            * Apply x factor to auto threshold (avg_weight):
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Overlay text on top of images (text_overlay): Draw description text on top of images
+        --------------
+            * output  (src_brightness): Source brightness:
+            * output  (src_contrast): Source contrast:
+        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
