@@ -1,93 +1,93 @@
 site_name: IPSO Phen documentation
 site_description: UI for plant phenotyping
 site_author: Felicià Antoni Maviane Macia
-repo_url: https://lipm-gitlab.toulouse.inra.fr/tpmp/ipso-phen
-copyright: Copyright 2018-2019, INRA
+repo_url: https://github.com/tpmp-inra/ipso_phen
+copyright: Copyright 2018-2020, INRAE
 theme:
-  name: 'material'
+  name: "material"
 markdown_extensions:
   - admonition
   - codehilite:
       linenums: true
 
 nav:
-- Home: index.md
-- Installation: installation.md
-- First steps: first_steps.md
-- Samples: samples.md
-- User interface: user_interface.md
-- Tools:
-  - Overview (by category): tools.md
-  - Details (alphabetical):
-    - Adaptive threshold: ipt_Adaptive_threshold.md
-    - Analyze bound: ipt_Analyze_bound.md
-    - Analyze chlorophyll: ipt_Analyze_chlorophyll.md
-    - Analyze color: ipt_Analyze_color.md
-    - Analyze object: ipt_Analyze_object.md
-    - Annulus ROI: ipt_Annulus_ROI.md
-    - Augment data: ipt_Augment_data.md
-    - Calculate chlorophyll: ipt_Calculate_chlorophyll.md
-    - Channel mixer: ipt_Channel_mixer.md
-    - Channel operation: ipt_Channel_operation.md
-    - Channel subtraction: ipt_Channel_subtraction.md
-    - Chan Vese: ipt_Chan_Vese.md
-    - Check exposure: ipt_Check_exposure.md
-    - Check source image: ipt_Check_source_image.md
-    - Circle ROI: ipt_Circle_ROI.md
-    - CLAHE: ipt_CLAHE.md
-    - Clean horizontal noise: ipt_Clean_horizontal_noise.md
-    - Clean horizontal noise (Hough method): ipt_Clean_horizontal_noise_(Hough_method).md
-    - Copy image: ipt_Copy_image.md
-    - Copy or rename image: ipt_Copy_or_rename_image.md
-    - Custom channels: ipt_Custom_channels.md
-    - Default process: ipt_Default_process.md
-    - Distance threshold: ipt_Distance_threshold.md
-    - Dummy threshold (WIP): ipt_Dummy_threshold_(WIP).md
-    - Edge detectors: ipt_Edge_detectors.md
-    - Felsenszwalb: ipt_Felsenszwalb.md
-    - Fill mask holes: ipt_Fill_mask_holes.md
-    - Filtering regional maxima: ipt_Filtering_regional_maxima.md
-    - Fix perspective: ipt_Fix_perspective.md
-    - Heliasen Quality Control (WIP): ipt_Heliasen_Quality_Control_(WIP).md
-    - Horizontal line remover: ipt_Horizontal_line_remover.md
-    - Hough circles detector: ipt_Hough_circles_detector.md
-    - Hough lines detector: ipt_Hough_lines_detector.md
-    - Hysteresis threshold: ipt_Hysteresis_threshold.md
-    - Image statistics: ipt_Image_statistics.md
-    - Image transformations: ipt_Image_transformations.md
-    - IPT Demo: ipt_IPT_Demo.md
-    - K-means clustering: ipt_K-means_clustering.md
-    - Keep Biggest Contours: ipt_Keep_Biggest_Contours.md
-    - Keep linked Contours: ipt_Keep_linked_Contours.md
-    - Morphology: ipt_Morphology.md
-    - Multi range threshold: ipt_Multi_range_threshold.md
-    - Niblack binarization: ipt_Niblack_binarization.md
-    - Observation data: ipt_Observation_data.md
-    - Otsu: ipt_Otsu.md
-    - Otsu overthinked: ipt_Otsu_overthinked.md
-    - Partial posterizer: ipt_Partial_posterizer.md
-    - Print channels: ipt_Print_channels.md
-    - Print color spaces: ipt_Print_color_spaces.md
-    - Pyramid mean shift: ipt_Pyramid_mean_shift.md
-    - Quick shift: ipt_Quick_shift.md
-    - Range threshold: ipt_Range_threshold.md
-    - Rectangle ROI: ipt_Rectangle_ROI.md
-    - Remove plant guide: ipt_Remove_plant_guide.md
-    - ROI manager: ipt_ROI_manager.md
-    - ROI manager (deprecated): ipt_ROI_manager_(deprecated).md
-    - Rotate: ipt_Rotate.md
-    - Sauvola binarization: ipt_Sauvola_binarization.md
-    - Simple white balance: ipt_Simple_white_balance.md
-    - Skeletonize: ipt_Skeletonize.md
-    - Slic: ipt_Slic.md
-    - Splitted range threshold: ipt_Splitted_range_threshold.md
-    - Triangle threshold: ipt_Triangle_threshold.md
-- Testing: testing.md
-- Using the grid search: grid_search.md
-- Tutorial - Pipelines: pipelines.md
-- Pipeline processor: pipeline_processor.md
-- Advanced features:
-  - Creating custom tools: custom_tools.md
-  - Script pipelines: script_pipelines.md
-  - Class pipelines: class_pipelines.md
-  - File handlers: file_handlers.md
+  - Home: index.md
+  - Installation: installation.md
+  - First steps: first_steps.md
+  - Samples: samples.md
+  - User interface: user_interface.md
+  - Tools:
+      - Overview (by category): tools.md
+      - Details (alphabetical):
+          - Adaptive threshold: ipt_Adaptive_threshold.md
+          - Analyze bound: ipt_Analyze_bound.md
+          - Analyze chlorophyll: ipt_Analyze_chlorophyll.md
+          - Analyze color: ipt_Analyze_color.md
+          - Analyze object: ipt_Analyze_object.md
+          - Annulus ROI: ipt_Annulus_ROI.md
+          - Augment data: ipt_Augment_data.md
+          - Calculate chlorophyll: ipt_Calculate_chlorophyll.md
+          - Channel mixer: ipt_Channel_mixer.md
+          - Channel operation: ipt_Channel_operation.md
+          - Channel subtraction: ipt_Channel_subtraction.md
+          - Chan Vese: ipt_Chan_Vese.md
+          - Check exposure: ipt_Check_exposure.md
+          - Check source image: ipt_Check_source_image.md
+          - Circle ROI: ipt_Circle_ROI.md
+          - CLAHE: ipt_CLAHE.md
+          - Clean horizontal noise: ipt_Clean_horizontal_noise.md
+          - Clean horizontal noise (Hough method): ipt_Clean_horizontal_noise_(Hough_method).md
+          - Copy image: ipt_Copy_image.md
+          - Copy or rename image: ipt_Copy_or_rename_image.md
+          - Custom channels: ipt_Custom_channels.md
+          - Default process: ipt_Default_process.md
+          - Distance threshold: ipt_Distance_threshold.md
+          - Dummy threshold (WIP): ipt_Dummy_threshold_(WIP).md
+          - Edge detectors: ipt_Edge_detectors.md
+          - Felsenszwalb: ipt_Felsenszwalb.md
+          - Fill mask holes: ipt_Fill_mask_holes.md
+          - Filtering regional maxima: ipt_Filtering_regional_maxima.md
+          - Fix perspective: ipt_Fix_perspective.md
+          - Heliasen Quality Control (WIP): ipt_Heliasen_Quality_Control_(WIP).md
+          - Horizontal line remover: ipt_Horizontal_line_remover.md
+          - Hough circles detector: ipt_Hough_circles_detector.md
+          - Hough lines detector: ipt_Hough_lines_detector.md
+          - Hysteresis threshold: ipt_Hysteresis_threshold.md
+          - Image statistics: ipt_Image_statistics.md
+          - Image transformations: ipt_Image_transformations.md
+          - IPT Demo: ipt_IPT_Demo.md
+          - K-means clustering: ipt_K-means_clustering.md
+          - Keep Biggest Contours: ipt_Keep_Biggest_Contours.md
+          - Keep linked Contours: ipt_Keep_linked_Contours.md
+          - Morphology: ipt_Morphology.md
+          - Multi range threshold: ipt_Multi_range_threshold.md
+          - Niblack binarization: ipt_Niblack_binarization.md
+          - Observation data: ipt_Observation_data.md
+          - Otsu: ipt_Otsu.md
+          - Otsu overthinked: ipt_Otsu_overthinked.md
+          - Partial posterizer: ipt_Partial_posterizer.md
+          - Print channels: ipt_Print_channels.md
+          - Print color spaces: ipt_Print_color_spaces.md
+          - Pyramid mean shift: ipt_Pyramid_mean_shift.md
+          - Quick shift: ipt_Quick_shift.md
+          - Range threshold: ipt_Range_threshold.md
+          - Rectangle ROI: ipt_Rectangle_ROI.md
+          - Remove plant guide: ipt_Remove_plant_guide.md
+          - ROI manager: ipt_ROI_manager.md
+          - ROI manager (deprecated): ipt_ROI_manager_(deprecated).md
+          - Rotate: ipt_Rotate.md
+          - Sauvola binarization: ipt_Sauvola_binarization.md
+          - Simple white balance: ipt_Simple_white_balance.md
+          - Skeletonize: ipt_Skeletonize.md
+          - Slic: ipt_Slic.md
+          - Splitted range threshold: ipt_Splitted_range_threshold.md
+          - Triangle threshold: ipt_Triangle_threshold.md
+  - Testing: testing.md
+  - Using the grid search: grid_search.md
+  - Tutorial - Pipelines: pipelines.md
+  - Pipeline processor: pipeline_processor.md
+  - Advanced features:
+      - Creating custom tools: custom_tools.md
+      - Script pipelines: script_pipelines.md
+      - Class pipelines: class_pipelines.md
+      - File handlers: file_handlers.md
