@@ -2,7 +2,7 @@ import cv2
 
 from ip_base.ip_common import resize_image, TOOL_GROUP_ROI_STATIC_STR
 from ip_base.ipt_abstract import IptBase
-from tools.regions import CircleRegion, RectangleRegion
+from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
 from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 
 
@@ -122,17 +122,17 @@ class IptRoiManager(IptBase):
         height = self.get_value_of("height")
 
         if (width == 0) or (height == 0):
-            return None
+            return EmptyRegion()
 
         if roi_shape == "rectangle":
             wrapper = self.init_wrapper(**kwargs)
             if wrapper is None:
-                return False
+                return EmptyRegion()
 
             if width < 0:
-                left = None
+                left = EmptyRegion()
             if height < 0:
-                top = None
+                top = EmptyRegion()
 
             return RectangleRegion(
                 source_width=wrapper.width,
@@ -156,7 +156,7 @@ class IptRoiManager(IptBase):
                 target=tool_target,
             )
         else:
-            return None
+            return EmptyRegion()
 
     @property
     def name(self):

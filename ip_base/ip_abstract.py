@@ -2625,8 +2625,9 @@ class AbstractImageProcessor(ImageWrapper):
 
     def apply_roi_list(self, img, rois, print_dbg: bool = False):
         img_ = img.copy()
-        for roi in rois:
-            img_ = self.apply_roi(img=img_, roi=roi, print_dbg=print_dbg)
+        if rois is not None:
+            for roi in rois:
+                img_ = self.apply_roi(img=img_, roi=roi, print_dbg=print_dbg)
         return img_
 
     def apply_roi(self, img, roi, print_dbg: bool = False):

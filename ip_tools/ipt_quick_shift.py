@@ -9,29 +9,31 @@ from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 
 
 class IptQuickShift(IptBaseMerger):
-
     def build_params(self):
-        self.add_source_selector(default_value='source')
-        self.add_color_space(default_value='HSV')
+        self.add_color_space(default_value="HSV")
         self.add_slider(
-            name='kernel_size', desc='Width of Gaussian kernel', default_value=3, minimum=1, maximum=51
+            name="kernel_size",
+            desc="Width of Gaussian kernel",
+            default_value=3,
+            minimum=1,
+            maximum=51,
         )
         self.add_slider(
-            name='max_dist',
-            desc='Max distance',
+            name="max_dist",
+            desc="Max distance",
             default_value=6,
             minimum=0,
             maximum=100,
-            hint='Cut-off point for data distances.\nHigher means fewer clusters'
+            hint="Cut-off point for data distances.\nHigher means fewer clusters",
         )
         self.add_slider(
-            name='ratio',
+            name="ratio",
             desc="Ratio",
             default_value=50,
             minimum=0,
             maximum=100,
             hint="Balances color-space proximity and image-space proximity. \n"
-            "Higher values give more weight to color-space."
+            "Higher values give more weight to color-space.",
         )
 
     def process_wrapper(self, **kwargs):
@@ -41,7 +43,6 @@ class IptQuickShift(IptBaseMerger):
         Real time : No
 
         Keyword Arguments (in parentheses, argument name):
-            * Select source file type (source_file): Selected source
             * Color space (color_space): Selected color space, default: RGB
             * Width of Gaussian kernel (kernel_size): Width of Gaussian kernel used in smoothing the sample density. Higher means fewer clusters.
             * Max distance (max_dist): Cut-off point for data distances. Higher means fewer clusters
@@ -51,18 +52,18 @@ class IptQuickShift(IptBaseMerger):
         if wrapper is None:
             return False
 
-        color_space = self.get_value_of('color_space')
-        kernel_size = self.get_value_of('kernel_size')
-        max_dist = self.get_value_of('max_dist')
-        ratio = self.get_value_of('ratio') / 100
+        color_space = self.get_value_of("color_space")
+        kernel_size = self.get_value_of("kernel_size")
+        max_dist = self.get_value_of("max_dist")
+        ratio = self.get_value_of("ratio") / 100
 
         res = False
         try:
             img = self.extract_source_from_args()
 
-            if color_space.upper() == 'HSV':
+            if color_space.upper() == "HSV":
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            elif color_space.upper() == 'LAB':
+            elif color_space.upper() == "LAB":
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
 
             if kernel_size == 1:
@@ -75,11 +76,14 @@ class IptQuickShift(IptBaseMerger):
             self.result = labels.copy()
 
             labels[labels == -1] = 0
-            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(np.uint8)
+            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(
+                np.uint8
+            )
             water_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
-            wrapper.store_image(water_img, f'quick_shift_vis_{self.input_params_as_str()}', text_overlay=True)
 
-            self.print_segmentation_labels(water_img, labels, dbg_suffix='quick_shift')
+            self.print_segmentation_labels(water_img.copy(), labels, dbg_suffix="quick_shift")
+
+            wrapper.store_image(water_img, f"quick_shift_vis", text_overlay=True)
 
         except Exception as e:
             res = False
@@ -91,7 +95,7 @@ class IptQuickShift(IptBaseMerger):
 
     @property
     def name(self):
-        return 'Quick shift'
+        return "Quick shift"
 
     @property
     def real_time(self):
@@ -99,11 +103,11 @@ class IptQuickShift(IptBaseMerger):
 
     @property
     def result_name(self):
-        return 'labels'
+        return "labels"
 
     @property
     def output_kind(self):
-        return 'labels'
+        return "labels"
 
     @property
     def use_case(self):

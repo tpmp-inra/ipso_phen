@@ -438,3 +438,6 @@ class IptFixPerspective(IptBase):
         return """Fixes perspective using four dots to detect rectangle boundary.\n
         Use the included threshold utility to detect the dots."""
 
+    @property
+    def short_test_script(self):
+        return True

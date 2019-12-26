@@ -1,0 +1,1 @@
+.\ipso_pip_env\Scripts\activate.bat

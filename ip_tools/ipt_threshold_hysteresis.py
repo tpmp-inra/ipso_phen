@@ -8,16 +8,17 @@ from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR
 
 
 class IptHysteresis(IptBase):
-
     def build_params(self):
-        self.add_checkbox(name='edge_only', desc='Edge detection only', default_value=0)
+        self.add_checkbox(name="edge_only", desc="Edge detection only", default_value=0)
         self.add_edge_detector()
-        self.add_separator(name='sep_1')
-        self.add_slider(name='low_threshold', desc='Low threshold', default_value=10, minimum=0, maximum=100)
+        self.add_separator(name="sep_1")
         self.add_slider(
-            name='high_threshold', desc='High threshold', default_value=35, minimum=0, maximum=100
+            name="low_threshold", desc="Low threshold", default_value=10, minimum=0, maximum=100
         )
-        self.add_color_map_selector(default_value='c_2')
+        self.add_slider(
+            name="high_threshold", desc="High threshold", default_value=35, minimum=0, maximum=100
+        )
+        self.add_color_map_selector(default_value="c_2")
 
     def process_wrapper(self, **kwargs):
         """
@@ -46,10 +47,10 @@ class IptHysteresis(IptBase):
         if wrapper is None:
             return False
 
-        low_threshold = self.get_value_of('low_threshold') / 100
-        high_threshold = self.get_value_of('high_threshold') / 100
-        color_map = self.get_value_of('color_map')
-        _, color_map = color_map.split('_')
+        low_threshold = self.get_value_of("low_threshold") / 100
+        high_threshold = self.get_value_of("high_threshold") / 100
+        color_map = self.get_value_of("color_map")
+        _, color_map = color_map.split("_")
         color_map = int(color_map)
         res = False
         try:
@@ -58,20 +59,24 @@ class IptHysteresis(IptBase):
                 if not res:
                     return
                 edges = ed.result
-                if self.get_value_of('edge_only') == 1:
+                if self.get_value_of("edge_only") == 1:
                     self.result = ed.result
                     return True
 
             edges = self.to_fuzzy(edges)
 
             high_t = (edges > high_threshold).astype(int)
-            hyst = apply_hysteresis_threshold(edges, low_threshold, high_threshold).astype(np.uint8)
+            hyst = apply_hysteresis_threshold(edges, low_threshold, high_threshold).astype(
+                np.uint8
+            )
             hyst = hyst + high_t
             hyst = ((hyst - hyst.min()) / (hyst.max() - hyst.min()) * 255).astype(np.uint8)
             hyst = cv2.applyColorMap(hyst, color_map)
 
             self.result = hyst.astype(np.uint8)
-            wrapper.store_image(self.result, f'hysteresis_{self.input_params_as_str()}', text_overlay=True)
+            wrapper.store_image(
+                self.result, f"hysteresis_{self.input_params_as_str()}", text_overlay=True
+            )
 
         except Exception as e:
             res = False
@@ -83,19 +88,19 @@ class IptHysteresis(IptBase):
 
     @property
     def name(self):
-        return 'Hysteresis threshold'
+        return "Hysteresis threshold (WIP)"
 
     @property
     def real_time(self):
-        return self.get_value_of('edge_only') == 1
+        return self.get_value_of("edge_only") == 1
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):

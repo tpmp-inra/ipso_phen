@@ -151,7 +151,7 @@ class IptAnnulusRoi(IptBase):
 
     @property
     def use_case(self):
-        return ["ROI (static)", "Visualization"]
+        return ["ROI (static)"]
 
     @property
     def description(self):

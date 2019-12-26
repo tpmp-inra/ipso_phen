@@ -6,33 +6,36 @@ from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
 
 class IptHorizontalLineDetector(IptBase):
-
     def build_params(self):
-        self.add_source_selector(default_value='source')
-        self.add_channel_selector(default_value='l')
+        self.add_source_selector(default_value="source")
+        self.add_channel_selector(default_value="l")
         self.add_checkbox(
-            name='is_apply_rois',
-            desc='Apply ROIs to source image',
+            name="is_apply_rois",
+            desc="Apply ROIs to source image",
             default_value=0,
-            hint='If true ROIs will be applied to source image'
+            hint="If true ROIs will be applied to source image",
         )
         self.add_checkbox(
-            name='fully_isolated',
-            desc='Only detect isolated lines',
+            name="fully_isolated",
+            desc="Only detect isolated lines",
             default_value=1,
-            hint='If true, 1 side lines will be ignored'
+            hint="If true, 1 side lines will be ignored",
         )
         self.add_slider(
-            name='min_line_size', desc='Min line size p only', default_value=100, minimum=0, maximum=1000
+            name="min_line_size",
+            desc="Min line size p only",
+            default_value=100,
+            minimum=0,
+            maximum=1000,
         )
         self.add_checkbox(
-            name='build_mosaic',
-            desc='Build mosaic',
+            name="build_mosaic",
+            desc="Build mosaic",
             default_value=1,
-            hint='If true edges and result will be displayed side by side'
+            hint="If true edges and result will be displayed side by side",
         )
-        self.add_separator(name='sep_1')
-        self.add_morphology_operator(default_operator='none')
+        self.add_separator(name="sep_1")
+        self.add_morphology_operator(default_operator="none")
 
     def process_wrapper(self, **kwargs):
         """
@@ -62,11 +65,11 @@ class IptHorizontalLineDetector(IptBase):
 
         res = False
         try:
-            is_apply_rois = self.get_value_of('is_apply_rois', 0) == 1
-            fully_isolated = self.get_value_of('fully_isolated', 1) == 1
-            build_mosaic = self.get_value_of('build_mosaic') == 1
-            channel = self.get_value_of('channel')
-            min_line_size = self.get_value_of('min_line_size', 100)
+            is_apply_rois = self.get_value_of("is_apply_rois", 0) == 1
+            fully_isolated = self.get_value_of("fully_isolated", 1) == 1
+            build_mosaic = self.get_value_of("build_mosaic") == 1
+            channel = self.get_value_of("channel")
+            min_line_size = self.get_value_of("min_line_size", 100)
 
             params_to_string_ = self.input_params_as_str()
 
@@ -78,42 +81,52 @@ class IptHorizontalLineDetector(IptBase):
 
             if is_apply_rois:
                 wrapper.init_rois()
-                c = wrapper.apply_rois(c, f'ROIs_{params_to_string_}')
+                c = wrapper.apply_rois(c, f"ROIs_{params_to_string_}")
 
             if build_mosaic:
-                wrapper.store_image(c, 'source_channel')
+                wrapper.store_image(c, "source_channel")
 
             lr = wrapper.remove_hor_noise_lines(
                 mask=c, min_line_size=min_line_size, fully_isolated=fully_isolated, max_iter=100
             )
 
-            all_lines = lr['lines']
+            all_lines = lr["lines"]
             if all_lines and wrapper.is_store_image:
-                img_drawed_lines = np.dstack((c, c, c))
+                img_drawned_lines = np.dstack((c, c, c))
                 for j, lines in enumerate(all_lines):
                     for i, line in enumerate(lines):
                         h_color = int(i / len(lines) * 180)
                         s_color = int(j / len(all_lines) * 255)
                         line_color = (h_color, s_color, 255)
-                        cv2.line(img_drawed_lines, (line[1], line[0]), (line[2], line[0]), line_color, 1)
-                img_drawed_lines = cv2.cvtColor(img_drawed_lines, cv2.COLOR_HSV2BGR)
-                wrapper.store_image(img_drawed_lines, f'removed_lines')
+                        cv2.line(
+                            img_drawned_lines,
+                            (line[1], line[0]),
+                            (line[2], line[0]),
+                            line_color,
+                            1,
+                        )
+                img_drawned_lines = cv2.cvtColor(img_drawned_lines, cv2.COLOR_HSV2BGR)
+                wrapper.store_image(img_drawned_lines, f"removed_lines")
 
-            c = lr['mask']
+            c = lr["mask"]
 
-            wrapper.store_image(c, f'cleaned_image_{params_to_string_}')
+            wrapper.store_image(c, f"cleaned_image_{params_to_string_}")
 
             self.result = self.apply_morphology_from_params(c)
-            wrapper.store_image(self.result, f'after_morphology_{params_to_string_}')
+            wrapper.store_image(self.result, f"after_morphology_{params_to_string_}")
 
             if build_mosaic:
                 canvas = wrapper.build_mosaic(
-                    image_names=np.array([
-                        'source_channel', f'removed_lines', f'cleaned_image_{params_to_string_}',
-                        f'after_morphology_{params_to_string_}'
-                    ])
+                    image_names=np.array(
+                        [
+                            "source_channel",
+                            f"removed_lines",
+                            f"cleaned_image_{params_to_string_}",
+                            f"after_morphology_{params_to_string_}",
+                        ]
+                    )
                 )
-                wrapper.store_image(canvas, 'mosaic')
+                wrapper.store_image(canvas, "mosaic")
 
             res = True
         except Exception as e:
@@ -126,12 +139,15 @@ class IptHorizontalLineDetector(IptBase):
 
     @property
     def name(self):
-        return 'Horizontal line remover'
+        return "Horizontal line remover"
 
     @property
     def description(self):
-        return 'Developped for Heliasen light barrier\n' \
-               'Removes horizontal noise lines\n'
+        return "Developped for Heliasen light barrier\n" "Removes horizontal noise lines\n"
+
+    @property
+    def package(self):
+        return "Heliasen"
 
     @property
     def real_time(self):
@@ -139,11 +155,11 @@ class IptHorizontalLineDetector(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):
@@ -151,4 +167,4 @@ class IptHorizontalLineDetector(IptBase):
 
     @property
     def description(self):
-        return 'Horizontal line remover.\nDevelopped for Heliasen light barrier.\nRemoves horizontal noise lines'
+        return "Horizontal line remover.\nDevelopped for Heliasen light barrier.\nRemoves horizontal noise lines"

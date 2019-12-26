@@ -545,8 +545,8 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>642</width>
-                          <height>139</height>
+                          <width>96</width>
+                          <height>26</height>
                          </rect>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -1783,6 +1783,7 @@
     <addaction name="separator"/>
     <addaction name="action_build_tool_documentation"/>
     <addaction name="action_build_ipso_phen_documentation"/>
+    <addaction name="action_build_test_files"/>
     <addaction name="separator"/>
     <addaction name="action_about_form"/>
    </widget>
@@ -2620,6 +2621,11 @@
   <action name="action_add_image_generator">
    <property name="text">
     <string>Add Image Generator</string>
+   </property>
+  </action>
+  <action name="action_build_test_files">
+   <property name="text">
+    <string>Build test files</string>
    </property>
   </action>
  </widget>

@@ -93,9 +93,10 @@ class IptAnalyzeColor(IptBaseAnalyzer):
         res = False
         try:
             img = self.extract_source_from_args()
-            mask = wrapper.mask
+            mask = self.get_mask()
             if mask is None:
-                res = False
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                return
 
             hist_bins = self.get_value_of("hist_bins")
             self.add_value(key="hist_bins", value=hist_bins, force_add=True)

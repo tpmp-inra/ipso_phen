@@ -922,7 +922,7 @@ class IptParamHolder(object):
             else:
                 return tmp
 
-    def has_key(self, key: str) -> bool:
+    def has_param(self, key: str) -> bool:
         d = {} if self._kwargs is None else dict(self._kwargs)
         d.update(self.params_to_dict())
         return key in d.keys()
@@ -938,7 +938,7 @@ class IptParamHolder(object):
     def has_keys(self, keys) -> int:
         res = 0
         for key in keys:
-            if self.has_key(key):
+            if self.has_param(key):
                 res += 1
         return res
 
@@ -1228,6 +1228,14 @@ class IptBase(IptParamHolder, ABC):
                 self._wrapper = value
         return self._wrapper
 
+    def get_mask(self):
+        mask = self.wrapper.mask
+        if mask is None:
+            img = self.wrapper.current_image
+            if np.sum(img[img != 255]) == 0:
+                mask = self.wrapper.get_channel(src_img=img, channel="bl")
+        return mask
+
     def to_uint8(self, img, normalize: bool = False):
         if str(img.dtype) == "bool":
             img = img.astype(np.uint8)
@@ -1328,7 +1336,7 @@ class IptBase(IptParamHolder, ABC):
                 raise NotImplementedError
         return res
 
-    def get_short_hash(self, exclude_list: tuple) -> [str, None]:
+    def get_short_hash(self, exclude_list: tuple = (), add_plant_name: bool = True) -> [str, None]:
         wrapper = self.wrapper
         if wrapper is None:
             return None
@@ -1337,13 +1345,19 @@ class IptBase(IptParamHolder, ABC):
         ).encode("utf-8")
         w_str = str(wrapper).encode("utf-8")
         long_hash = hashlib.sha1(p_str + w_str)
-        return (
-            wrapper.plant
-            + "_"
-            + make_safe_name(str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))).replace(
+
+        if add_plant_name:
+            return (
+                wrapper.plant
+                + "_"
+                + make_safe_name(str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))).replace(
+                    "_", ""
+                )
+            )
+        else:
+            return make_safe_name(str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))).replace(
                 "_", ""
             )
-        )
 
     def extract_source_from_args(self, source_mode: str = "source_file", ignore_list: tuple = ()):
         if not (source_mode in ignore_list):
@@ -1486,7 +1500,7 @@ class IptBase(IptParamHolder, ABC):
 
             # detect contours in the mask and grab the largest one
             if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-                contours_, _ = cv2.findContours(
+                contours_ = cv2.findContours(
                     mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
                 )[-2]
             else:
@@ -1675,6 +1689,9 @@ class IptBase(IptParamHolder, ABC):
     def code(self, **kwargs):
         return "\n".join(self.code_imports(**kwargs)) + "\n\n\n" + self.code_body(**kwargs)
 
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        pass
+
     @abstractproperty
     def name(self):
         return "Base abstract image processing tool"
@@ -1792,3 +1809,6 @@ class IptBase(IptParamHolder, ABC):
     def package(self):
         return "IPSO Phen"
 
+    @property
+    def short_test_script(self):
+        return '(wip)' in self.name.lower() or '(deprecated)' in self.name.lower()

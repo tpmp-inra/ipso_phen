@@ -9,74 +9,84 @@ from ip_base.ip_common import DEFAULT_COLOR_MAP
 
 
 class IptBaseMerger(IptBase, ABC):
-
     def _merge_labels(self, source_image, labels, **kwargs):
+        def weight_boundary(graph, src, dst, n):
+            """
+            Handle merging of nodes of a region boundary region adjacency graph.
 
-        def _weight_mean_color(graph_, src, dst, n):
-            """Callback to handle merging nodes by recomputing mean color.
+            This function computes the `"weight"` and the count `"count"`
+            attributes of the edge between `n` and the node formed after
+            merging `src` and `dst`.
 
-            The method expects that the mean color of `dst` is already computed.
 
             Parameters
             ----------
-            graph_ : RAG
-                The graph_ under consideration.
+            graph : RAG
+                The graph under consideration.
             src, dst : int
-                The vertices in `graph_` to be merged.
+                The vertices in `graph` to be merged.
             n : int
                 A neighbor of `src` or `dst` or both.
 
             Returns
             -------
             data : dict
-                A dictionary with the `"weight"` attribute set as the absolute
-                difference of the mean color between node `dst` and `n`.
+                A dictionary with the "weight" and "count" attributes to be
+                assigned for the merged node.
+
             """
+            default = {"weight": 0.0, "count": 0}
 
-            diff = graph_.node[dst]['mean color'] - graph_.node[n]['mean color']
-            diff = np.linalg.norm(diff)
-            return {'weight': diff}
+            count_src = graph[src].get(n, default).get("count", 0)
+            count_dst = graph[dst].get(n, default).get("count", 0)
 
-        def merge_mean_color(graph_, src, dst):
-            """Callback called before merging two nodes of a mean color distance graph_.
+            weight_src = graph[src].get(n, default).get("weight", 0)
+            weight_dst = graph[dst].get(n, default).get("weight", 0)
 
-            This method computes the mean color of `dst`.
+            count = count_src + count_dst
+            return {
+                "count": count,
+                "weight": (count_src * weight_src + count_dst * weight_dst) / count,
+            }
 
-            Parameters
-            ----------
-            graph_ : RAG
-                The graph_ under consideration.
-            src, dst : int
-                The vertices in `graph_` to be merged.
+        def merge_boundary(graph, src, dst):
+            """Call back called before merging 2 nodes.
+
+            In this case we don't need to do any computation here.
             """
-            graph_.node[dst]['total color'] += graph_.node[src]['total color']
-            graph_.node[dst]['pixel count'] += graph_.node[src]['pixel count']
-            graph_.node[dst]['mean color'] = (graph_.node[dst]['total color'] / graph_.node[dst]['pixel count'])
+            pass
 
-        threshold = self.get_value_of('hierarchy_threshold', 35)
-        res = False
+        threshold = self.get_value_of("hierarchy_threshold", 35)
+        res = None
         try:
             g = graph.rag_mean_color(source_image, labels)
-            merged_labels = graph.merge_hierarchical(labels, g, thresh=threshold, rag_copy=False,
-                                                     in_place_merge=True,
-                                                     merge_func=merge_mean_color,
-                                                     weight_func=_weight_mean_color)
+            merged_labels = graph.merge_hierarchical(
+                labels,
+                g,
+                thresh=threshold,
+                rag_copy=False,
+                in_place_merge=True,
+                merge_func=merge_boundary,
+                weight_func=weight_boundary,
+            )
 
             merged_labels[merged_labels == -1] = 0
-            labels2 = ((merged_labels - merged_labels.min()) / (
-                    merged_labels.max() - merged_labels.min()) * 255).astype(np.uint8)
-            rag_img = cv2.applyColorMap(255 - labels2, DEFAULT_COLOR_MAP)
-            self._wrapper.store_image(rag_img, f'rag_vis_{self.input_params_as_str()}', text_overlay=True)
-            self.print_segmentation_labels(rag_img, labels2, dbg_suffix='rag', source_image=source_image)
+            labels2 = (
+                (merged_labels - merged_labels.min())
+                / (merged_labels.max() - merged_labels.min())
+                * 255
+            ).astype(np.uint8)
+            res = cv2.applyColorMap(255 - labels2, DEFAULT_COLOR_MAP)
+            self._wrapper.store_image(res, f"rag_vis", text_overlay=True)
+            self.print_segmentation_labels(
+                res, labels2, dbg_suffix="rag", source_image=source_image
+            )
 
         except Exception as e:
-            res = False
-            print(f'{repr(e)}')
-        else:
-            res = True
+            self._wrapper.error_holder.add_error(f'FAIL label merging, exception: "{repr(e)}"')
         finally:
             return res
 
     @abstractproperty
     def name(self):
-        return 'Abstract image label merger processing tool'
+        return "Abstract image label merger processing tool"

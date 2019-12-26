@@ -9,15 +9,18 @@ from ip_base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptRandomWalker(IptBaseMerger):
-
     def build_params(self):
-        self.add_slider(name='min_area', desc='Min zone area ', default_value=1200, minimum=-1, maximum=50000)
-        self.add_slider(name='min_distance', desc='Min distance', default_value=20, minimum=-1, maximum=1000)
+        self.add_slider(
+            name="min_area", desc="Min zone area ", default_value=1200, minimum=-1, maximum=50000
+        )
+        self.add_slider(
+            name="min_distance", desc="Min distance", default_value=20, minimum=-1, maximum=1000
+        )
         self.add_combobox(
-            name='post_process',
-            desc='Post process',
-            default_value='none',
-            values=dict(none='none', merge_labels='merge labels')
+            name="post_process",
+            desc="Post process",
+            default_value="none",
+            values=dict(none="none", merge_labels="merge labels"),
         )
         self.add_hierarchy_threshold()
 
@@ -29,7 +32,7 @@ class IptRandomWalker(IptBaseMerger):
         Real time : No
 
         Keyword Arguments (in parentheses, argument name):
-            * Min zone area  (min_area): Acceptep contour minimal size
+            * Min zone area  (min_area): Accepted contour minimal size
             * Min distance (min_distance): Minimum number of pixels separating peaks in a region of `2 * min_distance + 1` (i.e. peaks are separated by at least `min_distance`). To find the maximum number of peaks, use `min_distance=1`.
             * Post process (post_process): Merge labels if selected
             * Label merger threshold {hierarchy_threshold}: Regions connected by an edge with weight smaller than thresh are merged
@@ -38,41 +41,44 @@ class IptRandomWalker(IptBaseMerger):
         if wrapper is None:
             return False
 
-        min_area = self.get_value_of('min_area')
-        min_distance = self.get_value_of('min_distance')
-        post_process = self.get_value_of('post_process')
+        min_area = self.get_value_of("min_area")
+        min_distance = self.get_value_of("min_distance")
+        post_process = self.get_value_of("post_process")
 
         res = False
         try:
-            thresh = wrapper.mask
-            if thresh is None:
-                wrapper.process_image(threshold_only=True)
-                thresh = wrapper.mask
-                if thresh is None:
-                    wrapper.error_holder.add_error(f'Random walker a calculated mask to start')
-                    res = False
+            mask = self.get_mask()
+            if mask is None:
+                wrapper.error_holder.add_error(f"Random walker needs a calculated mask to start")
+                res = False
 
-            dist_transform = ndimage.distance_transform_edt(thresh)
+            dist_transform = ndimage.distance_transform_edt(mask)
             wrapper.store_image(
-                np.uint8(dist_transform), f'dist_transform_{self.input_params_as_str()}', text_overlay=True
+                np.uint8(dist_transform),
+                f"dist_transform_{self.input_params_as_str()}",
+                text_overlay=True,
             )
             local_max = peak_local_max(
-                dist_transform, indices=False, min_distance=min_distance, labels=thresh
+                dist_transform, indices=False, min_distance=min_distance, labels=mask
             )
 
             markers = ndimage.label(local_max, structure=np.ones((3, 3)))[0]
             labels = random_walker(-dist_transform, markers).astype(np.uint8)
             self.result = labels.copy()
-            if post_process != 'none':
+            if post_process != "none":
                 post_labels = labels.copy()
             else:
                 post_labels = None
 
             walker_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
-            wrapper.store_image(walker_img, f'walker_img_vis_{self.input_params_as_str()}', text_overlay=True)
-            self.print_segmentation_labels(walker_img, labels, dbg_suffix='random_walker', min_size=min_area)
+            wrapper.store_image(
+                walker_img, f"walker_img_vis_{self.input_params_as_str()}", text_overlay=True
+            )
+            self.print_segmentation_labels(
+                walker_img, labels, dbg_suffix="random_walker", min_size=min_area
+            )
 
-            if post_process == 'merge_labels':
+            if post_process == "merge_labels":
                 res = self._merge_labels(wrapper.current_image, labels=post_labels, **kwargs)
             else:
                 res = True
@@ -87,7 +93,7 @@ class IptRandomWalker(IptBaseMerger):
 
     @property
     def name(self):
-        return 'Random Walker'
+        return "Random Walker (WIP)"
 
     @property
     def real_time(self):
@@ -95,11 +101,11 @@ class IptRandomWalker(IptBaseMerger):
 
     @property
     def result_name(self):
-        return 'labels'
+        return "labels"
 
     @property
     def output_kind(self):
-        return 'labels'
+        return "labels"
 
     @property
     def use_case(self):

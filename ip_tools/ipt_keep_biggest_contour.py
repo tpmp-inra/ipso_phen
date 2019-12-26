@@ -53,11 +53,10 @@ class IptKeepBiggestContours(IptBase):
 
         try:
             img = self.extract_source_from_args()
-
-            mask = wrapper.mask
+            mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(f'Failed keep linked contours: mask must be initialized')
-                return False
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                return
 
             params_as_str = self.input_params_as_str(exclude_defaults=True)
 

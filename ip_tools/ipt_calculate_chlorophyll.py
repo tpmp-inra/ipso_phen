@@ -8,7 +8,6 @@ from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 class IptCalculateChlorophyll(IptBase):
     def build_params(self):
         self.add_checkbox(name="normalize", desc="Normalize channel", default_value=0)
-        self.add_source_selector(default_value="source")
         self.add_color_map_selector(name="color_map", default_value="c_2")
         self.add_text_overlay(1)
 
@@ -27,7 +26,6 @@ class IptCalculateChlorophyll(IptBase):
         if wrapper is None:
             return False
 
-        source_type = self.get_value_of("source_file")
         color_map = self.get_value_of("color_map")
         text_overlay = self.get_value_of("text_overlay") == 1
         _, color_map = color_map.split("_")
@@ -40,23 +38,7 @@ class IptCalculateChlorophyll(IptBase):
                 wrapper.error_holder.add_error("Unable to fetch source target image")
                 res = False
 
-            mask = wrapper.mask
-            if mask is None:
-                wrapper.process_image(threshold_only=True)
-                mask = wrapper.mask
-                if mask is None:
-                    wrapper.error_holder.add_error("Watershed needs a calculated mask to start")
-                    res = False
-
-            if source_type == "cropped_source":
-                keep_roi = None
-                for roi in wrapper.rois_list:
-                    if roi.tag == "keep":
-                        keep_roi = roi
-                        break
-                if keep_roi is not None:
-                    keep_roi = keep_roi.as_rect()
-                    mask = mask[keep_roi.top : keep_roi.bottom, keep_roi.left : keep_roi.right]
+            mask = self.get_mask()
 
             b, g, r = cv2.split(src_img)
             self.result = np.exp(

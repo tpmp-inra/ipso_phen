@@ -146,7 +146,7 @@ class IptWatershedOpenCv(IptBaseMerger):
 
     @property
     def name(self):
-        return "Watershed OpenCv"
+        return "Watershed OpenCV (WIP)"
 
     @property
     def real_time(self):

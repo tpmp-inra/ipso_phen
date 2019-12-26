@@ -34,23 +34,30 @@ class IptGrabCut(IptBase):
             maximum=100,
         )
         self.add_checkbox(name="build_mosaic", desc="Build mosaic", default_value=0)
+        self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):
         """
-        Grab cut:
-        Implementation of OpenCV grab cut function
+        Grab cut (WIP):
+        Implementation of OpenCV grab cut function.
 
-                Better if used with a ROI
-                Better if ROI is extracted from mask
-                Even better if used after keep linked contours builds a ROI & and a mask
-        Real time : False
+                Better if used with a ROI.
+
+                Better if ROI is extracted from mask.
+
+                Even better if used after keep linked contours builds a ROI & and a mask.
+        Real time: False
 
         Keyword Arguments (in parentheses, argument name):
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
             * Size of dilation's kernel (prob_dilate_size): Size of kernel for the morphology operator applied to grow the source mask to set a probable mask
             * Size of errode's kernel (sure_erode_size): Size of kernel for the morphology operator applied to shrink the source mask to set a sure mask
-            * Select pseudo color map (color_map): 
-            * GraphCut iterations allowed (gc_iter_count): 
-            * Build mosaic (build_mosaic): 
+            * Select pseudo color map (color_map):
+            * GraphCut iterations allowed (gc_iter_count):
+            * Build mosaic (build_mosaic):
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -61,9 +68,9 @@ class IptGrabCut(IptBase):
             # Get Source image
             img = wrapper.current_image
             # Get starting mask
-            mask = wrapper.mask
+            mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error("Missing mask")
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             # Get ROI
@@ -79,7 +86,8 @@ class IptGrabCut(IptBase):
 
             # Initialize mask
             gc_in_mask = np.full_like(mask, cv2.GC_BGD)
-            gc_in_mask = roi.draw_to(gc_in_mask, line_width=-1, color=cv2.GC_PR_BGD)
+            if roi is not None:
+                gc_in_mask = roi.draw_to(gc_in_mask, line_width=-1, color=cv2.GC_PR_BGD)
 
             # Apply dilation
             dks = self.get_value_of("prob_dilate_size")
@@ -161,7 +169,7 @@ class IptGrabCut(IptBase):
 
     @property
     def name(self):
-        return "Grab cut"
+        return "Grab cut (WIP)"
 
     @property
     def real_time(self):
@@ -181,4 +189,7 @@ class IptGrabCut(IptBase):
 
     @property
     def description(self):
-        return """Implementation of OpenCV grab cut function.\nBetter if used with a ROI.\nBetter if ROI is extracted from mask.\nEven better if used after keep linked contours builds a ROI & and a mask."""
+        return """Implementation of OpenCV grab cut function.\n
+        Better if used with a ROI.\n
+        Better if ROI is extracted from mask.\n
+        Even better if used after keep linked contours builds a ROI & and a mask."""

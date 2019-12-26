@@ -101,3 +101,7 @@ class IptDefault(IptBaseAnalyzer):
     @property
     def use_case(self):
         return [TOOL_GROUP_DEFAULT_PROCESS_STR]
+
+    @property
+    def short_test_script(self):
+        return True

@@ -73,7 +73,7 @@ def open_file(filename: [tuple, str]) -> None:
         os.startfile(filename)
     else:
         opener = "open" if sys.platform == "darwin" else "xdg-open"
-        subprocess.call([opener, filename])       
+        subprocess.call([opener, filename])
 
 def make_safe_name(text):
     ret = ''.join(c if c not in '*"/\[]:;|=,<>' else '_' for c in text)
@@ -90,7 +90,7 @@ def _atoi(text_):
 
 
 def natural_keys(text_):
-    return [_atoi(c) for c in re.split('(\d+)', text_)]
+    return [_atoi(c) for c in re.split(r'(\d+)', text_)]
 
 
 def get_module_classes(

@@ -340,6 +340,7 @@ class IpsoGroupProcessor(QRunnable):
                 if self.script is None:
                     res = ipo.process_image(threshold_only=self.options.threshold_only)
                 else:
+                    self.script.image_output_path = ipo.dst_path
                     res = self.script.process_image(progress_callback=None, wrapper=ipo)
             except Exception as e:
                 err_holder = ErrorHolder(

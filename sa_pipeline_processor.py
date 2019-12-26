@@ -15,7 +15,7 @@ from ip_base.ipt_script_generator import IptScriptGenerator, decode_ipt
 g_log_file = ""
 
 IS_LOG_DATA = True
-IS_USE_MULTI_THREAD = True
+IS_USE_MULTI_THREAD = False
 
 
 def log_event(event: [list, str], print_to_console: bool = False):
@@ -54,14 +54,14 @@ def main():
         "--process_count",
         required=False,
         help="Override number of concurrent processes",
-        default=None,
+        default=False,
     )
 
     args = vars(parser.parse_args())
 
     src = args["stored_state"]
 
-    # src = "..\\..\\..\\ipso_phen_data\\pipeline_state\\18as_stress_1908.json"
+    # src = "c:\\Users\\fmavianemac\\Documents\\ipso_phen_data\\pipeline_state\\mpo_ml_prep.json"
 
     with open(src, "r") as f:
         res = json.load(f, object_hook=decode_ipt)

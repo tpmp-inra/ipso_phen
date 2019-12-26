@@ -35,11 +35,9 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
         try:
             if self.get_value_of("enabled") == 1:
                 img = wrapper.current_image
-                mask = wrapper.mask
+                mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        "Failure Heliasen Quality Control: mask must be initialized"
-                    )
+                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 ept = wrapper.data_output.get("expected_plant_top_position", False)

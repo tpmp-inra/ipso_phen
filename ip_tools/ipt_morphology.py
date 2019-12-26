@@ -30,13 +30,10 @@ class IptMorphology(IptBase):
         try:
             mask = wrapper.current_image
             if not (len(mask.shape) == 2 or (len(mask.shape) == 3 and mask.shape[2] == 1)):
-                mask = wrapper.mask
+                mask = self.get_mask()
                 if mask is None:
-                    wrapper.process_image(threshold_only=True)
-                    mask = wrapper.mask
-                    if mask is None:
-                        wrapper.error_holder.add_error(f'Watershed needs a calculated mask to start')
-                        return False
+                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                    return
             self.result = self.apply_morphology_from_params(mask.copy())
             rois = self.get_ipt_roi(
                 wrapper=wrapper,
