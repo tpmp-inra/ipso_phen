@@ -487,11 +487,11 @@ class IptHolder(object):
                     file_name = os.path.join(
                         os.path.dirname(__file__), "..", "test", f"test_{name}.py",
                     )
-                    # if os.path.isfile(file_name):
-                    #     self.log_state(
-                    #         log_message=f"Skipped test script for {op.name}, script already exists"
-                    #     )
-                    #     continue
+                    if os.path.isfile(file_name):
+                        self.log_state(
+                            log_message=f"Skipped test script for {op.name}, script already exists"
+                        )
+                        continue
                     self.log_state(
                         status_message=f"Building test script for {op.name}...",
                         use_status_as_log=False,
