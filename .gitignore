@@ -25,7 +25,7 @@ saved_data/image_lists.json
 md_files
 .gitignore
 qt_thread_tsts.py
-./test/output_files
+test/output_files/*.*
 saved_data/004c2711_dr_annotations.db
 saved_data/0102405_ggt_annotations.db
 saved_data/013c2307mar_annotations.db

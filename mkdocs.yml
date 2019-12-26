@@ -24,26 +24,32 @@ nav:
     - Analyze chlorophyll: ipt_Analyze_chlorophyll.md
     - Analyze color: ipt_Analyze_color.md
     - Analyze object: ipt_Analyze_object.md
-    - Binary threshold: ipt_Binary_threshold.md
+    - Annulus ROI: ipt_Annulus_ROI.md
+    - Augment data: ipt_Augment_data.md
+    - Calculate chlorophyll: ipt_Calculate_chlorophyll.md
     - Channel mixer: ipt_Channel_mixer.md
     - Channel operation: ipt_Channel_operation.md
     - Channel subtraction: ipt_Channel_subtraction.md
     - Chan Vese: ipt_Chan_Vese.md
     - Check exposure: ipt_Check_exposure.md
     - Check source image: ipt_Check_source_image.md
+    - Circle ROI: ipt_Circle_ROI.md
     - CLAHE: ipt_CLAHE.md
+    - Clean horizontal noise: ipt_Clean_horizontal_noise.md
     - Clean horizontal noise (Hough method): ipt_Clean_horizontal_noise_(Hough_method).md
-    - Clean horizontal noise (WIP): ipt_Clean_horizontal_noise_(WIP).md
     - Copy image: ipt_Copy_image.md
+    - Copy or rename image: ipt_Copy_or_rename_image.md
     - Custom channels: ipt_Custom_channels.md
     - Default process: ipt_Default_process.md
     - Distance threshold: ipt_Distance_threshold.md
     - Dummy threshold (WIP): ipt_Dummy_threshold_(WIP).md
     - Edge detectors: ipt_Edge_detectors.md
-    - Felzenswalb: ipt_Felzenswalb.md
+    - Felsenszwalb: ipt_Felsenszwalb.md
+    - Fill mask holes: ipt_Fill_mask_holes.md
     - Filtering regional maxima: ipt_Filtering_regional_maxima.md
     - Fix perspective: ipt_Fix_perspective.md
     - Heliasen Quality Control (WIP): ipt_Heliasen_Quality_Control_(WIP).md
+    - Horizontal line remover: ipt_Horizontal_line_remover.md
     - Hough circles detector: ipt_Hough_circles_detector.md
     - Hough lines detector: ipt_Hough_lines_detector.md
     - Hysteresis threshold: ipt_Hysteresis_threshold.md
@@ -61,9 +67,14 @@ nav:
     - Otsu overthinked: ipt_Otsu_overthinked.md
     - Partial posterizer: ipt_Partial_posterizer.md
     - Print channels: ipt_Print_channels.md
+    - Print color spaces: ipt_Print_color_spaces.md
     - Pyramid mean shift: ipt_Pyramid_mean_shift.md
+    - Quick shift: ipt_Quick_shift.md
+    - Range threshold: ipt_Range_threshold.md
+    - Rectangle ROI: ipt_Rectangle_ROI.md
     - Remove plant guide: ipt_Remove_plant_guide.md
     - ROI manager: ipt_ROI_manager.md
+    - ROI manager (deprecated): ipt_ROI_manager_(deprecated).md
     - Rotate: ipt_Rotate.md
     - Sauvola binarization: ipt_Sauvola_binarization.md
     - Simple white balance: ipt_Simple_white_balance.md

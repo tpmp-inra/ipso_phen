@@ -15,6 +15,7 @@ from datetime import datetime as dt
 from timeit import default_timer as timer
 from typing import Any
 import shutil
+import subprocess
 
 import cv2
 import numpy as np
@@ -287,9 +288,8 @@ class NewToolDialog(QDialog):
         def remove_tab(sc: str) -> str:
             return sc[4:]
 
-        with open(
-            os.path.join("./ip_tools", self.ui.le_file_name.text()), "w", encoding="utf8"
-        ) as f:
+        file_path = os.path.join("./ip_tools", self.ui.le_file_name.text())
+        with open(file_path, "w", encoding="utf8") as f:
             spaces = ""
 
             # Imports
@@ -452,6 +452,8 @@ class NewToolDialog(QDialog):
             f.write(f"{spaces}def description(self):\n")
             desc = self.ui.te_description.toPlainText().replace("'", " ").replace('"', " ")
             f.write(f"{spaces}    return '{desc}'\n")
+
+        subprocess.run(args=('black', file_path))
 
     def cancel_tool(self):
         self.close()
