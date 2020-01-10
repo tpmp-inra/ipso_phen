@@ -163,32 +163,6 @@ class IpsoRunnable(QRunnable):
 
             self.signals_holder.on_update_images.emit(self.batch_process, self.ipt)
 
-            # info_dict = dict(
-            #     **dict(
-            #         ipt=self.ipt.name,
-            #         ipt_class_name=type(self.ipt).__name__,
-            #         experiment=wrapper.experiment,
-            #         plant=wrapper.plant,
-            #         date_time=wrapper.date_time,
-            #         camera=wrapper.camera,
-            #         view_option=wrapper.view_option,
-            #     ),
-            #     **self.ipt.params_to_dict(),
-            # )
-            # if hasattr(self.ipt, "data_dict"):
-            #     info_dict = dict(**info_dict, **self.ipt.data_dict)
-            # elif len(self.ipt.wrapper.csv_data_holder.data_list) > 0:
-            #     info_dict = dict(
-            #         **info_dict,
-            #         **{
-            #             k: v
-            #             for (k, v) in self.ipt.wrapper.csv_data_holder.data_list.items()
-            #             if v is not None
-            #             if k not in info_dict
-            #         },
-            #     )
-            # self.signals_holder.on_update_data.emit(info_dict)
-
             after = timer()
             if res:
                 status_message = (

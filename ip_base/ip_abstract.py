@@ -17,6 +17,7 @@ from tools.regions import CircleRegion, RectangleRegion, EmptyRegion, Point, Abs
 from tools.common_functions import time_method, force_directories
 from tools.error_holder import ErrorHolder
 from tools.db_wrapper import DB_TYPE_MEMORY
+import sys
 
 matplotlib.use("agg")
 
@@ -228,6 +229,13 @@ class AbstractImageProcessor(ImageWrapper):
                 y += cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
         else:
             print(f'Unknown position: "{position}"')
+
+    def get_contours(self, mask, retrieve_mode, method):
+        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
+            contours, _ = cv2.findContours(mask.copy(), retrieve_mode, method)
+        else:
+            _, contours, _ = cv2.findContours(mask.copy(), retrieve_mode, method)
+        return contours
 
     def draw_image(self, **kwargs):
         """Build pseudo color image
@@ -1405,6 +1413,26 @@ class AbstractImageProcessor(ImageWrapper):
             res_ = dict(dist=0, cx=0, cy=0, dist_scaled_inverted=0, area=0, scaled_area=0)
         return res_
 
+    @staticmethod
+    def contours_min_distance(cnt_a, cnt_b):
+        """Returns minimal distance between 2 contours.
+        Possible returns
+            * 0: The two contours touch or intersect one another
+            * > 0: The two contours are separated
+        """
+        min_dist = None
+        for pt in cnt_a:
+            cnt_point = Point(pt[0][0], pt[0][1])
+            cur_dist = cv2.pointPolygonTest(cnt_b, (cnt_point.x, cnt_point.y), True)
+            if cur_dist >= 0:
+                return 0
+            else:
+                if min_dist is None:
+                    min_dist = abs(cur_dist)
+                elif abs(cur_dist) < min_dist:
+                    min_dist = abs(cur_dist)
+        return min_dist
+
     def check_hull(
         self,
         mask,
@@ -1542,13 +1570,9 @@ class AbstractImageProcessor(ImageWrapper):
             dil_mask = src_mask.copy()
         self.store_image(dil_mask, "dil_mask")
 
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-            contours, _ = cv2.findContours(dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        else:
-            _, contours, _ = cv2.findContours(
-                dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-            )
-
+        contours = self.get_contours(
+            mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+        )
         self.store_image(
             cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
         )
@@ -1605,12 +1629,9 @@ class AbstractImageProcessor(ImageWrapper):
                     main_hull = hull
 
         # At this point we have the zone were the contours are allowed to be
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-            contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        else:
-            _, contours, _ = cv2.findContours(
-                src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-            )
+        contours = self.get_contours(
+            mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+        )
         for cnt in contours:
             hull = cv2.approxPolyDP(cnt, eps * cv2.arcLength(cnt, True), True)
             res = self.check_hull(
@@ -1681,14 +1702,9 @@ class AbstractImageProcessor(ImageWrapper):
         # Delete all small contours
         if delete_all_bellow > 0:
             fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
-            if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-                contours, _ = cv2.findContours(
-                    src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-                )
-            else:
-                _, contours, _ = cv2.findContours(
-                    src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-                )
+            contours = self.get_contours(
+                mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+            )
             small_img = src_mask.copy()
             small_img = np.dstack((small_img, small_img, small_img))
             for cnt in contours:
@@ -1715,12 +1731,9 @@ class AbstractImageProcessor(ImageWrapper):
         else:
             dil_mask = src_mask.copy()
         self.store_image(dil_mask, "dil_mask")
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-            contours, _ = cv2.findContours(dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        else:
-            _, contours, _ = cv2.findContours(
-                dil_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-            )
+        contours = self.get_contours(
+            mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+        )
         self.store_image(
             cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
         )
@@ -1897,12 +1910,9 @@ class AbstractImageProcessor(ImageWrapper):
         self.store_image(hull_img, f"src_img_with_cnt_after_agg_iter_last")
 
         # At this point we have the zone were the contours are allowed to be
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-            contours, _ = cv2.findContours(src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-        else:
-            _, contours, _ = cv2.findContours(
-                src_mask.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE
-            )
+        contours = self.get_contours(
+            mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+        )
         for cnt in contours:
             hull = cv2.approxPolyDP(cnt, eps * cv2.arcLength(cnt, True), True)
             is_good_one = False
@@ -3097,13 +3107,32 @@ class AbstractImageProcessor(ImageWrapper):
         return dict(mask=c, lines=all_lines)
 
     def retrieve_stored_image(self, img_name):
-        """Retrieves stored image from list using key
+        """Retrieves stored image from image_list using key.
+        For some keys, image will be generated even if not present in image_list
 
         Arguments:
             img_name {str} -- key to stored image
 
+        Generated keys details:
+            * If key contains 'exp_fixed', exposure fixed image will be used as base if present,
+              if not current_image will be used
+
+        Generated keys:
+            * source: Returns raw source image
+            * current_image: Returns current default image.
+            * mask_on_exp_fixed_bw_with_morph: Returns image as black and white background with
+              colored parts where the mask is active. Morphology data will be printed on top of image.
+            * mask_on_exp_fixed_bw: Returns image as black and white background with colored
+              parts where the mask is active.
+            * mask_on_exp_fixed_bw_roi: Returns image as black and white background with colored
+              parts where the mask is active. Morphology data will be printed on top of image
+              with ROIs on top
+            * exp_fixed_roi: Image with stored ROIs on top
+            * exp_fixed_pseudo_on_bw: Returns image as black and white background with
+              pseudo colored parts where the mask is active.        
+
         Returns:
-            boolean -- True if succesfull
+            boolean -- True if successful
             numpy array -- stored image
         """
 
@@ -3117,6 +3146,56 @@ class AbstractImageProcessor(ImageWrapper):
             for dic in self.image_list:
                 if dic["name"].lower() == img_name.lower():
                     return dic["image"]
+            if "exp_fixed" in img_name.lower():
+                foreground = self.retrieve_stored_image("exposure_fixed").copy()
+                if foreground is None:
+                    foreground = self.current_image
+                if img_name.lower() == "mask_on_exp_fixed_bw_with_morph":
+                    return self.draw_image(
+                        src_image=foreground,
+                        src_mask=self.mask,
+                        background="bw",
+                        foreground="source",
+                        bck_grd_luma=120,
+                        contour_thickness=6,
+                        hull_thickness=6,
+                        width_thickness=6,
+                        height_thickness=6,
+                        centroid_width=20,
+                        centroid_line_width=8,
+                    )
+                elif img_name.lower() == "mask_on_exp_fixed_bw":
+                    return self.draw_image(
+                        src_image=foreground,
+                        src_mask=self.mask,
+                        background="bw",
+                        foreground="source",
+                        bck_grd_luma=120,
+                    )
+                elif img_name.lower() == "mask_on_exp_fixed_bw_roi":
+                    return self.draw_rois(
+                        img=self.draw_image(
+                            src_image=self.retrieve_stored_image("exposure_fixed"),
+                            src_mask=self.mask,
+                            foreground="source",
+                            background="bw",
+                        ),
+                        rois=self.rois_list,
+                    )
+                elif img_name.lower() == "exp_fixed_roi":
+                    return self.draw_rois(
+                        img=self.retrieve_stored_image("exposure_fixed"),
+                        rois=self.rois_list,
+                    )                
+                elif img_name.lower() == "exp_fixed_pseudo_on_bw":
+                    return self.draw_image(
+                        src_image=self.retrieve_stored_image("exposure_fixed"),
+                        channel="l",
+                        src_mask=self.mask,
+                        foreground="false_colour",
+                        background="bw",
+                        normalize_before=True,
+                    )
         return None
 
     def build_msp_mosaic(self):

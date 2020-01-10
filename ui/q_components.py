@@ -15,6 +15,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QTreeWidgetItem,
     QTreeWidget,
+    QTextBrowser,
     QSpinBox,
     QApplication,
     QGraphicsView,
@@ -56,7 +57,8 @@ class CTreeWidget(QTreeWidget):
     def handle_item_checked(self, item, column):
         if not self.initializing_tree and (self.script_generator is not None):
             data = item.data(0, Qt.UserRole)
-            self.script_generator.toggle_enabled_state(key=data)
+            if data is not None:
+                self.script_generator.toggle_enabled_state(key=data)
 
 
 class QComboBoxWthParam(QComboBox):
@@ -162,6 +164,26 @@ class QCheckBoxWthParam(QCheckBox):
 class QLineEditWthParam(QLineEdit):
     def __init__(self, tool, param, allow_real_time: bool = True, parent=None):
         QLineEdit.__init__(self, parent)
+        self._param = param
+        self._tool = tool
+        self._allow_real_time = allow_real_time
+
+    @property
+    def param(self):
+        return self._param
+
+    @property
+    def tool(self):
+        return self._tool
+
+    @property
+    def allow_real_time(self):
+        return self._allow_real_time
+
+
+class QTextBrowserWthParam(QTextBrowser):
+    def __init__(self, tool, param, allow_real_time: bool = True, parent=None):
+        QTextBrowser.__init__(self, parent)
         self._param = param
         self._tool = tool
         self._allow_real_time = allow_real_time

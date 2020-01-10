@@ -117,7 +117,7 @@ class IptTemperatureTint(IptBase):
 
     @property
     def name(self):
-        return "Temperature and tint (WIP)"
+        return "Temperature and tint"
 
     @property
     def real_time(self):

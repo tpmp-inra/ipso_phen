@@ -95,7 +95,7 @@ class IptAnnulusRoi(IptBase):
                 )
             else:
                 img = wrapper.current_image
-            wrapper.store_image(image=img, text=f"image_with_roi_{repr(self.result)}")
+            wrapper.store_image(image=img, text="image_with_roi")
 
             res = True
         except Exception as e:

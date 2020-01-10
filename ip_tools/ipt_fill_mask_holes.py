@@ -60,7 +60,7 @@ class IptFillMaskHoles(IptBase):
         res = False
         try:
             if self.get_value_of("enabled") == 1:
-                img = wrapper.current_image                
+                img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
                     wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")

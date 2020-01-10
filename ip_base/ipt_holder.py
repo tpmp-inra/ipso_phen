@@ -113,10 +113,12 @@ class IptHolder(object):
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that class process_wrapper method has docstring"""\n')
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
+        f.write(f"{spaces}if '(wip)' not in op.name.lower():\n")
+        spaces = add_tab(spaces)
         f.write(
             f"{spaces}self.assertIsNotNone(op.process_wrapper.__doc__, 'Missing docstring for {op.name}')\n\n"
         )
-        return remove_tab(spaces)
+        return remove_tab(remove_tab(spaces))
 
     def write_test_needed_param(self, f, op, param_name, spaces):
         f.write(f"{spaces}def test_needed_param(self):\n")

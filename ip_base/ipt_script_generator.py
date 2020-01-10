@@ -27,7 +27,7 @@ from ip_base.ip_common import (
 from ip_base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ip_base.ipt_functional import call_ipt_code, call_ipt_func_code
 from tools.csv_writer import AbstractCsvWriter
-from tools.common_functions import get_module_classes
+from tools.common_functions import get_module_classes, force_directories
 
 
 CLASS_NAME_KEY = "class__name__"
@@ -91,6 +91,13 @@ class SettingsHolder(IptParamHolder):
             name="display_images", desc="Display step by step images", default_value=1
         )
         self.add_checkbox(name="build_mosaic", desc="Display mosaic", default_value=0)
+        self.add_text_input(
+            name="mosaic_items",
+            desc="Mosaic items",
+            default_value="""source,exposure_fixed,pre_processed_image\ncoarse_mask,clean_mask, mask_on_exp_fixed_bw_with_morph""",
+            hint="""Names of the images to be included in the mosaic""",
+            is_single_line=False,
+        )
         self.add_spin_box(
             name="bound_level",
             desc="Horizontal bound position",
@@ -127,6 +134,14 @@ class SettingsHolder(IptParamHolder):
             desc="Images output folder",
             default_value="",
             hint="Path where images will be copied, if not absolute, will be relative to output CSV data file",
+        )
+        self.add_text_input(
+            name="last_image",
+            desc="Last image to be displayed",
+            default_value="",
+            hint="""Image to be displayed once the pipeline has finished.
+            If empty last image will be displayed.
+            Overridden by mosaic setting""",
         )
         self.update_feedback_items = [
             "bound_level",
@@ -216,6 +231,7 @@ class IptScriptGenerator(object):
                     tool_dict["kind"] = TOOL_GROUP_IMAGE_GENERATOR_STR
                 else:
                     tool_dict["kind"] = tool_dict["kind"]
+                tool_dict.pop("changed", None)
 
         except Exception as e:
             print(f'Failed to load script generator "{repr(e)}"')
@@ -323,7 +339,7 @@ class IptScriptGenerator(object):
                 previous_state
                 and (wrapper is not None)
                 and (wrapper.luid == self._last_wrapper_luid)
-                and (tool_dict.get("changed", True) is False)
+                and (tool_dict.get("last_result", None) is not None)
             )
         else:
             return False
@@ -387,6 +403,16 @@ class IptScriptGenerator(object):
         Returns:
             tuple -- use_last_result, current_step
         """
+        use_last_result, current_step = self.build_rois(
+            wrapper=wrapper,
+            tools=None,
+            use_last_result=use_last_result,
+            progress_callback=progress_callback,
+            current_step=current_step,
+            total_steps=total_steps,
+            build_dynamic=False,
+            build_static=True,
+        )
         use_last_result, current_step = self.fix_exposure(
             wrapper=wrapper,
             use_last_result=use_last_result,
@@ -401,18 +427,11 @@ class IptScriptGenerator(object):
             progress_callback=progress_callback,
             current_step=current_step,
             total_steps=total_steps,
+            build_dynamic=True,
+            build_static=False,
         )
         wrapper.store_image(
-            image=wrapper.draw_rois(
-                img=wrapper.draw_image(
-                    src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                    src_mask=wrapper.mask,
-                    foreground="source",
-                    background="bw",
-                ),
-                rois=wrapper.rois_list,
-            ),
-            text="rois",
+            image=wrapper.retrieve_stored_image("exp_fixed_roi"), text="rois",
         )
         use_last_result = self.build_target_tools(
             wrapper=wrapper, tools=None, use_last_result=use_last_result
@@ -462,16 +481,19 @@ class IptScriptGenerator(object):
         progress_callback=None,
         current_step: int = -1,
         total_steps: int = -1,
+        build_static: bool = True,
+        build_dynamic: bool = True,
     ):
+        if build_dynamic and build_static:
+            kinds = (TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR)
+        elif build_dynamic:
+            kinds = (TOOL_GROUP_ROI_DYNAMIC_STR,)
+        elif build_static:
+            kinds = (TOOL_GROUP_ROI_STATIC_STR,)
+        else:
+            kinds = ()
         if tools is None:
-            tools = [
-                op
-                for op in self.get_operators(
-                    dict(
-                        kind=(TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR), enabled=True
-                    )
-                )
-            ]
+            tools = [op for op in self.get_operators(dict(kind=kinds, enabled=True))]
         for tool in tools:
             use_last_result = self.is_use_last_result(
                 tool_dict=tool, wrapper=wrapper, previous_state=use_last_result
@@ -488,7 +510,6 @@ class IptScriptGenerator(object):
                     roi = func(wrapper=wrapper)
                     if roi is not None:
                         wrapper.add_roi(new_roi=roi)
-                        tool["changed"] = False
                         tool["last_result"] = roi
                 else:
                     wrapper.error_list.add_error(f'Unable to extract ROI from "{tool.name}"')
@@ -530,7 +551,6 @@ class IptScriptGenerator(object):
                     ret = tool.data_dict
                 else:
                     ret = tool.result
-                tool_dict["changed"] = False
                 tool_dict["last_result"] = ret
             else:
                 self._last_wrapper_luid = ""
@@ -561,7 +581,31 @@ class IptScriptGenerator(object):
         res = False
         wrapper = None
         try:
+            save_mask = False
+            for tool in (
+                op["tool"]
+                for op in self.get_operators(
+                    constraints=dict(
+                        kind=(
+                            TOOL_GROUP_EXPOSURE_FIXING_STR,
+                            TOOL_GROUP_PRE_PROCESSING_STR,
+                            TOOL_GROUP_THRESHOLD_STR,
+                            TOOL_GROUP_ROI_DYNAMIC_STR,
+                            TOOL_GROUP_ROI_STATIC_STR,
+                            TOOL_GROUP_MASK_CLEANUP_STR,
+                            TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                            TOOL_GROUP_IMAGE_GENERATOR_STR,
+                        ),
+                        enabled=True,
+                    )
+                )
+            ):
+                if tool.has_param("path") and self.image_output_path:
+                    tool.set_value_of(key="path", value=self.image_output_path)
+                save_mask = save_mask or tool.needs_previous_mask
+
             tools_ = self.group_tools(tool_only=False, conditions=dict(enabled=True))
+
             total_steps = self.get_operators_count(
                 constraints=dict(
                     kind=(
@@ -664,16 +708,7 @@ class IptScriptGenerator(object):
                     if roi.tag in handled_rois and not (roi.target and roi.target != "none")
                 ]
                 wrapper.store_image(
-                    image=wrapper.draw_rois(
-                        img=wrapper.draw_image(
-                            src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                            src_mask=wrapper.mask,
-                            foreground="source",
-                            background="bw",
-                        ),
-                        rois=rois_list,
-                    ),
-                    text="used_rois",
+                    wrapper.retrieve_stored_image("mask_on_exp_fixed_bw_roi"), text="used_rois",
                 )
                 wrapper.mask = wrapper.apply_roi_list(
                     img=wrapper.mask, rois=rois_list, print_dbg=self.display_images
@@ -729,12 +764,7 @@ class IptScriptGenerator(object):
                             wrapper.store_image(img, f"enforcer_{i}_{enforcer.name}")
                         wrapper.store_image(
                             image=wrapper.draw_rois(
-                                img=wrapper.draw_image(
-                                    src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                                    src_mask=wrapper.mask,
-                                    foreground="source",
-                                    background="bw",
-                                ),
+                                img=wrapper.retrieve_stored_image("mask_on_exp_fixed_bw"),
                                 rois=enforcers_list,
                             ),
                             text="enforcer_rois",
@@ -742,33 +772,20 @@ class IptScriptGenerator(object):
                         fifth_image = "enforcer_rois"
                     else:
                         wrapper.store_image(
-                            image=wrapper.draw_image(
-                                src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                                channel="l",
-                                src_mask=wrapper.mask,
-                                foreground="false_colour",
-                                background="bw",
-                                normalize_before=True,
-                            ),
-                            text="pseudo_on_bw",
+                            image=wrapper.retrieve_stored_image("exp_fixed_pseudo_on_bw"),
+                            text="exp_fixed_pseudo_on_bw",
                         )
-                        fifth_image = "pseudo_on_bw"
+                        fifth_image = "exp_fixed_pseudo_on_bw"
 
                 if res and wrapper.mask is not None:
                     wrapper.store_image(
-                        wrapper.draw_image(
-                            src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                            src_mask=wrapper.mask,
-                            foreground="source",
-                            background="bw",
-                        ),
-                        text="mask_on_bw",
+                        wrapper.retrieve_stored_image("mask_on_exp_fixed_bw"), text="mask_on_bw",
                     )
                 current_step = self.add_progress(
                     progress_callback, current_step, total_steps, "Checked mask enforcers", wrapper
                 )
             else:
-                handled_rois = ["keep", "delete", "erode", "dilate", "open", "close"]
+                handled_rois = ["keep", "delete"]
                 rois_list = [
                     roi
                     for roi in wrapper.rois_list
@@ -776,13 +793,7 @@ class IptScriptGenerator(object):
                 ]
                 wrapper.store_image(
                     image=wrapper.draw_rois(
-                        img=wrapper.draw_image(
-                            src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                            src_mask=wrapper.mask,
-                            foreground="source",
-                            background="bw",
-                        ),
-                        rois=rois_list,
+                        img=wrapper.retrieve_stored_image("exposure_fixed"), rois=rois_list,
                     ),
                     text="used_rois",
                 )
@@ -800,6 +811,13 @@ class IptScriptGenerator(object):
                 or (len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0)
             ):
                 wrapper.csv_data_holder = AbstractCsvWriter()
+
+            if save_mask and self.image_output_path and wrapper.mask is not None:
+                force_directories(os.path.join(self.image_output_path, "masks"))
+                cv2.imwrite(
+                    filename=os.path.join(self.image_output_path, "masks", wrapper.file_name),
+                    img=wrapper.mask,
+                )
 
             # Extract features
             if (
@@ -826,12 +844,8 @@ class IptScriptGenerator(object):
             # Generate images
             if res and len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
                 for tool in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
-                    if self.image_output_path:
-                        tool["tool"].set_value_of(key="path", value=self.image_output_path)
                     current_data, use_last_result = self.process_tool(
-                        tool_dict=tool,
-                        wrapper=wrapper,
-                        use_last_result=use_last_result,
+                        tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result,
                     )
                     if isinstance(current_data, dict):
                         wrapper.csv_data_holder.data_list.update(current_data)
@@ -840,30 +854,20 @@ class IptScriptGenerator(object):
                     )
                 res = len(wrapper.csv_data_holder.data_list) > 0
 
+            # Set last image to be displayed
+            if self.last_image:
+                last_image = wrapper.retrieve_stored_image(self.last_image)
+                if last_image is not None:
+                    wrapper.store_image(image=last_image, text="last_" + self.last_image)
+
             if self.build_mosaic:
                 old_mosaic = wrapper.store_mosaic
                 wrapper.store_mosaic = "result"
                 if wrapper.mask is not None:
                     wrapper.mosaic_data = np.array(
                         [
-                            ["source", "exposure_fixed", "pre_processed_image"],
-                            [
-                                "coarse_mask",
-                                "clean_mask",
-                                wrapper.draw_image(
-                                    src_image=wrapper.retrieve_stored_image("exposure_fixed"),
-                                    src_mask=wrapper.mask,
-                                    background="bw",
-                                    foreground="source",
-                                    bck_grd_luma=120,
-                                    contour_thickness=6,
-                                    hull_thickness=6,
-                                    width_thickness=6,
-                                    height_thickness=6,
-                                    centroid_width=20,
-                                    centroid_line_width=8,
-                                ),
-                            ],
+                            line.split(",")
+                            for line in self.mosaic_items.replace(" ", "").split("\n")
                         ]
                     )
                 else:
@@ -1433,6 +1437,7 @@ class IptScriptGenerator(object):
 
     def get_operators(self, constraints: dict = {}) -> list:
         res = []
+        constraints = {k: v for k, v in constraints.items() if v is not None}
         for op in self.ip_operators:
             if not constraints:
                 res.append(op)
@@ -1460,38 +1465,68 @@ class IptScriptGenerator(object):
 
     @staticmethod
     def ops_after(tool_kind: str):
+        if tool_kind in [TOOL_GROUP_ROI_STATIC_STR]:
+            return [
+                TOOL_GROUP_ROI_STATIC_STR,
+                TOOL_GROUP_EXPOSURE_FIXING_STR,
+                TOOL_GROUP_ROI_DYNAMIC_STR,
+                TOOL_GROUP_PRE_PROCESSING_STR,
+                TOOL_GROUP_THRESHOLD_STR,
+                TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ]
         if tool_kind in [TOOL_GROUP_EXPOSURE_FIXING_STR]:
             return [
+                TOOL_GROUP_EXPOSURE_FIXING_STR,
                 TOOL_GROUP_ROI_DYNAMIC_STR,
-                TOOL_GROUP_ROI_STATIC_STR,
                 TOOL_GROUP_PRE_PROCESSING_STR,
                 TOOL_GROUP_THRESHOLD_STR,
                 TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
             ]
-        if tool_kind in [TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR]:
+        if tool_kind in [TOOL_GROUP_ROI_DYNAMIC_STR]:
+            return [
+                TOOL_GROUP_ROI_DYNAMIC_STR,
+                TOOL_GROUP_PRE_PROCESSING_STR,
+                TOOL_GROUP_THRESHOLD_STR,
+                TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ]
+        if tool_kind in [TOOL_GROUP_PRE_PROCESSING_STR]:
             return [
                 TOOL_GROUP_PRE_PROCESSING_STR,
                 TOOL_GROUP_THRESHOLD_STR,
                 TOOL_GROUP_MASK_CLEANUP_STR,
-            ]
-        elif tool_kind == TOOL_GROUP_PRE_PROCESSING_STR:
-            return [
-                TOOL_GROUP_PRE_PROCESSING_STR,
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
             ]
         elif tool_kind == TOOL_GROUP_THRESHOLD_STR:
-            return [TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_MASK_CLEANUP_STR]
+            return [
+                TOOL_GROUP_THRESHOLD_STR,
+                TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ]
         elif tool_kind == TOOL_GROUP_MASK_CLEANUP_STR:
-            return [TOOL_GROUP_MASK_CLEANUP_STR]
+            return [
+                TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ]
         elif tool_kind == TOOL_GROUP_FEATURE_EXTRACTION_STR:
-            return [TOOL_GROUP_FEATURE_EXTRACTION_STR]
+            return [
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ]
         elif tool_kind == TOOL_GROUP_IMAGE_GENERATOR_STR:
             return [TOOL_GROUP_IMAGE_GENERATOR_STR]
         else:
             return []
 
-    def delete_cache_if_tool_after(self, tool_kind: str):
+    def delete_cache_if_tool_after(self, tool_kind: [str, None] = None):
         for tool_dict in self.get_operators(constraints=dict(kind=self.ops_after(tool_kind))):
             tool_dict["last_result"] = None
 
@@ -1500,10 +1535,20 @@ class IptScriptGenerator(object):
         Toggles enabled of matching key
         :param key: uuid for tools, name for settings
         """
+        if not key:
+            return
         tool = self.get_operators(constraints=dict(uuid=key))
-        if len(tool) > 0:
+        if len(tool) == 1:
             tool[0]["enabled"] = not tool[0]["enabled"]
             self.delete_cache_if_tool_after(tool[0]["kind"])
+
+    def invalidate(self, key: [str, None] = None):
+        if key is not None:
+            tool = self.get_operators(constraints=dict(uuid=key))
+            if len(tool) > 0:
+                self.delete_cache_if_tool_after(tool[0]["kind"])
+        else:
+            self.delete_cache_if_tool_after()
 
     @property
     def is_empty(self):
@@ -1602,6 +1647,22 @@ class IptScriptGenerator(object):
     @image_output_path.setter
     def image_output_path(self, value):
         self._settings.set_value_of("image_output_path", value)
+
+    @property
+    def last_image(self):
+        return self._settings.get_value_of("last_image")
+
+    @last_image.setter
+    def last_image(self, value):
+        self._settings.set_value_of("last_image", value)
+
+    @property
+    def mosaic_items(self):
+        return self._settings.get_value_of("mosaic_items")
+
+    @mosaic_items.setter
+    def mosaic_items(self, value):
+        self._settings.set_value_of("mosaic_items", value)
 
     @property
     def pseudo_background_type(self):

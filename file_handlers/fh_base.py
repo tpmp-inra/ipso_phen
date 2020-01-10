@@ -437,18 +437,19 @@ class FileHandlerDefault(FileHandlerBase):
     def __init__(self, **kwargs):
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
-            self._file_path = self.file_path
             self._plant = self.file_name_no_ext
             self._camera = "unknown"
             _, ext_ = os.path.splitext(self.file_name)
             self._view_option = ext_ if ext_ else "unknown"
             try:
                 self._exp = os.path.basename(os.path.dirname(self.file_path))
-            except:
+            except Exception as e:
+                print(f"Unable to extract extension: {repr(e)}")
                 self._exp = ""
             try:
                 self._date_time = dt.fromtimestamp(os.path.getmtime(self.file_path))
-            except:
+            except Exception as e:
+                print(f"Unable to extract date from file because: {repr(e)}")
                 self._date_time = dt.now()
             self._date_time = self._date_time.replace(microsecond=0)
 
