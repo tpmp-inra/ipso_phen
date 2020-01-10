@@ -20,7 +20,12 @@ We're going to build a really simple tool that rotates an image
 - A tool should never overwrite delete or modify in any way a source image.
 - 2 or more tools should never have the same name.
 - If you create a tool, please make it available to everyone.
-- Help files should always be generated.
+
+## Some rules that are enforced by the test scripts
+
+- Each tool must have a help page, it can be generated from within the app.
+- Each tool must come with a test script, it can also be generated from the app.
+- The process_wrapper method must have a doc string, you can copy the contents of the *help tab* as seen below.
 
 
 ## Create the skeleton
@@ -37,7 +42,6 @@ We fill the wizard as follows:
 
 !!! warning
     Try to avoid real time if tool takes more than a second to process
-
 
 If the icon on the top right corner is read, it means that a tool with the same name already exists. IPSO Phen **will not** override an existing tool.
 
@@ -118,7 +122,11 @@ def build_params(self):
     )
 ```
 
+!!! info
+    Once the widgets are added the docstring is available from the main UI in the help tab (see below)
+
 ## The main method
+
 Now we're just going to add some code to the main method to actually rotate the image.
 
 !!! tip
@@ -128,6 +136,14 @@ Now we're just going to add some code to the main method to actually rotate the 
 
 ```python
 def process_wrapper(self, **kwargs):
+    """Rotate:
+    Rotates an image according to selected angle
+    Real time: True
+
+    Keyword Arguments (in parentheses, argument name):
+        * Activate tool (enabled): Toggle whether or not tool is active
+        * Rotation angle (rotate_angle): Select the angle to rotate the image
+    """
     wrapper = self.init_wrapper(**kwargs)
     if wrapper is None:
         return False
@@ -181,22 +197,30 @@ def process_wrapper(self, **kwargs):
 
 The next time you launch IPSO Phen you should have:
 
-#### The *Rotate* tool avalaible for selection with its UI 
-![Result image](images/custom_tools_ui.jpg)<br>
-#### The help tab should look like this like this
+### The *Rotate* tool available for selection with its UI
+
+![Result image](images/custom_tools_ui.jpg)
+
+### The help tab should look like this like this
+
 ![Result image](images/custom_tools_help.jpg)
-#### The code generation should update itself when you change the tool 
+
+### The code generation should update itself when you change the tool 
+
 ![Result image](images/custom_tools_code.jpg)
 
 But most importantly, the tool should work.
 
 ![Result image](images/custom_tools_anim.gif)
 
-## But wait there's more !
+## Things that will make everyone's life easier
 
 ### Generating the mark down documentation
 
-Click on *Help/Build tool documentation* to create a help file for the tool like [this one](ipt_CLAHE.md)
-![Result image](images/custom_tools_build_doc.jpg). All tool help files follow the same structure, when you click on *Build tool documentation*, the source image and the image on the output panel are used to generate the help. 
+Click on *Help/Build tool documentation* to create a help file. All tool help files follow the same structure, when you click on *Build tool documentation*, the source image and the image on the output panel are used to generate the help. 
 
 And then you can click on the menu item below to update IPSO Phen documentation so your tool will be included in the *Tools* section.
+
+### Generating test script
+
+Click on *Help/Build test files* to generate all missing test scripts. A fully functioning script wil be generated for the new tool, no existing scripts will be overwritten.

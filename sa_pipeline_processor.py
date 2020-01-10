@@ -48,7 +48,7 @@ def main():
     start = timer()
 
     parser = argparse.ArgumentParser(description="Process a pipeline on images with stored state")
-    parser.add_argument("-s", "--stored_state", required=True, help="Path to the stored state")
+    # parser.add_argument("-s", "--stored_state", required=True, help="Path to the stored state")
     parser.add_argument(
         "-p",
         "--process_count",
@@ -59,9 +59,9 @@ def main():
 
     args = vars(parser.parse_args())
 
-    src = args["stored_state"]
+    # src = args["stored_state"]
 
-    # src = "c:\\Users\\fmavianemac\\Documents\\ipso_phen_data\\pipeline_state\\mpo_ml_prep.json"
+    src = "c:\\Users\\fmavianemac\\Documents\\ipso_phen_data\\pipeline_state\\mpo_ml_prep.json"
 
     with open(src, "r") as f:
         res = json.load(f, object_hook=decode_ipt)

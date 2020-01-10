@@ -77,6 +77,8 @@ from PyQt5.QtWidgets import (
     QTreeWidgetItemIterator,
     QVBoxLayout,
     QWidget,
+    QListWidgetItem,
+    QTextEdit,
     QTableView,
     qApp,
 )
@@ -114,6 +116,7 @@ from ui.q_components import (
     QCheckBoxWthParam,
     QComboBoxWthParam,
     QLineEditWthParam,
+    QTextBrowserWthParam,
     QMouseGraphicsView,
     QPandasModel,
     QPandasColumnsModel,
@@ -150,8 +153,8 @@ _ACTIVE_SCRIPT_TAG = "Active script"
 _IMAGE_LISTS_PATH = "./saved_data/image_lists.json"
 
 _PRAGMA_NAME = "IPSO Phen"
-_PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available (*.tipp *.json)
-;;pipelines (*.tipp);;JSON compatible file (*.json)"""
+_PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json *.tipp)
+;;JSON compatible file (*.json);;pipelines (*.tipp)"""
 
 
 def excepthook(excType, excValue, tracebackobj):
@@ -267,7 +270,13 @@ class NewToolDialog(QDialog):
 
     def on_tool_name_changed(self):
         # Get file name
-        base_name = f'ipt_{make_safe_name(unidecode(self.ui.le_tool_name.text())).replace(" ", "_").lower()}'
+        base_name = (
+            "ipt_" + make_safe_name(unidecode(self.ui.le_tool_name.text()))
+            .replace(" ", "_")
+            .replace("(", "")
+            .replace(")", "")
+            .lower()
+        )
         file_name = base_name + ".py"
         # Update icon
         if os.path.isfile(os.path.join("./ip_tools", file_name)):
@@ -453,7 +462,7 @@ class NewToolDialog(QDialog):
             desc = self.ui.te_description.toPlainText().replace("'", " ").replace('"', " ")
             f.write(f"{spaces}    return '{desc}'\n")
 
-        subprocess.run(args=('black', file_path))
+        subprocess.run(args=("black", file_path))
 
     def cancel_tool(self):
         self.close()
@@ -760,6 +769,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.statusBar().addWidget(self._status_label, stretch=0)
 
+        # Build tools selectors
+        def update_font_(op, act):
+            if "(wip)" in op.name.lower():
+                fnt = act.font()
+                fnt.setBold(True)
+                act.setFont(fnt)
+
         self._ip_tools_holder = IptHolder()
         try:
             if hasattr(self, "bt_select_tool"):
@@ -769,6 +785,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     for op in lst:
                         act = QAction(op.name, self)
                         act.setToolTip(op.hint)
+                        update_font_(op, act)
                         tool_menu.addAction(act)
                 else:
                     for use_case in self._ip_tools_holder.use_cases:
@@ -781,6 +798,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         for op in op_lst:
                             act = QAction(op.name, self)
                             act.setToolTip(op.hint)
+                            update_font_(op, act)
                             use_case_root.addAction(act)
                         use_case_root.setToolTipsVisible(True)
                 tool_menu.triggered[QAction].connect(self.on_menu_tool_selection)
@@ -843,6 +861,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # Batches
         self.bt_launch_batch.clicked.connect(self.on_bt_launch_batch)
+        self.lw_last_batch.itemSelectionChanged.connect(self.on_itemSelectionChanged)
+        self.bt_set_batch_as_selection.clicked.connect(self.on_bt_set_batch_as_selection)
 
         # Images browser
         self.tv_image_browser.doubleClicked.connect(self.on_tv_image_browser_double_clicked)
@@ -1080,6 +1100,20 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     status_message=f"Removed {old_row_count-new_row_count} items to image browser",
                     use_status_as_log=True,
                 )
+        elif mode == "keep":
+            if not self.has_image_dataframe():
+                return
+            else:
+                model = self.get_image_model()
+                df = model.images
+                old_row_count = model.rowCount()
+                model.images = df[df["Luid"].isin(dataframe["Luid"])]
+                new_row_count = model.rowCount()
+                # model.rowsRemoved.emit(new_row_count, old_row_count)
+                self.update_feedback(
+                    status_message=f"Removed {old_row_count-new_row_count} items to image browser",
+                    use_status_as_log=True,
+                )
         elif mode == "clear":
             self.init_image_browser(None)
         else:
@@ -1138,7 +1172,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def build_database_menu(self, add_external=False, selected: str = ""):
         self.mnu_connect_to_db.clear()
-        self.mnu_db_action_group = QActionGroup(self, exclusive=True)
+        self.mnu_db_action_group = QActionGroup(self)
+        self.mnu_db_action_group.setExclusive(True)
         for ldb in self.local_databases:
             self.add_folder_database(
                 db_name=ldb.name,
@@ -1435,7 +1470,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.bt_delete_annotation.setEnabled(data is not None)
         if data:
             self.te_annotations.insertPlainText(data.get("text", ""))
-            self.tb_auto_annotation.insertPlainText(data.get("auto_text", ""))
             data_kind = data.get("kind", "oops").lower()
             if data_kind == "info":
                 self.cb_annotation_level.setCurrentIndex(0)
@@ -1461,7 +1495,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.cb_annotation_level.setCurrentIndex(0)
             self.te_annotations.clear()
-            self.tb_auto_annotation.clear()
             icon_ = QIcon()
 
         self.tw_tool_box.setTabIcon(1, icon_)
@@ -1614,7 +1647,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
             # Theme
             self._selected_theme = settings_.value("selected_theme", "dark")
-            act_grp = QActionGroup(self, exclusive=True)
+            act_grp = QActionGroup(self)
+            act_grp.setExclusive(True)
             # Dark
             act = QAction("dark", self, checkable=True)
             act.setChecked("dark" == self._selected_theme)
@@ -1643,7 +1677,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 "selected_style",
                 "Fusion" if "Fusion" in QStyleFactory.keys() else QStyleFactory.keys()[0],
             )
-            act_grp = QActionGroup(self, exclusive=True)
+            act_grp = QActionGroup(self)
+            act_grp.setExclusive(True)
             for style in QStyleFactory.keys():
                 act = QAction(style, self, checkable=True)
                 act.setChecked(style == self._selected_style)
@@ -2233,7 +2268,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             f.write("## Example\n\n")
             f.write("### Source\n\n")
             f.write(f"![Source image](images/{self._src_image_wrapper.name}.jpg)\n")
-            if not os.path.isfile(os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg")):
+            if not os.path.isfile(
+                os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg")
+            ):
                 shutil.copyfile(
                     src=self._src_image_wrapper.file_path,
                     dst=os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg"),
@@ -2638,6 +2675,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 output_folder_ = os.path.join(self.le_pp_output_folder.text(), "")
 
             # Collect images
+            model.images.sort_values(by=["date_time"], axis=0, inplace=True, na_position="first")
             image_list_ = list(model.images["FilePath"])
 
             if self.rb_pp_default_process.isChecked():
@@ -3051,10 +3089,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 ]
 
                 # Update "Last batch" data
-                self.txtb_last_batch.clear()
-                self.txtb_last_batch.insertPlainText(
-                    "\n".join([img["luid"] for img in image_list_])
-                )
+                self.lw_last_batch.clear()
+                for img in reversed(image_list_):
+                    new_item = QListWidgetItem()
+                    new_item.setText(img["luid"])
+                    self.lw_last_batch.insertItem(0, new_item)
         else:
             image_list_ = [dict(path=wrapper.file_path, luid=wrapper.luid)]
 
@@ -3124,6 +3163,27 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         except Exception as e:
             self.log_exception(f'Failed to initiate thread: "{repr(e)}"')
+
+    def on_itemSelectionChanged(self):
+        for item in self.lw_last_batch.selectedItems():
+            self.select_image_from_luid(item.text())
+            break
+
+    def on_bt_set_batch_as_selection(self):
+        self.begin_edit_image_browser()
+        try:
+            self.update_feedback(
+                status_message="Setting las batch as selected images", use_status_as_log=True
+            )
+            luids = [
+                self.lw_last_batch.item(i).text() for i in range(0, self.lw_last_batch.count())
+            ]
+            if luids:
+                self.update_image_browser(
+                    dataframe=pd.DataFrame(data=dict(Luid=luids)), mode="keep"
+                )
+        finally:
+            self.end_edit_image_browser()
 
     @pyqtSlot()
     def on_chk_use_pipeline_as_preprocessor(self):
@@ -3653,7 +3713,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             self.cb_annotation_level.setCurrentIndex(0)
             self.te_annotations.clear()
-            self.tb_auto_annotation.clear()
             self.tw_tool_box.setTabIcon(1, QIcon())
 
     @pyqtSlot()
@@ -4010,9 +4069,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             # Update queued tools
             self.tv_queued_tools.clear()
             nodes_dict = {
+                ipc.TOOL_GROUP_ROI_STATIC_STR: ipc.TOOL_GROUP_ROI_STATIC_STR,
                 ipc.TOOL_GROUP_EXPOSURE_FIXING_STR: ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
                 ipc.TOOL_GROUP_ROI_DYNAMIC_STR: ipc.TOOL_GROUP_ROI_DYNAMIC_STR,
-                ipc.TOOL_GROUP_ROI_STATIC_STR: ipc.TOOL_GROUP_ROI_STATIC_STR,
                 ipc.TOOL_GROUP_PRE_PROCESSING_STR: ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                 ipc.TOOL_GROUP_THRESHOLD_STR: ipc.TOOL_GROUP_THRESHOLD_STR,
                 ipc.TOOL_GROUP_MASK_CLEANUP_STR: ipc.TOOL_GROUP_MASK_CLEANUP_STR,
@@ -4253,6 +4312,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 label = QLabel(param.desc)
                 widget = QLineEditWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
                 call_back = self.on_text_input_param_changed
+            elif param.allowed_values == "multi_line_text_input":
+                label = QLabel(param.desc)
+                widget = QTextBrowserWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
+                widget.setLineWrapMode(QTextEdit.NoWrap)
+                widget.setReadOnly(False)
+                widget.setMaximumHeight(72)
+                call_back = self.on_text_browser_input_param_changed
             elif param.allowed_values == "input_button":
                 label = None
                 widget = QPushButtonWthParam(
@@ -4329,7 +4395,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             if ipt is not None:
                 if widget.allow_real_time and ipt.real_time:
                     self.run_process(wrapper=self._src_image_wrapper, ipt=ipt)
-                tool["changed"] = True
+                self.script_generator.invalidate(tool["uuid"])
             self.update_script_display()
         elif type(tool).__name__ == "SettingsHolder":
             self.script_generator.update_settings_feedback(
@@ -4396,6 +4462,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         widget = self.sender()
         widget.param.value = new_text
+        self.do_after_process_param_changed(widget=widget)
+
+    def on_text_browser_input_param_changed(self):
+        if self._updating_process_modes:
+            return
+        widget = self.sender()
+        widget.param.value = self.sender().toPlainText()
         self.do_after_process_param_changed(widget=widget)
 
     def get_query_items(self, column: str, **kwargs):
@@ -4737,7 +4810,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                             experiment=self._src_image_wrapper.experiment,
                             kind=self.cb_annotation_level.currentText(),
                             text=self.te_annotations.toPlainText(),
-                            auto_text=self.tb_auto_annotation.toPlainText(),
+                            auto_text="",
                         )
 
                 if os.path.isfile(value):
@@ -4753,7 +4826,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
                 # Restore annotation
                 self.te_annotations.clear()
-                self.tb_auto_annotation.clear()
                 if self.actionEnable_annotations.isChecked() and (
                     self._src_image_wrapper is not None
                 ):

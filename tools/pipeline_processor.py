@@ -442,7 +442,8 @@ class PipelineProcessor:
 
             sort_list = ["plant"] if "plant" in list(df.columns) else []
             sort_list = sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
-            df.sort_values(by=sort_list, axis=0, inplace=True, na_position='first')
+            if sort_list:
+                df.sort_values(by=sort_list, axis=0, inplace=True, na_position='first')
 
             df.reset_index(drop=True, inplace=True)
 

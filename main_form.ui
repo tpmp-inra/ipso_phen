@@ -384,7 +384,7 @@
                     <enum>QTabWidget::Rounded</enum>
                    </property>
                    <property name="currentIndex">
-                    <number>1</number>
+                    <number>0</number>
                    </property>
                    <property name="documentMode">
                     <bool>false</bool>
@@ -406,20 +406,7 @@
                     <attribute name="title">
                      <string>Annotations</string>
                     </attribute>
-                    <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0,0,0">
-                     <item row="1" column="4">
-                      <spacer name="horizontalSpacer">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
+                    <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0">
                      <item row="1" column="0">
                       <widget class="QLabel" name="label_3">
                        <property name="text">
@@ -427,23 +414,8 @@
                        </property>
                       </widget>
                      </item>
-                     <item row="1" column="5">
-                      <widget class="QToolButton" name="bt_delete_annotation">
-                       <property name="text">
-                        <string/>
-                       </property>
-                       <property name="icon">
-                        <iconset>
-                         <normalon>:/annotation_level/resources/Delete.png</normalon>
-                        </iconset>
-                       </property>
-                       <property name="iconSize">
-                        <size>
-                         <width>24</width>
-                         <height>24</height>
-                        </size>
-                       </property>
-                      </widget>
+                     <item row="5" column="0" colspan="4">
+                      <widget class="QTextEdit" name="te_annotations"/>
                      </item>
                      <item row="1" column="1">
                       <widget class="QComboBox" name="cb_annotation_level">
@@ -522,11 +494,36 @@
                        </item>
                       </widget>
                      </item>
-                     <item row="5" column="0" colspan="6">
-                      <widget class="QTextEdit" name="te_annotations"/>
+                     <item row="1" column="3">
+                      <widget class="QToolButton" name="bt_delete_annotation">
+                       <property name="text">
+                        <string/>
+                       </property>
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Delete.png</normalon>
+                        </iconset>
+                       </property>
+                       <property name="iconSize">
+                        <size>
+                         <width>24</width>
+                         <height>24</height>
+                        </size>
+                       </property>
+                      </widget>
                      </item>
-                     <item row="9" column="0" colspan="6">
-                      <widget class="QTextBrowser" name="tb_auto_annotation"/>
+                     <item row="1" column="2">
+                      <spacer name="horizontalSpacer">
+                       <property name="orientation">
+                        <enum>Qt::Horizontal</enum>
+                       </property>
+                       <property name="sizeHint" stdset="0">
+                        <size>
+                         <width>40</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                      </spacer>
                      </item>
                     </layout>
                    </widget>
@@ -545,8 +542,8 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>96</width>
-                          <height>26</height>
+                          <width>642</width>
+                          <height>139</height>
                          </rect>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -608,18 +605,15 @@
                        </property>
                       </spacer>
                      </item>
-                     <item row="0" column="0" colspan="4">
-                      <widget class="QTextBrowser" name="txtb_last_batch"/>
-                     </item>
-                     <item row="1" column="2">
-                      <widget class="QLineEdit" name="le_batch_name"/>
-                     </item>
                      <item row="1" column="0">
                       <widget class="QPushButton" name="bt_set_batch_as_selection">
                        <property name="text">
                         <string>Set as selection</string>
                        </property>
                       </widget>
+                     </item>
+                     <item row="0" column="0" colspan="2">
+                      <widget class="QListWidget" name="lw_last_batch"/>
                      </item>
                     </layout>
                    </widget>

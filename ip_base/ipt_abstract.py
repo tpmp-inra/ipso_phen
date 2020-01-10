@@ -140,6 +140,9 @@ class IptParam(object):
                 elif hasattr(widget, "clicked"):
                     widget.setText(self.desc)
                     widget.clicked.connect(call_back)
+                elif hasattr(widget, "insertPlainText"):
+                    widget.insertPlainText(self.value)
+                    widget.textChanged.connect(call_back)
         else:
             return False
         widget.setToolTip(self.hint)
@@ -457,16 +460,21 @@ class IptParamHolder(object):
         return self.add(param)
 
     def add_text_input(
-        self, name: str, desc: str, default_value: str = "-", hint: str = ""
+        self,
+        name: str,
+        desc: str,
+        default_value: str = "-",
+        hint: str = "",
+        is_single_line: bool = True,
     ) -> IptParam:
+        if is_single_line:
+            mode_ = "single_line_text_input"
+        else:
+            mode_ = "multi_line_text_input"
         param = IptParam(
-            name=name,
-            desc=desc,
-            default_value=default_value,
-            allowed_values="single_line_text_input",
-            hint=hint,
+            name=name, desc=desc, default_value=default_value, allowed_values=mode_, hint=hint,
         )
-        param.widget_type = "single_line_text_input"
+        param.widget_type = mode_
         return self.add(param)
 
     def add_text_output(
@@ -1811,4 +1819,8 @@ class IptBase(IptParamHolder, ABC):
 
     @property
     def short_test_script(self):
-        return '(wip)' in self.name.lower() or '(deprecated)' in self.name.lower()
+        return "(wip)" in self.name.lower() or "(deprecated)" in self.name.lower()
+
+    @property
+    def needs_previous_mask(self):
+        return False
