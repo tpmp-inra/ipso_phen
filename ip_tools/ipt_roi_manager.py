@@ -130,9 +130,9 @@ class IptRoiManager(IptBase):
                 return EmptyRegion()
 
             if width < 0:
-                left = EmptyRegion()
+                left = None
             if height < 0:
-                top = EmptyRegion()
+                top = None
 
             return RectangleRegion(
                 source_width=wrapper.width,

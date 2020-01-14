@@ -303,16 +303,16 @@ class RectangleRegion(AbstractRegion):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        left = kwargs.get("left")
-        top = kwargs.get("top")
-        width = kwargs.get("width")
-        height = kwargs.get("height")
-        right = kwargs.get("right")
-        source_width = kwargs.get("source_width")
-        bottom = kwargs.get("bottom")
-        source_height = kwargs.get("source_height")
-        height = kwargs.get("height")
-        height = kwargs.get("height")
+        left = kwargs.get("left", None)
+        top = kwargs.get("top", None)
+        width = kwargs.get("width", None)
+        height = kwargs.get("height", None)
+        right = kwargs.get("right", None)
+        source_width = kwargs.get("source_width", None)
+        bottom = kwargs.get("bottom", None)
+        source_height = kwargs.get("source_height", None)
+        height = kwargs.get("height", None)
+        height = kwargs.get("height", None)
 
         if left is None and right is None:
             if width is None or width == 0:

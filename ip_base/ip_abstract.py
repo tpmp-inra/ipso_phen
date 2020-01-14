@@ -3146,7 +3146,9 @@ class AbstractImageProcessor(ImageWrapper):
             for dic in self.image_list:
                 if dic["name"].lower() == img_name.lower():
                     return dic["image"]
-            if "exp_fixed" in img_name.lower():
+            if img_name.lower() == "mask" and self.mask is not None:
+                return self.mask.copy()
+            elif "exp_fixed" in img_name.lower():
                 foreground = self.retrieve_stored_image("exposure_fixed").copy()
                 if foreground is None:
                     foreground = self.current_image
@@ -3186,7 +3188,7 @@ class AbstractImageProcessor(ImageWrapper):
                     return self.draw_rois(
                         img=self.retrieve_stored_image("exposure_fixed"),
                         rois=self.rois_list,
-                    )                
+                    )
                 elif img_name.lower() == "exp_fixed_pseudo_on_bw":
                     return self.draw_image(
                         src_image=self.retrieve_stored_image("exposure_fixed"),
