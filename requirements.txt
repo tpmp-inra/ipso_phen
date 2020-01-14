@@ -66,14 +66,12 @@ Pygments
 pymdown-extensions
 PyNaCl
 pyparsing
-PyQt5
+PyQt5==5.13.2
 PyQt5-sip
-PyQt5Designer
 pyrsistent
 python-dateutil
 pytz
 PyWavelets
-pywin32
 pywinpty
 PyYAML
 pyzmq

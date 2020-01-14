@@ -3082,7 +3082,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         status_message="Run process: unknown filter mode", use_status_as_log=True
                     )
                     return False
-                dff.sort_values(by=["date_time"], axis=0, inplace=True, na_position="first")
+                dff = dff.sort_values(by=["date_time"], axis=0, na_position="first")
                 image_list_ = [
                     {"luid": k, "path": v}
                     for k, v in zip(list(dff["Luid"]), list(dff["FilePath"]))
