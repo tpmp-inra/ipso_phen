@@ -26,10 +26,11 @@ def _run_process(file_path, script, options, list_res, data_base):
     if ipo:
         if script is None:
             bool_res = ipo.process_image(threshold_only=options.threshold_only)
+            res = WorkerResult(bool_res, str(ipo), ipo.error_holder)
         else:
             script.image_output_path = ipo.dst_path
             bool_res = script.process_image(progress_callback=None, wrapper=ipo)
-        res = WorkerResult(bool_res, str(ipo), ipo.error_holder)
+            res = WorkerResult(bool_res, str(ipo), script.last_error)
         list_res.append(res)
 
     return dict(wrapper=ipo, res=res)
@@ -130,6 +131,7 @@ class PipelineProcessor:
         self._last_signature = ""
         self.progress_callback = None
         self.log_callback = None
+        self.log_item = None
         self.script = None
         self._last_update = timer()
 
@@ -329,7 +331,11 @@ class PipelineProcessor:
             if os.path.isfile(fn):
                 del files_to_process[i]
                 results_list_.append(fl)
+                if self.log_item is not None:
+                    self.log_item(img_wrapper.luid, 'success', '', False)
             else:
+                if self.log_item is not None:
+                    self.log_item(img_wrapper.luid, 'refresh', '', False)
                 i += 1
             self.update_progress(
                 iteration=cpt, total=total, prefix="Checking completed tasks:", suffix="Complete"
@@ -341,7 +347,7 @@ class PipelineProcessor:
                 log_message="Already analyzed files: <ul>"
                 + "".join(f"<li>{s}</li>" for s in results_list_)
                 + "</ul>"
-            )
+            )            
         else:
             res = self.log_state(
                 status_message="Completed files checked",

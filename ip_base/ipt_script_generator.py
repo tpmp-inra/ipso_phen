@@ -6,6 +6,7 @@ import sys
 from copy import copy
 from uuid import uuid4
 from importlib import import_module
+from datetime import datetime as dt
 
 import cv2
 import numpy as np
@@ -15,63 +16,31 @@ from ip_base.ip_common import (
     AVAILABLE_FEATURES,
     C_RED,
     TOOL_GROUP_MASK_CLEANUP_STR,
+    TOOL_GROUP_WHITE_BALANCE_STR,
     TOOL_GROUP_EXPOSURE_FIXING_STR,
     TOOL_GROUP_UNKNOWN_STR,
     TOOL_GROUP_PRE_PROCESSING_STR,
     TOOL_GROUP_THRESHOLD_STR,
-    TOOL_GROUP_ROI_DYNAMIC_STR,
-    TOOL_GROUP_ROI_STATIC_STR,
+    TOOL_GROUP_ROI_RAW_IMAGE_STR,
+    TOOL_GROUP_ROI_PP_IMAGE_STR,
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
     TOOL_GROUP_IMAGE_GENERATOR_STR,
 )
-from ip_base.ipt_abstract import IptParam, IptBase, IptParamHolder
+from ip_base.ipt_abstract import (
+    IptParam,
+    IptBase,
+    IptParamHolder,
+    CLASS_NAME_KEY,
+    MODULE_NAME_KEY,
+    PARAMS_NAME_KEY,
+)
 from ip_base.ipt_functional import call_ipt_code, call_ipt_func_code
 from tools.csv_writer import AbstractCsvWriter
 from tools.common_functions import get_module_classes, force_directories
+from tools.error_holder import ErrorHolder
 
 
-CLASS_NAME_KEY = "class__name__"
-MODULE_NAME_KEY = "module__name__"
-
-
-def encode_ipt(o):
-    if issubclass(type(o), object):
-        return {
-            **{CLASS_NAME_KEY: type(o).__name__, MODULE_NAME_KEY: type(o).__module__},
-            **dict(o.__dict__),
-            **dict(_wrapper=None),
-        }
-    else:
-        print(f"Object of type '{o.__class__.__name__}' is not JSON serializable, bummer")
-        raise TypeError
-        return None
-
-
-def decode_ipt(dct):
-    if (CLASS_NAME_KEY in dct.keys()) and (MODULE_NAME_KEY in dct.keys()):
-        tmp = dict(dct)
-        class_name = tmp.pop(CLASS_NAME_KEY)
-        module_name = tmp.pop(MODULE_NAME_KEY)
-        ret = None
-        if module_name not in sys.modules:
-            import_module(module_name)
-        for _, obj in inspect.getmembers(sys.modules[module_name]):
-            if inspect.isclass(obj) and (obj.__name__ == class_name):
-                try:
-                    ret = obj(**tmp)
-                except Exception as e:
-                    print(f"Failed to load ipt: {repr(e)}")
-                finally:
-                    break
-        else:
-            ret = globals()[class_name](**tmp)
-    else:
-        ret = dct
-
-    return ret
-
-
-last_script_version = "0.3.0.0"
+last_script_version = "0.6.0.0"
 
 
 class SettingsHolder(IptParamHolder):
@@ -165,12 +134,74 @@ class IptScriptGenerator(object):
         self._last_wrapper_luid = ""
         self.use_cache = kwargs.get("use_cache", True)
         self.image_output_path = kwargs.get("image_output_path", "")
+        self.name = kwargs.get("name", "")
+        self.last_error: ErrorHolder = ErrorHolder(self)
+
+    def __repr__(self):
+        return json.dumps(self.to_json(self.name), indent=2, sort_keys=False)
+
+    def __str__(self):
+        return f'Pipeline {self.name}'
 
     @staticmethod
     def _init_features():
         return sorted(
             [dict(feature=f, enabled=True) for f in AVAILABLE_FEATURES], key=lambda x: x["feature"]
         )
+
+    def to_json(self, name: str) -> dict:
+        save_dict = {
+            "title": "IPSO Phen pipeline",
+            "name": name,
+            "date": dt.now().strftime("%Y_%b_%d_%H-%M-%S"),
+            "version": last_script_version,
+        }
+        # Add settings
+        save_dict["settings"] = self._settings.params_to_dict()
+        save_dict["ip_modules"] = [
+            {
+                "module": tool_dict["tool"].to_json(),
+                "enabled": tool_dict["enabled"],
+                "kind": tool_dict["kind"],
+                "uuid": tool_dict["uuid"],
+            }
+            for tool_dict in self.get_operators()
+        ]
+        return save_dict
+
+    @classmethod
+    def from_json(cls, json_data: [str, dict]):
+        if isinstance(json_data, str):
+            with open(json_data, "r") as f:
+                saved_dict = json.load(f)
+        else:
+            saved_dict = json_data
+        res = cls()
+        res._settings = SettingsHolder(**saved_dict["settings"])
+        res.name = saved_dict["name"]
+        for module in saved_dict["ip_modules"]:
+            tool_dict = module["module"]
+            class_name = tool_dict[CLASS_NAME_KEY]
+            module_name = tool_dict[MODULE_NAME_KEY]
+            __import__(module_name)
+            for _, obj in inspect.getmembers(sys.modules[module_name]):
+                if inspect.isclass(obj) and (obj.__name__ == class_name):
+                    try:
+                        res.ip_operators.append(
+                            dict(
+                                tool=obj(**tool_dict[PARAMS_NAME_KEY]),
+                                enabled=module["enabled"],
+                                kind=module["kind"],
+                                uuid=module["uuid"],
+                                last_result=None,
+                            )
+                        )
+                    except Exception as e:
+                        res.last_error.add_error(
+                            new_error_text=f"Failed to load {module['name']}: {repr(e)}",
+                            new_error_kind="pipeline_load_error",
+                        )
+        return res
 
     @classmethod
     def load(cls, path: str) -> [object, Exception]:
@@ -180,35 +211,30 @@ class IptScriptGenerator(object):
             if ext == ".tipp":
                 with open(path, "rb") as f:
                     res = pickle.load(f)
+
+                # Check that we have all settings
+                if not hasattr(res, "_settings"):
+                    res._settings = SettingsHolder()
+
+                settings_checker = SettingsHolder()
+                override_updates = False
+                for setting_ in settings_checker.gizmos:
+                    s = res._settings.find_by_name(name=setting_.name)
+                    if s is None:
+                        res._settings.add(copy(setting_))
+                        override_updates = True
+                if override_updates:
+                    res._settings.update_feedback_items = settings_checker.update_feedback_items
+
+                # Check attributes
+                if not hasattr(res, "_last_wrapper_luid"):
+                    res._last_wrapper_luid = ""
+                if not hasattr(res, "last_error"):
+                    res.last_error: ErrorHolder = ErrorHolder(res)
             elif ext.lower() == ".json":
-                with open(path, "r") as f:
-                    res = json.load(f, object_hook=decode_ipt)
+                res = cls.from_json(json_data=path)
             else:
                 raise ValueError(f'Unknown file extension: "{ext}"')
-
-            # Check that we have all settings
-            if not hasattr(res, "_settings"):
-                res._settings = SettingsHolder()
-
-            settings_checker = SettingsHolder()
-            override_updates = False
-            for setting_ in settings_checker.gizmos:
-                s = res._settings.find_by_name(name=setting_.name)
-                if s is None:
-                    res._settings.add(copy(setting_))
-                    override_updates = True
-            if override_updates:
-                res._settings.update_feedback_items = settings_checker.update_feedback_items
-
-            # Check attributes
-            if not hasattr(res, "_last_wrapper_luid"):
-                res._last_wrapper_luid = ""
-
-            # Fix ROI tagging
-            for tool_dict in res.get_operators(constraints=dict(kind="roi_post_merge")):
-                tool_dict["kind"] = (
-                    "roi_dynamic" if "roi_dynamic" in tool_dict["tool"].use_case else "roi_static"
-                )
 
             # Fix all taggins
             for tool_dict in res.get_operators():
@@ -221,10 +247,16 @@ class IptScriptGenerator(object):
                     tool_dict["kind"] = TOOL_GROUP_THRESHOLD_STR
                 elif current_kind == "mask_cleaner":
                     tool_dict["kind"] = TOOL_GROUP_MASK_CLEANUP_STR
+                elif current_kind == "roi_post_merge":
+                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
                 elif current_kind == "roi_dynamic":
-                    tool_dict["kind"] = TOOL_GROUP_PRE_PROCESSING_STR
+                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
                 elif current_kind == "roi_static":
-                    tool_dict["kind"] = TOOL_GROUP_ROI_STATIC_STR
+                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                elif current_kind == "ROI (dynamic)":
+                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                elif current_kind == "ROI (static)":
+                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
                 elif current_kind == "feature_extractor":
                     tool_dict["kind"] = TOOL_GROUP_FEATURE_EXTRACTION_STR
                 elif current_kind == "Image generator":
@@ -234,38 +266,60 @@ class IptScriptGenerator(object):
                 tool_dict.pop("changed", None)
 
         except Exception as e:
-            print(f'Failed to load script generator "{repr(e)}"')
+            if res is None:
+                print(f'Failed to load script generator "{repr(e)}"')
+            else:
+                res.last_error.add_error(
+                    new_error_text=f'Failed to load script generator "{repr(e)}"',
+                    new_error_kind="pipeline_load_error",
+                )
             res = e
         finally:
             return res
 
     def save(self, path: str) -> [None, Exception]:
+        self.last_error.clear()
         try:
             dump_obj = self.copy()
-            _, ext = os.path.splitext(os.path.basename(path))
+            pipeline_name, ext = os.path.splitext(os.path.basename(path))
             if ext == ".tipp":
                 with open(path, "wb") as f:
                     pickle.dump(dump_obj, f)
             elif ext.lower() == ".json":
                 with open(path, "w") as f:
-                    json.dump(dump_obj, f, indent=2, default=encode_ipt)
+                    json.dump(
+                        self.to_json(
+                            name=self.name
+                            if hasattr(self, "name") and self.name
+                            else pipeline_name
+                        ),
+                        f,
+                        indent=2,
+                    )
             elif ext.lower() == ".py":
                 with open(path, "w", newline="") as f:
                     f.write(self.code())
             else:
                 raise ValueError(f'Unknown file extension: "{ext}"')
         except Exception as e:
-            print(f'Failed to save script generator "{repr(e)}"')
+            self.last_error.add_error(
+                new_error_text=f'Failed to save script generator "{repr(e)}"',
+                new_error_kind="pipeline_save_error",
+            )
             return e
         else:
             return None
 
     def save_as_script(self, path: str) -> [None, Exception]:
+        self.last_error.clear()
         try:
             with open(path, "w") as f:
                 f.write(self.code())
         except Exception as e:
-            print(f'Failed to save script "{repr(e)}"')
+            self.last_error.add_error(
+                new_error_text=f'Failed to save script generator "{repr(e)}"',
+                new_error_kind="pipeline_save_error",
+            )
             return e
         else:
             return None
@@ -296,8 +350,8 @@ class IptScriptGenerator(object):
             TOOL_GROUP_EXPOSURE_FIXING_STR,
             TOOL_GROUP_PRE_PROCESSING_STR,
             TOOL_GROUP_THRESHOLD_STR,
-            TOOL_GROUP_ROI_DYNAMIC_STR,
-            TOOL_GROUP_ROI_STATIC_STR,
+            TOOL_GROUP_ROI_RAW_IMAGE_STR,
+            TOOL_GROUP_ROI_PP_IMAGE_STR,
             TOOL_GROUP_MASK_CLEANUP_STR,
             TOOL_GROUP_FEATURE_EXTRACTION_STR,
             TOOL_GROUP_IMAGE_GENERATOR_STR,
@@ -367,7 +421,9 @@ class IptScriptGenerator(object):
             tuple -- use_last_result, current_step
         """
         tools_ = self.get_operators(
-            constraints=dict(enabled=True, kind=TOOL_GROUP_EXPOSURE_FIXING_STR)
+            constraints=dict(
+                enabled=True, kind=[TOOL_GROUP_EXPOSURE_FIXING_STR, TOOL_GROUP_WHITE_BALANCE_STR]
+            )
         )
         for tool in tools_:
             wrapper.current_image, use_last_result = self.process_tool(
@@ -410,8 +466,8 @@ class IptScriptGenerator(object):
             progress_callback=progress_callback,
             current_step=current_step,
             total_steps=total_steps,
-            build_dynamic=False,
-            build_static=True,
+            target_raw_image=True,
+            target_pp_image=False,
         )
         use_last_result, current_step = self.fix_exposure(
             wrapper=wrapper,
@@ -427,8 +483,8 @@ class IptScriptGenerator(object):
             progress_callback=progress_callback,
             current_step=current_step,
             total_steps=total_steps,
-            build_dynamic=True,
-            build_static=False,
+            target_raw_image=False,
+            target_pp_image=True,
         )
         wrapper.store_image(
             image=wrapper.retrieve_stored_image("exp_fixed_roi"), text="rois",
@@ -481,15 +537,15 @@ class IptScriptGenerator(object):
         progress_callback=None,
         current_step: int = -1,
         total_steps: int = -1,
-        build_static: bool = True,
-        build_dynamic: bool = True,
+        target_raw_image=True,
+        target_pp_image=True,
     ):
-        if build_dynamic and build_static:
-            kinds = (TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR)
-        elif build_dynamic:
-            kinds = (TOOL_GROUP_ROI_DYNAMIC_STR,)
-        elif build_static:
-            kinds = (TOOL_GROUP_ROI_STATIC_STR,)
+        if target_raw_image and target_pp_image:
+            kinds = (TOOL_GROUP_ROI_RAW_IMAGE_STR, TOOL_GROUP_ROI_PP_IMAGE_STR)
+        elif target_raw_image:
+            kinds = (TOOL_GROUP_ROI_RAW_IMAGE_STR,)
+        elif target_pp_image:
+            kinds = (TOOL_GROUP_ROI_PP_IMAGE_STR,)
         else:
             kinds = ()
         if tools is None:
@@ -562,7 +618,7 @@ class IptScriptGenerator(object):
             return ret, use_last_result
         elif tool_kind == TOOL_GROUP_THRESHOLD_STR:
             return ret, use_last_result
-        elif tool_kind in [TOOL_GROUP_ROI_DYNAMIC_STR, TOOL_GROUP_ROI_STATIC_STR]:
+        elif tool_kind in [TOOL_GROUP_ROI_RAW_IMAGE_STR, TOOL_GROUP_ROI_PP_IMAGE_STR]:
             raise AttributeError("ROI tools should never be fed to process_tool")
         elif tool_kind == TOOL_GROUP_MASK_CLEANUP_STR:
             return ret, use_last_result
@@ -580,6 +636,7 @@ class IptScriptGenerator(object):
     def process_image(self, progress_callback=None, **kwargs):
         res = False
         wrapper = None
+        self.last_error.clear()
         try:
             save_mask = False
             for tool in (
@@ -590,8 +647,8 @@ class IptScriptGenerator(object):
                             TOOL_GROUP_EXPOSURE_FIXING_STR,
                             TOOL_GROUP_PRE_PROCESSING_STR,
                             TOOL_GROUP_THRESHOLD_STR,
-                            TOOL_GROUP_ROI_DYNAMIC_STR,
-                            TOOL_GROUP_ROI_STATIC_STR,
+                            TOOL_GROUP_ROI_RAW_IMAGE_STR,
+                            TOOL_GROUP_ROI_PP_IMAGE_STR,
                             TOOL_GROUP_MASK_CLEANUP_STR,
                             TOOL_GROUP_FEATURE_EXTRACTION_STR,
                             TOOL_GROUP_IMAGE_GENERATOR_STR,
@@ -612,8 +669,8 @@ class IptScriptGenerator(object):
                         TOOL_GROUP_EXPOSURE_FIXING_STR,
                         TOOL_GROUP_PRE_PROCESSING_STR,
                         TOOL_GROUP_THRESHOLD_STR,
-                        TOOL_GROUP_ROI_DYNAMIC_STR,
-                        TOOL_GROUP_ROI_STATIC_STR,
+                        TOOL_GROUP_ROI_RAW_IMAGE_STR,
+                        TOOL_GROUP_ROI_PP_IMAGE_STR,
                         TOOL_GROUP_MASK_CLEANUP_STR,
                         TOOL_GROUP_FEATURE_EXTRACTION_STR,
                         TOOL_GROUP_IMAGE_GENERATOR_STR,
@@ -670,6 +727,10 @@ class IptScriptGenerator(object):
                         mask_list.append(mask)
                         mask_names.append(tool["tool"].short_desc())
                     else:
+                        self.last_error.add_error(
+                            new_error_text=f'Failed to process {tool["tool"].name}',
+                            new_error_kind='pipeline_process_error'
+                        )
                         masks_failed_cpt += 1
                     current_step = self.add_progress(
                         progress_callback,
@@ -690,6 +751,10 @@ class IptScriptGenerator(object):
                     wrapper.store_image(image=wrapper.mask, text="coarse_mask")
                 else:
                     wrapper.error_holder.add_error("Unable to merge coarse masks")
+                    self.last_error.add_error(
+                        new_error_text="Unable to merge coarse masks",
+                        new_error_kind='pipeline_process_error'
+                    )
                     res = False
                     return
                 current_step = self.add_progress(
@@ -726,6 +791,10 @@ class IptScriptGenerator(object):
                         )
                         if tmp_mask is None:
                             res = False
+                            self.last_error.add_error(
+                                new_error_text=f'Failed to process {tool["tool"].name}',
+                                new_error_kind='pipeline_process_error'
+                            )
                         else:
                             wrapper.mask = tmp_mask
                             res = res and True
@@ -832,6 +901,11 @@ class IptScriptGenerator(object):
                     )
                     if isinstance(current_data, dict):
                         wrapper.csv_data_holder.data_list.update(current_data)
+                    else:
+                        self.last_error.add_error(
+                            new_error_text=f'{tool["tool"].name} failed to extract features',
+                            new_error_kind='pipeline_process_error'
+                        )
                     current_step = self.add_progress(
                         progress_callback,
                         current_step,
@@ -849,6 +923,11 @@ class IptScriptGenerator(object):
                     )
                     if isinstance(current_data, dict):
                         wrapper.csv_data_holder.data_list.update(current_data)
+                    else:
+                        self.last_error.add_error(
+                            new_error_text=f'{tool["tool"].name} failed to generate images',
+                            new_error_kind='pipeline_process_error'
+                        )
                     current_step = self.add_progress(
                         progress_callback, current_step, total_steps, "Copying images", wrapper,
                     )
@@ -881,14 +960,15 @@ class IptScriptGenerator(object):
                 progress_callback, total_steps, total_steps, "Done", wrapper
             )
         except Exception as e:
-            if wrapper is not None:
-                wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
-            else:
-                print(f'Unexpected failure: "{repr(e)}"')
+            self.last_error.add_error(
+                new_error_text=f'Unexpected failure: "{repr(e)}"',
+                new_error_kind="pipeline_process_error",
+            )
             res = False
         else:
             pass
         finally:
+            self.last_error.append(wrapper.error_holder)
             wrapper.lock = False
             return res
 
@@ -976,6 +1056,24 @@ class IptScriptGenerator(object):
         ws_ct = remove_tab(ws_ct)
         code_ += "\n"
 
+        # Build ROIs using fixed image
+        # _________________
+        if len(tools_[TOOL_GROUP_ROI_RAW_IMAGE_STR]) > 0:
+            code_ += ws_ct + "# Build ROIs using fixed image\n" + ws_ct + "# _________________\n"
+            for ef_tool in tools_[TOOL_GROUP_ROI_RAW_IMAGE_STR]:
+                code_ += call_ipt_func_code(
+                    ipt=ef_tool,
+                    function_name="generate_roi",
+                    white_spaces=ws_ct,
+                    result_name="roi",
+                    generate_imports=False,
+                )
+                code_ += ws_ct + "if roi is not None:\n"
+                ws_ct = add_tab(ws_ct)
+                code_ += ws_ct + "wrapper.add_roi(new_roi=roi)\n"
+                ws_ct = remove_tab(ws_ct)
+                code_ += "\n"
+
         # Fix image exposition
         # ____________________
         if len(tools_[TOOL_GROUP_EXPOSURE_FIXING_STR]) > 0:
@@ -1002,42 +1100,6 @@ class IptScriptGenerator(object):
         code_ += ws_ct + 'wrapper.store_image(wrapper.current_image, "fixed_source")\n'
         ws_ct = remove_tab(ws_ct)
 
-        # Build static ROIs
-        # _________________
-        if len(tools_[TOOL_GROUP_ROI_STATIC_STR]) > 0:
-            code_ += ws_ct + "# Build static ROIs\n" + ws_ct + "# _________________\n"
-            for ef_tool in tools_[TOOL_GROUP_ROI_STATIC_STR]:
-                code_ += call_ipt_func_code(
-                    ipt=ef_tool,
-                    function_name="generate_roi",
-                    white_spaces=ws_ct,
-                    result_name="roi",
-                    generate_imports=False,
-                )
-                code_ += ws_ct + "if roi is not None:\n"
-                ws_ct = add_tab(ws_ct)
-                code_ += ws_ct + "wrapper.add_roi(new_roi=roi)\n"
-                ws_ct = remove_tab(ws_ct)
-                code_ += "\n"
-
-        # Build dynamic ROIs
-        # __________________
-        if len(tools_[TOOL_GROUP_ROI_DYNAMIC_STR]) > 0:
-            code_ += ws_ct + "# Build dynamic ROIs\n" + ws_ct + "# __________________\n"
-            for ef_tool in tools_[TOOL_GROUP_ROI_DYNAMIC_STR]:
-                code_ += call_ipt_func_code(
-                    ipt=ef_tool,
-                    function_name="generate_roi",
-                    white_spaces=ws_ct,
-                    result_name="roi",
-                    generate_imports=False,
-                )
-                code_ += ws_ct + "if roi is not None:\n"
-                ws_ct = add_tab(ws_ct)
-                code_ += ws_ct + "wrapper.add_roi(new_roi=roi)\n"
-                ws_ct = remove_tab(ws_ct)
-                code_ += "\n"
-
         # Pre process image (make segmentation easier)
         # ____________________________________________
         if len(tools_[TOOL_GROUP_PRE_PROCESSING_STR]) > 0:
@@ -1059,6 +1121,24 @@ class IptScriptGenerator(object):
             ws_ct = add_tab(ws_ct)
             code_ += ws_ct + 'wrapper.store_image(wrapper.current_image, "pre_processed_image")\n'
             ws_ct = remove_tab(ws_ct)
+
+        # Build ROIs using preprocessed image
+        # __________________
+        if len(tools_[TOOL_GROUP_ROI_PP_IMAGE_STR]) > 0:
+            code_ += ws_ct + "# Build dynamic ROIs\n" + ws_ct + "# __________________\n"
+            for ef_tool in tools_[TOOL_GROUP_ROI_PP_IMAGE_STR]:
+                code_ += call_ipt_func_code(
+                    ipt=ef_tool,
+                    function_name="generate_roi",
+                    white_spaces=ws_ct,
+                    result_name="roi",
+                    generate_imports=False,
+                )
+                code_ += ws_ct + "if roi is not None:\n"
+                ws_ct = add_tab(ws_ct)
+                code_ += ws_ct + "wrapper.add_roi(new_roi=roi)\n"
+                ws_ct = remove_tab(ws_ct)
+                code_ += "\n"
 
         # Build coarse masks
         # __________________
@@ -1318,67 +1398,7 @@ class IptScriptGenerator(object):
 
         code_ += f'{ws_ct}print("Done.")'
 
-        return code_
-
-    def __str__(self):
-        tools_ = self.group_tools(tool_only=True, conditions=dict(enabled=True))
-
-        res = "Pipeline:\n"
-        # Exposure fixing
-        if len(tools_[TOOL_GROUP_EXPOSURE_FIXING_STR]) > 0:
-            for wbf in tools_[TOOL_GROUP_EXPOSURE_FIXING_STR]:
-                res += f"Exposure fixer: {str(wbf)}\n"
-        else:
-            res += "No exposure fixer\n"
-
-        # Pre-processing
-        if len(tools_[TOOL_GROUP_PRE_PROCESSING_STR]) > 0:
-            for wbf in tools_[TOOL_GROUP_PRE_PROCESSING_STR]:
-                res += f"WB fixer: {str(wbf)}\n"
-        else:
-            res += "No pre-processor\n"
-
-        # Coarse mask generation
-        if len(tools_[TOOL_GROUP_THRESHOLD_STR]) > 0:
-            for cmg in tools_[TOOL_GROUP_THRESHOLD_STR]:
-                res += f"Partial channel mask: {str(cmg)}\n"
-        else:
-            res += "No coarse mask generation\n"
-
-        # Post merging ROIs
-        if len(tools_[TOOL_GROUP_ROI_DYNAMIC_STR]) > 0:
-            for wbf in tools_[TOOL_GROUP_ROI_DYNAMIC_STR]:
-                res += f"ROI: {str(wbf)}\n"
-        else:
-            res += "No pre-processing ROIs\n"
-
-        # Mask cleaning
-        if len(tools_[TOOL_GROUP_MASK_CLEANUP_STR]) > 0:
-            for cm in tools_[TOOL_GROUP_MASK_CLEANUP_STR]:
-                res += f"Partial channel mask: {str(cm)}\n"
-        else:
-            res += "No mask cleaner selected\n"
-
-        # Extracted features
-        if len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0:
-            for cm in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
-                res += f"Feature extraction: {str(cm)}\n"
-        else:
-            res += "No feature extraction\n"
-
-        # Images generated
-        if len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
-            for cm in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
-                res += f"Image generation: {str(cm)}\n"
-        else:
-            res += "No feature extraction\n"
-
-        # Options
-        res += "Options:\n"
-        res += self.desc_merge_method + "\n"
-        res += self.desc_display_images + "\n"
-
-        return res
+        return code_    
 
     @staticmethod
     def code_footer():
@@ -1465,31 +1485,24 @@ class IptScriptGenerator(object):
 
     @staticmethod
     def ops_after(tool_kind: str):
-        if tool_kind in [TOOL_GROUP_ROI_STATIC_STR]:
+        if tool_kind in [TOOL_GROUP_ROI_RAW_IMAGE_STR]:
             return [
-                TOOL_GROUP_ROI_STATIC_STR,
+                TOOL_GROUP_WHITE_BALANCE_STR,
                 TOOL_GROUP_EXPOSURE_FIXING_STR,
-                TOOL_GROUP_ROI_DYNAMIC_STR,
+                TOOL_GROUP_ROI_RAW_IMAGE_STR,
                 TOOL_GROUP_PRE_PROCESSING_STR,
+                TOOL_GROUP_ROI_PP_IMAGE_STR,
                 TOOL_GROUP_THRESHOLD_STR,
                 TOOL_GROUP_MASK_CLEANUP_STR,
                 TOOL_GROUP_FEATURE_EXTRACTION_STR,
                 TOOL_GROUP_IMAGE_GENERATOR_STR,
             ]
-        if tool_kind in [TOOL_GROUP_EXPOSURE_FIXING_STR]:
+        if tool_kind in [TOOL_GROUP_EXPOSURE_FIXING_STR, TOOL_GROUP_WHITE_BALANCE_STR]:
             return [
+                TOOL_GROUP_WHITE_BALANCE_STR,
                 TOOL_GROUP_EXPOSURE_FIXING_STR,
-                TOOL_GROUP_ROI_DYNAMIC_STR,
                 TOOL_GROUP_PRE_PROCESSING_STR,
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
-            ]
-        if tool_kind in [TOOL_GROUP_ROI_DYNAMIC_STR]:
-            return [
-                TOOL_GROUP_ROI_DYNAMIC_STR,
-                TOOL_GROUP_PRE_PROCESSING_STR,
+                TOOL_GROUP_ROI_PP_IMAGE_STR,
                 TOOL_GROUP_THRESHOLD_STR,
                 TOOL_GROUP_MASK_CLEANUP_STR,
                 TOOL_GROUP_FEATURE_EXTRACTION_STR,
@@ -1498,6 +1511,15 @@ class IptScriptGenerator(object):
         if tool_kind in [TOOL_GROUP_PRE_PROCESSING_STR]:
             return [
                 TOOL_GROUP_PRE_PROCESSING_STR,
+                TOOL_GROUP_ROI_PP_IMAGE_STR,
+                TOOL_GROUP_THRESHOLD_STR,
+                TOOL_GROUP_MASK_CLEANUP_STR,
+                TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ]
+        if tool_kind in [TOOL_GROUP_ROI_PP_IMAGE_STR]:
+            return [
+                TOOL_GROUP_ROI_PP_IMAGE_STR,
                 TOOL_GROUP_THRESHOLD_STR,
                 TOOL_GROUP_MASK_CLEANUP_STR,
                 TOOL_GROUP_FEATURE_EXTRACTION_STR,

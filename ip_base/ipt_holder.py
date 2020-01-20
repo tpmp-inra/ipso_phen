@@ -314,7 +314,7 @@ class IptHolder(object):
         f.write(f"{spaces}op.apply_test_values_overrides(\n")
         spaces = add_tab(spaces)
         f.write(
-            f"{spaces}use_cases=(ipc.TOOL_GROUP_ROI_STATIC_STR, ipc.TOOL_GROUP_ROI_DYNAMIC_STR)\n"
+            f"{spaces}use_cases=(ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR)\n"
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -438,7 +438,7 @@ class IptHolder(object):
                 [ipc.TOOL_GROUP_IMAGE_GENERATOR_STR],
                 [ipc.TOOL_GROUP_MASK_CLEANUP_STR],
                 [ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR, ipc.TOOL_GROUP_IMAGE_GENERATOR_STR],
-                [ipc.TOOL_GROUP_ROI_STATIC_STR, ipc.TOOL_GROUP_ROI_DYNAMIC_STR],
+                [ipc.TOOL_GROUP_ROI_PP_IMAGE_STR, ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR],
                 [ipc.TOOL_GROUP_VISUALIZATION_STR],
             ],
         ):

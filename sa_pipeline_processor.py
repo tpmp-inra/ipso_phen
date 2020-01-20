@@ -82,6 +82,7 @@ def main():
     force_directories(output_folder_)
     csv_file_name = res["csv_file_name"]
     mpc = int(args.get("process_count", res["thread_count"])) if IS_USE_MULTI_THREAD else False
+    script = IptScriptGenerator.from_json(json_data=res["script"])
 
     log_event(
         event=[
@@ -97,7 +98,7 @@ def main():
             f'Series ID time delta allowed: {res["series_id_time_delta"]}',
             f"Dataframe rows: {df.shape[1]}",
             f"Concurrent processes count: {mpc}",
-            f'Script summary: {str(res["script"])}',
+            f"Script summary: {str(script)}",
             "_______________",
             "",
         ],
@@ -119,7 +120,7 @@ def main():
     # pp.progress_callback = do_pp_progress
     pp.log_callback = do_feed_back
     pp.accepted_files = image_list_
-    pp.script = res["script"]
+    pp.script = script
 
     # Process data
     if pp.accepted_files:

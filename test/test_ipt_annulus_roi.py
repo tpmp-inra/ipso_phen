@@ -40,7 +40,7 @@ class TestIptAnnulusRoi(unittest.TestCase):
             hasattr(op, "generate_roi"), "Class must have method generate_roi"
         )
         op.apply_test_values_overrides(
-            use_cases=(ipc.TOOL_GROUP_ROI_STATIC_STR, ipc.TOOL_GROUP_ROI_DYNAMIC_STR)
+            use_cases=(ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR)
         )
         res = op.process_wrapper(
             wrapper=os.path.join(

@@ -18,16 +18,12 @@ class TestIptRectangleRoi(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptRectangleRoi()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptRectangleRoi()
-        self.assertIsNotNone(
-            op.process_wrapper.__doc__, "Missing docstring for Rectangle ROI"
-        )
+        self.assertIsNotNone(op.process_wrapper.__doc__, "Missing docstring for Rectangle ROI")
 
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""
@@ -36,11 +32,9 @@ class TestIptRectangleRoi(unittest.TestCase):
     def test_roi_out(self):
         """Test that tool generates an ROI"""
         op = IptRectangleRoi()
-        self.assertTrue(
-            hasattr(op, "generate_roi"), "Class must have method generate_roi"
-        )
+        self.assertTrue(hasattr(op, "generate_roi"), "Class must have method generate_roi")
         op.apply_test_values_overrides(
-            use_cases=(ipc.TOOL_GROUP_ROI_STATIC_STR, ipc.TOOL_GROUP_ROI_DYNAMIC_STR)
+            use_cases=(ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR)
         )
         res = op.process_wrapper(
             wrapper=os.path.join(

@@ -83,7 +83,7 @@ class IpsoRunnable(QRunnable):
                     threshold_only=False,
                 ),
                 data_base=self.data_base.copy(),
-                scale_factor=self.scale_factor
+                scale_factor=self.scale_factor,
             )
             wrapper.lock = True
             if (self.ipt is not None) and (self.script is not None):
@@ -219,6 +219,8 @@ class IpsoRunnable(QRunnable):
                 status_message = "No script selected: Missing script"
                 return False
 
+            log_object = self.script.last_error
+
             ret = self.script.process_image(self._script_progress_callback, wrapper=wrapper)
             if self.batch_process:
                 self.signals_holder.on_update_images.emit(self.batch_process, wrapper)
@@ -231,15 +233,14 @@ class IpsoRunnable(QRunnable):
             else:
                 status_message = f"Script processing failed in {format_time(after - before)}"
                 log_message = status_message
-                log_object = wrapper.error_holder
 
         except Exception as e:
-            self.error_list.add_error(
+            log_object.add_error(
                 new_error_text="Unable to process script", new_error_kind="script_error"
             )
             status_message = f"Exception while processing script, cf. log"
             self.signals_holder.on_feedback_log_object.emit(
-                "Unable to process script", self.error_list
+                "Unable to process script", log_object
             )
         finally:
             if status_message:
@@ -272,8 +273,7 @@ class IpsoRunnable(QRunnable):
 class IpsoGroupProcessorSignals(QObject):
 
     on_ended = pyqtSignal()
-    on_log_failure = pyqtSignal(object)
-    on_log_str = pyqtSignal(str)
+    on_log_event = pyqtSignal(str, str, str, bool)
     on_image_ready = pyqtSignal(object)
 
 
@@ -285,12 +285,9 @@ class IpsoGroupProcessor(QRunnable):
         on_ended = kwargs.get("on_ended", None)
         if on_ended is not None:
             self.signals_holder.on_ended.connect(on_ended)
-        on_log_failure = kwargs.get("on_log_failure", None)
-        if on_log_failure is not None:
-            self.signals_holder.on_log_failure.connect(on_log_failure)
-        on_log_str = kwargs.get("on_log_str", None)
-        if on_log_str is not None:
-            self.signals_holder.on_log_str.connect(on_log_str)
+        on_log_event = kwargs.get("on_log_event", None)
+        if on_log_event is not None:
+            self.signals_holder.on_log_event.connect(on_log_event)
         on_image_ready = kwargs.get("on_image_ready", None)
         if on_image_ready is not None:
             self.signals_holder.on_image_ready.connect(on_image_ready)
@@ -317,22 +314,34 @@ class IpsoGroupProcessor(QRunnable):
                     self.script.image_output_path = ipo.dst_path
                     res = self.script.process_image(progress_callback=None, wrapper=ipo)
             except Exception as e:
-                err_holder = ErrorHolder(
-                    self,
-                    (
-                        dict(text=file_name, type="process_error"),
-                        dict(
-                            text=f"Failed to process image because {repr(e)}", type="process_error"
+                if self.script is None:
+                    err_holder = ErrorHolder(
+                        self,
+                        (
+                            dict(text=file_name, type="process_error"),
+                            dict(
+                                text=f"Failed to process image because {repr(e)}", type="process_error"
+                            ),
                         ),
-                    ),
-                )
+                    )
+                    error_text = err_holder.to_html()
+                    err_holder = None
+                else:
+                    self.script.last_error.add_error(
+                        new_error_text=f"Failed to process image because {repr(e)}", type="process_error",
+                        new_error_kind="process_error",
+                    )
+                    error_text = self.script.last_error.to_html()
+
                 self.signals_holder.on_image_ready.emit(
                     ipo.build_mosaic(image_names=np.array(["error"]))
                 )
-                self.signals_holder.on_log_str.emit(
-                    f"{ui_consts.LOG_EXCEPTION_STR}: {err_holder.to_html()}"
+                self.signals_holder.on_log_event.emit(
+                    ipo.luid,
+                    "exception",
+                    f"{ui_consts.LOG_EXCEPTION_STR}: {error_text}",
+                    True,
                 )
-                err_holder = None
             else:
                 if res:
                     try:
@@ -364,28 +373,53 @@ class IpsoGroupProcessor(QRunnable):
                             ipo.build_mosaic(image_names=np.array(["source", "mask", "shapes"]))
                         )
                     except Exception as e:
-                        err_holder = ErrorHolder(
-                            self,
-                            (
-                                dict(text=ipo.name, type="csv_write_error"),
-                                dict(
-                                    text=f"Failed to write image data because {repr(e)}",
-                                    type="csv_write_error",
+                        if self.script is None:
+                            err_holder = ErrorHolder(
+                                self,
+                                (
+                                    dict(text=ipo.name, type="csv_write_error"),
+                                    dict(
+                                        text=f"Failed to write image data because {repr(e)}",
+                                        type="csv_write_error",
+                                    ),
                                 ),
-                            ),
+                            )
+                            error_text = err_holder.to_html()
+                            err_holder = None
+                        else:
+                            self.script.last_error.add_error(
+                                new_error_text=f"Failed to process image because {repr(e)}", type="process_error",
+                                new_error_kind="process_error",
+                            )
+                            error_text = self.script.last_error.to_html()
+                        self.signals_holder.on_log_event.emit(
+                            ipo.luid,
+                            "exception",
+                            f"{ui_consts.LOG_EXCEPTION_STR}: {error_text}",
+                            True,
                         )
-                        self.signals_holder.on_log_str.emit(
-                            f"{ui_consts.LOG_EXCEPTION_STR}: {err_holder.to_html()}"
-                        )
-                        err_holder = None
                     else:
                         end_time = timer()
-                        self.signals_holder.on_log_str.emit(
-                            f"Successfully processed {ipo.name} in {format_time(end_time - start_time)}"
-                        )
+                        if self.script is None or self.script.last_error.error_count == 0:
+                            self.signals_holder.on_log_event.emit(
+                                ipo.luid,
+                                "success",
+                                f"Successfully processed {ipo.name} in {format_time(end_time - start_time)}",
+                                True,
+                            )
+                        elif self.script is not None and self.script.last_error.error_count > 0:
+                            self.signals_holder.on_log_event.emit(
+                                ipo.luid,
+                                "warning",
+                                self.script.last_error.to_html(),
+                                True,
+                            )
                 else:
-                    self.signals_holder.on_log_str.emit(
-                        f"{ui_consts.LOG_ERROR_STR}: {ipo.error_holder.to_html()}"
+                    self.signals_holder.on_log_event.emit(
+                        ipo.luid,
+                        "failure",
+                        f"{ui_consts.LOG_ERROR_STR}: {ipo.error_holder.to_html()}",
+                        True,
                     )
             finally:
                 ipo.image_list = None
@@ -394,7 +428,9 @@ class IpsoGroupProcessor(QRunnable):
             err_holder = ErrorHolder(
                 self, (dict(text=f'Unable to process "{file_name}"', type="unknown_error"),)
             )
-            self.signals_holder.on_log_str(f"{ui_consts.LOG_ERROR_STR}: {err_holder.to_html()}")
+            self.signals_holder.on_log_event.emit(
+                "", "failure", f"{ui_consts.LOG_ERROR_STR}: {err_holder.to_html()}", True
+            )
             res = False
 
     def run(self):
@@ -415,7 +451,7 @@ class IpsoGroupProcessor(QRunnable):
                         ),
                     )
                     self.signals_holder.on_log_str.emit(
-                        f"{ui_consts.LOG_EXCEPTION_STR}: {err_holder.to_html()}"
+                        "", "exception", f"{ui_consts.LOG_EXCEPTION_STR}: {err_holder.to_html()}"
                     )
                     err_holder = None
             self.signals_holder.on_ended.emit()
@@ -465,14 +501,14 @@ class IpsoMassRunner(QRunnable):
 
         # Emitters for the items
         self.on_item_ended = kwargs.get("on_item_ended")
-        self.on_tem_failure = kwargs.get("on_tem_failure")
-        self.on_item_log_str = kwargs.get("on_item_log_str")
+        self.on_log_item_event = kwargs.get("on_log_item_event")
         self.on_item_image_ready = kwargs.get("on_item_image_ready")
 
         # Process
         self.pipeline.ensure_root_output_folder()
         self.pipeline.log_callback = self.do_feedback
         self.pipeline.progress_callback = self.do_progress
+        self.pipeline.log_item = self.on_log_item_event
 
         self.item_thread_pool = kwargs.get("items_thread_pool")
 
@@ -504,8 +540,7 @@ class IpsoMassRunner(QRunnable):
                     for i, group in enumerate(groups_to_process):
                         item_worker = IpsoGroupProcessor(
                             on_ended=self.on_item_ended,
-                            on_log_failure=self.on_tem_failure,
-                            on_log_str=self.on_item_log_str,
+                            on_log_event=self.on_log_item_event,
                             on_image_ready=self.on_item_image_ready,
                             file_path=group,
                             database=self._target_database,
@@ -636,7 +671,10 @@ class IpsoCsvBuilder(QRunnable):
         self.signals_holder.on_start.emit()
         try:
             # Build text merged file
-            if (self.pipeline.options.write_result_text and not self.pipeline.options.threshold_only):
+            if (
+                self.pipeline.options.write_result_text
+                and not self.pipeline.options.threshold_only
+            ):
                 df = self.pipeline.merge_result_files(csv_file_name=self.root_csv_name + ".csv")
             if df is None:
                 return

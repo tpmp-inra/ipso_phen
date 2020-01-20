@@ -29,10 +29,10 @@ def format_time(seconds):
 
     mg, sg = divmod(seconds, 60)
     hg, mg = divmod(mg, 60)
-    return '{:02.0f}:{:02.0f}:{:02.3f}'.format(hg, mg, sg)
+    return "{:02.0f}:{:02.0f}:{:02.3f}".format(hg, mg, sg)
 
 
-def print_progress_bar(iteration, total, prefix='', suffix='', bar_length=50, fill='#'):
+def print_progress_bar(iteration, total, prefix="", suffix="", bar_length=50, fill="#"):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -44,11 +44,11 @@ def print_progress_bar(iteration, total, prefix='', suffix='', bar_length=50, fi
         length      - Optional  : character length of bar (Int)
         fill        - Optional  : bar fill character (Str)
     """
-    if platform.system() == 'Windows':
-        percent = f'{iteration / float(total) * 100:.2f}'
+    if platform.system() == "Windows":
+        percent = f"{iteration / float(total) * 100:.2f}"
         filled_length = int(bar_length * iteration // total)
-        bar = fill*filled_length + ' ' * (bar_length-filled_length)
-        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end='')
+        bar = fill * filled_length + " " * (bar_length - filled_length)
+        print(f"\r{prefix} |{bar}| {percent}% {suffix}", end="")
         # Print New Line on Complete
         if iteration == total:
             print()
@@ -56,13 +56,13 @@ def print_progress_bar(iteration, total, prefix='', suffix='', bar_length=50, fi
         str_format = "{0:." + str(2) + "f}"
         percents = str_format.format(100 * (iteration / float(total)))
         filled_length = int(round(bar_length * iteration / float(total)))
-        bar = '='*filled_length + '-' * (bar_length-filled_length)
+        bar = "=" * filled_length + "-" * (bar_length - filled_length)
 
-        sys.stdout.write('\r%s |%s| %s%s %s' % (prefix, bar, percents, '%', suffix)),
+        sys.stdout.write("\r%s |%s| %s%s %s" % (prefix, bar, percents, "%", suffix)),
 
         if iteration == total:
             # Print New Line on Complete
-            sys.stdout.write('\n')
+            sys.stdout.write("\n")
         sys.stdout.flush()
 
 
@@ -75,8 +75,9 @@ def open_file(filename: [tuple, str]) -> None:
         opener = "open" if sys.platform == "darwin" else "xdg-open"
         subprocess.call([opener, filename])
 
+
 def make_safe_name(text):
-    ret = ''.join(c if c not in '*"/\[]:;|=,<>' else '_' for c in text)
+    ret = "".join(c if c not in '*"/\[]:;|=,<>' else "_" for c in text)
     return ret.replace("'", "")
 
 
@@ -90,7 +91,7 @@ def _atoi(text_):
 
 
 def natural_keys(text_):
-    return [_atoi(c) for c in re.split(r'(\d+)', text_)]
+    return [_atoi(c) for c in re.split(r"(\d+)", text_)]
 
 
 def get_module_classes(
@@ -98,7 +99,7 @@ def get_module_classes(
 ):
     res = []
     if not allow_pcv:
-        exclude_if_contains = exclude_if_contains + ('pcv',)
+        exclude_if_contains = exclude_if_contains + ("pcv",)
     for (module_loader, name, is_pkg) in pkgutil.iter_modules(package.__path__):
         try:
             exclude_module = False
@@ -108,7 +109,7 @@ def get_module_classes(
                     break
             if exclude_module:
                 continue
-            pkg_name = package.__name__ + '.' + name
+            pkg_name = package.__name__ + "." + name
             pkg = __import__(pkg_name)
             module = sys.modules[pkg_name]
             for _, cls_ in inspect.getmembers(module):
@@ -129,9 +130,6 @@ def get_module_classes(
     return list(set(res))
 
 
-# ____________________________________________________________
-
-
 def add_header_footer(f):
     """Decorator: prints execution time with header and footer
 
@@ -143,11 +141,11 @@ def add_header_footer(f):
     """
 
     def new_function(*args, **kwargs):
-        if (len(args) == 0) or not hasattr(args[0], 'log_times') or args[0].log_times:
+        if (len(args) == 0) or not hasattr(args[0], "log_times") or args[0].log_times:
             print('______ Starting: "{}"'.format(str(args[0])))
             x = f(*args, **kwargs)
             print('______ Ended: "{}"'.format(str(args[0])))
-            print('')
+            print("")
         else:
             x = f(*args, **kwargs)
         return x
@@ -166,7 +164,7 @@ def time_method(f):
     """
 
     def new_function(*args, **kwargs):
-        if (len(args) == 0) or not hasattr(args[0], 'log_times') or args[0].log_times:
+        if (len(args) == 0) or not hasattr(args[0], "log_times") or args[0].log_times:
             before = timer()
             x = f(*args, **kwargs)
             after = timer()
@@ -192,7 +190,9 @@ def forced_time_method(f):
         before = timer()
         x = f(*args, **kwargs)
         after = timer()
-        print(f'"{type(args[0]).__name__}.{f.__name__}" process time: {format_time(after - before)}')
+        print(
+            f'"{type(args[0]).__name__}.{f.__name__}" process time: {format_time(after - before)}'
+        )
         return x
 
     return new_function
