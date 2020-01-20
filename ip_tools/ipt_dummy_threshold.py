@@ -49,7 +49,7 @@ class IptDummyThreshold(IptBase):
 
     @property
     def package(self):
-        return "Me"
+        return "TPMP"
 
     @property
     def real_time(self):

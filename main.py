@@ -93,7 +93,7 @@ from ip_base.ipt_abstract import IptBase, IptParamHolder
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
-from ip_base.ipt_script_generator import IptScriptGenerator, encode_ipt, decode_ipt
+from ip_base.ipt_script_generator import IptScriptGenerator
 from tools.regions import RectangleRegion, AbstractRegion
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import (
@@ -271,7 +271,8 @@ class NewToolDialog(QDialog):
     def on_tool_name_changed(self):
         # Get file name
         base_name = (
-            "ipt_" + make_safe_name(unidecode(self.ui.le_tool_name.text()))
+            "ipt_"
+            + make_safe_name(unidecode(self.ui.le_tool_name.text()))
             .replace(" ", "_")
             .replace("(", "")
             .replace(")", "")
@@ -724,7 +725,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gl_pipeline_data.addWidget(self.tv_queued_tools, 1, 0, 1, 7)
 
         self.gv_last_processed_item = QMouseGraphicsView(self)
-        self.gridLayout_10.addWidget(self.gv_last_processed_item, 2, 1, 1, 1)
+        self.ver_layout_last_image.addWidget(self.gv_last_processed_item)
 
         self.gv_source_image = QMouseGraphicsView(self.spl_ver_main_tab_source)
         self.gv_output_image = QMouseGraphicsView(self.spl_ver_main_img_data)
@@ -958,7 +959,15 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.on_action_add_white_balance_fixer
         )
         self.action_add_exposure_fixer.triggered.connect(self.on_action_add_exposure_fixer)
-        self.action_add_roi.triggered.connect(self.on_action_add_roi)
+        self.action_add_white_balance_corrector.triggered.connect(
+            self.on_action_add_white_balance_corrector
+        )
+        self.action_build_roi_with_raw_image.triggered.connect(
+            self.on_action_build_roi_with_raw_image
+        )
+        self.action_build_roi_with_pre_processed_image.triggered.connect(
+            self.on_action_build_roi_with_pre_processed_image
+        )
         self.actionAdd_channel_mask.triggered.connect(self.on_actionAdd_channel_mask)
         self.actionSet_contour_cleaner.triggered.connect(self.on_action_set_contour_cleaner)
         self.action_add_feature_extractor.triggered.connect(self.on_action_add_feature_extractor)
@@ -1017,6 +1026,24 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         ret = self.tv_image_browser.itemDelegate()
         return ret if isinstance(ret, QImageDrawerDelegate) else None
 
+    def update_images_queue(self):
+        df = self.get_image_dataframe()
+        self.lw_images_queue.clear()
+        if df is None:
+            return
+        df = df.sort_values(by=["date_time"], axis=0, na_position="first")
+        for row in reversed(range(df.shape[0])):
+            row_data = {
+                k: v
+                for k, v in zip(
+                    list(df.columns), [str(df.iloc[row, ci]) for ci in range(df.shape[1])]
+                )
+            }
+            new_item = QListWidgetItem()
+            new_item.setText(row_data["Luid"])
+            new_item.setToolTip("\n".join([f"{k}: {v}" for k, v in row_data.items()]))
+            self.lw_images_queue.insertItem(0, new_item)
+
     def init_image_browser(self, dataframe):
         self.tv_image_browser.setModel(QImageDatabaseModel(dataframe))
         self.tv_image_browser.setItemDelegate(
@@ -1029,6 +1056,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.tv_image_browser.setSortingEnabled(True)
         selectionModel = self.tv_image_browser.selectionModel()
         selectionModel.selectionChanged.connect(self.on_tv_image_browser_selection_changed)
+        self.update_images_queue()
 
         model = self.get_image_model()
         if model is not None:
@@ -1082,6 +1110,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 model.images = model.images.append(dataframe)
                 new_row_count = model.rowCount()
                 model.rowsInserted.emit(old_row_count, new_row_count)
+                self.update_images_queue()
                 self.update_feedback(
                     status_message=f"Added {new_row_count-old_row_count} items to image browser",
                     use_status_as_log=True,
@@ -1095,7 +1124,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 old_row_count = model.rowCount()
                 model.images = df[~df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
-                # model.rowsRemoved.emit(new_row_count, old_row_count)
+                self.update_images_queue()
                 self.update_feedback(
                     status_message=f"Removed {old_row_count-new_row_count} items to image browser",
                     use_status_as_log=True,
@@ -1109,7 +1138,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 old_row_count = model.rowCount()
                 model.images = df[df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
-                # model.rowsRemoved.emit(new_row_count, old_row_count)
+                self.update_images_queue()
                 self.update_feedback(
                     status_message=f"Removed {old_row_count-new_row_count} items to image browser",
                     use_status_as_log=True,
@@ -1527,6 +1556,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             if "sl_pp_thread_count" in widget.objectName():
                 continue
             if "chk_pp_show_last_item" in widget.objectName():
+                continue
+            if "cb_queue_auto_scroll" in widget.objectName():
                 continue
             if widget.objectName() in force_enabled:
                 widget.setEnabled(True)
@@ -2574,17 +2605,28 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         Pipeline mass processing ended""",
                     )
 
-    def do_pp_item_log_failure(self, sender: object):
-        if threading.current_thread() is not threading.main_thread():
-            print("do_pp_item_log_failure: NOT MAIN THREAD")
-        self.update_feedback(log_message=sender)
-        if not self.multithread:
-            self.process_events()
-
-    def do_pp_item_log_str(self, log_message: str):
-        if threading.current_thread() is not threading.main_thread():
-            print("do_pp_item_log_str: NOT MAIN THREAD")
-        self.update_feedback(log_message=log_message)
+    def do_pp_log_item_event(
+        self, item_luid: str, event_kind: str, log_data: str, auto_scroll: bool = True
+    ):
+        if log_data:
+            self.update_feedback(log_message=log_data)
+        items = self.lw_images_queue.findItems(item_luid, Qt.MatchExactly)
+        for item in items:
+            item.setToolTip(item.toolTip() + "\n\n" + str(log_data))
+            if event_kind == "success":
+                item.setIcon(QIcon(":/annotation_level/resources/OK.png"))
+            if event_kind == "warning":
+                item.setIcon(QIcon(":/annotation_level/resources/Warning.png"))
+            elif event_kind == "exception":
+                item.setIcon(QIcon(":/annotation_level/resources/Problem.png"))
+            elif event_kind == "failure":
+                item.setIcon(QIcon(":/annotation_level/resources/Danger.png"))
+            elif event_kind == "refresh":
+                item.setIcon(QIcon(":/common/resources/Refresh.png"))
+            else:
+                item.setIcon(QIcon(":/annotation_level/resources/Help.png"))
+            if auto_scroll and self.cb_queue_auto_scroll.isChecked():
+                self.lw_images_queue.scrollToItem(item, self.lw_images_queue.EnsureVisible)
         if not self.multithread:
             self.process_events()
 
@@ -2717,8 +2759,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 on_feedback_log_str=self.do_thread_feedback_log_str,
                 # Item emitters
                 on_item_ended=self.do_pp_item_ended,
-                on_tem_failure=self.do_pp_item_log_failure,
-                on_item_log_str=self.do_pp_item_log_str,
+                on_log_item_event=self.do_pp_log_item_event,
                 on_item_image_ready=self.do_pp_item_image_ready,
                 # Callbacks
                 check_stop=self.do_pp_check_abort,
@@ -3847,18 +3888,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self._current_time = dt.strptime(self.cb_time.currentText(), _TIME_FORMAT).time()
             self.file_name = self.current_selected_image_path()
 
-    def on_action_add_roi(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        if ipc.TOOL_GROUP_ROI_DYNAMIC_STR in selected_mode.use_case:
-            self.script_generator.add_operator(
-                operator=selected_mode, kind=ipc.TOOL_GROUP_ROI_DYNAMIC_STR
-            )
-        elif ipc.TOOL_GROUP_ROI_STATIC_STR in selected_mode.use_case:
-            self.script_generator.add_operator(
-                operator=selected_mode, kind=ipc.TOOL_GROUP_ROI_STATIC_STR
-            )
-        self.update_pipeline_display()
-
     def delete_pipeline_operator(self):
         if self._updating_process_modes:
             return
@@ -3906,10 +3935,31 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         )
         self.update_pipeline_display()
 
+    def on_action_build_roi_with_raw_image(self):
+        selected_mode = self.current_tool.copy(copy_wrapper=False)
+        self.script_generator.add_operator(
+            operator=selected_mode, kind=ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR
+        )
+        self.update_pipeline_display()
+
+    def on_action_build_roi_with_pre_processed_image(self):
+        selected_mode = self.current_tool.copy(copy_wrapper=False)
+        self.script_generator.add_operator(
+            operator=selected_mode, kind=ipc.TOOL_GROUP_ROI_PP_IMAGE_STR
+        )
+        self.update_pipeline_display()
+
     def on_action_add_exposure_fixer(self):
         selected_mode = self.current_tool.copy(copy_wrapper=False)
         self.script_generator.add_operator(
             operator=selected_mode, kind=ipc.TOOL_GROUP_EXPOSURE_FIXING_STR
+        )
+        self.update_pipeline_display()
+
+    def on_action_add_white_balance_corrector(self):
+        selected_mode = self.current_tool.copy(copy_wrapper=False)
+        self.script_generator.add_operator(
+            operator=selected_mode, kind=ipc.TOOL_GROUP_WHITE_BALANCE_STR
         )
         self.update_pipeline_display()
 
@@ -3996,10 +4046,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         # Add buttons
                         if item["kind"] in [
                             ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
+                            ipc.TOOL_GROUP_WHITE_BALANCE_STR,
                             ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                             ipc.TOOL_GROUP_THRESHOLD_STR,
-                            ipc.TOOL_GROUP_ROI_DYNAMIC_STR,
-                            ipc.TOOL_GROUP_ROI_STATIC_STR,
+                            ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
+                            ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
                         ]:
                             add_button(
                                 node=node_,
@@ -4041,7 +4092,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         )
                         # Add params
                         add_params_as_nodes(
-                            item, node_, item["kind"] == ipc.TOOL_GROUP_ROI_STATIC_STR
+                            item,
+                            node_,
+                            item["kind"]
+                            in [ipc.TOOL_GROUP_ROI_PP_IMAGE_STR, ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR],
                         )
                     elif item.get("feature", None) is not None:
                         node_ = CTreeWidgetItem(root_, [item["feature"]])
@@ -4069,10 +4123,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             # Update queued tools
             self.tv_queued_tools.clear()
             nodes_dict = {
-                ipc.TOOL_GROUP_ROI_STATIC_STR: ipc.TOOL_GROUP_ROI_STATIC_STR,
+                ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR: ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
                 ipc.TOOL_GROUP_EXPOSURE_FIXING_STR: ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
-                ipc.TOOL_GROUP_ROI_DYNAMIC_STR: ipc.TOOL_GROUP_ROI_DYNAMIC_STR,
                 ipc.TOOL_GROUP_PRE_PROCESSING_STR: ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+                ipc.TOOL_GROUP_ROI_PP_IMAGE_STR: ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
                 ipc.TOOL_GROUP_THRESHOLD_STR: ipc.TOOL_GROUP_THRESHOLD_STR,
                 ipc.TOOL_GROUP_MASK_CLEANUP_STR: ipc.TOOL_GROUP_MASK_CLEANUP_STR,
                 ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR: ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR,
@@ -4171,6 +4225,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 script_ = IptScriptGenerator.load(file_name_)
                 if isinstance(script_, IptScriptGenerator):
                     self.script_generator = script_
+                    if self.script_generator.last_error.error_count > 0:
+                        self.update_feedback(
+                            status_message="Errors while loading pipeline (cf. log)",
+                            log_message=f"{ui_consts.LOG_WARNING_STR}: {self.script_generator.last_error.to_html()}",
+                        )
                     self.update_pipeline_display()
                 elif isinstance(script_, Exception):
                     self.log_exception(f"Error while loading pipeline: {str(script_)}")
@@ -4204,9 +4263,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     status_message=f'Loaded pipeline from "{file_name_}"', use_status_as_log=True
                 )
                 self.le_pp_selected_pipeline.setText(file_name_)
-                font_metrics = QFontMetrics(self.lbl_pipeline_name.font())
-                elided_fn = font_metrics.elidedText(file_name_, Qt.ElideLeft, 200)
-                self.lbl_pipeline_name.setText(elided_fn)
+                if hasattr(self.script_generator, "name"):
+                    self.lbl_pipeline_name.setText(self.script_generator.name)
+                else:
+                    font_metrics = QFontMetrics(self.lbl_pipeline_name.font())
+                    elided_fn = font_metrics.elidedText(file_name_, Qt.ElideLeft, 200)
+                    self.lbl_pipeline_name.setText(elided_fn)
                 self._update_pp_pipeline_state(
                     default_process=False, active=False, load_script=True
                 )
@@ -4314,7 +4376,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 call_back = self.on_text_input_param_changed
             elif param.allowed_values == "multi_line_text_input":
                 label = QLabel(param.desc)
-                widget = QTextBrowserWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
+                widget = QTextBrowserWthParam(
+                    tool=tool, param=param, allow_real_time=allow_real_time
+                )
                 widget.setLineWrapMode(QTextEdit.NoWrap)
                 widget.setReadOnly(False)
                 widget.setMaximumHeight(72)
@@ -4359,14 +4423,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 status_message="Widget initialization: unknown param", use_status_as_log=True
             )
             return None, None
-        if param.is_input:
-            param.input = widget
-            param.init_input(call_back)
-        if param.is_output:
-            param.output = widget
-            param.update_output(label_text=param.desc, output_value=param.value)
-        param.label = label
-        param.update_label()
 
         if isinstance(tool, dict):
             tool_name = tool["uuid"]
@@ -4374,12 +4430,108 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             tool_name = "settings_holder"
         else:
             tool_name = tool.name
-        if widget is not None:
-            widget.setObjectName(f"ipt_param_{tool_name}_{param.name}")
-        if label is not None:
-            label.setObjectName(f"ipt_param_label_{tool_name}_{param.name}")
+        param.init(
+            tool_name=tool_name,
+            label=label,
+            widget=widget,
+            set_text=self.widget_set_text,
+            set_value=self.widget_set_value,
+            add_items=self.widget_add_items,
+            set_range=self.widget_set_range,
+            set_checked=self.widget_set_checked,
+            set_name=self.widget_set_name,
+            set_tool_tip=self.widget_set_tool_tip,
+            clear=self.widget_clear,
+            update_table=self.widget_update_table,
+            set_current_index=self.widget_set_current_index,
+        )
+
+        if param.is_input:
+            if widget is None:
+                pass
+            elif isinstance(param.allowed_values, dict):
+                widget.currentIndexChanged.connect(call_back)
+            elif isinstance(param.allowed_values, tuple):
+                if param.allowed_values == (0, 1):
+                    widget.stateChanged.connect(call_back)
+                elif len(param.allowed_values) == 2:
+                    widget.valueChanged.connect(call_back)
+                else:
+                    return False
+            elif isinstance(param.allowed_values, str):
+                if call_back is not None:
+                    if hasattr(widget, "textEdited"):
+                        widget.textEdited.connect(call_back)
+                    elif hasattr(widget, "clicked"):
+                        widget.clicked.connect(call_back)
+                    elif hasattr(widget, "insertPlainText"):
+                        widget.textChanged.connect(call_back)
 
         return widget, label
+
+    def widget_set_text(self, widget, text):
+        if widget is None:
+            return
+        if hasattr(widget, "insertPlainText"):
+            widget.insertPlainText(text)
+        else:
+            widget.setText(text)
+
+    def widget_set_range(self, widget, min_val, max_val, default_val):
+        widget.setMinimum(min_val)
+        widget.setMaximum(max_val)
+        if default_val is not None:
+            widget.setValue(default_val)
+
+    def widget_add_items(self, widget, items, default):
+        for key, value in items.items():
+            widget.addItem(value, key)
+            if default == key:
+                widget.setCurrentIndex(widget.count() - 1)
+
+    def widget_set_checked(self, widget, new_check_state):
+        widget.setChecked(new_check_state)
+
+    def widget_set_name(self, widget, new_name):
+        if widget is not None:
+            widget.setObjectName(new_name)
+
+    def widget_set_tool_tip(self, widget, tool_tip):
+        if widget is not None:
+            widget.setToolTip(tool_tip)
+
+    def widget_set_value(self, widget, value):
+        if widget is not None:
+            widget.setValue(value)
+
+    def widget_clear(self, widget):
+        if widget is not None:
+            if hasattr(widget, "rowCount"):
+                while widget.rowCount() > 0:
+                    widget.removeRow(0)
+            elif hasattr(widget, 'clear'):
+                widget.clear()
+
+    def widget_set_current_index(self, widget, index):
+        if widget is not None:
+            widget.setCurrentIndex(index)
+
+    def widget_update_table(self, widget, items, ignore_list, invert_order):
+        if widget is not None and isinstance(items, dict):
+            for k, v in items.items():
+                if ignore_list and (k in ignore_list):
+                    continue
+                if invert_order:
+                    insert_pos = 0
+                else:
+                    insert_pos = widget.rowCount()
+                widget.insertRow(insert_pos)
+                widget.setItem(insert_pos, 0, QTableWidgetItem(f"{k}"))
+                if isinstance(v, list) or isinstance(v, tuple):
+                    for i, value in enumerate(v):
+                        widget.setItem(insert_pos, i + 1, QTableWidgetItem(f"{value}"))
+                else:
+                    widget.setItem(insert_pos, 1, QTableWidgetItem(f"{v}"))
 
     def print_image_callback(self, image):
         self.gv_output_image.main_image = image
@@ -4755,7 +4907,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         overwrite_existing=self.cb_pp_overwrite.isChecked(),
                         append_experience_name=append_experience_name,
                         append_time_stamp=self.cb_pp_append_timestamp_to_output_folder.isChecked(),
-                        script=script_,
+                        script=script_.to_json(),
                         generate_series_id=self.cb_pp_generate_series_id.isChecked(),
                         series_id_time_delta=self.sp_pp_time_delta.value(),
                         data_frame=model.images.to_dict(orient="list"),
@@ -4764,7 +4916,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     ),
                     jw,
                     indent=2,
-                    default=encode_ipt,
                 )
                 self.update_feedback(
                     status_message="Pipeline processor state saved",
@@ -4904,16 +5055,25 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.action_add_exposure_fixer.setEnabled(
                     ipc.TOOL_GROUP_EXPOSURE_FIXING_STR in value.use_case
                 )
+                self.action_add_white_balance_corrector.setEnabled(
+                    ipc.TOOL_GROUP_WHITE_BALANCE_STR in value.use_case
+                )
                 self.actionAdd_white_balance_fixer.setEnabled(
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR in value.use_case
                 )
                 self.actionAdd_channel_mask.setEnabled(
                     ipc.TOOL_GROUP_THRESHOLD_STR in value.use_case
                 )
-                self.action_add_roi.setEnabled(
+                self.action_build_roi_with_raw_image.setEnabled(
                     bool(
                         set(value.use_case)
-                        & {ipc.TOOL_GROUP_ROI_DYNAMIC_STR, ipc.TOOL_GROUP_ROI_STATIC_STR}
+                        & {ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR}
+                    )
+                )
+                self.action_build_roi_with_pre_processed_image.setEnabled(
+                    bool(
+                        set(value.use_case)
+                        & {ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR}
                     )
                 )
                 self.actionSet_contour_cleaner.setEnabled(

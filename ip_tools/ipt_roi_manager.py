@@ -1,6 +1,10 @@
 import cv2
 
-from ip_base.ip_common import resize_image, TOOL_GROUP_ROI_STATIC_STR
+from ip_base.ip_common import (
+    resize_image,
+    TOOL_GROUP_ROI_PP_IMAGE_STR,
+    TOOL_GROUP_ROI_RAW_IMAGE_STR,
+)
 from ip_base.ipt_abstract import IptBase
 from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
 from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
@@ -176,7 +180,11 @@ class IptRoiManager(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_ROI_STATIC_STR, TOOL_GROUP_VISUALIZATION_STR]
+        return [
+            TOOL_GROUP_ROI_PP_IMAGE_STR,
+            TOOL_GROUP_ROI_RAW_IMAGE_STR,
+            TOOL_GROUP_VISUALIZATION_STR,
+        ]
 
     @property
     def description(self):

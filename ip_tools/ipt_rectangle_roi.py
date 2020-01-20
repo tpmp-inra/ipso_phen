@@ -3,6 +3,7 @@ import cv2
 from ip_base.ip_common import resize_image
 from ip_base.ipt_abstract import IptBase
 from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
+import ip_base.ip_common as ipc
 
 
 class IptRectangleRoi(IptBase):
@@ -176,7 +177,7 @@ class IptRectangleRoi(IptBase):
 
     @property
     def use_case(self):
-        return ["ROI (static)"]
+        return [ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR]
 
     @property
     def description(self):

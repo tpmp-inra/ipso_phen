@@ -8,7 +8,6 @@ import hashlib
 
 import cv2
 import numpy as np
-from PyQt5.QtWidgets import QTableWidgetItem
 
 from ip_base.ip_common import (
     C_BLACK,
@@ -32,8 +31,7 @@ from ip_base.ip_common import (
     TOOL_GROUP_IMAGE_INFO_STR,
     TOOL_GROUP_MASK_CLEANUP_STR,
     TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_ROI_DYNAMIC_STR,
-    TOOL_GROUP_ROI_STATIC_STR,
+    TOOL_GROUP_ROI_PP_IMAGE_STR,
     TOOL_GROUP_THRESHOLD_STR,
     TOOL_GROUP_VISUALIZATION_STR,
     TOOL_GROUP_WHITE_BALANCE_STR,
@@ -41,6 +39,11 @@ from ip_base.ip_common import (
 )
 from ip_base.ip_abstract import AbstractImageProcessor
 from tools.common_functions import make_safe_name
+
+
+CLASS_NAME_KEY = "class__name__"
+MODULE_NAME_KEY = "module__name__"
+PARAMS_NAME_KEY = "params"
 
 
 class IptParam(object):
@@ -58,6 +61,8 @@ class IptParam(object):
         self._value = kwargs.get("_value", self.default_value)
         self._widgets = {}
         self._grid_search_options = kwargs.get("_grid_search_options", str(self.default_value))
+
+        self.ui_update_callbacks = {}
 
     def __str__(self):
         return f"[{self.name}:{self.value}]"
@@ -93,6 +98,69 @@ class IptParam(object):
     def clear_widgets(self):
         self._widgets = {}
 
+    def update_ui(self, callback: str, **kwargs):
+        callback = self.ui_update_callbacks.get(callback, None)
+        if callback is None:
+            return
+        callback(**kwargs)
+
+    def init(self, tool_name, label, widget, **kwargs):
+        self.ui_update_callbacks = dict(**kwargs)
+
+        self.update_ui(
+            callback="set_name", widget=widget, new_name=f"ipt_param_{tool_name}_{self.name}"
+        )
+        self.update_ui(
+            callback="set_name", widget=label, new_name=f"ipt_param_label_{tool_name}_{self.name}"
+        )
+
+        self.label = label
+        self.update_label()
+        if self.is_input:
+            self.input = widget
+            if widget is None:
+                return False
+            elif isinstance(self.allowed_values, dict):
+                self.update_ui(
+                    callback="add_items",
+                    widget=widget,
+                    items=self.allowed_values,
+                    default=self.value,
+                )
+            elif isinstance(self.allowed_values, tuple):
+                if self.allowed_values == (0, 1):
+                    self.update_ui(
+                        callback="set_checked", widget=widget, new_check_state=self.value == 1
+                    )
+                    self.update_ui(callback="set_text", widget=widget, text=self.desc)
+                elif len(self.allowed_values) == 2:
+                    self.update_ui(
+                        callback="set_range",
+                        widget=widget,
+                        min_val=self.allowed_values[0],
+                        max_val=self.allowed_values[1],
+                        default_val=int(self.value),
+                    )
+                else:
+                    return False
+            elif isinstance(self.allowed_values, str):
+                if hasattr(widget, "textEdited"):
+                    self.update_ui(callback="set_text", widget=widget, text=self.value)
+                elif hasattr(widget, "clicked"):
+                    self.update_ui(callback="set_text", widget=widget, text=self.desc)
+                elif hasattr(widget, "insertPlainText"):
+                    self.update_ui(callback="set_text", widget=widget, text=self.value)
+            else:
+                return False
+        if self.is_output:
+            self.output = widget
+            self.update_output(label_text=self.desc, output_value=self.value)
+
+        self.update_ui(callback="set_tool_tip", widget=widget, tool_tip=self.hint)
+        self.update_ui(callback="set_tool_tip", widget=label, tool_tip=self.hint)
+
+        return True
+
     def update_label(self):
         lbl = self.label
         if lbl is None:
@@ -102,50 +170,12 @@ class IptParam(object):
             or isinstance(self.allowed_values, str)
             or (self.widget_type == "spin_box")
         ):
-            lbl.setText(self.desc)
+            self.update_ui(callback="set_text", widget=lbl, text=self.desc)
         elif isinstance(self.allowed_values, tuple) and (len(self.allowed_values) == 2):
-            lbl.setText(f"{self.desc}: {self.value}")
+            self.update_ui(callback="set_text", widget=lbl, text=f"{self.desc}: {self.value}")
         else:
             return False
-        lbl.setToolTip(self.hint)
-        return True
-
-    def init_input(self, call_back):
-        widget = self.input
-        if widget is None:
-            return False
-        elif isinstance(self.allowed_values, dict):
-            for key, value in self.allowed_values.items():
-                widget.addItem(value, key)
-                if self.value == key:
-                    widget.setCurrentIndex(widget.count() - 1)
-            widget.currentIndexChanged.connect(call_back)
-        elif isinstance(self.allowed_values, tuple):
-            if self.allowed_values == (0, 1):
-                widget.setChecked(self.value == 1)
-                widget.setText(self.desc)
-                widget.stateChanged.connect(call_back)
-            elif len(self.allowed_values) == 2:
-                widget.setMinimum(self.allowed_values[0])
-                widget.setMaximum(self.allowed_values[1])
-                widget.setValue(int(self.value))
-                widget.valueChanged.connect(call_back)
-            else:
-                return False
-        elif isinstance(self.allowed_values, str):
-            if call_back is not None:
-                if hasattr(widget, "textEdited"):
-                    widget.setText(self.value)
-                    widget.textEdited.connect(call_back)
-                elif hasattr(widget, "clicked"):
-                    widget.setText(self.desc)
-                    widget.clicked.connect(call_back)
-                elif hasattr(widget, "insertPlainText"):
-                    widget.insertPlainText(self.value)
-                    widget.textChanged.connect(call_back)
-        else:
-            return False
-        widget.setToolTip(self.hint)
+        self.update_ui(callback="set_tool_tip", widget=lbl, tool_tip=self.hint)
         return True
 
     def update_input(self, new_values=None):
@@ -165,20 +195,24 @@ class IptParam(object):
                 else:
                     self.allowed_values = new_values
                 bck_value = self.value
-                widget.clear()
-                for key, value in self.allowed_values.items():
-                    widget.addItem(value, key)
-                    if bck_value == key:
-                        widget.setCurrentIndex(widget.count() - 1)
+                self.update_ui(callback="clear", widget=widget)
+                self.update_ui(
+                    callback="add_items",
+                    widget=widget,
+                    items=self.allowed_values,
+                    default=bck_value,
+                )
                 self._value = bck_value
             else:
                 for i, key in enumerate(self.allowed_values):
                     if self.value == key:
-                        widget.setCurrentIndex(i)
+                        self.update_ui(callback="set_current_index", index=i)
                         break
         elif isinstance(self.allowed_values, tuple):
             if self.allowed_values == (0, 1):
-                widget.setChecked(self.value == 1)
+                self.update_ui(
+                    callback="set_checked", widget=widget, new_check_state=self.value == 1
+                )
             elif len(self.allowed_values) == 2:
                 if (
                     (new_values is not None)
@@ -186,16 +220,21 @@ class IptParam(object):
                     and (self.allowed_values != new_values)
                 ):
                     self.allowed_values = new_values
-                    widget.setMinimum(self.allowed_values[0])
-                    widget.setMaximum(self.allowed_values[1])
-                widget.setValue(int(self.value))
+                    self.update_ui(
+                        callback="set_range",
+                        widget=widget,
+                        min_val=self.allowed_values[0],
+                        max_val=self.allowed_values[1],
+                        default_val=None,
+                    )
+                self.update_ui(callback="set_value", widget=widget, value=int(self.value))
             else:
                 return False
         elif isinstance(self.allowed_values, str):
-            widget.setText(self.value)
+            self.update_ui(callback="set_text", widget=widget, text=self.value)
         else:
             return False
-        widget.setToolTip(self.hint)
+        self.update_ui(callback="set_tool_tip", widget=widget, tool_tip=self.hint)
         return True
 
     def update_output(self, label_text: str = "", output_value=None, ignore_list=(), invert=False):
@@ -209,28 +248,19 @@ class IptParam(object):
         if widget is None:
             return True
         elif self.allowed_values == "single_line_text_output":
-            widget.setText(self._value)
+            self.update_ui(callback="set_text", widget=widget, text=self.value)
         elif self.allowed_values == "multi_line_text_output":
-            widget.clear()
-            widget.insertPlainText(self._value)
+            self.update_ui(callback="clear", widget=widget)
+            self.update_ui(callback="set_text", widget=widget, text=self.value)
         elif self.allowed_values == "table_output":
-            while widget.rowCount() > 0:
-                widget.removeRow(0)
-            if isinstance(self._value, dict):
-                for k, v in self._value.items():
-                    if ignore_list and (k in ignore_list):
-                        continue
-                    if invert:
-                        insert_pos = 0
-                    else:
-                        insert_pos = widget.rowCount()
-                    widget.insertRow(insert_pos)
-                    widget.setItem(insert_pos, 0, QTableWidgetItem(f"{k}"))
-                    if isinstance(v, list) or isinstance(v, tuple):
-                        for i, value in enumerate(v):
-                            widget.setItem(insert_pos, i + 1, QTableWidgetItem(f"{value}"))
-                    else:
-                        widget.setItem(insert_pos, 1, QTableWidgetItem(f"{v}"))
+            self.update_ui(callback="clear", widget=widget)
+            self.update_ui(
+                callback="update_table",
+                widget=widget,
+                items=self._value,
+                ignore_list=ignore_list,
+                invert_order=invert,
+            )
         else:
             return False
 
@@ -305,7 +335,7 @@ class IptParam(object):
             self._grid_search_options = value
             widget = self.gs_input
             if widget is not None:
-                widget.setText(value)
+                self.update_ui(callback="set_text", widget=widget, text=value)
 
     @property
     def input(self):
@@ -338,7 +368,7 @@ class IptParam(object):
     @gs_label.setter
     def gs_label(self, value):
         self._widgets["gs_label"] = value
-        value.setText(self.desc)
+        self.update_ui(callback="set_text", widget=value, text=self.desc)
 
     @property
     def gs_input(self):
@@ -880,7 +910,7 @@ class IptParamHolder(object):
             p.grid_search_options = str(p.default_value)
             gsw = p.gs_input
             if gsw is not None:
-                gsw.setText(p.grid_search_options)
+                self.update_ui(callback="set_text", widget=gsw, text=p.grid_search_options)
 
     def update_grid_search(self, ignore_composite: bool = True) -> None:
         for p in self._param_list:
@@ -890,7 +920,7 @@ class IptParamHolder(object):
             p.grid_search_options = str(p.value)
             gsw = p.gs_input
             if gsw is not None:
-                gsw.setText(p.grid_search_options)
+                self.update_ui(callback="set_text", widget=gsw, text=p.grid_search_options)
 
     def reset_input(self) -> None:
         for p in self._param_list:
@@ -1043,10 +1073,19 @@ class IptParamHolder(object):
             or (p.name in forced_params)
         ]
 
-    def params_to_dict(self):
+    def params_to_dict(
+        self,
+        include_input: bool = True,
+        include_output: bool = False,
+        include_neutral: bool = False,
+    ):
         dic = {}
         for p in self.gizmos:
-            if p.is_input:
+            if (
+                (include_input and p.is_input)
+                or (include_output and p.is_output)
+                or (include_neutral and p.is_neutral)
+            ):
                 dic[p.name] = p.value
         return dic
 
@@ -1130,6 +1169,15 @@ class IptBase(IptParamHolder, ABC):
             return self.__class__(wrapper=self.wrapper, **self.params_to_dict())
         else:
             return self.__class__(**self.params_to_dict())
+
+    def to_json(self):
+        return {
+            "name": self.name,
+            "package": self.package,
+            CLASS_NAME_KEY: type(self).__name__,
+            MODULE_NAME_KEY: type(self).__module__,
+            PARAMS_NAME_KEY: self.params_to_dict(),
+        }
 
     def execute(self, param, **kwargs):
         pass
@@ -1746,45 +1794,6 @@ class IptBase(IptParamHolder, ABC):
     @property
     def use_case(self):
         return ["none"]
-
-    @property
-    def use_case_order(self):
-        if TOOL_GROUP_EXPOSURE_FIXING_STR in self.use_case:
-            return 0
-        elif TOOL_GROUP_ROI_DYNAMIC_STR in self.use_case:
-            return 1
-        elif TOOL_GROUP_ROI_STATIC_STR in self.use_case:
-            return 2
-        elif TOOL_GROUP_PRE_PROCESSING_STR in self.use_case:
-            return 3
-        elif TOOL_GROUP_THRESHOLD_STR in self.use_case:
-            return 4
-        elif TOOL_GROUP_MASK_CLEANUP_STR in self.use_case:
-            return 5
-        elif TOOL_GROUP_FEATURE_EXTRACTION_STR in self.use_case:
-            return 6
-        elif TOOL_GROUP_IMAGE_GENERATOR_STR in self.use_case:
-            return 7
-        elif TOOL_GROUP_CLUSTERING_STR in self.use_case:
-            return 8
-        elif TOOL_GROUP_DEMO_STR in self.use_case:
-            return 9
-        elif TOOL_GROUP_DEFAULT_PROCESS_STR in self.use_case:
-            return 10
-        elif TOOL_GROUP_IMAGE_CHECK_STR in self.use_case:
-            return 11
-        elif TOOL_GROUP_ANCILLARY_STR in self.use_case:
-            return 12
-        elif TOOL_GROUP_IMAGE_INFO_STR in self.use_case:
-            return 13
-        elif TOOL_GROUP_VISUALIZATION_STR in self.use_case:
-            return 14
-        elif TOOL_GROUP_WHITE_BALANCE_STR in self.use_case:
-            return 15
-        elif TOOL_GROUP_UNKNOWN_STR in self.use_case:
-            return 16
-        else:
-            return 17
 
     @property
     def result(self):

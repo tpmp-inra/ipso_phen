@@ -199,7 +199,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
 
                     s_tuple = cv2.meanStdDev(s.reshape(s.shape[1] * s.shape[0]))
                     r_tuple = cv2.meanStdDev(r.reshape(s.shape[1] * r.shape[0]))
-                    p = self.find_by_name("tb_output")
                     br_dict = dict(
                         **br_dict,
                         **dict(
@@ -221,9 +220,10 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     self.add_value("mod_brightness", r_tuple[0][0][0], True)
                     self.add_value("mod_contrast", r_tuple[1][0][0], True)
                     self.add_value("mod_brightness_min_max", (r.min(), r.max()), True)
-                    p.update_output(output_value=br_dict)
                 else:
                     br_dict = None
+                p = self.find_by_name("tb_output")
+                p.update_output(output_value=br_dict)
 
                 if self.get_value_of("show_over_under") == 1:
                     mask_over = cv2.inRange(self.result, (255, 255, 255), (255, 255, 255))
