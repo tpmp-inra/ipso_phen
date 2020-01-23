@@ -9,7 +9,7 @@ import pandas as pd
 import tools.db_wrapper as dbw
 from tools.common_functions import print_progress_bar, force_directories, format_time
 from tools.pipeline_processor import PipelineProcessor
-from ip_base.ipt_script_generator import IptScriptGenerator, decode_ipt
+from ip_base.ipt_strict_pipeline import IptStrictPipeline, decode_ipt
 
 
 g_log_file = ""
@@ -82,7 +82,7 @@ def main():
     force_directories(output_folder_)
     csv_file_name = res["csv_file_name"]
     mpc = int(args.get("process_count", res["thread_count"])) if IS_USE_MULTI_THREAD else False
-    script = IptScriptGenerator.from_json(json_data=res["script"])
+    script = IptStrictPipeline.from_json(json_data=res["script"])
 
     log_event(
         event=[

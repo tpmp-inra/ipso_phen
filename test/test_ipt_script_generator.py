@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_strict_pipeline import IptStrictPipeline
 
 
 class TestIptKeepCountoursNearRois(unittest.TestCase):
@@ -25,14 +25,14 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             "test_extractors.json",
             "tutorial.json",
         ]:
-            script = IptScriptGenerator.load(
+            script = IptStrictPipeline.load(
                 os.path.join(self.pipeline_dir_path, "test_cleaners.json",)
             )
-            self.assertIsInstance(script, IptScriptGenerator, msg=f'Failed to load "{file_name}"')
+            self.assertIsInstance(script, IptStrictPipeline, msg=f'Failed to load "{file_name}"')
 
     def test_cleaners_pipeline(self):
         """Test cleaner's test pipeline"""
-        script = IptScriptGenerator.load(
+        script = IptStrictPipeline.load(
             os.path.join(self.pipeline_dir_path, "test_cleaners.json",)
         )
         wrapper = AbstractImageProcessor(
@@ -48,7 +48,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
 
     def test_extractors_pipeline(self):
         """Test extractors's test pipeline"""
-        script = IptScriptGenerator.load(
+        script = IptStrictPipeline.load(
             os.path.join(self.pipeline_dir_path, "test_extractors.json",)
         )
         wrapper = AbstractImageProcessor(
@@ -64,7 +64,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
 
     def test_sample_pipeline(self):
         """Test sample pipeline"""
-        script = IptScriptGenerator.load(
+        script = IptStrictPipeline.load(
             os.path.join(self.pipeline_dir_path, "sample_pipeline_arabidopsis.json",)
         )
         wrapper = AbstractImageProcessor(

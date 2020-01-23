@@ -1,4 +1,5 @@
 import inspect
+import sys
 import itertools
 import random
 from abc import ABC, abstractproperty
@@ -39,7 +40,7 @@ from ip_base.ip_common import (
 )
 from ip_base.ip_abstract import AbstractImageProcessor
 from tools.common_functions import make_safe_name
-
+import ip_base.ip_common as ipc
 
 CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
@@ -1179,6 +1180,18 @@ class IptBase(IptParamHolder, ABC):
             PARAMS_NAME_KEY: self.params_to_dict(),
         }
 
+    @classmethod
+    def from_json(cls, json_data: dict):
+        class_name = json_data[CLASS_NAME_KEY]
+        module_name = json_data[MODULE_NAME_KEY]
+        __import__(module_name)
+        for _, obj in inspect.getmembers(sys.modules[module_name]):
+            if inspect.isclass(obj) and (obj.__name__ == class_name):
+                try:
+                    return obj(**json_data[PARAMS_NAME_KEY])
+                except Exception as e:
+                    return e
+
     def execute(self, param, **kwargs):
         pass
 
@@ -1833,3 +1846,57 @@ class IptBase(IptParamHolder, ABC):
     @property
     def needs_previous_mask(self):
         return False
+
+    @property
+    def input_type(self):
+        if set(self.use_case).intersection(
+            set(
+                (
+                    ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
+                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
+                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+                    ipc.TOOL_GROUP_THRESHOLD_STR,
+                    ipc.TOOL_GROUP_VISUALIZATION_STR,
+                    ipc.TOOL_GROUP_WHITE_BALANCE_STR,
+                    ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
+                    ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
+                )
+            )
+        ):
+            return ipc.IO_IMAGE
+        elif set(self.use_case).intersection(
+            set((ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
+        ):
+            return ipc.IO_MASK
+        # elif set(self.use_case).intersection(set()):
+        #     return ipc.IO_ROI
+        # elif set(self.use_case).intersection(set()):
+        #     return ipc.IO_DATA
+        else:
+            return ipc.IO_NONE
+
+    @property
+    def output_type(self):
+        if set(self.use_case).intersection(
+            set(
+                (
+                    ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
+                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+                    ipc.TOOL_GROUP_VISUALIZATION_STR,
+                    ipc.TOOL_GROUP_WHITE_BALANCE_STR,
+                )
+            )
+        ):
+            return ipc.IO_IMAGE
+        elif set(self.use_case).intersection(
+            set((ipc.TOOL_GROUP_THRESHOLD_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
+        ):
+            return ipc.IO_MASK
+        elif set(self.use_case).intersection(
+            set((ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,))
+        ):
+            return ipc.IO_ROI
+        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,))):
+            return ipc.IO_DATA
+        else:
+            return ipc.IO_NONE

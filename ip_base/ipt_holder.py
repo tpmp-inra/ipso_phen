@@ -86,7 +86,7 @@ class IptHolder(object):
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
             f.write("from ip_base.ip_abstract import AbstractImageProcessor\n")
-            f.write("from ip_base.ipt_script_generator import IptScriptGenerator\n")
+            f.write("from ip_base.ipt_strict_pipeline import IptStrictPipeline\n")
             if "script_in_info_out" in tests_needed:
                 f.write("from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
 
@@ -218,7 +218,7 @@ class IptHolder(object):
         f.write(
             f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_MASK_CLEANUP_STR}',))\n"
         )
-        f.write(f"{spaces}script = IptScriptGenerator.load(\n")
+        f.write(f"{spaces}script = IptStrictPipeline.load(\n")
         spaces = add_tab(spaces)
         f.write(f"{spaces}os.path.join(\n")
         spaces = add_tab(spaces)
@@ -267,7 +267,7 @@ class IptHolder(object):
         f.write(
             f'{spaces}self.assertIsInstance(op, IptBaseAnalyzer, "{op.name} must inherit from IptBaseAnalyzer")\n'
         )
-        f.write(f"{spaces}script = IptScriptGenerator.load(\n")
+        f.write(f"{spaces}script = IptStrictPipeline.load(\n")
         spaces = add_tab(spaces)
         f.write(f"{spaces}os.path.join(\n")
         spaces = add_tab(spaces)

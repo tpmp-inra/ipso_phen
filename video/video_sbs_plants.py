@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 import tools.db_wrapper as dbw
 from ip_base.ip_abstract import AbstractImageProcessor
 from ip_base.ipt_functional import call_ipt
-from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_strict_pipeline import IptStrictPipeline
 from ip_base import ip_common as ipc
 from tools.common_functions import print_progress_bar
 
@@ -43,7 +43,7 @@ def build_masked_image(
     image_path: str,
     main_wrapper: AbstractImageProcessor = None,
     index: tuple = (0,),
-    script: IptScriptGenerator = None,
+    script: IptStrictPipeline = None,
 ):
     wrapper = AbstractImageProcessor(image_path)
     ret = script.process_image(wrapper=wrapper)
@@ -75,7 +75,7 @@ def build_fixed_image(
     image_path: str,
     main_wrapper: AbstractImageProcessor = None,
     index: tuple = (0,),
-    script: IptScriptGenerator = None,
+    script: IptStrictPipeline = None,
 ):
     wrapper = AbstractImageProcessor(image_path)
     script.fix_exposure(wrapper=wrapper, use_last_result=False)
@@ -123,7 +123,7 @@ def main():
 
     fnt = cv2.FONT_HERSHEY_DUPLEX
 
-    script_ = IptScriptGenerator.load(SCRIPT_PATH)
+    script_ = IptStrictPipeline.load(SCRIPT_PATH)
     script_.threshold_only = True
     script_.build_mosaic = False
     script_.display_images = False

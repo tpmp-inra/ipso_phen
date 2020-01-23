@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_analyze_object import IptAnalyzeObject
 from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_strict_pipeline import IptStrictPipeline
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 
 import ip_base.ip_common as ipc
@@ -43,7 +43,7 @@ class TestIptAnalyzeObject(unittest.TestCase):
         self.assertIsInstance(
             op, IptBaseAnalyzer, "Analyze object must inherit from IptBaseAnalyzer"
         )
-        script = IptScriptGenerator.load(
+        script = IptStrictPipeline.load(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",

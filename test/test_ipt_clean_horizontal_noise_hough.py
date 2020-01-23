@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_clean_horizontal_noise_hough import IptCleanHorizontalNoiseHough
 from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_strict_pipeline import IptStrictPipeline
 import ip_base.ip_common as ipc
 
 
@@ -40,7 +40,7 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
         """Test that when using the basic mask generated script this tool produces a mask"""
         op = IptCleanHorizontalNoiseHough()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
-        script = IptScriptGenerator.load(
+        script = IptStrictPipeline.load(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
