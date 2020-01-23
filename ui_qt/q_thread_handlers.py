@@ -12,7 +12,7 @@ from class_pipelines.ip_factory import ipo_factory
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import format_time, force_directories
 from file_handlers.fh_base import file_handler_factory
-from ui import ui_consts
+from ui_qt import ui_consts
 
 
 class IpsoRunnableSignals(QObject):

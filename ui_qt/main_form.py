@@ -16,12 +16,15 @@ from timeit import default_timer as timer
 from typing import Any
 import shutil
 import subprocess
+from version import __version__
 
 import cv2
 import numpy as np
 import pandas as pd
 import pkg_resources
 import psutil
+from unidecode import unidecode
+
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtCore import (
     QObject,
@@ -82,18 +85,20 @@ from PyQt5.QtWidgets import (
     QTableView,
     qApp,
 )
-from unidecode import unidecode
 
-import ip_base.ip_common as ipc
-import tools.db_wrapper as dbw
-from class_pipelines.ip_factory import ipo_factory
-from file_handlers.fh_base import file_handler_factory
 from ip_base.ip_abstract import AbstractImageProcessor
 from ip_base.ipt_abstract import IptBase, IptParamHolder
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
-from ip_base.ipt_script_generator import IptScriptGenerator
+from ip_base.ipt_strict_pipeline import IptStrictPipeline
+from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
+import ip_base.ip_common as ipc
+
+from class_pipelines.ip_factory import ipo_factory
+
+from file_handlers.fh_base import file_handler_factory
+
 from tools.regions import RectangleRegion, AbstractRegion
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import (
@@ -103,14 +108,16 @@ from tools.common_functions import (
     natural_keys,
     open_file,
 )
+import tools.db_wrapper as dbw
 from tools.error_holder import ErrorHolder
 from tools.paths_factory import get_folders_paths
 from tools.pipeline_processor import PipelineProcessor
-from ui import ui_consts
-from ui.about_form import Ui_about_dialog
-from ui.frm_folder_selector import Ui_folder_selector
-from ui.frm_new_tool import Ui_dlg_new_tool
-from ui.q_components import (
+
+from ui_qt import ui_consts
+from ui_qt.about_form import Ui_about_dialog
+from ui_qt.frm_folder_selector import Ui_folder_selector
+from ui_qt.frm_new_tool import Ui_dlg_new_tool
+from ui_qt.q_components import (
     CTreeWidget,
     CTreeWidgetItem,
     QCheckBoxWthParam,
@@ -126,9 +133,9 @@ from ui.q_components import (
     QColorDelegate,
     QImageDrawerDelegate,
     QImageDatabaseModel,
+    PipelineModel,
 )
-from ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
-from version import __version__
+from ui_qt.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 
 try:
     import pydevd
@@ -137,9 +144,10 @@ try:
 except ImportError:
     DEBUGGING = False
 
-qtCreatorFile = "./main_form.ui"
 
-Ui_MainWindow, QtBaseClass = uic.loadUiType(qtCreatorFile)
+Ui_MainWindow, QtBaseClass = uic.loadUiType(
+    uifile="./ui_qt/main_form.ui", from_imports=True, import_from="ui_qt"
+)
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
@@ -805,6 +813,29 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 tool_menu.triggered[QAction].connect(self.on_menu_tool_selection)
                 tool_menu.setToolTipsVisible(True)
                 self.bt_select_tool.setMenu(tool_menu)
+
+            if hasattr(self, "bt_pp_select_tool"):
+                tool_menu = QMenu()
+                for use_case in self._ip_tools_holder.use_cases:
+                    if use_case == "none":
+                        continue
+                    # Menu items
+                    use_case_root = tool_menu.addMenu(use_case)
+                    use_case_root.setToolTip(ipc.tool_group_hints.get(use_case, ""))
+                    op_lst = self._ip_tools_holder.list_by_use_case(use_case)
+                    for op in op_lst:
+                        act = QAction(op.name, self)
+                        act.setToolTip(op.hint)
+                        act.setEnabled(
+                            op.input_type != ipc.IO_NONE and op.output_type != ipc.IO_NONE
+                        )
+                        update_font_(op, act)
+                        use_case_root.addAction(act)
+                    use_case_root.setToolTipsVisible(True)
+                tool_menu.triggered[QAction].connect(self.on_menu_tool_selection)
+                tool_menu.setToolTipsVisible(True)
+                self.bt_pp_select_tool.setMenu(tool_menu)
+
             for use_case in self._ip_tools_holder.use_cases:
                 if use_case == "none":
                     continue
@@ -990,6 +1021,20 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.rb_pp_default_process.clicked.connect(self.on_rb_pp_default_process)
         self.rb_pp_active_script.clicked.connect(self.on_rb_pp_active_script)
         self.rb_pp_load_script.clicked.connect(self.on_rb_pp_load_script)
+
+        # Pipeline editor V2
+        self.bt_pp_up.setEnabled(False)
+        self.bt_pp_down.setEnabled(False)
+        self.bt_pp_delete.setEnabled(False)
+        self.bt_pp_new.clicked.connect(self.on_bt_pp_new)
+        self.bt_pp_load.clicked.connect(self.on_bt_pp_load)
+        self.bt_pp_save.clicked.connect(self.on_bt_pp_save)
+        self.bt_pp_up.clicked.connect(self.on_bt_pp_up)
+        self.bt_pp_down.clicked.connect(self.on_bt_pp_down)
+        self.bt_pp_delete.clicked.connect(self.on_bt_pp_delete)
+        self.bt_pp_add_tool.clicked.connect(self.on_bt_pp_add_tool)
+        self.bt_pp_add_group.clicked.connect(self.on_bt_pp_add_group)
+        self.bt_pp_run.clicked.connect(self.on_bt_pp_run)
 
         self.sl_pp_thread_count.setMaximum(mp.cpu_count())
         self.sl_pp_thread_count.setMinimum(1)
@@ -1406,7 +1451,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         in_time = timer()
         if in_time - self._last_process_events > 0.2:
             self._last_process_events = in_time
-            app.processEvents()
+            qApp.processEvents()
 
     def global_progress_start(self, add_stop_button=False):
         """Displays progress bar and stop button (optional) in status bar
@@ -2460,6 +2505,66 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         except Exception as e:
             self.log_exception(f"Unable to output code: {repr(e)}")
 
+    def on_tv_pp_view_selection_changed(self, selected, deselected):
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is None:
+            enable_buttons = False
+        elif len(selected.indexes()) == 0:
+            enable_buttons = False
+        else:
+            enable_buttons = True
+            for index in selected.indexes():
+                if index.parent().internalPointer() is None:
+                    enable_buttons = False
+                    break
+                nd = model.get_item(index).node_data
+                if not (isinstance(nd, ModuleNode) or isinstance(nd, GroupNode)):
+                    enable_buttons = False
+                    break
+
+        self.bt_pp_up.setEnabled(enable_buttons)
+        self.bt_pp_down.setEnabled(enable_buttons)
+        self.bt_pp_delete.setEnabled(enable_buttons)
+
+    def on_bt_pp_new(self):
+        pp = LoosePipeline(name="Test", description="Test pipeline added description")
+        pp.add_module(self.current_tool)
+        gp = pp.add_group(merge_mode="AND")
+        gp.add_module(self.current_tool)
+        self.pipeline = pp
+
+    def on_bt_pp_load(self):
+        pass
+
+    def on_bt_pp_save(self):
+        pass
+
+    def on_bt_pp_up(self):
+        pass
+
+    def on_bt_pp_down(self):
+        pass
+
+    def on_bt_pp_delete(self):
+        pass
+
+    def on_bt_pp_add_tool(self):
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is not None:
+            model.add_module(
+                selected_items=self.tv_pp_view.selectedIndexes(),
+                module=self.current_tool,
+                enabled=True
+            )
+
+    def on_bt_pp_add_group(self):
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is not None:
+            model.add_group(selected_items=self.tv_pp_view.selectedIndexes())
+
+    def on_bt_pp_run(self):
+        pass
+
     @pyqtSlot()
     def on_bt_pp_reset(self):
         self.le_pp_output_folder.setText(self.dynamic_folders["pp_output"])
@@ -3062,7 +3167,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         image_data: dict,
         is_batch_process: bool,
         ipt: IptParamHolder,
-        script: IptScriptGenerator,
+        script: IptStrictPipeline,
         exec_param: int,
     ):
         if self.act_settings_sir_keep.isChecked():
@@ -4222,8 +4327,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
             self.on_bt_clear_pipeline()
             try:
-                script_ = IptScriptGenerator.load(file_name_)
-                if isinstance(script_, IptScriptGenerator):
+                script_ = IptStrictPipeline.load(file_name_)
+                if isinstance(script_, IptStrictPipeline):
                     self.script_generator = script_
                     if self.script_generator.last_error.error_count > 0:
                         self.update_feedback(
@@ -4509,7 +4614,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             if hasattr(widget, "rowCount"):
                 while widget.rowCount() > 0:
                     widget.removeRow(0)
-            elif hasattr(widget, 'clear'):
+            elif hasattr(widget, "clear"):
                 widget.clear()
 
     def widget_set_current_index(self, widget, index):
@@ -5037,12 +5142,17 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 for ipt_ in lst:
                     if ipt_.name == value.name:
                         self.bt_select_tool.setText(ipt_.name)
+                        self.bt_pp_select_tool.setText(ipt_.name)
                     for p in ipt_.gizmos:
                         p.clear_widgets()
                 for i in reversed(range(self.gl_tool_params.count())):
                     self.gl_tool_params.itemAt(i).widget().setParent(None)
                 for i in reversed(range(self.gl_grid_search_params.count())):
                     self.gl_grid_search_params.itemAt(i).widget().setParent(None)
+
+                self.bt_pp_add_tool.setEnabled(
+                    value.input_type != ipc.IO_NONE and value.output_type != ipc.IO_NONE
+                )
 
                 # Update help browser
                 self.txtb_tool_help.clear()
@@ -5174,7 +5284,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     @property
     def script_generator(self):
         if self._script_generator is None:
-            self._script_generator = IptScriptGenerator(use_cache=self.use_pipeline_cache)
+            self._script_generator = IptStrictPipeline(use_cache=self.use_pipeline_cache)
         self._script_generator.image_output_path = self.static_folders["image_output"]
         self._script_generator.use_cache = self.use_pipeline_cache
         return self._script_generator
@@ -5183,6 +5293,21 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def script_generator(self, value):
         self._script_generator = value
         self.tv_queued_tools.script_generator = value
+
+    @property
+    def pipeline(self) -> LoosePipeline:
+        model = self.tv_pp_view.model()
+        if model is not None:
+            return model.pipeline
+        else:
+            return None
+
+    @pipeline.setter
+    def pipeline(self, value: LoosePipeline):
+        self.tv_pp_view.setModel(PipelineModel(value))
+        selectionModel = self.tv_pp_view.selectionModel()
+        selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
+        print('duck')
 
     @property
     def current_database(self):
@@ -5240,12 +5365,3 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     pass
                 finally:
                     self._updating_combo_boxes = False
-
-
-if __name__ == "__main__":
-    """Nothing much to say
-    """
-    app = QtWidgets.QApplication(sys.argv)
-    main_form = IpsoMainForm()
-    main_form.show()
-    sys.exit(app.exec_())

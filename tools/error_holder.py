@@ -51,10 +51,10 @@ class ErrorHolder(object):
         return f"{repr(self.owner)} {repr(self.error_list)}"
 
     def to_html(self):
-        owner_str = str(self.owner).replace('\n', '<br>')
+        owner_str = str(self.owner).replace("\n", "<br>")
         if self.error_count == 0:
             return f"{owner_str}: No error detected"
-        else:            
+        else:
             return (
                 f"{owner_str}:<ul>"
                 + "".join(f"<li>{str(error_item)}</li>" for error_item in self.error_list)

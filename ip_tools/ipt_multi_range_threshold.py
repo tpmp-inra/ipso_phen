@@ -181,7 +181,7 @@ class IptMultiRangeThreshold(IptBase):
                 selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if len(rois) > 0:
-                self.result = wrapper.apply_roi_list(img=self.result, rois=rois)
+                self.result = wrapper.keep_rois(self.result, rois)
                 wrapper.store_image(image=self.result, text="rois_applied")
 
             if build_mosaic:

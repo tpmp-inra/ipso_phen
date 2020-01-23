@@ -126,7 +126,7 @@ class SettingsHolder(IptParamHolder):
                 p.clear_widgets()
 
 
-class IptScriptGenerator(object):
+class IptStrictPipeline(object):
     def __init__(self, **kwargs):
         self._ip_operators = kwargs.get("_ip_operators", [])
         self._target_data_base = kwargs.get("_target_data_base", None)
@@ -141,7 +141,7 @@ class IptScriptGenerator(object):
         return json.dumps(self.to_json(self.name), indent=2, sort_keys=False)
 
     def __str__(self):
-        return f'Pipeline {self.name}'
+        return f"Pipeline {self.name}"
 
     @staticmethod
     def _init_features():
@@ -180,27 +180,23 @@ class IptScriptGenerator(object):
         res._settings = SettingsHolder(**saved_dict["settings"])
         res.name = saved_dict["name"]
         for module in saved_dict["ip_modules"]:
-            tool_dict = module["module"]
-            class_name = tool_dict[CLASS_NAME_KEY]
-            module_name = tool_dict[MODULE_NAME_KEY]
-            __import__(module_name)
-            for _, obj in inspect.getmembers(sys.modules[module_name]):
-                if inspect.isclass(obj) and (obj.__name__ == class_name):
-                    try:
-                        res.ip_operators.append(
-                            dict(
-                                tool=obj(**tool_dict[PARAMS_NAME_KEY]),
-                                enabled=module["enabled"],
-                                kind=module["kind"],
-                                uuid=module["uuid"],
-                                last_result=None,
-                            )
-                        )
-                    except Exception as e:
-                        res.last_error.add_error(
-                            new_error_text=f"Failed to load {module['name']}: {repr(e)}",
-                            new_error_kind="pipeline_load_error",
-                        )
+            tool = IptBase.from_json(module["module"])
+            if isinstance(tool, Exception):
+                res.last_error.add_error(
+                    new_error_text=f"Failed to load {module['name']}: {repr(tool)}",
+                    new_error_kind="pipeline_load_error",
+                )
+            elif isinstance(tool, IptBase):
+                res.ip_operators.append(
+                    dict(
+                        tool=tool,
+                        enabled=module["enabled"],
+                        kind=module["kind"],
+                        uuid=module["uuid"],
+                        last_result=None,
+                    )
+                )
+
         return res
 
     @classmethod
@@ -325,7 +321,7 @@ class IptScriptGenerator(object):
             return None
 
     def copy(self, keep_last_res=False):
-        ret = IptScriptGenerator(use_cache=self.use_cache)
+        ret = IptStrictPipeline(use_cache=self.use_cache)
         ret._target_data_base = self._target_data_base
         ret._settings = self._settings.copy()
         ret.image_output_path = self.image_output_path
@@ -729,7 +725,7 @@ class IptScriptGenerator(object):
                     else:
                         self.last_error.add_error(
                             new_error_text=f'Failed to process {tool["tool"].name}',
-                            new_error_kind='pipeline_process_error'
+                            new_error_kind="pipeline_process_error",
                         )
                         masks_failed_cpt += 1
                     current_step = self.add_progress(
@@ -753,7 +749,7 @@ class IptScriptGenerator(object):
                     wrapper.error_holder.add_error("Unable to merge coarse masks")
                     self.last_error.add_error(
                         new_error_text="Unable to merge coarse masks",
-                        new_error_kind='pipeline_process_error'
+                        new_error_kind="pipeline_process_error",
                     )
                     res = False
                     return
@@ -793,7 +789,7 @@ class IptScriptGenerator(object):
                             res = False
                             self.last_error.add_error(
                                 new_error_text=f'Failed to process {tool["tool"].name}',
-                                new_error_kind='pipeline_process_error'
+                                new_error_kind="pipeline_process_error",
                             )
                         else:
                             wrapper.mask = tmp_mask
@@ -904,7 +900,7 @@ class IptScriptGenerator(object):
                     else:
                         self.last_error.add_error(
                             new_error_text=f'{tool["tool"].name} failed to extract features',
-                            new_error_kind='pipeline_process_error'
+                            new_error_kind="pipeline_process_error",
                         )
                     current_step = self.add_progress(
                         progress_callback,
@@ -926,7 +922,7 @@ class IptScriptGenerator(object):
                     else:
                         self.last_error.add_error(
                             new_error_text=f'{tool["tool"].name} failed to generate images',
-                            new_error_kind='pipeline_process_error'
+                            new_error_kind="pipeline_process_error",
                         )
                     current_step = self.add_progress(
                         progress_callback, current_step, total_steps, "Copying images", wrapper,
@@ -1398,7 +1394,7 @@ class IptScriptGenerator(object):
 
         code_ += f'{ws_ct}print("Done.")'
 
-        return code_    
+        return code_
 
     @staticmethod
     def code_footer():

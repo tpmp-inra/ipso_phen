@@ -4,7 +4,7 @@ from datetime import datetime as dt
 import numpy as np
 import pandas as pd
 
-from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel
+from PyQt5.QtCore import Qt, pyqtSignal, QAbstractTableModel, QAbstractItemModel, QModelIndex
 
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -28,6 +28,8 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QImage, QPixmap, QBrush, QPen, QPalette, QColor
 
 from ip_base import ip_common as ipc
+from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode, PipelineSettings
+from ip_base.ipt_abstract import IptParam, IptParamHolder, IptBase
 from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 
 
@@ -582,7 +584,9 @@ class QImageDrawerDelegate(QItemDelegate):
         painter.setBrush(QBrush(bg_color))
         painter.drawRect(option.rect)
         painter.setPen(QPen(fg_color))
-        painter.drawText(option.rect, Qt.AlignVCenter | Qt.AlignCenter, str(index.data(Qt.DisplayRole)))
+        painter.drawText(
+            option.rect, Qt.AlignVCenter | Qt.AlignCenter, str(index.data(Qt.DisplayRole))
+        )
 
         painter.restore()
 
@@ -752,3 +756,269 @@ class QImageDatabaseModel(QAbstractTableModel):
         if col < 0:
             return None
         return self.images.iloc[row_number, col]
+
+
+class TreeNode(object):
+    def __init__(self, parent, row):
+        self.parent = parent
+        self.row = row
+        self.children = self._getChildren()
+
+    def _getChildren(self):
+        raise NotImplementedError()
+
+    def child(self, index: int):
+        return self.children[index] if 0 <= index < len(self.children) else None
+
+    def child_count(self):
+        return len(self.children)
+
+    def insert_children(self, row, data):
+        raise NotImplementedError()
+
+    def index(self):
+        return 0 if self.parent is None else self.parent.index(self)
+
+
+class TreeModel(QAbstractItemModel):
+    def __init__(self):
+        QAbstractItemModel.__init__(self)
+        self.rootNodes = self._getRootNodes()
+
+    def _getRootNodes(self):
+        raise NotImplementedError()
+
+    def index(self, row, column, parent):
+        if not parent.isValid():
+            return self.createIndex(row, column, self.rootNodes[row])
+        parentNode = parent.internalPointer()
+        return self.createIndex(row, column, parentNode.children[row])
+
+    def get_item(self, index: QModelIndex) -> TreeNode:
+        return index.internalPointer() if index.isValid() else QModelIndex().internalPointer()
+
+    def parent(self, index):
+        node = self.get_item(index)
+        if node.parent is None:
+            return QModelIndex()
+        else:
+            return self.createIndex(node.parent.row, 0, node.parent)
+
+    def reset(self):
+        self.rootNodes = self._getRootNodes()
+        super().reset(self)
+
+
+class PipelineNode(TreeNode):
+    def __init__(self, node_data, parent, row, checked: bool = True):
+        self.node_data = node_data
+        TreeNode.__init__(self, parent, row)
+
+    def _getChildren(self):
+        if isinstance(self.node_data, str):
+            return []
+        elif isinstance(self.node_data, ModuleNode):
+            return [
+                PipelineNode(node_data=gizmo, parent=self, row=index)
+                for index, gizmo in enumerate(self.node_data.tool.gizmos)
+            ]
+        elif isinstance(self.node_data, PipelineSettings):
+            return [
+                PipelineNode(node_data=gizmo, parent=self, row=index)
+                for index, gizmo in enumerate(self.node_data.gizmos)
+            ]
+        elif isinstance(self.node_data, IptParamHolder):
+            return [
+                PipelineNode(node_data=gizmo, parent=self, row=index)
+                for index, gizmo in enumerate(self.node_data.gizmos)
+            ]
+        elif isinstance(self.node_data, IptParam):
+            return []
+        elif isinstance(self.node_data, GroupNode):
+            return [
+                PipelineNode(node_data=node, parent=self, row=index, checked=node.enabled)
+                for index, node in enumerate(self.node_data.nodes)
+            ]
+        else:
+            return []
+
+    def insert_children(self, row, data):
+        try:
+            self.children.insert(row, PipelineNode(node_data=data, parent=self, row=row))
+        except Exception as e:
+            return False
+        else:
+            return True
+
+    @property
+    def enabled(self):
+        if isinstance(self.node_data, ModuleNode):
+            return 2 if self.node_data.enabled != 0 else 0
+        elif isinstance(self.node_data, GroupNode):
+            return self.node_data.enabled
+        else:
+            return 2
+
+    @enabled.setter
+    def enabled(self, value):
+        if hasattr(self.node_data, "enabled"):
+            self.node_data.enabled = value
+
+
+class PipelineModel(TreeModel):
+    def __init__(self, pipeline):
+        self.pipeline = pipeline
+        TreeModel.__init__(self)
+
+    def _getRootNodes(self):
+        return [
+            PipelineNode(
+                node_data=f"Description:\n{self.pipeline.description}", parent=None, row=0
+            ),
+            PipelineNode(node_data=self.pipeline.settings, parent=None, row=1),
+            PipelineNode(node_data=self.pipeline.root, parent=None, row=2),
+        ]
+
+    def rowCount(self, parent):
+        data: TreeNode = parent.internalPointer()
+        return 3 if data is None else data.child_count()
+
+    def columnCount(self, parent):
+        return 1
+
+    def data(self, index, role):
+        if index.column() == 0:
+            node = self.get_item(index)
+            if role == Qt.DisplayRole:
+                nd = node.node_data
+                if isinstance(nd, str):
+                    return nd
+                elif isinstance(nd, PipelineSettings):
+                    return "Settings"
+                elif isinstance(nd, IptBase):
+                    return nd.name
+                elif isinstance(nd, IptParam):
+                    return str(nd)
+                elif isinstance(nd, GroupNode):
+                    return f"{nd.name} - IN: {ipc.io_type_to_str(nd.input_type)}, OUT: {ipc.io_type_to_str(nd.output_type)}"
+                elif isinstance(nd, ModuleNode):
+                    return f"{nd.tool.name} - IN: {ipc.io_type_to_str(nd.input_type)}, OUT: {ipc.io_type_to_str(nd.output_type)}"
+                else:
+                    return "no data"
+            elif role == Qt.ToolTipRole:
+                nd = node.node_data
+                if isinstance(nd, str):
+                    return nd
+                elif isinstance(nd, PipelineSettings):
+                    return "Settings: Set pipeline behavior"
+                elif isinstance(nd, IptBase):
+                    return nd.hint
+                elif isinstance(nd, IptParam):
+                    return nd.hint
+                elif isinstance(nd, GroupNode):
+                    return f"{nd.name} - IN: {ipc.io_type_to_str(nd.input_type)}, OUT: {ipc.io_type_to_str(nd.output_type)}"
+                elif isinstance(nd, ModuleNode):
+                    return nd.tool.hint
+                else:
+                    return "no data"
+            elif role == Qt.CheckStateRole:
+                nd = node.node_data
+                if node.parent is not None and (
+                    isinstance(nd, ModuleNode) or isinstance(nd, GroupNode)
+                ):
+                    return node.enabled
+            else:
+                return None
+        return None
+
+    def setData(self, index, value, role=Qt.EditRole):
+        if index.column() == 0:
+            if role == Qt.CheckStateRole:
+                item = self.get_item(index)
+                item.enabled = value
+                self.dataChanged.emit(index, index)
+                self.layoutChanged.emit()
+                return True
+
+        return super(TreeModel, self).setData(index, value, role)
+
+    def get_parent_group_node(self, selected_items, allow_wandering: bool = False):
+        if selected_items:
+            root = selected_items[0]
+            parent = root.parent()
+            if parent is None:
+                return self.createIndex(1, 0, self.rootNodes[2])
+            else:
+                nd = root.internalPointer().node_data
+                while not isinstance(nd, GroupNode):
+                    root = root.parent()
+                    if root is None or root.internalPointer() is None:
+                        return self.createIndex(1, 0, self.rootNodes[2])
+                    nd = root.internalPointer().node_data
+                return root
+        else:
+            return self.createIndex(1, 0, self.rootNodes[2])
+
+    def add_module(self, selected_items, module: IptBase, enabled: bool):
+        root = self.get_parent_group_node(selected_items=selected_items)
+
+        if root is not None:
+            node: PipelineNode = root.internalPointer()
+            nd = node.node_data
+            if isinstance(nd, GroupNode):
+                insert_index = nd.node_count
+                self.beginInsertRows(root, insert_index, insert_index)
+                node.insert_children(
+                    row=insert_index, data=nd.add_module(tool=module, enabled=enabled),
+                )
+                self.endInsertRows()
+                self.layoutChanged.emit()
+
+    def add_group(self, selected_items, merge_mode: str = ipc.MERGE_MODE_CHAIN, name: str = ""):
+        root = self.get_parent_group_node(selected_items=selected_items)
+
+        if root is not None:
+            node: PipelineNode = root.internalPointer()
+            nd = node.node_data
+            if isinstance(nd, GroupNode):
+                insert_index = nd.node_count
+                self.beginInsertRows(root, insert_index, insert_index)
+                node.insert_children(
+                    row=insert_index, data=nd.add_group(merge_mode=merge_mode, name=name),
+                )
+                self.endInsertRows()
+                self.layoutChanged.emit()
+
+    def remove_row(self, selected_items):
+        if len(selected_items) != 0:
+            return False
+        root = selected_items[0]
+        nd = root.internalPointer().node_data
+        if not (isinstance(nd, ModuleNode) or isinstance(nd, GroupNode)):
+            return False
+        rem_item = root.row()
+        self.beginRemoveRows(root, rem_item, rem_item)
+        node: PipelineNode = root.internalPointer()
+
+        self.endRemoveRows()
+        self.layoutChanged.emit()
+
+    def headerData(self, section, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole and section == 0:
+            return f"Pipeline: {self.pipeline.name}"
+        return None
+
+    def invalidate(self):
+        self.layoutChanged.emit()
+
+    def flags(self, index):
+        flags = super(self.__class__, self).flags(index)
+        flags |= Qt.ItemIsSelectable
+        flags |= Qt.ItemIsEnabled
+        flags |= Qt.ItemIsEditable
+        nd = self.get_item(index).node_data
+        if isinstance(nd, ModuleNode) or isinstance(nd, GroupNode):
+            flags |= Qt.ItemIsUserCheckable
+            if isinstance(nd, GroupNode):
+                flags |= Qt.ItemIsTristate
+        return flags
