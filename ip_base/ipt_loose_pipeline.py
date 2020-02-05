@@ -17,20 +17,6 @@ from tools.error_holder import ErrorHolder
 
 last_script_version = "0.1.0.0"
 
-IT_IMAGE = "input_type_image"
-IT_MASK = "input_type_mask"
-
-OT_IMAGE = "output_type_image"
-OT_MASK = "output_type_mask"
-OT_ROI = "output_type_roi"
-OT_DATA = "output_type_data"
-
-MO_AND = "merge_option_and"
-MO_OR = "merge_option_or"
-MO_CHAIN = "merge_option_chain"
-MO_NONE = "merge_option_none"
-
-
 pp_last_error = ErrorHolder("Loose pipeline")
 
 
@@ -79,15 +65,53 @@ class PipelineSettings(IptParamHolder):
         return len(self.gizmos)
 
 
-class ModuleNode(object):
+class Node(object):
     def __init__(self, **kwargs):
-        self.tool = kwargs.get("tool")
-        self.enabled = kwargs.get("enabled", 1)
         self.uuid = kwargs.get("uuid", str(uuid4()))
+        if not self.uuid:
+            self.uuid = str(uuid4())
         self.parent = kwargs.get("parent")
+        self.last_result = {}
+
+    @property
+    def root(self):
+        root = self
+        while root.parent is not None:
+            root = root.parent
+        return root
+
+
+class ModuleNode(Node):
+    def __init__(self, **kwargs):
+        Node.__init__(self, **kwargs)
+        self.enabled = kwargs.get("enabled", 1)
+        self.tool = kwargs.get("tool")
 
     def execute(self, **kwargs):
-        pass
+        if self.last_result is None:
+            call_back = kwargs.get("call_back", None)
+            wrapper = kwargs.get("wrapper")
+            if isinstance(wrapper, str):
+                wrapper = AbstractImageProcessor(wrapper)
+                wrapper.lock = True
+            wrapper.target_database = kwargs.get("target_data_base", None)
+            if self.tool.process_wrapper(wrapper=wrapper):
+                if hasattr(self.tool, "data_dict"):
+                    self.last_result["data"] = self.tool.data_dict
+                self.last_result["image"] = self.tool.result
+                if call_back is not None:
+                    call_back(True, f"Successfully processed {self.tool.name}", self)
+            else:
+                if call_back is not None:
+                    call_back(False, f"Failed to processed {self.tool.name}", self)
+        else:
+            if call_back is not None:
+                call_back(True, f"Retrieved from cache {self.tool.name}", self)
+
+        return self.last_result
+
+    def invalidate(self):
+        self.last_result = None
 
     def copy(self, parent):
         return ModuleNode(parent=parent, tool=self.tool, enabled=self.enabled, uuid=self.uuid,)
@@ -104,7 +128,7 @@ class ModuleNode(object):
         }
 
     @classmethod
-    def from_json(cls, json_data: dict):
+    def from_json(cls, parent, json_data: dict):
         if json_data["node_type"] != "module":
             return None
         tool = IptBase.from_json(json_data["tool"])
@@ -114,7 +138,9 @@ class ModuleNode(object):
                 new_error_kind="pipeline_load_error",
             )
         elif isinstance(tool, IptBase):
-            return ModuleNode(tool=tool, enabled=json_data["enabled"], uuid=json_data["uuid"])
+            return ModuleNode(
+                tool=tool, parent=parent, enabled=json_data["enabled"], uuid=json_data["uuid"]
+            )
 
     @property
     def input_type(self):
@@ -130,62 +156,281 @@ class ModuleNode(object):
         else:
             return ipc.IO_NONE
 
+    @property
+    def name(self):
+        if self.tool.has_param("roi_name"):
+            return f'{self.tool.name}: {self.tool.get_value_of("roi_name")}'
+        else:
+            return self.tool.name
 
-class GroupNode(object):
+
+class GroupNode(Node):
     def __init__(self, **kwargs):
+        Node.__init__(self, **kwargs)
         self.merge_mode = kwargs.get("merge_mode")
         self.name = kwargs.get("name", "")
         self.nodes = kwargs.get("nodes", [])
-        self.parent = kwargs.get("parent")
+        self.source = kwargs.get("source", "source_image")
+        self.no_delete = kwargs.get("no_delete", False)
 
     def add_module(self, tool, enabled=1, uuid: str = "") -> ModuleNode:
         new_module = ModuleNode(parent=self, tool=tool, enabled=enabled, uuid=uuid)
         self.nodes.append(new_module)
         return new_module
 
-    def add_group(self, merge_mode: str, name: str = ""):
+    def add_group(
+        self, merge_mode: str, name: str = "", source="", no_delete: bool = False, uuid: str = ""
+    ):
+        # Set source
+        if not source:
+            if len(self.nodes) > 0 and isinstance(self.nodes[-1], GroupNode):
+                source = self.nodes[-1].uuid
+            elif len(self.nodes) == 0:
+                source = "source"
+            else:
+                source = "last_output"
+        # Set unique name
+        root = self.root
+        group_names = [group.name for group in root.iter_items(types=("groups",))]
+        if not name or name in group_names:
+            if not name:
+                name = "Group"
+            i = 1
+            while f"{name} {i}" in group_names:
+                i += 1
+            name = f"{name} {i}"
+        # Create group
         new_node = GroupNode(
-            parent=self, merge_mode=merge_mode, name=name if name else f"Group {len(self.nodes)}",
+            parent=self, merge_mode=merge_mode, name=name, source=source, uuid=uuid
         )
         self.nodes.append(new_node)
         return new_node
 
     def remove_node(self, node: [int, object]):
         if isinstance(node, int):
-            del self.nodes[node]
-        elif isinstance(node, object):
-            self.nodes.remove(node)
+            node = self.nodes[node]
+        if not isinstance(node, GroupNode) or not node.no_delete:
+            del node
+
+    def insert_node(self, index, node):
+        if isinstance(node, GroupNode) or isinstance(node, ModuleNode):
+            self.nodes.insert(min(0, max(index, len(self.nodes))), node)
 
     def execute(self, **kwargs):
-        pass
+        if self.last_result is None:
+            call_back = kwargs.get("call_back", None)
+            wrapper = kwargs.get("wrapper")
+            if isinstance(wrapper, str):
+                wrapper = AbstractImageProcessor(wrapper)
+                wrapper.lock = True
+            wrapper.target_database = kwargs.get("target_data_base", None)
+            if self.source == "source":
+                wrapper.current_image = wrapper.source_image
+            elif self.source == "last_output":
+                nodes = self.root.as_pivot_list(index=self)
+                if len(nodes["before"]) > 0:
+                    last_image = nodes["before"][-1].last_result.get("image", None)
+                    if last_image is None:
+                        self.last_result = {}
+                        call_back(
+                            False, f"Failed to processed {self.tool.name}, missing input", self,
+                        )
+                        return self.last_result
+                    wrapper.current_image = last_image
+            else:
+                node = self.root.find_by_uuid(self.source)
+                if node is None or node.last_result.get("image", None) is None:
+                    self.last_result = {}
+                    call_back(
+                        False, f"Failed to processed {self.tool.name}, missing input", self,
+                    )
+                    return self.last_result
+                else:
+                    wrapper.current_image = node.last_result.get("image")
+
+            if self.merge_mode == ipc.MERGE_MODE_NONE:
+                for node in self.nodes:
+                    node.execute(wrapper=wrapper, call_back=call_back)
+            elif self.merge_mode == ipc.MERGE_MODE_CHAIN:
+                for node in self.nodes:
+                    res = node.execute(wrapper=wrapper, call_back=call_back)
+                    if res:
+                        if node.output_type == ipc.IO_IMAGE:
+                            wrapper.current_image = res["image"]
+                        elif node.output_type == ipc.IO_MASK:
+                            wrapper.mask = res["image"]
+                        elif node.output_type == ipc.IO_DATA:
+                            wrapper.csv_data_holder.data_list.update(res["data"])
+
+            elif self.merge_mode in [ipc.MERGE_MODE_AND, ipc.MERGE_MODE_OR]:
+                pass
+            else:
+                pass
+
+            self.last_result["image"] = wrapper.current_image
+            self.last_result["mask"] = wrapper.mask
+            self.last_result["data"] = wrapper.csv_data_holder.data_list
+        else:
+            return self.last_result
 
     def copy(self, parent):
         return GroupNode(
             parent=parent,
             merge_mode=self.merge_mode,
             name=self.name,
+            source=self.source,
             nodes=[node.copy(parent=self) for node in self.nodes],
         )
 
     def to_code(self, indent: int):
         pass
 
+    def get_parent(self, item):
+        for node in self.nodes:
+            if hasattr(node, "uuid"):
+                if item.uuid == node.uuid:
+                    return self
+            elif isinstance(node, GroupNode):
+                parent = node.get_parent(item)
+                if parent is not None:
+                    return parent
+        return None
+
     def to_json(self):
         return dict(
             node_type="group",
             merge_mode=self.merge_mode,
             name=self.name,
+            uuid=self.uuid,
+            source=self.source,
+            no_delete=self.no_delete,
             nodes=[node.to_json() for node in self.nodes],
         )
 
     @classmethod
     def from_json(cls, parent, json_data: dict):
-        return GroupNode(
+        res = GroupNode(
             parent=parent,
             merge_mode=json_data["merge_mode"],
             name=json_data["name"],
-            nodes=json_data["nodes"].from_json(),
+            uuid=json_data["uuid"],
+            no_delete=json_data["no_delete"],
+            source=json_data["source"],
         )
+        for node in json_data["nodes"]:
+            if node["node_type"] == "module":
+                res.nodes.append(ModuleNode.from_json(parent=res, json_data=node))
+            elif node["node_type"] == "group":
+                res.nodes.append(GroupNode.from_json(parent=res, json_data=node))
+            else:
+                pp_last_error.add_error(
+                    new_error_text=f"Unknown node type: {node['node_type']}",
+                    new_error_kind="pipeline_load_error",
+                )
+        return res
+
+    def modules(self):
+        return [node for node in self.nodes if isinstance(node, ModuleNode)]
+
+    def groups(self):
+        return [node for node in self.nodes if isinstance(node, GroupNode)]
+
+    def module(self, index) -> ModuleNode:
+        lst = self.modules()
+        if len(lst) > index:
+            return lst[index]
+        else:
+            return None
+
+    def group(self, index) -> Node:
+        lst = self.groups()
+        if len(lst) > index:
+            return lst[index]
+        else:
+            return None
+
+    def iter_items(self, types: tuple = ("groups", "modules")):
+        def parse_children_(parent):
+            for node in parent.nodes:
+                if (("groups" in types) and isinstance(node, GroupNode)) or (
+                    ("modules" in types) and isinstance(node, ModuleNode)
+                ):
+                    yield node
+                if isinstance(node, GroupNode):
+                    yield from parse_children_(node)
+
+        yield from parse_children_(self)
+
+    def as_pivot_list(self, index, types: tuple = ("groups", "modules")) -> dict:
+        """Splits all nodes in three classes
+            * before: all nodes before index
+            * pivot: index
+            * after: all nodes after index
+        """
+        nodes = [node for node in self.iter_items(types)]
+        if nodes.index(index) < 0:
+            return {}
+        res = {"before": [], "pivot": index, "after": []}
+        matched_uuid = False
+        for node in nodes:
+            if node.uuid == index.uuid:
+                matched_uuid = True
+                continue
+            if matched_uuid:
+                res["after"].append(node)
+            else:
+                res["before"].append(node)
+        return res
+
+    def find_by_uuid(self, uuid):
+        for node in self.iter_items():
+            if node.uuid == uuid:
+                return node
+        else:
+            return None
+
+    def find_by_name(self, name):
+        """ Returns the node that matches exactly the name
+        There's no warranty that names are unique"""
+        for node in self.iter_items():
+            if node.name == name:
+                return node
+        else:
+            return None
+
+    def check_input(self, node) -> bool:
+        if isinstance(node, GroupNode) and node.module_count > 0:
+            n = node.module(0)
+        else:
+            n = node
+        if isinstance(n, GroupNode):
+            return True
+        pivot_list = self.as_pivot_list(index=n, types=("modules"))
+        if not pivot_list:
+            return False
+        if len(pivot_list["before"]) > 0:
+            if n.input_type == ipc.IO_DATA:
+                needed_output = ipc.IO_DATA
+            elif n.input_type == ipc.IO_IMAGE:
+                return True
+            elif n.input_type == ipc.IO_MASK:
+                needed_output = ipc.IO_MASK
+            elif n.input_type == ipc.IO_NONE:
+                return True
+            elif n.input_type == ipc.IO_ROI:
+                needed_output = ipc.IO_ROI
+            for node in pivot_list["before"]:
+                if node.output_type in needed_output:
+                    return True
+            else:
+                return False
+        else:
+            return n.input_type in (ipc.IO_IMAGE)
+
+    def invalidate(self, node):
+        pivot_list = self.as_pivot_list(index=node, types=("modules"))
+        for node in pivot_list["after"]:
+            node.invalidate()
 
     @property
     def input_type(self):
@@ -204,6 +449,14 @@ class GroupNode(object):
     @property
     def node_count(self):
         return len(self.nodes)
+
+    @property
+    def group_count(self):
+        return len(self.groups())
+
+    @property
+    def module_count(self):
+        return len(self.modules())
 
     @property
     def enabled(self):
@@ -241,6 +494,7 @@ class LoosePipeline(object):
         self.root: GroupNode = kwargs.get(
             "Root group", GroupNode(merge_mode=ipc.MERGE_MODE_CHAIN, name="root")
         )
+        self.set_template(kwargs.get("template", None))
         self.target_data_base = kwargs.get("target_data_base", None)
         self.settings = kwargs.get("settings", PipelineSettings())
         self.last_wrapper_luid = ""
@@ -248,12 +502,96 @@ class LoosePipeline(object):
         self.image_output_path = kwargs.get("image_output_path", "")
         self.name = kwargs.get("name", "")
         self.description = kwargs.get("description", "Please insert description")
+        self.outputs = {}
 
     def __repr__(self):
         return json.dumps(self.to_json(), indent=2, sort_keys=False)
 
     def __str__(self):
         return f"Pipeline {self.name}"
+
+    def set_template(self, template):
+        if isinstance(template, str):
+            if template == "default":
+                self.root.add_group(
+                    name="Fix image",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source="source",
+                    uuid="fix_image",
+                )
+                self.root.add_group(
+                    name="Pre process image",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source=self.root.group(0).uuid,
+                    uuid="pre_process_image",
+                )
+                self.root.add_group(
+                    name="Build mask",
+                    merge_mode=ipc.MERGE_MODE_AND,
+                    source=self.root.group(1).uuid,
+                    uuid="build_mask",
+                )
+                self.root.add_group(
+                    name="Clean mask",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source=self.root.group(1).uuid,
+                    uuid="clean_mask",
+                )
+                self.root.add_group(
+                    name="Extract features",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source=self.root.group(0).uuid,
+                    uuid="extract_features",
+                )
+            elif template == "legacy":
+                self.root.add_group(
+                    name="ROIs from raw image",
+                    merge_mode=ipc.MERGE_MODE_NONE,
+                    source="source",
+                    uuid="roi_raw",
+                )
+                self.root.add_group(
+                    name="Fix image",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source="source",
+                    uuid="fix_image",
+                )
+                self.root.add_group(
+                    name="Pre process image",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source="fix_image",
+                    uuid="pre_process_image",
+                )
+                self.root.add_group(
+                    name="ROIs from raw pre processed image",
+                    merge_mode=ipc.MERGE_MODE_NONE,
+                    source="pre_process_image",
+                    uuid="roi_pre_processed",
+                )
+                self.root.add_group(
+                    name="Build mask",
+                    merge_mode=ipc.MERGE_MODE_AND,
+                    source="pre_process_image",
+                    uuid="build_mask",
+                )
+                self.root.add_group(
+                    name="Clean mask",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source="pre_process_image",
+                    uuid="clean_mask",
+                )
+                self.root.add_group(
+                    name="Extract features",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source="fix_image",
+                    uuid="extract_features",
+                )
+                self.root.add_group(
+                    name="Build images",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source="fix_image",
+                    uuid="build_images",
+                )
 
     def save(self, file_name: str) -> bool:
         pp_last_error.clear()
@@ -262,7 +600,7 @@ class LoosePipeline(object):
                 json.dump(self.to_json(), f, indent=2)
         except Exception as e:
             pp_last_error.add_error(
-                new_error_text=f'Failed to save script generator "{repr(e)}"',
+                new_error_text=f'Failed to save pipeline "{repr(e)}"',
                 new_error_kind="pipeline_save_error",
             )
             return False
@@ -272,7 +610,7 @@ class LoosePipeline(object):
     @classmethod
     def load(cls, file_name: str):
         with open(file_name, "r") as f:
-            res = cls.from_json(json_data=json.load(f))
+            return cls.from_json(json_data=json.load(f))
 
     def copy(self):
         lp = LoosePipeline(
@@ -285,14 +623,11 @@ class LoosePipeline(object):
         )
         lp.root = self.root.copy()
 
-    def add_group(self, merge_mode: str = ipc.MERGE_MODE_CHAIN, name: str = "") -> GroupNode:
-        return self.root.add_group(merge_mode=merge_mode, name=name)
+    def get_parent(self, item: [GroupNode, ModuleNode]) -> GroupNode:
+        return self.root.get_parent(item=item)
 
-    def add_module(self, tool, enabled=1, uuid: str = "") -> ModuleNode:
-        return self.root.add_module(tool=tool, enabled=enabled, uuid=uuid)
-
-    def execute(self, **kwargs):
-        pass
+    def remove_item(self, item: [GroupNode, ModuleNode]):
+        self.root.remove_node(item)
 
     def to_code(self):
         pass
@@ -306,37 +641,72 @@ class LoosePipeline(object):
             "version": last_script_version,
         }
         # Add settings
-        save_dict["settings"] = self._settings.params_to_dict()
+        save_dict["settings"] = self.settings.params_to_dict()
         # Add root node
         save_dict["root"] = self.root.to_json()
         return save_dict
 
     @classmethod
     def from_json(cls, json_data: dict):
-        res = cls()
         if json_data["title"].lower() == "ipso phen pipeline v2":
+            res = cls()
             res.name = json_data["name"]
             res.description = json_data["description"]
             res.settings = PipelineSettings(**json_data["settings"])
-            res.root = GroupNode.from_json(parent=res, json_data=json_data["root"])
+            res.root = GroupNode.from_json(parent=None, json_data=json_data["root"])
         elif json_data["title"].lower() == "ipso phen pipeline":
+            res = cls(template="default_groups")
             tmp = IptStrictPipeline.from_json(json_data=json_data)
+
             # Import basic data
             res.name = tmp.name
+            res.description = "Pipeline imported from old format, pleas check data"
+
             # Import settings
             for setting in res.settings.gizmos:
                 p = tmp.settings.find_by_name(setting.name)
                 if p is not None:
                     setting.value = p.value
+
+            # create groups
+            res.set_template(template="legacy")
+
             # Import nodes & modules
-            for k, v in tmp.group_tools(tool_only=False).items():
-                current_group = res.add_group(merge_mode=MO_NONE, name=k,)
-                for tool_dict in v:
-                    current_group.add_module(
+            for uuid, kinds in zip(
+                [
+                    "roi_raw",
+                    "fix_image",
+                    "pre_process_image",
+                    "roi_pre_processed",
+                    "build_mask",
+                    "clean_mask",
+                    "extract_features",
+                    "build_images",
+                ],
+                [
+                    ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
+                    [ipc.TOOL_GROUP_WHITE_BALANCE_STR, ipc.TOOL_GROUP_EXPOSURE_FIXING_STR],
+                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+                    ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
+                    ipc.TOOL_GROUP_THRESHOLD_STR,
+                    ipc.TOOL_GROUP_MASK_CLEANUP_STR,
+                    ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ],
+            ):
+                src_group = tmp.get_operators(constraints={"kind": kinds})
+                dst_group = res.root.find_by_uuid(uuid=uuid)
+                for tool_dict in src_group:
+                    dst_group.add_module(
                         tool=tool_dict["tool"].copy(),
                         enabled=tool_dict["enabled"],
                         uuid=tool_dict["uuid"],
                     )
+            res.root.find_by_uuid(uuid="build_mask").merge_mode = (
+                ipc.MERGE_MODE_AND if tmp.merge_method == "multi_and" else ipc.MERGE_MODE_OR
+            )
+
+        return res
 
     @property
     def node_count(self):

@@ -92,7 +92,7 @@ from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
 from ip_base.ipt_strict_pipeline import IptStrictPipeline
-from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
+from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode, pp_last_error
 import ip_base.ip_common as ipc
 
 from class_pipelines.ip_factory import ipo_factory
@@ -134,6 +134,8 @@ from ui_qt.q_components import (
     QImageDrawerDelegate,
     QImageDatabaseModel,
     PipelineModel,
+    PipelineDelegate,
+    build_widgets,
 )
 from ui_qt.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 
@@ -827,7 +829,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         act = QAction(op.name, self)
                         act.setToolTip(op.hint)
                         act.setEnabled(
-                            op.input_type != ipc.IO_NONE and op.output_type != ipc.IO_NONE
+                            bool(set(op.use_case).intersection(set(ipc.tool_groups_pipeline)))
                         )
                         update_font_(op, act)
                         use_case_root.addAction(act)
@@ -1034,7 +1036,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.bt_pp_delete.clicked.connect(self.on_bt_pp_delete)
         self.bt_pp_add_tool.clicked.connect(self.on_bt_pp_add_tool)
         self.bt_pp_add_group.clicked.connect(self.on_bt_pp_add_group)
-        self.bt_pp_run.clicked.connect(self.on_bt_pp_run)
+        self.bt_pp_run.clicked.connect(self.on_bt_pp_run)        
 
         self.sl_pp_thread_count.setMaximum(mp.cpu_count())
         self.sl_pp_thread_count.setMinimum(1)
@@ -2507,63 +2509,127 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def on_tv_pp_view_selection_changed(self, selected, deselected):
         model: PipelineModel = self.tv_pp_view.model()
-        if model is None:
-            enable_buttons = False
-        elif len(selected.indexes()) == 0:
-            enable_buttons = False
-        else:
-            enable_buttons = True
+        if model is not None and len(selected.indexes()) > 0:
             for index in selected.indexes():
-                if index.parent().internalPointer() is None:
-                    enable_buttons = False
-                    break
-                nd = model.get_item(index).node_data
-                if not (isinstance(nd, ModuleNode) or isinstance(nd, GroupNode)):
-                    enable_buttons = False
-                    break
+                current_node = index
+                break
+            else:
+                current_node = None
 
-        self.bt_pp_up.setEnabled(enable_buttons)
-        self.bt_pp_down.setEnabled(enable_buttons)
-        self.bt_pp_delete.setEnabled(enable_buttons)
+            if current_node is not None:
+                parent = index.parent().internalPointer()
+                if parent is not None:
+                    nd = model.get_item(index).node_data
+                    if isinstance(nd, ModuleNode) or isinstance(nd, GroupNode):
+                        self.bt_pp_delete.setEnabled(True)
+                        self.bt_pp_up.setEnabled(index.row() > 0)
+                        self.bt_pp_down.setEnabled(index.row() < len(parent.children) - 1)
+                        return
+
+        self.bt_pp_up.setEnabled(False)
+        self.bt_pp_down.setEnabled(False)
+        self.bt_pp_delete.setEnabled(False)
+
+    def pp_callback(self, result, msg, data):
+        if result is True:
+            self.update_feedback(status_message=msg, log_message=msg)
+            d = {
+                "plant_name": self._src_image_wrapper.plant,
+                "name": data.name,
+            }
+            if data.output_type == ipc.IO_IMAGE and data.get("image", None) is not None:
+                d["image"] = data.get("image")
+            if data.output_type == ipc.IO_MASK and data.get("mask", None) is not None:
+                d["image"] = data.get("mask")
+            if data.output_type == ipc.IO_DATA and data.get("data", None) is not None:
+                d["data"] = data.get("data")
+            self.cb_available_outputs.addItem(d["name"], d)
+        else:
+            self.update_feedback(status_message=msg, log_message=f"{ui_consts.LOG_ERROR_STR}: {msg}")
 
     def on_bt_pp_new(self):
-        pp = LoosePipeline(name="Test", description="Test pipeline added description")
-        pp.add_module(self.current_tool)
-        gp = pp.add_group(merge_mode="AND")
-        gp.add_module(self.current_tool)
+        pp = LoosePipeline(
+            name="None",
+            description="Double click to edit description",
+            # template='default_groups',
+        )
         self.pipeline = pp
 
     def on_bt_pp_load(self):
-        pass
+        file_name_ = QFileDialog.getOpenFileName(
+            parent=self,
+            caption="Load pipeline",
+            directory=self.dynamic_folders["pipeline"],
+            filter=_PIPELINE_FILE_FILTER,
+        )[0]
+        if file_name_:
+            self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
+            try:
+                self.pipeline = LoosePipeline.load(file_name=file_name_)
+            except Exception as e:
+                self.log_exception(f'Unable to load pipeline: "{repr(e)}"')
 
     def on_bt_pp_save(self):
-        pass
+        file_name_ = QFileDialog.getSaveFileName(
+            parent=self,
+            caption="Save pipeline",
+            directory=self.dynamic_folders["pipeline"],
+            filter=_PIPELINE_FILE_FILTER,
+        )[0]
+        if file_name_:
+            self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
+            if not file_name_.lower().endswith(".tipp") and not file_name_.lower().endswith(
+                ".json"
+            ):
+                file_name_ += ".tipp"
+            res = self.pipeline.save(file_name_)
+            if res:
+                self.update_feedback(
+                    status_message=f'Saved pipeline to: "{file_name_}"', use_status_as_log=True
+                )
+            else:
+                self.update_feedback(
+                    status_message='Failed to save pipline, cf. log for more details',
+                    log_message=pp_last_error.to_html()
+                )
 
     def on_bt_pp_up(self):
-        pass
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is not None:
+            model.move_up(selected_items=self.tv_pp_view.selectedIndexes())
 
     def on_bt_pp_down(self):
-        pass
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is not None:
+            model.move_down(selected_items=self.tv_pp_view.selectedIndexes())
 
     def on_bt_pp_delete(self):
-        pass
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is not None and self.tv_pp_view.selectedIndexes():
+            selected_node = self.tv_pp_view.selectedIndexes()[0]
+            model.removeRow(selected_node.row(), selected_node.parent())
 
     def on_bt_pp_add_tool(self):
         model: PipelineModel = self.tv_pp_view.model()
         if model is not None:
-            model.add_module(
+            added_index = model.add_module(
                 selected_items=self.tv_pp_view.selectedIndexes(),
                 module=self.current_tool,
                 enabled=True
             )
+            self.tv_pp_view.expand(added_index.parent())
 
     def on_bt_pp_add_group(self):
         model: PipelineModel = self.tv_pp_view.model()
         if model is not None:
-            model.add_group(selected_items=self.tv_pp_view.selectedIndexes())
+            added_index = model.add_group(selected_items=self.tv_pp_view.selectedIndexes())
+            self.tv_pp_view.expand(added_index.parent())
 
     def on_bt_pp_run(self):
-        pass
+        self.pipeline.root.execute(
+            wrapper=self.file_name,
+            call_back=self.pp_callback,
+        )
 
     @pyqtSlot()
     def on_bt_pp_reset(self):
@@ -2720,7 +2786,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             item.setToolTip(item.toolTip() + "\n\n" + str(log_data))
             if event_kind == "success":
                 item.setIcon(QIcon(":/annotation_level/resources/OK.png"))
-            if event_kind == "warning":
+            elif event_kind == "warning":
                 item.setIcon(QIcon(":/annotation_level/resources/Warning.png"))
             elif event_kind == "exception":
                 item.setIcon(QIcon(":/annotation_level/resources/Problem.png"))
@@ -3576,6 +3642,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     )
                     color = QColor(*ipc.bgr_to_rgb(colors[val]))
             image = df.iloc[current_row, df.columns.get_loc(src_path)]
+            image_columns = [df.iloc[current_row, df.columns.get_loc(c)] for c in list(df.columns) if "image" in c]
+            if image_columns:
+                image = ([image] + image_columns, color)
         else:
             image = None
 
@@ -4445,116 +4514,58 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         return res
 
     def init_param_widget(self, tool, param, allow_real_time: bool = True):
-        widget = None
+        return build_widgets(
+            tool=tool,
+            param=param,
+            allow_real_time=allow_real_time,
+            call_backs=dict(
+                set_text=self.widget_set_text,
+                set_value=self.widget_set_value,
+                add_items=self.widget_add_items,
+                set_range=self.widget_set_range,
+                set_checked=self.widget_set_checked,
+                set_name=self.widget_set_name,
+                set_tool_tip=self.widget_set_tool_tip,
+                clear=self.widget_clear,
+                update_table=self.widget_update_table,
+                set_current_index=self.widget_set_current_index,
+                connect_call_back=self.widget_connect,
+            ),
+            do_feedback=self.update_feedback,
+        )
+
+    def widget_connect(self, widget, param):
         if isinstance(param.allowed_values, dict):
-            label = QLabel(param.desc)
-            widget = QComboBoxWthParam(
-                tool=tool, param=param, label=label, allow_real_time=allow_real_time
-            )
             call_back = self.on_process_param_changed_cb
         elif isinstance(param.allowed_values, str):
             if param.allowed_values == "single_line_text_output":
-                label = QLabel(param.desc)
-                widget = QLineEdit()
-                widget.setReadOnly(True)
                 call_back = None
             elif param.allowed_values == "multi_line_text_output":
-                label = QLabel(param.desc)
-                widget = QTextBrowser()
-                widget.setMaximumHeight(72)
                 call_back = None
             elif param.allowed_values == "label":
-                label = QLabel(param.desc)
-                widget = None
                 call_back = None
             elif param.allowed_values == "table_output":
-                label = None
-                widget = QTableWidget()
-                widget.setColumnCount(len(param.desc))
-                widget.setHorizontalHeaderLabels(param.desc)
-                widget.horizontalHeader().setStretchLastSection(True)
-                widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
                 call_back = None
             elif param.allowed_values == "single_line_text_input":
-                label = QLabel(param.desc)
-                widget = QLineEditWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
                 call_back = self.on_text_input_param_changed
             elif param.allowed_values == "multi_line_text_input":
-                label = QLabel(param.desc)
-                widget = QTextBrowserWthParam(
-                    tool=tool, param=param, allow_real_time=allow_real_time
-                )
-                widget.setLineWrapMode(QTextEdit.NoWrap)
-                widget.setReadOnly(False)
-                widget.setMaximumHeight(72)
                 call_back = self.on_text_browser_input_param_changed
             elif param.allowed_values == "input_button":
-                label = None
-                widget = QPushButtonWthParam(
-                    tool=tool, param=param, allow_real_time=allow_real_time
-                )
                 call_back = self.on_process_param_clicked
             else:
-                self.update_feedback(
-                    status_message="Widget initialization: unknown param", use_status_as_log=True
-                )
-                return None, None
+                call_back = None
         elif isinstance(param.allowed_values, tuple) or isinstance(param.allowed_values, list):
             pa = tuple(param.allowed_values)
             if pa == (0, 1):
-                label = None
-                widget = QCheckBoxWthParam(
-                    tool=tool, param=param, label=label, allow_real_time=allow_real_time
-                )
                 call_back = self.on_process_param_changed_chk
             elif len(pa) == 2:
-                label = QLabel(param.desc)
-                if param.widget_type == "slider":
-                    widget = QSliderWthParam(
-                        tool=tool, param=param, label=label, allow_real_time=allow_real_time
-                    )
-                elif param.widget_type == "spin_box":
-                    widget = QSpinnerWthParam(
-                        tool=tool, param=param, label=label, allow_real_time=allow_real_time
-                    )
                 call_back = self.on_process_param_changed_sl
             else:
-                self.update_feedback(
-                    status_message="Widget initialization: unknown param", use_status_as_log=True
-                )
-                return None, None
+                call_back = None
         else:
-            self.update_feedback(
-                status_message="Widget initialization: unknown param", use_status_as_log=True
-            )
-            return None, None
-
-        if isinstance(tool, dict):
-            tool_name = tool["uuid"]
-        elif type(tool).__name__ == "SettingsHolder":
-            tool_name = "settings_holder"
-        else:
-            tool_name = tool.name
-        param.init(
-            tool_name=tool_name,
-            label=label,
-            widget=widget,
-            set_text=self.widget_set_text,
-            set_value=self.widget_set_value,
-            add_items=self.widget_add_items,
-            set_range=self.widget_set_range,
-            set_checked=self.widget_set_checked,
-            set_name=self.widget_set_name,
-            set_tool_tip=self.widget_set_tool_tip,
-            clear=self.widget_clear,
-            update_table=self.widget_update_table,
-            set_current_index=self.widget_set_current_index,
-        )
-
-        if param.is_input:
-            if widget is None:
-                pass
-            elif isinstance(param.allowed_values, dict):
+            call_back = None
+        if param.is_input and call_back is not None and widget is not None:
+            if isinstance(param.allowed_values, dict):
                 widget.currentIndexChanged.connect(call_back)
             elif isinstance(param.allowed_values, tuple):
                 if param.allowed_values == (0, 1):
@@ -4562,7 +4573,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 elif len(param.allowed_values) == 2:
                     widget.valueChanged.connect(call_back)
                 else:
-                    return False
+                    pass
             elif isinstance(param.allowed_values, str):
                 if call_back is not None:
                     if hasattr(widget, "textEdited"):
@@ -4571,8 +4582,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         widget.clicked.connect(call_back)
                     elif hasattr(widget, "insertPlainText"):
                         widget.textChanged.connect(call_back)
-
-        return widget, label
 
     def widget_set_text(self, widget, text):
         if widget is None:
@@ -5151,7 +5160,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.gl_grid_search_params.itemAt(i).widget().setParent(None)
 
                 self.bt_pp_add_tool.setEnabled(
-                    value.input_type != ipc.IO_NONE and value.output_type != ipc.IO_NONE
+                    bool(set(value.use_case).intersection(set(ipc.tool_groups_pipeline)))
                 )
 
                 # Update help browser
@@ -5304,10 +5313,31 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     @pipeline.setter
     def pipeline(self, value: LoosePipeline):
-        self.tv_pp_view.setModel(PipelineModel(value))
-        selectionModel = self.tv_pp_view.selectionModel()
-        selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
-        print('duck')
+        self.tv_pp_view.setModel(
+            PipelineModel(
+                pipeline=value,
+                call_backs=dict(
+                    set_text=self.widget_set_text,
+                    set_value=self.widget_set_value,
+                    add_items=self.widget_add_items,
+                    set_range=self.widget_set_range,
+                    set_checked=self.widget_set_checked,
+                    set_name=self.widget_set_name,
+                    set_tool_tip=self.widget_set_tool_tip,
+                    clear=self.widget_clear,
+                    update_table=self.widget_update_table,
+                    set_current_index=self.widget_set_current_index,
+                    connect_call_back=self.widget_connect,
+                ),
+                do_feedback=self.update_feedback,
+            )
+        )
+        if value is not None:
+            model = self.tv_pp_view.model()
+            if model is not None:
+                selectionModel = self.tv_pp_view.selectionModel()
+                selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
+                self.tv_pp_view.setItemDelegate(PipelineDelegate(parent=self.tv_pp_view))
 
     @property
     def current_database(self):

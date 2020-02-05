@@ -58,14 +58,7 @@ class IptThresholdDistance(IptBase):
         self.add_tool_target()
         self.add_roi_selector()
         self.add_separator("s2")
-        self.add_combobox(
-            name="post_processing",
-            desc="Postprocessing option",
-            default_value="none",
-            values=dict(none="None", threshold="Threshold", false_color="Use false color"),
-        )
         self.add_color_map_selector()
-        self.add_binary_threshold()
         self.add_separator("s5")
         self.add_text_overlay(0)
         self.add_combobox(
@@ -83,35 +76,7 @@ class IptThresholdDistance(IptBase):
         )
 
     def process_wrapper(self, **kwargs):
-        """
-        Distance threshold:
-        Build a mask from distance calculation
-        Real time : True
 
-        Keyword Arguments (in parentheses, argument name):
-            * Activate tool (enabled): Toggle whether or not tool is active
-            * Channel (channel_1): 
-            * Transformation applied to channel 1 (transformation_1): 
-            * Channel (channel_2): 
-            * Transformation applied to channel 2 (transformation_2): 
-            * Channel (channel_3): 
-            * Transformation applied to channel 3 (transformation_3): 
-            * Distance origin (origin): Can be zero, the mean or median colour or a selected one.
-            * Distance (distance): 
-            * Target IPT (tool_target): no clue
-            * Postprocessing option (post_processing): 
-            * Select pseudo color map (color_map): 
-            * Threshold min value (min_t): 
-            * Threshold max value (max_t): 
-            * Median filter size (odd values only) (median_filter_size): 
-            * Morphology operator (morph_op): 
-            * Kernel size (kernel_size): 
-            * Kernel shape (kernel_shape): 
-            * Iterations (proc_times): 
-            * Overlay text on top of images (text_overlay): Draw description text on top of images
-            * Displayed output (build_mosaic): Choose mosaic type to display
-        --------------
-        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -237,17 +202,9 @@ class IptThresholdDistance(IptBase):
 
             wrapper.store_image(dist_map, "raw_distance_map")
 
-            pp = self.get_value_of("post_processing")
-            if pp == "threshold":
-                self.result = self.apply_binary_threshold(
-                    wrapper=wrapper, img=dist_map, channel=None
-                )
-            elif pp == "false_color":
-                color_map = self.get_value_of("color_map")
-                _, color_map = color_map.split("_")
-                self.result = cv2.applyColorMap(dist_map, int(color_map))
-            else:
-                self.result = dist_map
+            color_map = self.get_value_of("color_map")
+            _, color_map = color_map.split("_")
+            self.result = cv2.applyColorMap(dist_map, int(color_map))
 
             res = True
 
@@ -261,10 +218,10 @@ class IptThresholdDistance(IptBase):
             build_mosaic = self.get_value_of("build_mosaic")
             if build_mosaic == "steps":
                 wrapper.store_image(
-                    image=self.result, text="threshold_distance", text_overlay=False
+                    image=self.result, text="image_from_distances", text_overlay=False
                 )
                 line_1 = channels_ids
-                line_2 = ["raw_distance_map", "threshold_distance"]
+                line_2 = ["raw_distance_map", "image_from_distances"]
                 if len(line_1) > len(line_2):
                     line_2 = line_2 + ["nope" for _ in range(len(line_2), len(line_1))]
                 elif len(line_2) > len(line_1):
@@ -274,32 +231,17 @@ class IptThresholdDistance(IptBase):
                 )
                 wrapper.store_image(canvas, "mosaic", text_overlay=text_overlay)
             elif build_mosaic == "sbs":
-                wrapper.store_image(
-                    image=self.result, text="threshold_distance", text_overlay=False
-                )
+                wrapper.store_image(image=self.result, text="image_from_distances")
                 canvas = wrapper.build_mosaic(
-                    image_names=np.array(["current_image", "threshold_distance"])
+                    image_names=np.array(["current_image", "image_from_distances"])
                 )
                 wrapper.store_image(canvas, "mosaic", text_overlay=text_overlay)
-            elif (build_mosaic == "source_and_masked") and (pp == "threshold"):
-                masked_image = self.apply_mask(img, mask=self.result)
-                wrapper.store_image(masked_image, "masked_image")
-                canvas = wrapper.build_mosaic(
-                    image_names=np.array(["current_image", "masked_image"])
-                )
-                wrapper.store_image(
-                    self.wrapper.draw_image(
-                        src_image=img, src_mask=self.result, background="bw", foreground="source"
-                    ),
-                    "selection_on_bw",
-                    text_overlay=text_overlay,
-                )
             elif build_mosaic == "transformed_channels":
                 canvas = wrapper.build_mosaic(image_names=np.array(channels_ids))
                 wrapper.store_image(canvas, "mosaic", text_overlay=text_overlay)
             else:
                 wrapper.store_image(
-                    image=self.result, text="threshold_distance", text_overlay=text_overlay
+                    image=self.result, text="image_from_distances", text_overlay=text_overlay
                 )
         except Exception as e:
             wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
@@ -310,15 +252,9 @@ class IptThresholdDistance(IptBase):
             np.seterr(divide="warn")
             return res
 
-    def apply_test_values_overrides(self, use_cases: tuple = ()):
-        if TOOL_GROUP_THRESHOLD_STR in use_cases:
-            self.set_value_of("post_processing", "threshold")
-        if TOOL_GROUP_PRE_PROCESSING_STR in use_cases:
-            pass
-
     @property
     def name(self):
-        return "Distance threshold"
+        return "Image from distances"
 
     @property
     def real_time(self):
@@ -326,17 +262,16 @@ class IptThresholdDistance(IptBase):
 
     @property
     def result_name(self):
-        return "mask"
+        return "image"
 
     @property
     def output_kind(self):
-        return "mask"
+        return "image"
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_THRESHOLD_STR, TOOL_GROUP_PRE_PROCESSING_STR]
+        return [TOOL_GROUP_PRE_PROCESSING_STR]
 
     @property
     def description(self):
-        return "Build a mask from distance calculation"
-
+        return "Build an image from distance calculation"

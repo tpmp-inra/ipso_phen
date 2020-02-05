@@ -488,19 +488,19 @@ def enclose_image(a_cnv, img, rect, frame_width: int = 0):
         numpy array -- modified target canvas
     """
 
-    old_h, old_w = img.shape[:2]
-    if (rect.width == old_w) and (rect.height == old_h):
-        a_cnv = img.copy()
-    else:
-        resized_image = resize_image(img.copy(), target_rect=rect, keep_aspect_ratio=True)
-        n_h, n_w = resized_image.shape[:2]
+    # old_h, old_w = img.shape[:2]
+    # if (rect.width == old_w) and (rect.height == old_h):
+    #     a_cnv = img.copy()
+    # else:
+    resized_image = resize_image(img.copy(), target_rect=rect, keep_aspect_ratio=True)
+    n_h, n_w = resized_image.shape[:2]
 
-        dx = int((rect.width - n_w) / 2)
-        dy = int((rect.height - n_h) / 2)
-        rect.inflate(-dx, -dx, -dy, -dy)
-        rect.width = n_w
-        rect.height = n_h
-        a_cnv[rect.top : rect.bottom, rect.left : rect.right] = resized_image
+    dx = int((rect.width - n_w) / 2)
+    dy = int((rect.height - n_h) / 2)
+    rect.inflate(-dx, -dx, -dy, -dy)
+    rect.width = n_w
+    rect.height = n_h
+    a_cnv[rect.top : rect.bottom, rect.left : rect.right] = resized_image
 
     if frame_width:
         cv2.rectangle(

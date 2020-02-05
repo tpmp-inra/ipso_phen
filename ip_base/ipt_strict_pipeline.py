@@ -352,7 +352,7 @@ class IptStrictPipeline(object):
             TOOL_GROUP_FEATURE_EXTRACTION_STR,
             TOOL_GROUP_IMAGE_GENERATOR_STR,
         ),
-        conditions: dict = None,
+        conditions: dict = {},
     ) -> dict:
         ret = {}
         for tag_ in kinds:
