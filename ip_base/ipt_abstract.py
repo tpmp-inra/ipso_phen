@@ -160,6 +160,8 @@ class IptParam(object):
         self.update_ui(callback="set_tool_tip", widget=widget, tool_tip=self.hint)
         self.update_ui(callback="set_tool_tip", widget=label, tool_tip=self.hint)
 
+        self.update_ui(callback="connect_call_back", widget=widget, param=self)
+
         return True
 
     def update_label(self):
@@ -207,7 +209,7 @@ class IptParam(object):
             else:
                 for i, key in enumerate(self.allowed_values):
                     if self.value == key:
-                        self.update_ui(callback="set_current_index", index=i)
+                        self.update_ui(callback="set_current_index", widget=widget, index=i)
                         break
         elif isinstance(self.allowed_values, tuple):
             if self.allowed_values == (0, 1):
@@ -1856,7 +1858,6 @@ class IptBase(IptParamHolder, ABC):
                     ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                     ipc.TOOL_GROUP_THRESHOLD_STR,
-                    ipc.TOOL_GROUP_VISUALIZATION_STR,
                     ipc.TOOL_GROUP_WHITE_BALANCE_STR,
                     ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
                     ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
@@ -1868,10 +1869,6 @@ class IptBase(IptParamHolder, ABC):
             set((ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
         ):
             return ipc.IO_MASK
-        # elif set(self.use_case).intersection(set()):
-        #     return ipc.IO_ROI
-        # elif set(self.use_case).intersection(set()):
-        #     return ipc.IO_DATA
         else:
             return ipc.IO_NONE
 
@@ -1882,7 +1879,6 @@ class IptBase(IptParamHolder, ABC):
                 (
                     ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                    ipc.TOOL_GROUP_VISUALIZATION_STR,
                     ipc.TOOL_GROUP_WHITE_BALANCE_STR,
                 )
             )
@@ -1896,7 +1892,9 @@ class IptBase(IptParamHolder, ABC):
             set((ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,))
         ):
             return ipc.IO_ROI
-        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,))):
+        elif set(self.use_case).intersection(
+            set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR))
+        ):
             return ipc.IO_DATA
         else:
             return ipc.IO_NONE

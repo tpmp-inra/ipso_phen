@@ -554,8 +554,8 @@
                          <rect>
                           <x>0</x>
                           <y>0</y>
-                          <width>98</width>
-                          <height>28</height>
+                          <width>667</width>
+                          <height>77</height>
                          </rect>
                         </property>
                         <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -789,7 +789,7 @@
                   <item row="0" column="0" colspan="4">
                    <widget class="QTabWidget" name="tb_tool_script">
                     <property name="currentIndex">
-                     <number>3</number>
+                     <number>0</number>
                     </property>
                     <widget class="QWidget" name="tab_tools">
                      <attribute name="title">
@@ -863,8 +863,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>98</width>
-                           <height>28</height>
+                           <width>665</width>
+                           <height>70</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">
@@ -1309,7 +1309,7 @@
                       <item>
                        <widget class="QTreeView" name="tv_pp_view">
                         <property name="animated">
-                         <bool>true</bool>
+                         <bool>false</bool>
                         </property>
                        </widget>
                       </item>

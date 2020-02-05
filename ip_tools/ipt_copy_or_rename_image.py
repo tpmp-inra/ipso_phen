@@ -99,6 +99,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
             if self.get_value_of("enabled") == 1:
                 # Get source image
                 source = self.get_value_of("source_image")
+                var_name = source
                 if source == "source":
                     img = wrapper.source_image
                 elif source == "fixed":
@@ -106,7 +107,8 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 elif source == "preprocessed":
                     img = wrapper.retrieve_stored_image("pre_processed_image")
                 elif source == "custom":
-                    img = wrapper.retrieve_stored_image(self.get_value_of("named_source"))
+                    var_name = self.get_value_of("named_source")
+                    img = wrapper.retrieve_stored_image(var_name)
                 else:
                     img = None
                     wrapper.error_holder.add_error(
@@ -128,22 +130,21 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 img = wrapper.apply_roi_list(img=img, rois=rois)
 
                 # Build output file name
-                output_mode = self.get_value_of("output_name")
-                if output_mode == "as_source":
+                output_name_mode = self.get_value_of("output_name")
+                if output_name_mode == "as_source":
                     dst_name = wrapper.file_handler.file_name_no_ext
-                elif output_mode == "hash":
+                elif output_name_mode == "hash":
+                    var_name = "hash_val"
                     dst_name = self.get_short_hash(add_plant_name=False)
-                elif output_mode == "suffix":
-                    dst_name = wrapper.file_handler.file_name_no_ext + self.get_value_of(
-                        "prefix_suffix"
-                    )
-                elif output_mode == "prefix":
-                    dst_name = (
-                        self.get_value_of("prefix_suffix") + wrapper.file_handler.file_name_no_ext
-                    )
+                elif output_name_mode == "suffix":
+                    var_name = self.get_value_of("prefix_suffix")
+                    dst_name = wrapper.file_handler.file_name_no_ext + "_" + var_name
+                elif output_name_mode == "prefix":
+                    var_name = self.get_value_of("prefix_suffix")
+                    dst_name = var_name + "_" + wrapper.file_handler.file_name_no_ext
                 else:
                     wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, unknown naming convention: {output_mode}"
+                        f"Copy or rename image FAILED, unknown naming convention: {output_name_mode}"
                     )
                     return
                 dst_path = self.get_value_of("path")
@@ -163,7 +164,9 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
 
                 # Add data
                 self.add_value(key="source_name", value=wrapper.name, force_add=True)
-                self.add_value(key="dst_name", value=f"{dst_name}{file_ext}", force_add=True)
+                if "image" not in var_name:
+                    var_name += "_image"
+                self.add_value(key=var_name, value=dst_path, force_add=True)
 
                 # Resize if needed
                 max_width = self.get_value_of("max_width")
@@ -179,7 +182,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 else:
                     r = None
                 if r is not None:
-                    img_ = ipc.resize_image(src_img=img_, target_rect=r, keep_aspect_ratio=kar)
+                    img = ipc.resize_image(src_img=img, target_rect=r, keep_aspect_ratio=kar)
 
                 # Copy image
                 force_directories(self.get_value_of("path"))

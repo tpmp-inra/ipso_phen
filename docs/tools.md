@@ -50,6 +50,10 @@ Fix image exposure, the resulting image will be used for color analysis
 Fixes perspective using four dots to detect rectangle boundary.<br><br>        Use the included threshold utility to detect the dots.<br>
 Details [here](ipt_Fix_perspective.md)
 
+### Fix white balance with ROI
+<br>        Fixes image white balance from ROI that is supposed to be white.<br>        ROI must be present in pipeline.<br>        ROIs must be of type 'keep' or 'delete'.<br>        Only static ROIs are allowed.<br>
+Details [here](ipt_Fix_white_balance_with_ROI.md)
+
 ### Image transformations
 Performs various transformations on the image<br>
 Details [here](ipt_Image_transformations.md)
@@ -61,6 +65,10 @@ Details [here](ipt_Rotate.md)
 ### Simple white balance
 Simple white balance: Performs a simple white balance.<br>https://www.ipol.im/pub/art/2011/llmps-scb/article.pdf<br>
 Details [here](ipt_Simple_white_balance.md)
+
+### Temperature and tint
+Simple method to alter an image temperature and tint<br>http://www.tannerhelland.com/5675/simple-algorithms-adjusting-image-temperature-tint/<br>
+Details [here](ipt_Temperature_and_tint.md)
 
 ## Feature extraction
 
@@ -154,6 +162,10 @@ Details [here](ipt_Fill_mask_holes.md)
 Keeps the contours inside the biggest one.<br>Needs to be part of a pipeline where a mask has already been generated<br>
 Details [here](ipt_Keep_Biggest_Contours.md)
 
+### Keep countours near ROIs
+Keep big contours inside a series of ROIs.<br>Small contours inside ROIs may be added on conditions.<br>Contours outsside ROIs may be added to root contours if close enough<br>
+Details [here](ipt_Keep_countours_near_ROIs.md)
+
 ### Keep linked Contours
 Keeps contours related to the main object, removes the others.<br>Needs to be part of a pipeline where a mask has already been generated<br>
 Details [here](ipt_Keep_linked_Contours.md)
@@ -172,7 +184,8 @@ Details [here](ipt_Skeletonize.md)
 
 ## Pre processing
 
-Transform the image to help segmentation, the image may not retain it's 
+Transform the image to help segmentation, 
+    the image may not retain it's 
     properties. Changes here will be ignored when extracting features
 
 ### CLAHE
@@ -199,10 +212,6 @@ Details [here](ipt_Check_exposure.md)
 Builds a mask or a channel by comparing pixels to the average value.<br>
 Details [here](ipt_Custom_channels.md)
 
-### Distance threshold
-Build a mask from distance calculation<br>
-Details [here](ipt_Distance_threshold.md)
-
 ### Filtering regional maxima
 From scikit image - Filtering regional maxima: Perform a morphological reconstruction of an image.<br>Morphological reconstruction by dilation is similar to basic morphological dilation: high-intensity values willreplace nearby low-intensity values. The basic dilation operator, however, uses a structuring element todetermine how far a value in the input image can spread. In contrast, reconstruction uses two images: a "seed"image, which specifies the values that spread, and a "mask" image, which gives the maximum allowed value ateach pixel. The mask image, like the structuring element, limits the spread of high-intensity values.Reconstruction by erosion is simply the inverse: low-intensity values spread from the seed image and arelimited by the mask image, which represents the minimum allowed value.<br>Alternatively, you can think of reconstruction as a way to isolate the connected regions of an image.For dilation, reconstruction connects regions marked by local maxima in the seed image: neighboring pixelsless-than-or-equal-to those seeds are connected to the seeded region.<br>Local maxima with values larger than the seed image will get truncated to the seed value.<br>
 Details [here](ipt_Filtering_regional_maxima.md)
@@ -211,9 +220,17 @@ Details [here](ipt_Filtering_regional_maxima.md)
 Fixes perspective using four dots to detect rectangle boundary.<br><br>        Use the included threshold utility to detect the dots.<br>
 Details [here](ipt_Fix_perspective.md)
 
+### Fix white balance with ROI
+<br>        Fixes image white balance from ROI that is supposed to be white.<br>        ROI must be present in pipeline.<br>        ROIs must be of type 'keep' or 'delete'.<br>        Only static ROIs are allowed.<br>
+Details [here](ipt_Fix_white_balance_with_ROI.md)
+
 ### Horizontal line remover
 Horizontal line remover.<br>Developped for Heliasen light barrier.<br>Removes horizontal noise lines<br>
 Details [here](ipt_Horizontal_line_remover.md)
+
+### Image from distances
+Build an image from distance calculation<br>
+Details [here](ipt_Image_from_distances.md)
 
 ### Image transformations
 Performs various transformations on the image<br>
@@ -223,9 +240,9 @@ Details [here](ipt_Image_transformations.md)
 Performs k-means clustering, grouping object with a distance formula<br>
 Details [here](ipt_K-means_clustering.md)
 
-### Otsu overthinked
-Based on Otsu's binarization, uses a costum set of channels.<br>
-Details [here](ipt_Otsu_overthinked.md)
+### Otsu merger
+Based on Otsu's binarization, create a new image from OTSU channel binarization.<br>
+Details [here](ipt_Otsu_merger.md)
 
 ### Partial posterizer
 Replaces dominant colors by other colors<br>
@@ -243,17 +260,13 @@ Details [here](ipt_Rotate.md)
 Simple white balance: Performs a simple white balance.<br>https://www.ipol.im/pub/art/2011/llmps-scb/article.pdf<br>
 Details [here](ipt_Simple_white_balance.md)
 
-## ROI (dynamic)
+### Temperature and tint
+Simple method to alter an image temperature and tint<br>http://www.tannerhelland.com/5675/simple-algorithms-adjusting-image-temperature-tint/<br>
+Details [here](ipt_Temperature_and_tint.md)
 
-Create a ROI after analyzing the image
+## ROI on pre processed image
 
-### Hough circles detector
-Hough circles detector: Perform a circular Hough transform.<br>Can generate ROIs<br>
-Details [here](ipt_Hough_circles_detector.md)
-
-## ROI (static)
-
-Create a ROI from coordinates
+Create a ROI after image has been preprocessed
 
 ### Annulus ROI
 Creates annulus ROIs<br>
@@ -262,6 +275,34 @@ Details [here](ipt_Annulus_ROI.md)
 ### Circle ROI
 Create circle ROIs<br>
 Details [here](ipt_Circle_ROI.md)
+
+### Hough circles detector
+Hough circles detector: Perform a circular Hough transform.<br>Can generate ROIs<br>
+Details [here](ipt_Hough_circles_detector.md)
+
+### ROI manager (deprecated)
+Handles ROI edition via user input<br>
+Details [here](ipt_ROI_manager_(deprecated).md)
+
+### Rectangle ROI
+Create rectangle ROIs<br>
+Details [here](ipt_Rectangle_ROI.md)
+
+## ROI on raw image
+
+Create a ROI from raw image
+
+### Annulus ROI
+Creates annulus ROIs<br>
+Details [here](ipt_Annulus_ROI.md)
+
+### Circle ROI
+Create circle ROIs<br>
+Details [here](ipt_Circle_ROI.md)
+
+### Hough circles detector
+Hough circles detector: Perform a circular Hough transform.<br>Can generate ROIs<br>
+Details [here](ipt_Hough_circles_detector.md)
 
 ### ROI manager (deprecated)
 Handles ROI edition via user input<br>
@@ -283,16 +324,12 @@ Details [here](ipt_Adaptive_threshold.md)
 From scikit-image: Chan-Vese segmentation algorithm.<br>Active contour model by evolving a level set.<br>Can be used to segment objects without clearly defined boundaries.<br><br>
 Details [here](ipt_Chan_Vese.md)
 
-### Distance threshold
-Build a mask from distance calculation<br>
-Details [here](ipt_Distance_threshold.md)
-
 ### Dummy threshold (WIP)
 Dummy threshold.<br><br>        Pass through threshold, expects binary mask as entry<br>
 Details [here](ipt_Dummy_threshold_(WIP).md)
 
 ### Multi range threshold
-Performs range threshold keeping only pixels with values between min and max for up to 3 channels.<br>Morphology operation can be performed afterwards<br>
+Performs range threshold keeping only pixels with values between min and max<br>        for up to 3 channels.<br>        Morphology operation can be performed afterwards.<br>        Masks can be attached, they will be treated as keep masks<br>
 Details [here](ipt_Multi_range_threshold.md)
 
 ### Niblack binarization
@@ -339,10 +376,6 @@ Details [here](ipt_Calculate_chlorophyll.md)
 Performs edge detection with various common operators.<br>Mostly used by other tools.<br>
 Details [here](ipt_Edge_detectors.md)
 
-### Multi range threshold
-Performs range threshold keeping only pixels with values between min and max for up to 3 channels.<br>Morphology operation can be performed afterwards<br>
-Details [here](ipt_Multi_range_threshold.md)
-
 ### Print channels
 Print channels<br>
 Details [here](ipt_Print_channels.md)
@@ -362,10 +395,6 @@ Details [here](ipt_ROI_manager_(deprecated).md)
 ### Rotate
 Rotates an image according to selected angle<br>
 Details [here](ipt_Rotate.md)
-
-### Splitted range threshold
-Performs range threshold with two sets of borders applied inside and outside of linked ROIs.<br><br>        If no ROIs are provided, all image will be considered within ROI.<br>
-Details [here](ipt_Splitted_range_threshold.md)
 
 ## White balance
 

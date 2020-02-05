@@ -214,7 +214,7 @@ class IptSplittedRangeThreshold(IptBase):
 
     @property
     def use_case(self):
-        return ["Threshold", "Visualization"]
+        return ["Threshold"]
 
     @property
     def description(self):

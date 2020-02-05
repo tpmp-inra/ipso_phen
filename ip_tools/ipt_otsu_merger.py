@@ -16,7 +16,7 @@ class IptOtsuOverthinked(IptBase):
             name="merge_method",
             desc="Merge method:",
             default_value="squares",
-            values=dict(l_and="Logical AND", l_or="Logical OR"),
+            values=dict(squares="Powers of 2", w_and="Add hits"),
             hint="Selected merge method",
         )
         self.add_label(name="lbl_channel", desc="Channels:")
@@ -26,15 +26,14 @@ class IptOtsuOverthinked(IptBase):
         ):
             self.add_combobox(
                 name=f"{channel}",
-                desc=f"Channel {channel_name} behavior:",
+                desc=f"Channel {channel_name} behaviour:",
                 default_value="active",
                 values=choices_dict,
-                hint=f"Select channel {get_hr_channel_name(channel)} behavior",
+                hint=f"Select channel {get_hr_channel_name(channel)} behaviour",
             )
+        self.add_label(name="lbl_disp", desc="Display options:")
+        self.add_color_map_selector(name="color_map", default_value="c_2")
         self.add_checkbox(name="normalize", desc="Normalize channel", default_value=0)
-        self.add_separator(name="sep1")
-        self.add_morphology_operator()
-        self.add_separator(name="sep2")
         self.add_combobox(
             name="build_mosaic",
             desc="Build mosaic",
@@ -49,26 +48,24 @@ class IptOtsuOverthinked(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-        Otsu overthinked:
-        Based on Otsu's binarization, uses a costum set of channels.
+        Otsu merger:
+        Based on Otsu's binarization, create a new image from OTSU channel binarization.
         Real time: True
 
         Keyword Arguments (in parentheses, argument name):
             * Merge method: (merge_method): Selected merge method
-            * Channel hue behavior: (h): Select channel hsv: hue behavior
-            * Channel saturation behavior: (s): Select channel hsv: saturation behavior
-            * Channel lightness behavior: (l): Select channel lab: lightness behavior
-            * Channel a_green-red behavior: (a): Select channel lab: a_green-red behavior
-            * Channel b_blue-yellow behavior: (b): Select channel lab: b_blue-yellow behavior
-            * Channel red behavior: (rd): Select channel rgb: red behavior
-            * Channel green behavior: (gr): Select channel rgb: green behavior
-            * Channel blue behavior: (bl): Select channel rgb: blue behavior
+            * Channel hue behaviour: (h): Select channel hsv: hue behaviour
+            * Channel saturation behaviour: (s): Select channel hsv: saturation behaviour
+            * Channel lightness behaviour: (l): Select channel lab: lightness behaviour
+            * Channel a_green-red behaviour: (a): Select channel lab: a_green-red behaviour
+            * Channel b_blue-yellow behaviour: (b): Select channel lab: b_blue-yellow behaviour
+            * Channel red behaviour: (rd): Select channel rgb: red behaviour
+            * Channel green behaviour: (gr): Select channel rgb: green behaviour
+            * Channel blue behaviour: (bl): Select channel rgb: blue behaviour
+            * Select pseudo color map (color_map):
             * Normalize channel (normalize):
-            * Morphology operator (morph_op):
-            * Kernel size (kernel_size):
-            * Kernel shape (kernel_shape):
-            * Iterations (proc_times):
             * Build mosaic (build_mosaic): Choose mosaic type to display
+        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -76,6 +73,8 @@ class IptOtsuOverthinked(IptBase):
 
         res = False
         try:
+            color_map = self.get_value_of("color_map")
+            _, color_map = color_map.split("_")
             normalize = self.get_value_of("normalize") == 1
             build_mosaic = self.get_value_of("build_mosaic")
             merge_method = self.get_value_of("merge_method")
@@ -97,20 +96,20 @@ class IptOtsuOverthinked(IptBase):
                 if p.value == "inverted":
                     mask = 255 - mask
                 wrapper.store_image(mask, f"Otsu_{get_hr_channel_name(p.name)}")
+                if merge_method == "squares":
+                    mask[mask == 255] = 2 ** power_
+                elif merge_method == "w_and":
+                    mask[mask == 255] = 1
                 power_ += 1
                 masks.append(mask)
 
             if masks:
-                if merge_method == "l_and":
-                    mask = wrapper.multi_and(masks)
-                elif merge_method == "l_or":
-                    mask = wrapper.multi_or(masks)
-                else:
-                    wrapper.error_holder.add_error("Unknown merge method")
-                    return
+                mask = masks[0]
+                for tmp_mask in masks[1:]:
+                    mask = np.add(mask, tmp_mask)
 
-                self.result = self.apply_morphology_from_params(mask)
-                wrapper.store_image(self.result, "otsu_overthinked")
+                self.result = cv2.applyColorMap(cv2.equalizeHist(mask), int(color_map))
+                wrapper.store_image(self.result, "otsu_merger")
             else:
                 img = wrapper.current_image
                 self.result = None
@@ -123,7 +122,7 @@ class IptOtsuOverthinked(IptBase):
                             [f"OTSU_{get_hr_channel_name(c)}" for c in ["h", "s", "l"]],
                             [
                                 f'OTSU_{get_hr_channel_name("a")}',
-                                "otsu_overthinked",
+                                "otsu_merger",
                                 f'OTSU_{get_hr_channel_name("b")}',
                             ],
                             [f"OTSU_{get_hr_channel_name(c)}" for c in ["rd", "gr", "bl"]],
@@ -132,9 +131,7 @@ class IptOtsuOverthinked(IptBase):
                 )
                 wrapper.store_image(canvas, "mosaic")
             elif build_mosaic == "sbs":
-                canvas = wrapper.build_mosaic(
-                    image_names=np.array(["source", "otsu_overthinked",])
-                )
+                canvas = wrapper.build_mosaic(image_names=np.array(["source", "otsu_merger",]))
                 wrapper.store_image(canvas, "mosaic")
 
             res = True
@@ -153,7 +150,7 @@ class IptOtsuOverthinked(IptBase):
 
     @property
     def name(self):
-        return "Otsu overthinked"
+        return "Otsu merger"
 
     @property
     def real_time(self):
@@ -169,8 +166,8 @@ class IptOtsuOverthinked(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_THRESHOLD_STR]
+        return [TOOL_GROUP_PRE_PROCESSING_STR]
 
     @property
     def description(self):
-        return "Based on Otsu's binarization, uses a costum set of channels."
+        return "Based on Otsu's binarization, create a new image from OTSU channel binarization."
