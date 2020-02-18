@@ -120,6 +120,7 @@ class IptAugmentData(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             p = self.find_by_name(name="gamma_values")
             gsl = None if p is None else p.decode_string(p.value)
             src_img = wrapper.current_image

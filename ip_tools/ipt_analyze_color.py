@@ -92,6 +92,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -222,6 +223,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     background=self.get_value_of("background"),
                 ),
                 text=f"pseudo_on",
+                force_store=True,
             )
 
             # handle color quantiles

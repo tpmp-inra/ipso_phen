@@ -122,6 +122,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             if self.get_value_of("enabled") == 1:
                 method = self.get_value_of("method")

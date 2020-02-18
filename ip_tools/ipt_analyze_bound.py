@@ -68,6 +68,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -146,7 +147,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                         width_thickness=4,
                     )
                     cv2.line(p_img, (0, line_position), (wrapper.width, line_position), C_RED, 3)
-                    wrapper.store_image(p_img, "bounds")
+                    wrapper.store_image(p_img, "bounds", force_store=True)
             res = True
         except Exception as e:
             wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')

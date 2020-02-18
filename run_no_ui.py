@@ -67,7 +67,7 @@ def main():
         res = json.load(f, object_hook=decode_ipt)
 
     # Build database
-    db = dbw.db_info_to_database(dbw.DbInfo(*res["database_data"]))
+    db = dbw.db_info_to_database(dbw.DbInfo(**res["database_data"]))
 
     # Build dataframe
     df = pd.DataFrame.from_dict(res["data_frame"])

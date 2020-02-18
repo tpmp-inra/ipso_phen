@@ -33,6 +33,7 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             if self.get_value_of("enabled") == 1:
                 img = wrapper.current_image
                 mask = self.get_mask()

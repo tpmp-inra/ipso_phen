@@ -46,6 +46,7 @@ class IptDefault(IptBaseAnalyzer):
             return False
         res = False
         try:
+            self.data_dict = {}
             threshold_only = self.get_value_of("threshold_only")
             build_mosaic = self.get_value_of("build_mosaic")
             boundary_position = self.get_value_of("boundary_position")

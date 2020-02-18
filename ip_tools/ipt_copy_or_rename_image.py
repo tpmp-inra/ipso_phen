@@ -96,6 +96,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             if self.get_value_of("enabled") == 1:
                 # Get source image
                 source = self.get_value_of("source_image")

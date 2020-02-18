@@ -119,7 +119,7 @@ class AbstractImageProcessor(ImageWrapper):
 
         :return: Csv writer
         """
-        return ipc.DefaultCsvWriter()
+        return ipc.AbstractCsvWriter()
 
     @staticmethod
     def can_process(dict_data: dict) -> bool:
@@ -348,11 +348,11 @@ class AbstractImageProcessor(ImageWrapper):
                 return np.full(foreground_img.shape, ipc.C_FUCHSIA, np.uint8)
             if bck_grd_luma != 100:
                 bck_grd_luma /= 100
-                l, a, b = cv2.split(cv2.cvtColor(background_img, cv2.COLOR_BGR2LAB))
-                l = (l * bck_grd_luma).astype(np.uint)
-                l[l >= 255] = 255
-                l = l.astype(np.uint8)
-                background_img = cv2.merge((l, a, b))
+                lum, a, b = cv2.split(cv2.cvtColor(background_img, cv2.COLOR_BGR2LAB))
+                lum = (lum * bck_grd_luma).astype(np.uint)
+                lum[lum >= 255] = 255
+                lum = lum.astype(np.uint8)
+                background_img = cv2.merge((lum, a, b))
                 background_img = cv2.cvtColor(background_img, cv2.COLOR_LAB2BGR)
             # Merge foreground & background
             foreground_img = cv2.bitwise_and(foreground_img, foreground_img, mask=mask_)
@@ -489,7 +489,7 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Print ROIs if needed
             if isinstance(rois, bool) and rois:
-                rois = self.rois
+                rois = self.rois_list
             if rois:
                 for roi in rois:
                     cp = roi.draw_to(cp, line_width=2)
@@ -765,7 +765,7 @@ class AbstractImageProcessor(ImageWrapper):
                 stack[c] = 1
         ids = np.where(stack == 1)[0]
         if len(ids) > 0:
-            group = np.vstack((contours[i] for i in ids))
+            group = np.vstack([contours[i] for i in ids])
             cv2.drawContours(mask, contours, -1, 255, -1, hierarchy=hierarchy)
 
             if self.store_images:
@@ -2674,7 +2674,7 @@ class AbstractImageProcessor(ImageWrapper):
             numpy array -- image with rois applied
         """
 
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if dbg_str:
                 tmp_str = "{}_{}".format(dbg_str, roi.name)
             else:
@@ -3149,7 +3149,7 @@ class AbstractImageProcessor(ImageWrapper):
             if img_name.lower() == "mask" and self.mask is not None:
                 return self.mask.copy()
             elif "exp_fixed" in img_name.lower():
-                foreground = self.retrieve_stored_image("exposure_fixed").copy()
+                foreground = self.retrieve_stored_image("exposure_fixed")
                 if foreground is None:
                     foreground = self.current_image
                 if img_name.lower() == "mask_on_exp_fixed_bw_with_morph":
@@ -3177,7 +3177,7 @@ class AbstractImageProcessor(ImageWrapper):
                 elif img_name.lower() == "mask_on_exp_fixed_bw_roi":
                     return self.draw_rois(
                         img=self.draw_image(
-                            src_image=self.retrieve_stored_image("exposure_fixed"),
+                            src_image=foreground,
                             src_mask=self.mask,
                             foreground="source",
                             background="bw",
@@ -3185,13 +3185,10 @@ class AbstractImageProcessor(ImageWrapper):
                         rois=self.rois_list,
                     )
                 elif img_name.lower() == "exp_fixed_roi":
-                    return self.draw_rois(
-                        img=self.retrieve_stored_image("exposure_fixed"),
-                        rois=self.rois_list,
-                    )
+                    return self.draw_rois(img=foreground, rois=self.rois_list,)
                 elif img_name.lower() == "exp_fixed_pseudo_on_bw":
                     return self.draw_image(
-                        src_image=self.retrieve_stored_image("exposure_fixed"),
+                        src_image=foreground,
                         channel="l",
                         src_mask=self.mask,
                         foreground="false_colour",
@@ -3255,38 +3252,40 @@ class AbstractImageProcessor(ImageWrapper):
         image_names=None,
         background_color: tuple = (125, 125, 125),
         padding: tuple = (-2, -2, -2, -2),
-    ):
+        images_dict: dict = {},
+    ) -> np.ndarray:
         """Creates a mosaic aggregating stored images
 
         Arguments:
             shape {numpy array} -- height, width, channel count
-            image_names {array} -- array of image names
+            image_names {array, list} -- array of image names
 
         Returns:
             numpy array -- image containing the mosaic
         """
-
         if image_names is None:
             image_names = self._mosaic_data
+        if isinstance(image_names, np.ndarray):
+            image_names = image_names.tolist()
+        if len(image_names) > 0 and not isinstance(image_names[0], list):
+            image_names = [image_names]
+
+        column_count = len(image_names[0])
+        line_count = len(image_names)
         if shape is None:
-            h, w = self.height, self.width
-            if len(image_names.shape) == 1:
-                w *= image_names.shape[0]
-            else:
-                w *= image_names.shape[1]
-                h *= image_names.shape[0]
-            h = round(h / 2)
-            w = round(w / 2)
+            h, w = self.height * line_count // 2, self.width * column_count // 2
             shape = (h, w, 3)
 
         canvas = np.full(shape, background_color, np.uint8)
-        if image_names.ndim == 0:
+        if len(image_names) == 0:
             return canvas
 
         def parse_line(a_line, a_line_idx, a_cnv):
             for c, column in enumerate(a_line):
                 if isinstance(column, str):
                     src_img = self.retrieve_stored_image(column)
+                    if src_img is None:
+                        src_img = images_dict.get(column, None)
                 else:
                     src_img = column
                 if src_img is None:
@@ -3301,18 +3300,11 @@ class AbstractImageProcessor(ImageWrapper):
                     r.inflate(*padding)
                     a_cnv = ipc.enclose_image(a_cnv, src_img, r)
 
-        if len(image_names.shape) == 1:
-            column_count = image_names.shape[0]
-            line_count = 1
-            parse_line(image_names, 0, canvas)
-        elif len(image_names.shape) == 2:
-            line_count, column_count = image_names.shape
+        try:
             for l, line in enumerate(image_names):
                 parse_line(line, l, canvas)
-        else:
-            raise NotImplementedError(
-                "Unable to handle {} dimensions arrays".format(len(image_names.shape))
-            )
+        except Exception as e:
+            print(f'Failed to build mosaic, because "{repr(e)}"')
 
         return canvas
 
@@ -3324,7 +3316,7 @@ class AbstractImageProcessor(ImageWrapper):
     def default_process(self, **kwargs):
         res = True
         try:
-            self._rois_list = []
+            self.rois_list = []
             self.image_list = []
 
             mode = kwargs.get("method", "process_mode_test_channels")
@@ -3374,7 +3366,7 @@ class AbstractImageProcessor(ImageWrapper):
         return kwargs.get("src_img", self.current_image)
 
     def build_channel_mask(self, source_image, **kwargs):
-        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(source_image, self.rois)
+        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(source_image, self.rois_list)
         self.store_image(mosaic_image_, "full_channel_mosaic")
 
         return False
@@ -3510,7 +3502,7 @@ class AbstractImageProcessor(ImageWrapper):
             boolean -- True if contained
         """
 
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if (tag == "" or tag == roi.tag) and roi.contains(pt):
                 return True
         return False
@@ -3553,7 +3545,7 @@ class AbstractImageProcessor(ImageWrapper):
             Rectangle -- rectangle associated to the roi
         """
 
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if roi.name.lower() == roi_name:
                 return roi
         if exists_only is True:
@@ -3567,7 +3559,7 @@ class AbstractImageProcessor(ImageWrapper):
 
     def get_rois(self, tags: set = None):
         lst = []
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if (tags is None) or (roi.tag in tags):
                 lst.append(roi)
         return lst
@@ -3577,12 +3569,22 @@ class AbstractImageProcessor(ImageWrapper):
         Add an already existing ROI object
         
         Arguments:
-            new_roi {Region} -- Rectangle or Circle of interrest
+            new_roi {Region} -- Any ROI
         """
         roi = self.get_roi(roi_name=new_roi.name, exists_only=True)
         if roi is not None:
-            self.rois_list.remove(roi)
+            self._rois_list.remove(roi)
         self._rois_list.append(new_roi)
+
+    def add_rois(self, roi_list):
+        """
+        Add ROIs to collection
+        
+        Arguments:
+            roi_list {List} -- List of ROIs
+        """
+        for roi in roi_list:
+            self.add_roi(roi)
 
     def add_circle_roi(self, left, top, radius, name, tag="", color=None) -> CircleRegion:
         """Add Circle of Interest to list
@@ -3800,10 +3802,6 @@ class AbstractImageProcessor(ImageWrapper):
             ]
 
         return res
-
-    @property
-    def rois(self):
-        return self._rois_list
 
     mask = property(_get_mask, _set_mask)
 

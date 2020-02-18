@@ -63,30 +63,32 @@ tool_groups_pipeline = [
     TOOL_GROUP_IMAGE_GENERATOR_STR,
 ]
 
-IO_IMAGE = 'io_image'
-IO_MASK = 'io_mask'
-IO_ROI = 'io_roi'
-IO_DATA = 'io_data'
-IO_NONE = 'io_none'
+IO_IMAGE = "io_image"
+IO_MASK = "io_mask"
+IO_ROI = "io_roi"
+IO_DATA = "io_data"
+IO_NONE = "io_none"
 
 MERGE_MODE_AND = "merge_mode_and"
 MERGE_MODE_OR = "merge_mode_or"
 MERGE_MODE_CHAIN = "merge_mode_chain"
 MERGE_MODE_NONE = "merge_mode_none"
 
+
 def io_type_to_str(io_type: str) -> str:
     if io_type == IO_IMAGE:
-        return 'image'
+        return "image"
     elif io_type == IO_MASK:
-        return 'mask'
+        return "mask"
     elif io_type == IO_ROI:
-        return 'ROI'
+        return "ROI"
     elif io_type == IO_DATA:
-        return 'data'
+        return "data"
     elif io_type == IO_NONE:
-        return 'none'
+        return "none"
     else:
-        return 'unknown'
+        return "unknown"
+
 
 def merge_mode_to_str(merge_mode: str) -> str:
     if merge_mode == MERGE_MODE_AND:
@@ -99,6 +101,7 @@ def merge_mode_to_str(merge_mode: str) -> str:
         return "NONE"
     else:
         return "unknown"
+
 
 AVAILABLE_FEATURES = sorted(
     [
