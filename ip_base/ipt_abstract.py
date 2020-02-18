@@ -60,6 +60,7 @@ class IptParam(object):
         self.kind = kwargs.get("kind", "unk_k")
         self.options = kwargs.get("options", {})
         self._value = kwargs.get("_value", self.default_value)
+        self.on_change = None
         self._widgets = {}
         self._grid_search_options = kwargs.get("_grid_search_options", str(self.default_value))
 
@@ -187,7 +188,9 @@ class IptParam(object):
         widget = self.input
         if widget is None:
             return False
-        if isinstance(self.allowed_values, dict):
+        if self.kind == "button":
+            return True
+        elif isinstance(self.allowed_values, dict):
             if (
                 (new_values is not None)
                 and isinstance(new_values, dict)
@@ -319,7 +322,10 @@ class IptParam(object):
 
     @value.setter
     def value(self, value):
-        self._value = value
+        if value != self._value:
+            self._value = value
+            if self.on_change is not None:
+                self.on_change(self)
 
     @property
     def str_value(self):
@@ -402,6 +408,7 @@ class IptParamHolder(object):
     def __init__(self, **kwargs):
         super(IptParamHolder, self).__init__()
 
+        self.block_feedback = False
         self._kwargs = None
         self._param_list = kwargs.get("_param_list", None)
         if self._param_list is None:
@@ -426,12 +433,16 @@ class IptParamHolder(object):
         pass
 
     def reset(self, is_update_widgets: bool = True):
-        for p in self._param_list:
-            p.value = p.default_value
-            if is_update_widgets:
-                p.update_label()
-                p.update_input()
-                p.update_output()
+        self.block_feedback = True
+        try:
+            for p in self._param_list:
+                p.value = p.default_value
+                if is_update_widgets:
+                    p.update_label()
+                    p.update_input()
+                    p.update_output()
+        finally:
+            self.block_feedback = False
 
     def add(self, new_item) -> IptParam:
         try:
@@ -491,6 +502,17 @@ class IptParamHolder(object):
         )
         param.widget_type = "checkbox"
         return self.add(param)
+
+    def add_mosaic_data(
+        self, name: str, desc: str, default_value: [["source"], ["mask"]], hint: str = "",
+    ):
+        param = IptParam(
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values="mosaic_data",
+            hint=hint,
+        )
 
     def add_text_input(
         self,
@@ -1255,7 +1277,7 @@ class IptBase(IptParamHolder, ABC):
                                 i + 1,
                                 tot_,
                                 f"""{ip.name}:
-                                 {ip.input_params_as_str(exclude_defaults=True, 
+                                 {ip.input_params_as_str(exclude_defaults=True,
                                  excluded_params=("progress_callback",))}""",
                                 dic,
                             )

@@ -66,13 +66,13 @@ class IptKeepLinkedContours(IptBase):
         Real time : False
 
         Keyword Arguments (in parentheses, argument name):
-            * Allowed distance to main contour (tolerance_distance): 
-            * Min contour area size (tolerance_area): 
-            * Root contour position (root_position): 
-            * Erosion/dilation iterations (kernel size 3) (dilation_iter): 
-            * Include all contours bigger than (area_override_size): 
+            * Allowed distance to main contour (tolerance_distance):
+            * Min contour area size (tolerance_area):
+            * Root contour position (root_position):
+            * Erosion/dilation iterations (kernel size 3) (dilation_iter):
+            * Include all contours bigger than (area_override_size):
             * Delete all contours smaller than (delete_all_bellow): The more small contours are delete, the faster the algorithm
-            * Pseudo color channel (channel): 
+            * Pseudo color channel (channel):
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -105,13 +105,11 @@ class IptKeepLinkedContours(IptBase):
                 area_override_size=area_override_size,
                 delete_all_bellow=delete_all_bellow,
             )
-            wrapper.store_image(self.result, f"KLC_mask_{params_as_str}", text_overlay=True)
             wrapper.store_image(self.result, "mask", text_overlay=False)
-
-            res_img = wrapper.draw_image(
-                channel=channel, background="bw", foreground="false_colour", src_mask=mask
+            wrapper.store_image(
+                image=wrapper.retrieve_stored_image("src_img_with_cnt_after_agg_iter_last"),
+                text="klc_illustration",
             )
-            wrapper.store_image(res_img, f"KLC_{channel}_{params_as_str}")
 
             res = True
         except Exception as e:

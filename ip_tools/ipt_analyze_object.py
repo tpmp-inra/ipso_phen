@@ -145,6 +145,7 @@ class IptAnalyzeObject(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -231,6 +232,7 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                         centroid_line_width=line_width,
                     ),
                     text="shapes",
+                    force_store=True,
                 )
                 wrapper.store_image(
                     image=wrapper.draw_image(
@@ -288,9 +290,15 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                     qtl_img = np.zeros_like(mask)
                     qtl_img = np.dstack((qtl_img, qtl_img, qtl_img))
                     for i in range(n):
-                        total_, hull_, solidity_, min_, max_, avg_, std_ = msk_dt.width_quantile_stats(
-                            n, i, tag=i
-                        )
+                        (
+                            total_,
+                            hull_,
+                            solidity_,
+                            min_,
+                            max_,
+                            avg_,
+                            std_,
+                        ) = msk_dt.width_quantile_stats(n, i, tag=i)
                         self.add_value(f"quantile_width_{i + 1}_{n}_area", total_, True)
                         self.add_value(f"quantile_width_{i + 1}_{n}_hull", hull_, True)
                         self.add_value(f"quantile_width_{i + 1}_{n}_solidity", solidity_, True)

@@ -55,6 +55,8 @@ class IptAnalyseObservation(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
+
             self.add_value("experiment", wrapper.experiment)
             self.add_value("plant", wrapper.plant)
             self.add_value("date_time", wrapper.date_time)
@@ -75,10 +77,16 @@ class IptAnalyseObservation(IptBaseAnalyzer):
                             key = f"key_{i}"
                         self.add_value(key=key, value=value, force_add=True)
 
-            new_columns = self.get_value_of("add_columns").replace(" ", "").split(",")
+            new_columns = [
+                col for col in self.get_value_of("add_columns").replace(" ", "").split(",") if col
+            ]
             if new_columns:
                 for new_column in new_columns:
                     self.add_value(new_column, None, force_add=True)
+
+            wrapper.store_image(
+                image=wrapper.current_image, text="observation_data", force_store=True
+            )
 
             res = True
         except Exception as e:

@@ -126,6 +126,7 @@ class IptExposureChecker(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             text_overlay = self.get_value_of("text_overlay") == 1
             br_dict = None

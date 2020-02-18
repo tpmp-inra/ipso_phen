@@ -11,7 +11,7 @@ from sqlalchemy_utils import database_exists
 
 from tools.image_list import ImageList
 from file_handlers.fh_base import file_handler_factory
-from tools.common_functions import print_progress_bar, force_directories
+from tools.common_functions import print_progress_bar, force_directories, make_safe_name
 
 DB_USER = "fmavianemac"
 DB_PREFIX = "ipso_local_db_"
@@ -27,27 +27,47 @@ DB_TYPE_MEMORY = "DB_TYPE_MEMORY"
 DB_TYPE_RO = "DB_TYPE_RO"
 DB_TYPE_RW = "DB_TYPE_RW"
 
-DbInfo = namedtuple("DbInfo", "name, db_name, path, dbms")
+
+class DbInfo:
+    def __init__(self, **kwargs):
+        self.display_name = kwargs.get("display_name", "unknown")
+        self.db_file_name = kwargs.get(
+            "db_file_name", DB_PREFIX + make_safe_name(self.display_name)
+        )
+        self.src_files_path = kwargs.get("src_files_path", "")
+        self.dbms = kwargs.get("dbms", "sqlite")
+        self.db_folder_name = kwargs.get("db_folder_name", "./sqlite_databases")
+
+    @classmethod
+    def from_json(cls, json_data: dict):
+        return cls(**json_data)
+
+    def to_json(self):
+        return {
+            "display_name": self.display_name,
+            "db_file_name": self.db_file_name,
+            "src_files_path": self.src_files_path,
+            "dbms": self.dbms,
+            "db_folder_name": self.db_folder_name,
+        }
+
+    def copy(self):
+        return self.__class__.from_json(self.to_json())
+
+    @property
+    def db_full_file_path(self) -> str:
+        return os.path.join(self.db_folder_name, self.db_file_name)
+
 
 DB_INFO_LOCAL_SAMPLES = DbInfo(
-    name="local_samples",
-    db_name=DB_PREFIX + "local_samples",
-    path=os.path.join(os.path.expanduser("~"), "Pictures", "ipso_phen_cache", ""),
+    display_name="local_samples",
+    src_files_path=os.path.join(os.path.expanduser("~"), "Pictures", "ipso_phen_cache", ""),
     dbms="psql",
 )
 
 DB_INFO_EXT_HD = DbInfo(
-    name="external_hard_drive",
-    db_name=DB_PREFIX + "external_hard_drive",
-    path="d:/input",
-    dbms="psql",
+    display_name="external_hard_drive", src_files_path="d:/input", dbms="psql",
 )
-
-
-def get_pg_dbw(db_data: DbInfo):
-    return PgSqlDbWrapper(
-        user=DB_USER, port=DB_DEFAULT_PORT, password="", db_name=db_data.db_name, path=db_data.path
-    )
 
 
 def adapt_time_object(time_object):
@@ -238,9 +258,7 @@ class QueryHandlerSQLite(QueryHandler):
         if isinstance(value, dict):
             op = value["operator"]
             if op.lower() == "between":
-                return f"{key} {op} " + " AND ".join(
-                    "?" for _ in value.keys() if key != "operator"
-                )
+                return f"{key} {op} " + " AND ".join("?" for k in value.keys() if k != "operator")
             elif op.lower() == "in":
                 return (
                     f"{key} {op} (" + ", ".join("?" for _ in range(0, len(value["values"]))) + ")"
@@ -352,16 +370,13 @@ class DbWrapper(ABC):
     def __init__(self, **kwargs):
         self.port = kwargs.get("port", 5432)
         self.password = kwargs.get("password", "")
-        self.display_name = kwargs.get("display_name", "")
-        self.db_name = kwargs.get("db_name", "")
         self.user = kwargs.get("user", "")
         self.main_table = kwargs.get("main_table", "snapshots")
-        self.path = kwargs.get("path", "")
         self.engine = None
-        self.progress_call_back = None
+        self.progress_call_back = kwargs.get("progress_call_back", None)
         self.connexion = None
         self._last_error = ""
-        self.build_data = kwargs.get("build_data", None)
+        self.db_info = kwargs.get("db_info", None)
 
     def __del__(self):
         self.close_connexion()
@@ -372,11 +387,8 @@ class DbWrapper(ABC):
             user=self.user,
             port=self.port,
             password=self.password,
-            db_name=self.db_name,
-            display_name=self.display_name,
             main_table=self.main_table,
-            path=self.path,
-            build_data=self.build_data
+            db_info=self.db_info.copy(),
         )
 
     @abstractmethod
@@ -397,7 +409,7 @@ class DbWrapper(ABC):
         pass
 
     @abstractmethod
-    def update(self, path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
         pass
 
     def _callback(self, step, total, msg):
@@ -429,7 +441,7 @@ class DbWrapper(ABC):
 
     @property
     def db_url(self):
-        return f"{self.url}/{self.db_name.lower()}"
+        return f"{self.url}/{self.db_file_name.lower()}"
 
     @property
     def last_error(self):
@@ -445,6 +457,46 @@ class DbWrapper(ABC):
     def type(self) -> list:
         return []
 
+    @property
+    def display_name(self):
+        return self.db_info.display_name
+
+    @display_name.setter
+    def display_name(self, value):
+        self.db_info.display_name = value
+
+    @property
+    def db_file_name(self):
+        return self.db_info.db_file_name
+
+    @db_file_name.setter
+    def db_file_name(self, value):
+        self.db_info.db_file_name = value
+
+    @property
+    def src_files_path(self):
+        return self.db_info.src_files_path
+
+    @src_files_path.setter
+    def src_files_path(self, value):
+        self.db_info.src_files_path = value
+
+    @property
+    def dbms(self):
+        return self.db_info.dbms
+
+    @dbms.setter
+    def dbms(self, value):
+        self.db_info.dbms = value
+
+    @property
+    def db_folder_name(self):
+        return self.db_info.db_folder_name
+
+    @db_folder_name.setter
+    def db_folder_name(self, value):
+        self.db_info.db_folder_name = value
+
 
 class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
     def connect(self, auto_update: bool = True):
@@ -456,9 +508,9 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             engine = create_engine("postgres://postgres@/postgres")
             conn = engine.connect()
             conn.execute("commit")
-            conn.execute(f"create database {self.db_name.lower()}")
-            conn.execute(f"GRANT ALL ON DATABASE {self.db_name.lower()} TO {self.user};")
-            conn.execute(f"ALTER DATABASE {self.db_name.lower()} OWNER TO {self.user};")
+            conn.execute(f"create database {self.db_file_name.lower()}")
+            conn.execute(f"GRANT ALL ON DATABASE {self.db_file_name.lower()} TO {self.user};")
+            conn.execute(f"ALTER DATABASE {self.db_file_name.lower()} OWNER TO {self.user};")
             conn.close()
             missing_data = True
 
@@ -492,7 +544,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 self.last_error = f"Failed to create table because {repr(e)}"
                 return False
 
-        if missing_data and auto_update and self.path:
+        if missing_data and auto_update and self.db_file_name:
             self.update()
 
         return True
@@ -509,7 +561,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         trans_ = conn_.begin()
         try:
             conn_.execute("commit")
-            conn_.execute(f"drop database if exists {self.db_name.lower()}")
+            conn_.execute(f"drop database if exists {self.db_file_name.lower()}")
             trans_.commit()
             conn_.close()
         except Exception as e:
@@ -519,17 +571,17 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         else:
             return True
 
-    def update(self, path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
         if not self.connect(auto_update=False):
             return -1
 
         files_added = 0
-        if path:
-            self.path = path
-        if os.path.isdir(self.path):
+        if src_files_path:
+            self.src_files_path = src_files_path
+        if os.src_files_path.isdir(self.src_files_path):
             # Grab all images in folder
             img_lst = ImageList(extensions)
-            img_lst.add_folder(self.path)
+            img_lst.add_folder(self.src_files_path)
             file_list = img_lst.filter(())
             # Fill database
             if self.open_connexion():
@@ -561,11 +613,15 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                         self.last_error = f'Cannot add "{file}" because "{e}"'
                     else:
                         files_added += 1
-                    self._callback(step=i, total=total_, msg=f'Updating database "{self.db_name}"')
+                    self._callback(
+                        step=i, total=total_, msg=f'Updating database "{self.db_file_name}"'
+                    )
                 self.close_connexion()
-                self._callback(step=total_, total=total_, msg=f'Updated database "{self.db_name}"')
-        elif self.path.lower().endswith((".csv",)):
-            df = pd.read_csv(self.path, parse_dates=[3])
+                self._callback(
+                    step=total_, total=total_, msg=f'Updated database "{self.db_file_name}"'
+                )
+        elif self.src_files_path.lower().endswith((".csv",)):
+            df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
                 df.drop_duplicates(subset="luid", keep="first", inplace=True)
                 df.to_sql(name="snapshots", con=self.engine, if_exists="replace")
@@ -581,7 +637,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             else:
                 files_added = df["luid"].count()
         else:
-            self.last_error = f"I don't know what to do with {self.path}"
+            self.last_error = f"I don't know what to do with {self.src_files_path}"
             files_added = -1
 
         return files_added
@@ -613,7 +669,7 @@ class ReadOnlyDbWrapper(DbWrapper, QueryHandlerPostgres):
     def drop(self, super_user, password):
         return False
 
-    def update(self, path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
         return -1
 
     @property
@@ -625,13 +681,14 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
     def connect(self, auto_update: bool = True):
         if self.engine is None:
             needs_creating = not self.is_exists()
-            if self.db_name == ":memory:":
-                db_name = ":memory:"
+            if self.db_file_name == ":memory:":
+                db_file_name = ":memory:"
             else:
-                db_name = self.db_file_path
-                force_directories("./sqlite_databases")
+                db_file_name = self.db_info.db_full_file_path
+                force_directories(self.db_folder_name)
             self.engine = sqlite3.connect(
-                database=db_name, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
+                database=db_file_name,
+                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
             )
             if needs_creating:
                 self.engine.execute(
@@ -663,25 +720,25 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             self.connexion = None
 
     def is_exists(self):
-        if self.db_name == ":memory:":
+        if self.db_file_name == ":memory:":
             return self.engine is not None
         else:
-            return os.path.isfile(self.db_file_path)
+            return os.path.isfile(self.db_info.db_full_file_path)
 
     def drop(self, super_user, password):
         return False
 
-    def update(self, path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
         if not self.connect(auto_update=False):
             return -1
 
         files_added = 0
-        if path:
-            self.path = path
-        if os.path.isdir(self.path):
+        if src_files_path:
+            self.src_files_path = src_files_path
+        if os.path.isdir(self.src_files_path):
             # Grab all images in folder
             img_lst = ImageList(extensions)
-            img_lst.add_folder(self.path)
+            img_lst.add_folder(self.src_files_path)
             file_list = img_lst.filter(())
             # Fill database
             self.close_connexion()
@@ -712,10 +769,14 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                         self.last_error = f'Cannot add "{file}" because "{e}"'
                     else:
                         files_added += 1
-                    self._callback(step=i, total=total_, msg=f'Updating database "{self.db_name}"')
-                self._callback(step=total_, total=total_, msg=f'Updated database "{self.db_name}"')
-        elif self.path.lower().endswith((".csv",)):
-            df = pd.read_csv(self.path, parse_dates=[3])
+                    self._callback(
+                        step=i, total=total_, msg=f'Updating database "{self.src_files_path}"'
+                    )
+                self._callback(
+                    step=total_, total=total_, msg=f'Updated database "{self.src_files_path}"'
+                )
+        elif self.src_files_path.lower().endswith((".csv",)):
+            df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
                 df.drop_duplicates(subset="luid", keep="first", inplace=True)
                 df.to_sql(name="snapshots", con=self.engine, if_exists="replace")
@@ -731,7 +792,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             else:
                 files_added = df["luid"].count()
         else:
-            self.last_error = f"I don't know what to do with {self.path}"
+            self.last_error = f"I don't know what to do with {self.src_files_path}"
             files_added = -1
 
         return files_added
@@ -740,12 +801,8 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
     def type(self) -> list:
         return [DB_TYPE_MEMORY, DB_TYPE_SQLITE, DB_TYPE_RW]
 
-    @property
-    def db_file_path(self) -> str:
-        return os.path.join("./sqlite_databases", self.db_name)
 
-
-def db_info_to_database(info: DbInfo) -> [DbWrapper, str]:
+def db_info_to_database(info: DbInfo, **kwargs) -> [DbWrapper, str]:
     """Builds a database from information
 
     Arguments:
@@ -759,18 +816,14 @@ def db_info_to_database(info: DbInfo) -> [DbWrapper, str]:
             user=DB_USER,
             port=DB_DEFAULT_PORT,
             password=DB_PASSWORD,
-            display_name=info.name,
-            db_name=info.db_name,
-            path=info.path,
-            build_data=info,
+            db_info=info.copy(),
+            progress_call_back=kwargs.get("progress_call_back", None),
         )
     elif info.dbms == "sqlite":
         return SqLiteDbWrapper(
-            display_name=info.name, db_name=info.db_name, path=info.path, build_data=info
-        )
-    elif info.dbms == "memory":
-        return SqLiteDbWrapper(
-            display_name=info.name, db_name=":memory:", path=info.path, build_data=info
+            db_info=info.copy(),
+            progress_call_back=kwargs.get("progress_call_back", None),
+            db_folder_name=info.db_folder_name,
         )
     else:
         return f"Unknown DBMS {info.dbms}"
