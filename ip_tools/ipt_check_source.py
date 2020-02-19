@@ -1,5 +1,5 @@
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import TOOL_GROUP_IMAGE_CHECK_STR
+import ip_base.ip_common as ipc
 
 
 class IptCheckSource(IptBase):
@@ -40,8 +40,7 @@ class IptCheckSource(IptBase):
                 wrapper.store_image(wrapper.current_image, "source", print_rois)
         except Exception as e:
             wrapper.error_holder.add_error(
-                f'Failed to check source for {str(self)}, exception: "{repr(e)}"',
-                new_error_kind="source_issue",
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
             )
             res = False
         else:
@@ -68,8 +67,16 @@ class IptCheckSource(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_IMAGE_CHECK_STR]
+        return [ipc.TOOL_GROUP_ASSERT_STR]
 
     @property
     def description(self):
         return "Checks image and returns error if something is wrong."
+
+    @property
+    def input_type(self):
+        return ipc.IO_IMAGE
+
+    @property
+    def output_type(self):
+        return ipc.IO_NONE

@@ -78,7 +78,9 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
             self.add_value(key="chlorophyll_mean", value=tmp_tuple[0][0][0])
             self.add_value(key="chlorophyll_std_dev", value=tmp_tuple[1][0][0])
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             res = True

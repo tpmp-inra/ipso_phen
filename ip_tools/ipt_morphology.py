@@ -3,9 +3,8 @@ from ip_base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
 
 
 class IptMorphology(IptBase):
-
     def build_params(self):
-        self.add_morphology_operator(default_operator='none')
+        self.add_morphology_operator(default_operator="none")
         self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):
@@ -37,18 +36,22 @@ class IptMorphology(IptBase):
             self.result = self.apply_morphology_from_params(mask.copy())
             rois = self.get_ipt_roi(
                 wrapper=wrapper,
-                roi_names=self.get_value_of('roi_names').replace(' ', '').split(','),
-                selection_mode=self.get_value_of('roi_selection_mode')
+                roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
+                selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if rois:
                 self.result = wrapper.multi_or(
                     (wrapper.keep_rois(self.result, rois), wrapper.delete_rois(mask, rois))
                 )
-            wrapper.store_image(self.result, f'morphology_{self.get_value_of("morph_op")}', text_overlay=True)
+            wrapper.store_image(
+                self.result, f'morphology_{self.get_value_of("morph_op")}', text_overlay=True
+            )
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f'Morphology FAILED, exception: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             res = True
         finally:
@@ -56,7 +59,7 @@ class IptMorphology(IptBase):
 
     @property
     def name(self):
-        return 'Morphology'
+        return "Morphology"
 
     @property
     def real_time(self):
@@ -64,11 +67,11 @@ class IptMorphology(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):
@@ -76,4 +79,4 @@ class IptMorphology(IptBase):
 
     @property
     def description(self):
-        return 'Morphology: Applies the selected morphology operator.\nNeeds to be part of a pipeline where a mask has already been generated'
+        return "Morphology: Applies the selected morphology operator.\nNeeds to be part of a pipeline where a mask has already been generated"

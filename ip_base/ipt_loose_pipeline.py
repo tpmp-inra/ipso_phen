@@ -13,15 +13,14 @@ from ip_base.ipt_abstract import (
     MODULE_NAME_KEY,
     PARAMS_NAME_KEY,
 )
+from ip_base.ipt_functional import get_ipt_class
 from ip_base import ip_common as ipc
 from ip_base.ipt_strict_pipeline import IptStrictPipeline
 from ip_base.ip_abstract import AbstractImageProcessor
-from tools.error_holder import ErrorHolder
+import tools.error_holder as eh
 from tools.common_functions import format_time
 
 last_script_version = "0.2.0.0"
-
-pp_last_error = ErrorHolder("Loose pipeline")
 
 
 class MosaicData(object):
@@ -57,6 +56,13 @@ class PipelineSettings(IptParamHolder):
             desc="Display debug images",
             default_value=0,
             hint="Display module's intermediary images",
+        )
+        self.add_combobox(
+            name="stop_on",
+            desc="Stop processing on error level reaches",
+            default_value=eh.ERR_LVL_EXCEPTION,
+            values={i: eh.error_level_to_str(i) for i in range(1, 6)},
+            hint="If any error of the selected level or higher happens the process will halt",
         )
 
     def params_to_dict(
@@ -110,7 +116,7 @@ class Node(object):
         self, call_back, res, msg, data, is_progress=True, force_call_back=False, **kwargs
     ):
         call_back(
-            res,
+            eh.error_level_to_str(res),
             msg,
             data
             if call_back is not None and (force_call_back or not self.root.parent.silent)
@@ -118,6 +124,10 @@ class Node(object):
             self.absolute_index + 1 if is_progress else -1,
             self.absolute_count if is_progress else -1,
         )
+        if res > 0:
+            self.root.parent.last_error.add_error(
+                new_error_text=msg, new_error_kind="pipeline_process_error", new_error_level=res,
+            )
         md = np.array(self.root.parent.settings.mosaic.images)
         if isinstance(data, (GroupNode, ModuleNode)):
             dn = data.name
@@ -157,12 +167,12 @@ class Node(object):
             return -2
 
     @property
-    def target_reached(self):
-        return self.root.parent._target_reached
+    def stop_processing(self):
+        return self.root.parent.stop_processing
 
-    @target_reached.setter
-    def target_reached(self, value):
-        self.root.parent._target_reached = value
+    @stop_processing.setter
+    def stop_processing(self, value):
+        self.root.parent.stop_processing = value
 
 
 class ModuleNode(Node):
@@ -175,6 +185,7 @@ class ModuleNode(Node):
     def execute(self, wrapper: AbstractImageProcessor, **kwargs):
         call_back = kwargs.get("call_back", None)
         target_module = kwargs.get("target_module", "")
+        wrapper.error_holder.clear()
         if not self.last_result:
             before = timer()
             if self.tool.process_wrapper(wrapper=wrapper):
@@ -197,7 +208,7 @@ class ModuleNode(Node):
                     else:
                         self.do_call_back(
                             call_back=call_back,
-                            res="ERROR",
+                            res=eh.ERR_LVL_ERROR,
                             msg=f"Failed to generate ROI from  {self.name}",
                             data=wrapper if self.root.parent.debug_mode else self,
                         )
@@ -216,7 +227,7 @@ class ModuleNode(Node):
                     self.last_result[key] = wrapper.current_image
                 self.do_call_back(
                     call_back=call_back,
-                    res="OK",
+                    res=eh.ERR_LVL_OK,
                     msg=f"Successfully processed {self.name} in {format_time(timer() - before)}",
                     data=wrapper if self.root.parent.debug_mode else self,
                 )
@@ -224,12 +235,15 @@ class ModuleNode(Node):
             else:
                 self.do_call_back(
                     call_back=call_back,
-                    res="ERROR",
+                    res=eh.ERR_LVL_ERROR,
                     msg=f"Failed to processed {self.name}",
                     data=wrapper
                     if self.root.parent.debug_mode or self.uuid == target_module
                     else self,
                 )
+
+        if wrapper.error_holder.error_count > 0:
+            self.root.parent.last_error.append(wrapper.error_holder)
 
         return self.last_result
 
@@ -256,7 +270,7 @@ class ModuleNode(Node):
             return None
         tool = IptBase.from_json(json_data["tool"])
         if isinstance(tool, Exception):
-            pp_last_error.add_error(
+            parent.root.parent.last_error.add_error(
                 new_error_text=f"Failed to load module: {repr(tool)}",
                 new_error_kind="pipeline_load_error",
             )
@@ -268,8 +282,10 @@ class ModuleNode(Node):
     def sugar_name(self):
         if self.tool.has_param("roi_name"):
             return f'{self.tool.name} {self.tool.get_value_of("roi_name")}'
-        if self.tool.has_param("channel"):
+        elif self.tool.has_param("channel"):
             return f'{self.tool.name} {self.tool.get_value_of("channel")}'
+        elif self.tool.has_param("roi_names"):
+            return f'{self.tool.name} {self.tool.get_value_of("roi_names")}'
         else:
             return self.tool.name
 
@@ -373,7 +389,7 @@ class GroupNode(Node):
                 self.last_result = {}
                 self.do_call_back(
                     call_back=call_back,
-                    res="WARNING",
+                    res=eh.ERR_LVL_WARNING,
                     msg=f"{self.name} - Failed to retrieve source {source}, selecting last output instead",
                     data=None,
                     is_progress=False,
@@ -401,12 +417,14 @@ class GroupNode(Node):
         else:
             only_rois = True
 
+        is_current_image_changed = False
+
         if self.merge_mode == ipc.MERGE_MODE_NONE:
             for node in self.nodes:
                 if not node.enabled:
                     continue
                 res = node.execute(wrapper=wrapper, **kwargs)
-                if self.target_reached:
+                if self.stop_processing:
                     return res
                 if res:
                     if node.output_type == ipc.IO_DATA:
@@ -417,18 +435,19 @@ class GroupNode(Node):
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
-                    self.target_reached = True
+                    self.stop_processing = True
                     return self.last_result
         elif self.merge_mode == ipc.MERGE_MODE_CHAIN:
             for node in self.nodes:
                 if not node.enabled:
                     continue
                 res = node.execute(wrapper=wrapper, **kwargs)
-                if self.target_reached:
+                if self.stop_processing:
                     return res
                 if res:
                     if node.output_type == ipc.IO_IMAGE:
                         wrapper.current_image = res["image"]
+                        is_current_image_changed = True
                     elif node.output_type == ipc.IO_MASK:
                         wrapper.mask = res["mask"]
                     elif node.output_type == ipc.IO_DATA:
@@ -438,7 +457,7 @@ class GroupNode(Node):
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
-                    self.target_reached = True
+                    self.stop_processing = True
                     return node.last_result
         elif self.merge_mode in [ipc.MERGE_MODE_AND, ipc.MERGE_MODE_OR]:
             images = []
@@ -446,7 +465,7 @@ class GroupNode(Node):
                 if not node.enabled:
                     continue
                 res = node.execute(wrapper=wrapper, **kwargs)
-                if self.target_reached:
+                if self.stop_processing:
                     return res
                 if res:
                     if node.output_type == ipc.IO_IMAGE:
@@ -456,7 +475,7 @@ class GroupNode(Node):
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
-                    self.target_reached = True
+                    self.stop_processing = True
                     return node.last_result
             if self.merge_mode == ipc.MERGE_MODE_AND:
                 res = wrapper.multi_and(images)
@@ -464,12 +483,13 @@ class GroupNode(Node):
                 res = wrapper.multi_or(images)
             if self.output_type == ipc.IO_IMAGE:
                 wrapper.current_image = res
+                is_current_image_changed = True
             elif self.output_type == ipc.IO_MASK:
                 wrapper.mask = res
             else:
                 self.do_call_back(
                     call_back=call_back,
-                    res="ERROR",
+                    res=eh.ERR_LVL_ERROR,
                     msg=f'Invalid output type "{self.output_type}" for merge mode "{self.merge_mode}" in {self.name}',
                     data=None,
                     is_progress=False,
@@ -481,8 +501,10 @@ class GroupNode(Node):
         if only_rois and rois:
             self.last_result["roi"] = rois
             self.last_result["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=rois)
-        else:
+        elif is_current_image_changed:
             self.last_result["image"] = wrapper.current_image
+        else:
+            self.last_result["image"] = wrapper.image_list[-1]["image"]
         self.last_result["mask"] = wrapper.mask
         self.last_result["data"] = wrapper.csv_data_holder.data_list
 
@@ -492,10 +514,10 @@ class GroupNode(Node):
             if self.parent.settings.mosaic.enabled:
                 self.do_call_back(
                     call_back=call_back,
-                    res="OK",
+                    res=eh.ERR_LVL_OK,
                     msg=f"Pipeline processed in {format_time(timer() - before)}",
                     data={
-                        "name": "final_mosaic",
+                        "name": f"{wrapper.luid}_final_mosaic",
                         "image": wrapper.build_mosaic(
                             image_names=self.parent.settings.mosaic.images,
                             images_dict=self.parent.stored_mosaic_images,
@@ -508,8 +530,8 @@ class GroupNode(Node):
             else:
                 self.do_call_back(
                     call_back=call_back,
-                    res="OK",
-                    msg=f"Pipeline processed in {format_time(timer() - before)}",
+                    res=eh.ERR_LVL_OK,
+                    msg=f"Processed {wrapper.luid} in {format_time(timer() - before)}",
                     data=self,
                     force_call_back=True,
                     is_progress=False,
@@ -517,7 +539,7 @@ class GroupNode(Node):
         else:
             self.do_call_back(
                 call_back=call_back,
-                res="OK",
+                res=eh.ERR_LVL_OK,
                 msg=f"Successfully processed {self.name}, merge mode: {self.merge_mode} in {format_time(timer() - before)}",
                 data=self,
                 is_progress=False,
@@ -575,7 +597,7 @@ class GroupNode(Node):
             elif node["node_type"] == "group":
                 res.nodes.append(GroupNode.from_json(parent=res, json_data=node))
             else:
-                pp_last_error.add_error(
+                parent.root.parent.last_error.add_error(
                     new_error_text=f"Unknown node type: {node['node_type']}",
                     new_error_kind="pipeline_load_error",
                 )
@@ -780,9 +802,10 @@ class LoosePipeline(object):
         self.name = ""
         self.description = "Please insert description"
         self.stored_mosaic_images = {}
-        self._target_reached = False
+        self._stop_processing = False
         self.set_template(kwargs.get("template", None))
         self.silent = False
+        self.last_error = eh.ErrorHolder("Loose pipeline")
 
         self.set_callbacks()
 
@@ -857,10 +880,22 @@ class LoosePipeline(object):
                     uuid="build_mask",
                 )
                 self.root.add_group(
+                    name="Apply ROIS",
+                    merge_mode=ipc.MERGE_MODE_CHAIN,
+                    source=self.root.group(1).uuid,
+                    uuid="apply_roi",
+                )
+                self.root.add_group(
                     name="Clean mask",
                     merge_mode=ipc.MERGE_MODE_CHAIN,
                     source="pre_process_image",
                     uuid="clean_mask",
+                )
+                self.root.add_group(
+                    name="Assert mask position",
+                    merge_mode=ipc.MERGE_MODE_NONE,
+                    source=self.root.group(1).uuid,
+                    uuid="assert_mask_position",
                 )
                 self.root.add_group(
                     name="Extract features",
@@ -876,18 +911,18 @@ class LoosePipeline(object):
                 )
 
     def execute(self, src_image: str, silent_mode: bool = False, **kwargs):
-        self._target_reached = False
-        pp_last_error.clear()
+        self.stop_processing = False
+        self.last_error.clear()
         if isinstance(src_image, str):
             wrapper = AbstractImageProcessor(src_image)
             wrapper.lock = True
         elif isinstance(src_image, AbstractImageProcessor):
             wrapper = src_image
         else:
-            pp_last_error.add_error(
+            self.last_error.add_error(
                 new_error_text="Unknown source", new_error_kind="pipeline_process_error"
             )
-            return
+            return False
         if self.last_wrapper_luid != wrapper.luid:
             self.invalidate()
             self.last_wrapper_luid = wrapper.luid
@@ -895,7 +930,7 @@ class LoosePipeline(object):
         wrapper.store_images = self.root.parent.debug_mode or kwargs.get("target_module", "")
         self.silent = silent_mode
         self.root.execute(wrapper=wrapper, **kwargs)
-        return True
+        return self.last_error.is_error_under_or(eh.ERR_LVL_WARNING)
 
     def targeted_callback(self, param: IptParam):
         if param.name == "debug_mode":
@@ -917,12 +952,12 @@ class LoosePipeline(object):
                 node.last_result = {}
 
     def save(self, file_name: str) -> bool:
-        pp_last_error.clear()
+        self.last_error.clear()
         try:
             with open(file_name, "w") as f:
                 json.dump(self.to_json(), f, indent=2)
         except Exception as e:
-            pp_last_error.add_error(
+            self.last_error.add_error(
                 new_error_text=f'Failed to save pipeline "{repr(e)}"',
                 new_error_kind="pipeline_save_error",
             )
@@ -975,7 +1010,7 @@ class LoosePipeline(object):
 
             # Import basic data
             res.name = tmp.name
-            res.description = "Pipeline imported from old format, pleas check data"
+            res.description = "Pipeline imported from old format, please check data"
 
             # Import settings
             for setting in res.settings.gizmos:
@@ -988,25 +1023,13 @@ class LoosePipeline(object):
 
             # Import nodes & modules
             for uuid, kinds in zip(
-                [
-                    "roi_raw",
-                    "fix_image",
-                    "pre_process_image",
-                    "roi_pre_processed",
-                    "build_mask",
-                    "clean_mask",
-                    "extract_features",
-                    "build_images",
-                ],
+                ["roi_raw", "fix_image", "pre_process_image", "roi_pre_processed", "build_mask"],
                 [
                     ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
                     [ipc.TOOL_GROUP_WHITE_BALANCE_STR, ipc.TOOL_GROUP_EXPOSURE_FIXING_STR],
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                     ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
                     ipc.TOOL_GROUP_THRESHOLD_STR,
-                    ipc.TOOL_GROUP_MASK_CLEANUP_STR,
-                    ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
                 ],
             ):
                 src_group = tmp.get_operators(constraints={"kind": kinds})
@@ -1020,6 +1043,62 @@ class LoosePipeline(object):
             res.root.find_by_uuid(uuid="build_mask").merge_mode = (
                 ipc.MERGE_MODE_AND if tmp.merge_method == "multi_and" else ipc.MERGE_MODE_OR
             )
+
+            rois = tmp.get_operators(
+                constraints={
+                    "kind": [ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR]
+                }
+            )
+            dst_group = res.root.find_by_uuid(uuid="apply_roi")
+            for tool_dict in rois:
+                ipt = tool_dict["tool"]
+                roi_type = ipt.get_value_of("roi_type")
+                if roi_type not in [
+                    "keep",
+                    "delete",
+                    "erode",
+                    "dilate",
+                    "open",
+                    "close",
+                ]:
+                    continue
+                dst_group.add_module(
+                    tool=get_ipt_class(class_name="IptApplyRoi")(
+                        roi_names=ipt.get_value_of("roi_name"),
+                        roi_selection_mode="all_named",
+                        roi_type=roi_type,
+                        input_source="mask",
+                        output_mode="mask",
+                    )
+                )
+
+            dst_group = res.root.find_by_uuid(uuid="assert_mask_position")
+            for tool_dict in rois:
+                ipt = tool_dict["tool"]
+                if ipt.get_value_of("roi_type") not in ["enforce"]:
+                    continue
+                dst_group.add_module(
+                    tool=get_ipt_class(class_name="IptAssertMaskPosition")(
+                        roi_names=ipt.get_value_of("roi_name"), roi_selection_mode="all_named",
+                    )
+                )
+
+            for uuid, kinds in zip(
+                ["clean_mask", "extract_features", "build_images"],
+                [
+                    ipc.TOOL_GROUP_MASK_CLEANUP_STR,
+                    ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR,
+                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ],
+            ):
+                src_group = tmp.get_operators(constraints={"kind": kinds})
+                dst_group = res.root.find_by_uuid(uuid=uuid)
+                for tool_dict in src_group:
+                    dst_group.add_module(
+                        tool=tool_dict["tool"].copy(),
+                        enabled=tool_dict["enabled"],
+                        uuid=tool_dict["uuid"],
+                    )
 
         res.set_callbacks()
         return res
@@ -1057,9 +1136,25 @@ class LoosePipeline(object):
         self.settings.set_value_of("image_output_path", value)
 
     @property
+    def stop_on(self) -> int:
+        return self.settings.get_value_of("stop_on")
+
+    @stop_on.setter
+    def stop_on(self, value: int):
+        self.settings.set_value_of("stop_on", value)
+
+    @property
     def last_image(self):
         return self.settings.get_value_of("last_image")
 
     @last_image.setter
     def last_image(self, value):
         self.settings.set_value_of("last_image", value)
+
+    @property
+    def stop_processing(self):
+        return self._stop_processing or self.last_error.is_error_over_or(self.stop_on)
+
+    @stop_processing.setter
+    def stop_processing(self, value):
+        self._stop_processing = value

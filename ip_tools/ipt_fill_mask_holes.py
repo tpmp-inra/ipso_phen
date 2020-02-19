@@ -122,7 +122,9 @@ class IptFillMaskHoles(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f"Fill mask holes FAILED, exception: {repr(e)}")
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             pass
         finally:

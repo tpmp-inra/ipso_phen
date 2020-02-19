@@ -6,23 +6,24 @@ from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR, ensure_odd
 
 
 class IptOtsu(IptBase):
-
     def build_params(self):
-        self.add_source_selector(default_value='source')
-        self.add_channel_selector(default_value='h')
-        self.add_checkbox(name='invert_mask', desc='Invert mask', default_value=0, hint='Invert result')
+        self.add_source_selector(default_value="source")
+        self.add_channel_selector(default_value="h")
         self.add_checkbox(
-            name='build_mosaic',
-            desc='Build mosaic',
+            name="invert_mask", desc="Invert mask", default_value=0, hint="Invert result"
+        )
+        self.add_checkbox(
+            name="build_mosaic",
+            desc="Build mosaic",
             default_value=0,
-            hint='If true source and result will be displayed side by side'
+            hint="If true source and result will be displayed side by side",
         )
         self.add_slider(
-            name='median_filter_size',
-            desc='Median filter size (odd values only)',
+            name="median_filter_size",
+            desc="Median filter size (odd values only)",
             default_value=0,
             minimum=0,
-            maximum=51
+            maximum=51,
         )
         self.add_morphology_operator()
         self.add_text_overlay()
@@ -45,11 +46,11 @@ class IptOtsu(IptBase):
         if wrapper is None:
             return False
 
-        median_filter_size = self.get_value_of('median_filter_size')
-        invert_mask = self.get_value_of('invert_mask') == 1
-        channel = self.get_value_of('channel')
-        text_overlay = self.get_value_of('text_overlay') == 1
-        build_mosaic = self.get_value_of('build_mosaic') == 1
+        median_filter_size = self.get_value_of("median_filter_size")
+        invert_mask = self.get_value_of("invert_mask") == 1
+        channel = self.get_value_of("channel")
+        text_overlay = self.get_value_of("text_overlay") == 1
+        build_mosaic = self.get_value_of("build_mosaic") == 1
 
         res = False
         try:
@@ -62,8 +63,9 @@ class IptOtsu(IptBase):
                 self.do_channel_failure(channel)
                 return
             # Crop if channel is msp
-            if (c.shape !=
-                src_img.shape) and (self.get_value_of('source_file', 'source') == 'cropped_source'):
+            if (c.shape != src_img.shape) and (
+                self.get_value_of("source_file", "source") == "cropped_source"
+            ):
                 c = wrapper.crop_to_keep_roi(c)
 
             _, mask = cv2.threshold(c, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
@@ -72,22 +74,27 @@ class IptOtsu(IptBase):
 
             self.result = self.apply_morphology_from_params(mask)
             wrapper.store_image(
-                self.result, f'otsu_binarization_{self.input_params_as_str()}', text_overlay=text_overlay
+                self.result,
+                f"otsu_binarization_{self.input_params_as_str()}",
+                text_overlay=text_overlay,
             )
 
             if build_mosaic:
-                wrapper.store_image(c, 'source_channel')
+                wrapper.store_image(c, "source_channel")
                 canvas = wrapper.build_mosaic(
-                    image_names=np.
-                    array(['source_channel', f'otsu_binarization_{self.input_params_as_str()}'])
+                    image_names=np.array(
+                        ["source_channel", f"otsu_binarization_{self.input_params_as_str()}"]
+                    )
                 )
-                wrapper.store_image(canvas, 'mosaic')
+                wrapper.store_image(canvas, "mosaic")
 
             res = True
 
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(f'Otsu FAILED, exception: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             pass
         finally:
@@ -95,7 +102,7 @@ class IptOtsu(IptBase):
 
     @property
     def name(self):
-        return 'Otsu'
+        return "Otsu"
 
     @property
     def real_time(self):
@@ -103,11 +110,11 @@ class IptOtsu(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):
