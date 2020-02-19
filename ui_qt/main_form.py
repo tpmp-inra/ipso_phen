@@ -31,6 +31,7 @@ from PyQt5.QtCore import (
     QRunnable,
     QSettings,
     Qt,
+    QPoint,
     QThread,
     QThreadPool,
     QTimer,
@@ -92,7 +93,7 @@ from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ip_base.ipt_functional import call_ipt_code
 from ip_base.ipt_holder import IptHolder
 from ip_base.ipt_strict_pipeline import IptStrictPipeline
-from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode, pp_last_error
+from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import ip_base.ip_common as ipc
 
 from class_pipelines.ip_factory import ipo_factory
@@ -143,9 +144,7 @@ _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
 
 _TAB_TOOLS = "tab_tools"
-_TAB_PIPELINE = "tab_pipeline"
 _TAB_PIPELINE_V2 = "tb_pipeline_v2"
-_TAB_SCRIPT = "tab_script"
 
 _ACTIVE_SCRIPT_TAG = "Active script"
 
@@ -468,6 +467,35 @@ class NewToolDialog(QDialog):
         self.close()
 
 
+class ShowTextDialog(QDialog):
+    def __init__(
+        self,
+        parent=None,
+        title: str = "",
+        text: str = "",
+        use_html: bool = False,
+        pt: QPoint = QPoint(0, 0),
+    ):
+        super().__init__(parent)
+
+        self.setWindowTitle(title)
+
+        txt_browser = QTextBrowser()
+        if use_html:
+            txt_browser.insertHtml(text.replace("\n", "<br>"))
+        else:
+            txt_browser.insertPlainText(text)
+
+        layout = QVBoxLayout()
+        layout.addWidget(txt_browser)
+        self.setLayout(layout)
+
+        self.setGeometry(pt.x(), pt.y(), 500, 400)
+
+        self.setModal(True)
+        self.setWindowModality(Qt.ApplicationModal)
+
+
 class FrmSelectFolder(QDialog):
     def __init__(self, parent=None, flags=0):
         super().__init__(parent)
@@ -588,7 +616,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._process_in_progress = False
         self._current_database = None
         self._current_tool = None
-        self._script_generator = None
         self._file_name = ""
         self.multithread = True
         self.use_pipeline_cache = True
@@ -720,11 +747,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
         self.text_color = QColor(0, 0, 0)
         self.background_color = QColor(255, 255, 255)
-
-        self.tv_queued_tools = CTreeWidget()
-        self.tv_queued_tools.setHeaderHidden(True)
-        self.tv_queued_tools.setHeaderLabels(["Key", "Value", "Action", "up", "down", "Delete"])
-        self.gl_pipeline_data.addWidget(self.tv_queued_tools, 1, 0, 1, 7)
 
         self.gv_last_processed_item = QMouseGraphicsView(self)
         self.ver_layout_last_image.addWidget(self.gv_last_processed_item)
@@ -864,21 +886,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
                 tool_menu.setToolTipsVisible(True)
                 self.bt_pp_select_tool.setMenu(tool_menu)
-
-            for use_case in self._ip_tools_holder.use_cases:
-                if use_case == "none":
-                    continue
-                # Menu items
-                use_case_root = self.mnu_tools_root.addMenu(use_case)
-                use_case_root.setToolTip(ipc.tool_group_hints.get(use_case, ""))
-                op_lst = self._ip_tools_holder.list_by_use_case(use_case)
-                for op in op_lst:
-                    act = QAction(op.name, self)
-                    act.setToolTip(op.hint)
-                    use_case_root.addAction(act)
-                use_case_root.setToolTipsVisible(True)
-            self.mnu_tools_root.setToolTipsVisible(True)
-            self.mnu_tools_root.triggered[QAction].connect(self.on_menu_tool_selection)
         except Exception as e:
             self.log_exception(f"Failed to load tools: {repr(e)}")
 
@@ -914,9 +921,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.bt_run_grid_search.clicked.connect(self.on_bt_run_grid_search)
         self.bt_reset_grid_search.clicked.connect(self.on_bt_reset_grid_search)
         self.bt_update_grid_search.clicked.connect(self.on_bt_update_grid_search)
-        self.chk_use_pipeline_as_preprocessor.stateChanged.connect(
-            self.on_chk_use_pipeline_as_preprocessor
-        )
+        self.bt_tool_help.clicked.connect(self.on_bt_tool_help)
+        self.bt_tool_show_code.clicked.connect(self.on_bt_tool_show_code)
 
         self.bt_clear_result.clicked.connect(self.on_bt_clear_result)
 
@@ -943,22 +949,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_build_video_from_images.triggered.connect(
             self.on_action_build_video_from_images
         )
-        self.action_new_script.triggered.connect(self.on_bt_clear_pipeline)
-        self.action_load_script.triggered.connect(self.on_bt_load_pipeline)
-        self.action_save_script.triggered.connect(self.on_bt_save_pipeline)
-        self.action_save_as_python_script.triggered.connect(self.on_action_save_as_python_script)
-        self.action_create_wrapper_before.triggered.connect(self.on_action_create_wrapper_before)
-        self.action_standard_object_oriented_call.triggered.connect(
-            self.on_action_standard_object_oriented_call
-        )
-        self.action_object_oriented_wrapped_with_a_with_clause.triggered.connect(
-            self.on_action_object_oriented_wrapped_with_a_with_clause
-        )
-        self.action_functional_style.triggered.connect(self.on_action_functional_style)
         self.action_about_form.triggered.connect(self.on_action_about_form)
         self.action_use_dark_theme.triggered.connect(self.on_color_theme_changed)
         self.action_use_multithreading.triggered.connect(self.on_action_use_multithreading)
-        self.action_use_pipeline_cache.triggered.connect(self.on_action_use_pipeline_cache)
         self.action_save_pipeline_processor_state.triggered.connect(
             self.on_action_save_pipeline_processor_state
         )
@@ -1014,37 +1007,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.action_de_delete_column.triggered.connect(self.on_action_de_delete_column)
         self.action_de_save_csv.triggered.connect(self.on_action_de_save_csv)
 
-        # Script generator
-        self.actionAdd_white_balance_fixer.triggered.connect(
-            self.on_action_add_white_balance_fixer
-        )
-        self.action_add_exposure_fixer.triggered.connect(self.on_action_add_exposure_fixer)
-        self.action_add_white_balance_corrector.triggered.connect(
-            self.on_action_add_white_balance_corrector
-        )
-        self.action_build_roi_with_raw_image.triggered.connect(
-            self.on_action_build_roi_with_raw_image
-        )
-        self.action_build_roi_with_pre_processed_image.triggered.connect(
-            self.on_action_build_roi_with_pre_processed_image
-        )
-        self.actionAdd_channel_mask.triggered.connect(self.on_actionAdd_channel_mask)
-        self.actionSet_contour_cleaner.triggered.connect(self.on_action_set_contour_cleaner)
-        self.action_add_feature_extractor.triggered.connect(self.on_action_add_feature_extractor)
-        self.action_add_image_generator.triggered.connect(self.on_action_add_image_generator)
-        self.bt_clear_pipeline.clicked.connect(self.on_bt_clear_pipeline)
-        self.bt_load_pipeline.clicked.connect(self.on_bt_load_pipeline)
-        self.bt_save_pipeline.clicked.connect(self.on_bt_save_pipeline)
-        self.bt_script_gen_run.clicked.connect(self.on_bt_script_gen_run)
-        self.chk_pp_show_last_item.stateChanged.connect(self.on_chk_pp_show_last_item)
-
         self.bt_update_selection_stats.clicked.connect(self.on_bt_update_selection_stats)
 
         # Pipeline processor
         self.sl_pp_thread_count.valueChanged.connect(self.on_sl_pp_thread_count_index_changed)
         self.bt_pp_select_output_folder.clicked.connect(self.on_bt_pp_select_output_folder)
-        self.bt_pp_select_script.clicked.connect(self.on_bt_load_pipeline)
-        self.bt_pp_clear_script.clicked.connect(self.on_bt_clear_pipeline)
+        self.bt_pp_select_script.clicked.connect(self.on_bt_pp_load)
+        self.bt_pp_clear_script.clicked.connect(self.on_bt_pp_new)
         self.bt_pp_reset.clicked.connect(self.on_bt_pp_reset)
         self.bt_pp_start.clicked.connect(self.on_bt_pp_start)
         self.rb_pp_default_process.clicked.connect(self.on_rb_pp_default_process)
@@ -1610,7 +1579,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.te_annotations.clear()
             icon_ = QIcon()
 
-        self.tw_tool_box.setTabIcon(1, icon_)
+        self.tw_tool_box.setTabIcon(0, icon_)
 
     def get_image_list_name(self):
         table = self.tv_image_browser
@@ -1652,7 +1621,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 widget.setEnabled(new_state)
 
-        for tab_name_ in [_TAB_TOOLS, _TAB_PIPELINE, _TAB_SCRIPT]:
+        for tab_name_ in [_TAB_TOOLS, _TAB_PIPELINE_V2]:
             tab_widget_ = self.tb_tool_script.findChild(QWidget, tab_name_)
             if tab_widget_ is None:
                 continue
@@ -1890,7 +1859,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.use_pipeline_cache = (
                 settings_.value("use_pipeline_cache", "true").lower() == "true"
             )
-            self.action_use_pipeline_cache.setChecked(self.use_pipeline_cache)
 
             # Retrieve last active database
             last_db = dbw.DbInfo(
@@ -2046,8 +2014,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 )
             )
 
-            self.on_bt_clear_pipeline()
-
             # Fill selected plant
             self.select_image_from_luid(settings_.value("selected_plant_luid", ""))
 
@@ -2086,7 +2052,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             settings_.setValue("selected_style", self._selected_style)
             settings_.setValue("selected_theme", self._selected_theme)
             settings_.setValue("multithread", self.action_use_multithreading.isChecked())
-            settings_.setValue("use_pipeline_cache", self.action_use_pipeline_cache.isChecked())
             settings_.setValue("log_geometry", self.dk_log.geometry())
 
             # Data editor
@@ -2225,8 +2190,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         collect_garbage: bool = True,
     ):
         process = psutil.Process(os.getpid())
-        mem_data = f"""[Memory: Used/Free%
-        {process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
+        mem_data = f"""[Memory: Used/Free%{process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
 
         self.setWindowTitle(f"{_PRAGMA_NAME} -- {mem_data}")
 
@@ -2331,21 +2295,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.update_feedback(
             status_message=st_msg, log_message=f"{ui_consts.LOG_EXCEPTION_STR}: {err_str}"
         )
-
-    def on_action_create_wrapper_before(self):
-        self.update_tool_code()
-
-    def on_action_standard_object_oriented_call(self):
-        self.action_standard_object_oriented_call.setChecked(True)
-        self.action_object_oriented_wrapped_with_a_with_clause.setChecked(False)
-        self.action_functional_style.setChecked(False)
-        self.update_tool_code()
-
-    def on_action_object_oriented_wrapped_with_a_with_clause(self):
-        self.action_standard_object_oriented_call.setChecked(False)
-        self.action_object_oriented_wrapped_with_a_with_clause.setChecked(True)
-        self.action_functional_style.setChecked(False)
-        self.update_tool_code()
 
     def on_action_about_form(self):
         about_frm = QDialog(self)
@@ -2510,43 +2459,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def reject(self):
         pass
 
-    def on_action_functional_style(self):
-        self.action_standard_object_oriented_call.setChecked(False)
-        self.action_object_oriented_wrapped_with_a_with_clause.setChecked(False)
-        self.action_functional_style.setChecked(True)
-        self.update_tool_code()
-
-    def update_tool_code(self):
-        self.txtb_code.clear()
-        try:
-            if self.action_standard_object_oriented_call.isChecked():
-                self.txtb_code.insertPlainText(
-                    self.current_tool.code(
-                        print_result=False,
-                        use_with_clause=False,
-                        build_wrapper=self.action_create_wrapper_before.isChecked(),
-                    )
-                )
-            elif self.action_object_oriented_wrapped_with_a_with_clause.isChecked():
-                self.txtb_code.insertPlainText(
-                    self.current_tool.code(
-                        print_result=False,
-                        use_with_clause=True,
-                        build_wrapper=self.action_create_wrapper_before.isChecked(),
-                    )
-                )
-            elif self.action_functional_style.isChecked():
-                self.txtb_code.insertPlainText(
-                    call_ipt_code(
-                        ipt=self.current_tool,
-                        file_name=self.current_tool.file_name
-                        if self.action_create_wrapper_before.isChecked()
-                        else "",
-                    )
-                )
-        except Exception as e:
-            self.log_exception(f"Unable to output code: {repr(e)}")
-
     def on_tv_pp_view_selection_changed(self, selected, deselected):
         model: PipelineModel = self.tv_pp_view.model()
         if model is not None and len(selected.indexes()) > 0:
@@ -2649,7 +2561,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 self.update_feedback(
                     status_message="Failed to save pipline, cf. log for more details",
-                    log_message=pp_last_error.to_html(),
+                    log_message="Failed to save pipline, unknown error",
                 )
 
     def on_bt_pp_up(self):
@@ -2806,7 +2718,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.le_pp_output_folder.setText(self.dynamic_folders["pp_output"])
         self.on_rb_pp_default_process()
         self.le_pp_selected_pipeline.setText("")
-        self.lbl_pipeline_name.setText("")
         self.cb_pp_overwrite.setChecked(False)
         self.cb_pp_generate_series_id.setChecked(False)
         self.cb_pp_append_experience_name.setChecked(True)
@@ -2828,7 +2739,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self._update_pp_pipeline_state(True, False, False)
 
     def on_rb_pp_active_script(self):
-        if self.script_generator.is_functional:
+        if self.pipeline is not None:
             self._update_pp_pipeline_state(False, True, False)
         else:
             self._update_pp_pipeline_state(True, False, False)
@@ -2839,7 +2750,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def on_rb_pp_load_script(self):
         if self.le_pp_selected_pipeline.text() in ["", _ACTIVE_SCRIPT_TAG]:
-            self.on_bt_load_pipeline()
+            self.on_bt_pp_load()()
         else:
             self._update_pp_pipeline_state(False, False, True)
 
@@ -3063,10 +2974,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
             if self.rb_pp_default_process.isChecked():
                 script_ = None
-            elif self.rb_pp_active_script.isChecked():
-                script_ = self.script_generator.copy()
-            elif self.rb_pp_load_script.isChecked():
-                script_ = self.script_generator.copy()
+            elif self.rb_pp_active_script.isChecked() or self.rb_pp_load_script.isChecked():
+                script_ = self.pipeline.copy()
             else:
                 self.update_feedback(
                     status_message="Unknown pipeline mode", use_status_as_log=True
@@ -3085,8 +2994,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.pp_pipeline.accepted_files = image_list_
             self.pp_pipeline.script = script_
             if script_ is not None:
-                self.pp_pipeline.options.store_images = False
-                self.pp_pipeline.script.image_output_path = os.path.join(
+                self.pp_pipeline.image_output_path = os.path.join(
                     self.le_pp_output_folder.text(), ""
                 )
 
@@ -3200,7 +3108,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         selected_mode = self.current_tool
         try:
             selected_mode.reset()
-            self.update_tool_code()
         except Exception as e:
             self.log_exception(f"Failed to reset tool: {repr(e)}")
         finally:
@@ -3307,13 +3214,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             thread_waiting=self.threads_waiting - 1,
         )
 
-    def on_thread_script_progress(self, step, total, msg, wrapper):
-        self.pb_script_gen_progress.setFormat(f"{msg} {step}/{total}")
-        self.pb_script_gen_progress.setValue(round((min(step + 1, total)) / total * 100))
-        self.add_images_to_viewer(wrapper=wrapper, avoid_duplicates=True)
-        if not self.multithread:
-            self.process_events()
-
     def do_thread_update_images(self, batch_process: bool, sender: object):
         if isinstance(sender, AbstractImageProcessor):
             wrapper = sender
@@ -3409,7 +3309,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         image_data: dict,
         is_batch_process: bool,
         ipt: IptParamHolder,
-        script: IptStrictPipeline,
         pipeline: LoosePipeline,
         exec_param: int,
         target_module: str,
@@ -3433,7 +3332,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             on_started=self.do_thread_started,
             on_ending=self.do_thread_ending,
             on_ended=self.do_thread_ended,
-            on_script_progress=self.on_thread_script_progress,
             on_update_images=self.do_thread_update_images,
             on_update_data=self.do_thread_update_data,
             on_feedback_log_object=self.do_thread_feedback_log_object,
@@ -3443,7 +3341,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             database=self.current_database.copy(),
             batch_process=is_batch_process,
             ipt=ipt,
-            script=script,
             pipeline=pipeline,
             exec_param=exec_param,
             scale_factor=scale_factor,
@@ -3503,17 +3400,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         pipeline_ = None
-        script_ = None
         ipt_ = None
         if self.selected_run_tab == _TAB_TOOLS:
             if ipt is None:
                 ipt_ = self._current_tool.copy()
-            if self.chk_use_pipeline_as_preprocessor.isChecked():
-                script_ = self.script_generator
-        elif self.selected_run_tab == _TAB_PIPELINE:
-            if ipt is None:
-                script_ = self.script_generator
-            ipt_ = ipt
+            else:
+                ipt_ = ipt
         elif self.selected_run_tab == _TAB_PIPELINE_V2:
             pipeline_ = self.pipeline
             ipt_ = ipt
@@ -3531,8 +3423,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 new_enabled_state = False
 
-            if script_ is not None:
-                update_msg = ""
             if ipt_ is not None and not ipt_.real_time:
                 update_msg = f"Executing {ipt_.name}, please wait..."
             else:
@@ -3556,7 +3446,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     image_data=image_data,
                     is_batch_process=batch_process,
                     ipt=ipt_,
-                    script=script_,
                     pipeline=pipeline_,
                     exec_param=exec_param,
                     target_module=target_module,
@@ -3587,19 +3476,49 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.end_edit_image_browser()
 
     @pyqtSlot()
-    def on_chk_use_pipeline_as_preprocessor(self):
-        if (
-            (self._src_image_wrapper is not None)
-            and self._src_image_wrapper.good_image
-            and (self.current_tool is not None)
-            and self.current_tool.real_time
-        ):
-            self.run_process(self._src_image_wrapper)
-
-    @pyqtSlot()
     def on_bt_process_image(self):
         if self._src_image_wrapper is not None and self._src_image_wrapper.good_image:
             self.run_process(self._src_image_wrapper)
+
+    @pyqtSlot()
+    def on_bt_tool_help(self):
+        ShowTextDialog(
+            title=f"Help for {self.current_tool.name}",
+            text=self.current_tool.hint,
+            pt=self.sender().mapToGlobal(QPoint(self.sender().width(), self.sender().height())),
+            use_html=False,
+        ).exec_()
+
+    @pyqtSlot()
+    def on_bt_tool_show_code(self):
+        try:
+            if self.action_standard_object_oriented_call.isChecked():
+                code_ = self.current_tool.code(
+                    print_result=False,
+                    use_with_clause=False,
+                    build_wrapper=self.action_create_wrapper_before.isChecked(),
+                )
+            elif self.action_object_oriented_wrapped_with_a_with_clause.isChecked():
+                code_ = self.current_tool.code(
+                    print_result=False,
+                    use_with_clause=True,
+                    build_wrapper=self.action_create_wrapper_before.isChecked(),
+                )
+            elif self.action_functional_style.isChecked():
+                code_ = call_ipt_code(
+                    ipt=self.current_tool,
+                    file_name=self.current_tool.file_name
+                    if self.action_create_wrapper_before.isChecked()
+                    else "",
+                )
+        except Exception as e:
+            code_ = "Unable to generate code"
+        ShowTextDialog(
+            title=f"Code for {self.current_tool.name}",
+            text=code_,
+            use_html=False,
+            pt=self.sender().mapToGlobal(QPoint(self.sender().width(), self.sender().height())),
+        ).exec_()
 
     @pyqtSlot()
     def on_bt_run_grid_search(self):
@@ -3613,12 +3532,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.set_global_enabled_state(new_state=False)
             self.process_events()
             self.thread_pool.clear()
-
-            # Init script for preprocessing if needed
-            if self.chk_use_pipeline_as_preprocessor.isChecked():
-                script_ = self.script_generator
-            else:
-                script_ = None
 
             # build tools list
             self.update_feedback(
@@ -3652,7 +3565,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     ipt=self.current_tool.__class__(
                         **{k: (int(v) if str.isdigit(v) else v) for k, v in zip(keys, p)}
                     ),
-                    script=script_,
                     exec_param=None,
                 )
         except Exception as e:
@@ -3672,8 +3584,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.gv_output_image.main_image = None
         while self.tw_script_sim_output.rowCount() > 0:
             self.tw_script_sim_output.removeRow(0)
-        self.pb_script_gen_progress.setFormat(f"Empty")
-        self.pb_script_gen_progress.setValue(0)
         self.update_feedback(status_message=f"Cleared {img_count} images", use_status_as_log=True)
 
     def save_image(
@@ -4121,7 +4031,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             )
             self.cb_annotation_level.setCurrentIndex(0)
             self.te_annotations.clear()
-            self.tw_tool_box.setTabIcon(1, QIcon())
+            self.tw_tool_box.setTabIcon(0, QIcon())
 
     @pyqtSlot()
     def on_bt_clear_selection(self):
@@ -4256,439 +4166,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.cb_time.count() > 0 and not self._updating_combo_boxes:
             self._current_time = dt.strptime(self.cb_time.currentText(), _TIME_FORMAT).time()
             self.file_name = self.current_selected_image_path()
-
-    def delete_pipeline_operator(self):
-        if self._updating_process_modes:
-            return
-        self.script_generator.delete_operators(constraints=dict(uuid=self.sender().param))
-        self.update_pipeline_display()
-
-    def run_pipeline_operator(self):
-        if self._updating_process_modes:
-            return
-        self.run_process(wrapper=self._src_image_wrapper, ipt=self.sender().tool)
-
-    def display_pipeline_setting_feedback(self):
-        if self._updating_process_modes or (self._src_image_wrapper is None):
-            return
-        self.script_generator.update_settings_feedback(
-            src_wrapper=self._src_image_wrapper,
-            param=self.sender().param,
-            call_back=self.print_image_callback,
-        )
-
-    def move_pipeline_item_up(self):
-        src = self.script_generator.get_something(key=self.sender().param)
-        src_idx = self.script_generator.ip_operators.index(src)
-        for i in reversed(range(0, src_idx)):
-            dst = self.script_generator.ip_operators[i]
-            if dst["kind"] == src["kind"]:
-                self.script_generator.swap_operators(indexes=[(i, src_idx)])
-                self.update_pipeline_display()
-                return
-
-    def move_pipeline_item_down(self):
-        src = self.script_generator.get_something(key=self.sender().param)
-        src_idx = self.script_generator.ip_operators.index(src)
-        for i in range(src_idx + 1, len(self.script_generator.ip_operators)):
-            dst = self.script_generator.ip_operators[i]
-            if dst["kind"] == src["kind"]:
-                self.script_generator.swap_operators(indexes=[(i, src_idx)])
-                self.update_pipeline_display()
-                return
-
-    def on_action_add_white_balance_fixer(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_PRE_PROCESSING_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_build_roi_with_raw_image(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_build_roi_with_pre_processed_image(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_ROI_PP_IMAGE_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_add_exposure_fixer(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_EXPOSURE_FIXING_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_add_white_balance_corrector(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_WHITE_BALANCE_STR
-        )
-        self.update_pipeline_display()
-
-    def update_pipeline_display(self):
-        def add_button(
-            node, tool, param, ressource_path, column, hint, call_back, enabled_state=True
-        ):
-            bt = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
-            bt.setFlat(True)
-            bt.setEnabled(enabled_state)
-            bt.setIcon(QIcon(ressource_path))
-            bt.clicked.connect(call_back)
-            self.tv_queued_tools.setItemWidget(node, column, bt)
-            node.setToolTip(column, hint)
-
-        def add_params_as_nodes(tool, root_node, allow_real_time: bool = False):
-            if isinstance(tool, dict):
-                param_list = tool["tool"].all_params()
-                tool_ = tool["tool"]
-            else:
-                param_list = tool.all_params()
-                tool_ = tool
-            for p in param_list:
-                line = QTreeWidgetItem(root_node, [])
-                widget, label = self.init_param_widget(
-                    tool=tool, param=p, allow_real_time=allow_real_time
-                )
-                if widget and hasattr(tool, "lock_once_added") and tool.lock_once_added:
-                    widget.setEnabled(False)
-                if label and widget:
-                    self.tv_queued_tools.setItemWidget(line, 0, label)
-                    self.tv_queued_tools.setItemWidget(line, 1, widget)
-                elif widget:
-                    self.tv_queued_tools.setItemWidget(line, 0, widget)
-                elif label:
-                    self.tv_queued_tools.setItemWidget(line, 0, label)
-                else:
-                    line.setText(0, str(p))
-                if (
-                    widget
-                    and hasattr(tool, "update_feedback_items")
-                    and (p.name in tool.update_feedback_items)
-                ):
-                    # Add display button
-                    add_button(
-                        node=line,
-                        tool=tool,
-                        param=p,
-                        ressource_path=":/image_process/resources/Play.png",
-                        column=2,
-                        hint=f"Display {p.desc}",
-                        call_back=self.display_pipeline_setting_feedback,
-                    )
-            tool_.update_inputs(
-                update_values=self.build_param_overrides(
-                    wrapper=self._src_image_wrapper, tool=tool_
-                )
-            )
-
-        def add_nodes(root_name: str, item_list: list, is_expand_root: bool):
-            rc = (
-                len(item_list[0].gizmos)
-                if (len(item_list) > 0) and isinstance(item_list[0], IptParamHolder)
-                else len(item_list)
-            )
-            root_ = QTreeWidgetItem(self.tv_queued_tools, [f"{root_name} ({rc})"])
-            root_.setExpanded(is_expand_root)
-            item_count = len(item_list)
-            for j, item in enumerate(item_list):
-                if isinstance(item, dict):
-                    if item.get("tool", None) is not None:
-                        # Initialise
-                        param_text = item["tool"].input_params_as_str(
-                            exclude_defaults=True,
-                            excluded_params=("progress_callback",),
-                            forced_params=("channel",),
-                        )
-                        node_ = CTreeWidgetItem(root_, [item["tool"].name, param_text])
-                        node_.setCheckState(
-                            0, Qt.Checked if item["enabled"] is True else Qt.Unchecked
-                        )
-                        node_.setData(0, Qt.UserRole, item["uuid"])
-                        node_.setToolTip(1, param_text.replace(",", "\n"))
-                        # Add buttons
-                        if item["kind"] in [
-                            ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
-                            ipc.TOOL_GROUP_WHITE_BALANCE_STR,
-                            ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                            ipc.TOOL_GROUP_THRESHOLD_STR,
-                            ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                            ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
-                        ]:
-                            add_button(
-                                node=node_,
-                                tool=item["tool"],
-                                param=item["uuid"],
-                                ressource_path=":/image_process/resources/Play.png",
-                                column=2,
-                                hint=f'Run {item["tool"].name}',
-                                call_back=self.run_pipeline_operator,
-                            )
-                        add_button(
-                            node=node_,
-                            tool=item["tool"],
-                            param=item["uuid"],
-                            ressource_path=":/common/resources/Up.png",
-                            column=3,
-                            hint=f'Move {item["tool"].name} up',
-                            call_back=self.move_pipeline_item_up,
-                            enabled_state=j > 0,
-                        )
-                        add_button(
-                            node=node_,
-                            tool=item["tool"],
-                            param=item["uuid"],
-                            ressource_path=":/common/resources/Down.png",
-                            column=4,
-                            hint=f'Move {item["tool"].name} down',
-                            call_back=self.move_pipeline_item_down,
-                            enabled_state=j < item_count - 1,
-                        )
-                        add_button(
-                            node=node_,
-                            tool=item["tool"],
-                            param=item["uuid"],
-                            ressource_path=":/annotation_level/resources/Delete.png",
-                            column=5,
-                            hint=f'Delete {item["tool"].name}',
-                            call_back=self.delete_pipeline_operator,
-                        )
-                        # Add params
-                        add_params_as_nodes(
-                            item,
-                            node_,
-                            item["kind"]
-                            in [ipc.TOOL_GROUP_ROI_PP_IMAGE_STR, ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR],
-                        )
-                    elif item.get("feature", None) is not None:
-                        node_ = CTreeWidgetItem(root_, [item["feature"]])
-                        node_.setCheckState(
-                            0, Qt.Checked if item["enabled"] is True else Qt.Unchecked
-                        )
-                        node_.setData(0, Qt.UserRole, item["feature"])
-                elif isinstance(item, str):
-                    node_ = QTreeWidgetItem(root_, [item])
-                    node_.setToolTip(1, item)
-                elif isinstance(item, tuple):
-                    node_ = QTreeWidgetItem(root_, [item[0], item[1]])
-                    node_.setToolTip(1, f"{item[0]}: {item[1]}")
-                elif isinstance(item, IptParamHolder):
-                    add_params_as_nodes(item, root_)
-                elif isinstance(item, AbstractRegion):
-                    node_ = QTreeWidgetItem(root_, [repr(item)])
-                    node_.setToolTip(1, repr(item))
-                else:
-                    QTreeWidgetItem(root_, ["Unknown node"])
-
-        # Update pipeline
-        self._updating_process_modes = True
-        try:
-            # Update queued tools
-            self.tv_queued_tools.clear()
-            nodes_dict = {
-                ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR: ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                ipc.TOOL_GROUP_EXPOSURE_FIXING_STR: ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
-                ipc.TOOL_GROUP_PRE_PROCESSING_STR: ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                ipc.TOOL_GROUP_ROI_PP_IMAGE_STR: ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
-                ipc.TOOL_GROUP_THRESHOLD_STR: ipc.TOOL_GROUP_THRESHOLD_STR,
-                ipc.TOOL_GROUP_MASK_CLEANUP_STR: ipc.TOOL_GROUP_MASK_CLEANUP_STR,
-                ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR: ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                ipc.TOOL_GROUP_IMAGE_GENERATOR_STR: ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
-            }
-            for k, v in nodes_dict.items():
-                add_nodes(
-                    root_name=v,
-                    item_list=self.script_generator.get_operators(dict(kind=k)),
-                    is_expand_root=True,
-                )
-            add_nodes(
-                root_name="Settings",
-                item_list=[self.script_generator.settings],
-                is_expand_root=False,
-            )
-
-            self.tv_queued_tools.header().setStretchLastSection(False)
-            self.tv_queued_tools.header().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-            self.tv_queued_tools.header().setSectionResizeMode(1, QHeaderView.Stretch)
-            self.tv_queued_tools.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-            self.tv_queued_tools.header().setSectionResizeMode(3, QHeaderView.ResizeToContents)
-            self.tv_queued_tools.setColumnWidth(2, 16)
-            self.tv_queued_tools.setColumnWidth(3, 16)
-            self.tv_queued_tools.setColumnWidth(4, 16)
-            self.tv_queued_tools.setColumnWidth(5, 16)
-
-            # Update others
-            self.rb_pp_active_script.setEnabled(self.script_generator.is_functional)
-        except Exception as e:
-            self.log_exception(f"Unable to update pipeline: {str(e)}")
-        finally:
-            self._updating_process_modes = False
-
-        # Update script
-        self.update_script_display()
-
-    def update_script_display(self):
-        try:
-            self.txtb_script.clear()
-            self.txtb_script.insertPlainText(self.script_generator.code())
-        except Exception as e:
-            self.log_exception(f"Unable to update pipeline: {str(e)}")
-        finally:
-            self._updating_process_modes = False
-
-    def on_actionAdd_channel_mask(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_THRESHOLD_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_set_contour_cleaner(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_MASK_CLEANUP_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_add_feature_extractor(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR
-        )
-        self.update_pipeline_display()
-
-    def on_action_add_image_generator(self):
-        selected_mode = self.current_tool.copy(copy_wrapper=False)
-        self.script_generator.add_operator(
-            operator=selected_mode, kind=ipc.TOOL_GROUP_IMAGE_GENERATOR_STR
-        )
-        self.update_pipeline_display()
-
-    def on_bt_clear_pipeline(self):
-        if self.script_generator is not None:
-            self.script_generator.reset()
-        self.tv_queued_tools.clear()
-        self.le_pp_selected_pipeline.setText("")
-        self.lbl_pipeline_name.setText("")
-        if self.rb_pp_active_script.isChecked:
-            self._update_pp_pipeline_state(default_process=True, active=False, load_script=False)
-        self.rb_pp_active_script.setEnabled(False)
-
-    def on_bt_load_pipeline(self):
-        file_name_ = QFileDialog.getOpenFileName(
-            parent=self,
-            caption="Load pipeline",
-            directory=self.dynamic_folders["pipeline"],
-            filter=_PIPELINE_FILE_FILTER,
-        )[0]
-        if file_name_:
-            self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
-            self.on_bt_clear_pipeline()
-            try:
-                script_ = IptStrictPipeline.load(file_name_)
-                if isinstance(script_, IptStrictPipeline):
-                    self.script_generator = script_
-                    if self.script_generator.last_error.error_count > 0:
-                        self.update_feedback(
-                            status_message="Errors while loading pipeline (cf. log)",
-                            log_message=f"{ui_consts.LOG_WARNING_STR}: {self.script_generator.last_error.to_html()}",
-                        )
-                    self.update_pipeline_display()
-                elif isinstance(script_, Exception):
-                    self.log_exception(f"Error while loading pipeline: {str(script_)}")
-                    self._update_pp_pipeline_state(
-                        default_process=True, active=False, load_script=False
-                    )
-                    return
-                else:
-                    self.log_exception(f"Unknown error while loading pipeline:  {str(script_)}")
-                    self._update_pp_pipeline_state(
-                        default_process=True, active=False, load_script=False
-                    )
-                    return
-            except AttributeError as e:
-                self.log_exception(f"This pipeline was pickle with an older version: {str(e)}")
-                self._update_pp_pipeline_state(
-                    default_process=True, active=False, load_script=False
-                )
-            except ValueError as e:
-                self.log_exception(f"Unable to load json pipeline: {str(e)}")
-                self._update_pp_pipeline_state(
-                    default_process=True, active=False, load_script=False
-                )
-            except Exception as e:
-                self.log_exception(f"Unable to unpickle pipeline: {str(e)}")
-                self._update_pp_pipeline_state(
-                    default_process=True, active=False, load_script=False
-                )
-            else:
-                self.update_feedback(
-                    status_message=f'Loaded pipeline from "{file_name_}"', use_status_as_log=True
-                )
-                self.le_pp_selected_pipeline.setText(file_name_)
-                if hasattr(self.script_generator, "name"):
-                    self.lbl_pipeline_name.setText(self.script_generator.name)
-                else:
-                    font_metrics = QFontMetrics(self.lbl_pipeline_name.font())
-                    elided_fn = font_metrics.elidedText(file_name_, Qt.ElideLeft, 200)
-                    self.lbl_pipeline_name.setText(elided_fn)
-                self._update_pp_pipeline_state(
-                    default_process=False, active=False, load_script=True
-                )
-            finally:
-                pass
-
-    def on_bt_save_pipeline(self):
-        file_name_ = QFileDialog.getSaveFileName(
-            parent=self,
-            caption="Save pipeline",
-            directory=self.dynamic_folders["pipeline"],
-            filter=_PIPELINE_FILE_FILTER,
-        )[0]
-        if file_name_:
-            self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
-            if not file_name_.lower().endswith(".tipp") and not file_name_.lower().endswith(
-                ".json"
-            ):
-                file_name_ += ".tipp"
-            res = self.script_generator.save(file_name_)
-            if res is None:
-                self.update_feedback(
-                    status_message=f'Saved pipeline to: "{file_name_}"', use_status_as_log=True
-                )
-            else:
-                self.log_exception(f"Unable to save pipeline: {str(res)}")
-
-    def on_action_save_as_python_script(self):
-        file_name_ = QFileDialog.getSaveFileName(
-            parent=self,
-            caption="Save script",
-            directory=self.dynamic_folders["script"],
-            filter="Python script (*.py)",
-        )[0]
-        if file_name_:
-            self.dynamic_folders["script"] = os.path.join(os.path.dirname(file_name_), "")
-            res = self.script_generator.save_as_script(file_name_)
-            if res is None:
-                self.update_feedback(
-                    status_message=f'Saved pipeline as script to: "{file_name_}"',
-                    use_status_as_log=True,
-                )
-            else:
-                self.log_exception(f"Unable to save pipeline as script: {str(res)}")
-
-    def script_sim_progress_callback(self, step, total, msg):
-        self.pb_script_gen_progress.setFormat(f"{msg} {step}/{total}")
-        self.pb_script_gen_progress.setValue(round((step + 1) / total * 100))
-
-    def on_bt_script_gen_run(self):
-        self.run_process(wrapper=self._src_image_wrapper)
 
     def on_chk_pp_show_last_item(self):
         if not self.chk_pp_show_last_item.isChecked():
@@ -4864,21 +4341,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         elif isinstance(tool, IptBase):
             if widget.allow_real_time and tool.real_time and not tool.block_feedback:
                 self.run_process(wrapper=self._src_image_wrapper, ipt=tool)
-            self.update_tool_code()
-        elif isinstance(tool, dict):
-            ipt = tool.get("tool", None)
-            if ipt is not None:
-                if widget.allow_real_time and ipt.real_time and not ipt.block_feedback:
-                    self.run_process(wrapper=self._src_image_wrapper, ipt=ipt)
-                self.script_generator.invalidate(tool["uuid"])
-            self.update_script_display()
-        elif type(tool).__name__ == "SettingsHolder":
-            self.script_generator.update_settings_feedback(
-                src_wrapper=self._src_image_wrapper,
-                param=widget.param,
-                call_back=self.print_image_callback,
-            )
-            self.update_script_display()
 
     def on_process_param_clicked(self):
         if self._updating_process_modes:
@@ -5186,10 +4648,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def on_action_use_multithreading(self):
         self.multithread = self.action_use_multithreading.isChecked()
 
-    def on_action_use_pipeline_cache(self):
-        self.use_pipeline_cache = self.action_use_pipeline_cache.isChecked()
-        self.script_generator.use_cache = self.use_pipeline_cache
-
     def on_action_save_pipeline_processor_state(self):
         model = self.get_image_model()
         if (model is None) or (model.rowCount() == 0):
@@ -5198,8 +4656,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no images",
             )
             return
-        if (self.script_generator is not None) and not self.script_generator.is_empty:
-            script_ = self.script_generator.copy()
+        if self.pipeline() is not None:
+            script_ = self.pipeline.copy()
         else:
             self.update_feedback(
                 status_message="Pipeline state save: no script",
@@ -5329,7 +4787,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                                 wrapper=self._src_image_wrapper, tool=selected_mode
                             )
                         )
-                        if (selected_mode is not None) and selected_mode.real_time:
+                        if (
+                            (selected_mode is not None)
+                            and selected_mode.real_time
+                            and self.selected_run_tab != _TAB_PIPELINE_V2
+                        ):
                             self.run_process(wrapper=self._src_image_wrapper, ipt=selected_mode)
                         elif not self._batch_is_active:
                             img = self._src_image_wrapper.current_image
@@ -5372,13 +4834,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.gl_tool_params.itemAt(i).widget().setParent(None)
                 for i in reversed(range(self.gl_grid_search_params.count())):
                     self.gl_grid_search_params.itemAt(i).widget().setParent(None)
-
-                # Update help browser
-                self.txtb_tool_help.clear()
-                doc_ = value.hint
-                self.txtb_tool_help.insertPlainText(doc_)
-                icon_ = QIcon(":/annotation_level/resources/Help.png")
-                self.tw_tool_box.setTabIcon(0, icon_)
 
                 # Update script generator menu
                 self.action_add_exposure_fixer.setEnabled(
@@ -5460,9 +4915,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     )
                 )
 
-                # Update code browser
-                self.update_tool_code()
-
             except Exception as e:
                 self.log_exception(f"Failed to initialize tool: {repr(e)}")
             finally:
@@ -5499,19 +4951,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         except AttributeError as e:
             self.log_exception(f'Unable to select tab "{value}": {repr(e)}')
             self.tb_tool_script.setCurrentIndex(0)
-
-    @property
-    def script_generator(self):
-        if self._script_generator is None:
-            self._script_generator = IptStrictPipeline(use_cache=self.use_pipeline_cache)
-        self._script_generator.image_output_path = self.static_folders["image_output"]
-        self._script_generator.use_cache = self.use_pipeline_cache
-        return self._script_generator
-
-    @script_generator.setter
-    def script_generator(self, value):
-        self._script_generator = value
-        self.tv_queued_tools.script_generator = value
 
     @property
     def pipeline(self) -> LoosePipeline:

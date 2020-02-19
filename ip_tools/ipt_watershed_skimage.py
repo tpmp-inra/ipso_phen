@@ -117,8 +117,8 @@ class IptWatershedSkimage(IptBaseMerger):
                 res = True
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(
-                f'Watershed scikit FAILED, exception: "{repr(e)}"'
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
             )
         else:
             res = True

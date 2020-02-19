@@ -408,7 +408,7 @@ class RectangleRegion(AbstractRegion):
         self.top -= dt
         self.bottom += db
 
-    def expand_by(self, n):
+    def expand(self, n):
         self.left -= n
         self.top -= n
         self.right += n
@@ -419,13 +419,11 @@ class RectangleRegion(AbstractRegion):
         return cv2.rectangle(mask, (self.left, self.top), (self.right, self.bottom), (255,), -1,)
 
     def draw_to(self, dst_img, line_width=-1, color=None):
-        if color is None:
-            color = self.color
         return cv2.rectangle(
             dst_img.copy(),
             (self.left, self.top),
             (self.right, self.bottom),
-            self.color,
+            self.color if color is None else color,
             line_width,
         )
 

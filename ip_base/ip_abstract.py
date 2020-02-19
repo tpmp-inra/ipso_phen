@@ -639,7 +639,7 @@ class AbstractImageProcessor(ImageWrapper):
                 return self.store_image(self.mask, "mask")
         return None
 
-    def print_mosaic(self, padding: tuple = (-2, -2, -2, -2)):
+    def print_mosaic(self, padding: 2):
         if (self.store_mosaic.lower() != "none") or (self.write_mosaic.lower() != "none"):
             if self._mosaic_data is None:
                 if self.store_mosaic.lower() == "debug":
@@ -3251,7 +3251,7 @@ class AbstractImageProcessor(ImageWrapper):
         shape=None,
         image_names=None,
         background_color: tuple = (125, 125, 125),
-        padding: tuple = (-2, -2, -2, -2),
+        padding: tuple = 2,
         images_dict: dict = {},
     ) -> np.ndarray:
         """Creates a mosaic aggregating stored images
@@ -3273,8 +3273,11 @@ class AbstractImageProcessor(ImageWrapper):
         column_count = len(image_names[0])
         line_count = len(image_names)
         if shape is None:
-            h, w = self.height * line_count // 2, self.width * column_count // 2
-            shape = (h, w, 3)
+            shape = (
+                self.height * line_count + padding * line_count + padding,
+                self.width * column_count + padding * column_count + padding,
+                3,
+            )
 
         canvas = np.full(shape, background_color, np.uint8)
         if len(image_names) == 0:
@@ -3297,7 +3300,7 @@ class AbstractImageProcessor(ImageWrapper):
                         top=int((shape[0] / line_count) * a_line_idx),
                         height=int(shape[0] / line_count),
                     )
-                    r.inflate(*padding)
+                    r.expand(-padding)
                     a_cnv = ipc.enclose_image(a_cnv, src_img, r)
 
         try:

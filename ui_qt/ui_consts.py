@@ -10,7 +10,7 @@ LOG_IMPORTANT_STR = '<font color="lime"><b>IMPORTANT</b></font>'
 LOG_PIPELINE_PROCESSOR_STR = '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>'
 
 # UI settings
-DISABLE_SPLASH_SCREEN = True
+DISABLE_SPLASH_SCREEN = False
 
 FLAT_TOOLS_MENU = False
 

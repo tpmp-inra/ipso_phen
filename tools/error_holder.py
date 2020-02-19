@@ -1,6 +1,48 @@
 from typing import Any
 from datetime import datetime as dt
 
+ERR_LVL_UNK = -1
+ERR_LVL_OK = 0
+ERR_LVL_HINT = 1
+ERR_LVL_WARNING = 2
+ERR_LVL_EXCEPTION = 3
+ERR_LVL_ERROR = 4
+ERR_LVL_CRITICAL = 5
+
+
+def error_level_to_str(error_level: int) -> str:
+    if error_level == ERR_LVL_OK:
+        return "OK"
+    elif error_level == ERR_LVL_HINT:
+        return "HINT"
+    elif error_level == ERR_LVL_WARNING:
+        return "WARNING"
+    elif error_level == ERR_LVL_EXCEPTION:
+        return "EXCEPTION"
+    elif error_level == ERR_LVL_ERROR:
+        return "ERROR"
+    elif error_level == ERR_LVL_CRITICAL:
+        return "CRITICAL"
+    else:
+        return "UNKNOWN"
+
+
+def error_level_from_str(error_level: str) -> int:
+    if error_level == "OK":
+        return ERR_LVL_OK
+    elif error_level == "HINT":
+        return ERR_LVL_HINT
+    elif error_level == "WARNING":
+        return ERR_LVL_WARNING
+    elif error_level == "EXCEPTION":
+        return ERR_LVL_EXCEPTION
+    elif error_level == "ERROR":
+        return ERR_LVL_ERROR
+    elif error_level == "CRITICAL":
+        return ERR_LVL_CRITICAL
+    else:
+        return -1
+
 
 class SingleError(object):
     __slots__ = ["text", "timestamp", "level", "kind", "repeat_count"]
@@ -8,24 +50,21 @@ class SingleError(object):
     def __init__(self, **kwargs):
         self.text = kwargs.get("text")
         self.timestamp = kwargs.get("time_stamp", dt.now())
-        self.level = kwargs.get("level", "")
+        self.level = kwargs.get("level", -1)
         self.kind = kwargs.get("kind", "")
         self.repeat_count = kwargs.get("repeat_count", 0)
 
     def __str__(self):
-        if self.level:
-            level_str = f",{self.level} "
-        else:
-            level_str = "unk"
+        level_str = error_level_to_str(self.level)
         if self.kind:
-            kind_str = f",{self.kind} "
+            kind_str = self.kind
         else:
             kind_str = "unk"
         if self.repeat_count > 0:
             repeat_str = f" (repeated {self.repeat_count} times)"
         else:
             repeat_str = ""
-        return f'[{self.timestamp.strftime("%Y/%b/%d - %H:%M:%S")}]{kind_str}-{level_str}: {self.text}{repeat_str}'
+        return f'[{self.timestamp.strftime("%Y/%b/%d - %H:%M:%S")}] {level_str}-|-{kind_str}: {self.text}{repeat_str}'
 
 
 class ErrorHolder(object):
@@ -35,7 +74,7 @@ class ErrorHolder(object):
         for err_dict in errors:
             self.add_error(
                 new_error_text=err_dict.get("text", ""),
-                new_error_level=err_dict.get("level", ""),
+                new_error_level=err_dict.get("level", -1),
                 new_error_kind=err_dict.get("kind", ""),
             )
 
@@ -78,7 +117,9 @@ class ErrorHolder(object):
                 )
             self.error_list.sort(key=lambda x: x.timestamp)
 
-    def add_error(self, new_error_text: str, new_error_level: str = "", new_error_kind: str = ""):
+    def add_error(
+        self, new_error_text: str, new_error_level: [int, str] = -1, new_error_kind: str = ""
+    ):
         """Add error with optional level & kind
         :param new_error_text:
         :param new_error_level:
@@ -88,7 +129,13 @@ class ErrorHolder(object):
             self.error_list[-1].repeat_count += 1
         else:
             self.error_list.append(
-                SingleError(text=new_error_text, level=new_error_level, kind=new_error_kind)
+                SingleError(
+                    text=new_error_text,
+                    level=new_error_level
+                    if isinstance(new_error_level, int)
+                    else error_level_from_str(new_error_level),
+                    kind=new_error_kind,
+                )
             )
 
     def last_error(self, prefix_with_owner: bool = True):
@@ -113,6 +160,41 @@ class ErrorHolder(object):
             if error.kind == kind:
                 return True
         return False
+
+    def get_count_by_level(self, level: int) -> int:
+        ret = 0
+        for error in self.error_list:
+            if error.level == level:
+                ret += 1
+        return ret
+
+    def is_error_over_or(self, level):
+        if self.error_count == 0:
+            return False
+        else:
+            for error in self.error_list:
+                if error.level >= level:
+                    return True
+            else:
+                return False
+
+    def is_error_under_or(self, level):
+        if self.error_count == 0:
+            return True
+        else:
+            for error in self.error_list:
+                if error.level > level:
+                    return False
+            else:
+                return True
+
+    @property
+    def error_level(self) -> str:
+        lvl = -1
+        for error in self.error_list:
+            if error.level > lvl:
+                lvl = error.level
+        return lvl
 
     @property
     def error_count(self):

@@ -12,7 +12,6 @@ from class_pipelines.ip_factory import ipo_factory
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import format_time, force_directories
 from file_handlers.fh_base import file_handler_factory
-from ip_base.ipt_loose_pipeline import pp_last_error
 from ui_qt import ui_consts
 
 
@@ -21,7 +20,6 @@ class IpsoRunnableSignals(QObject):
     on_started = pyqtSignal(str, bool)
     on_ending = pyqtSignal(bool, str, str, object)
     on_ended = pyqtSignal()
-    on_script_progress = pyqtSignal(int, int, str, object)
     on_update_images = pyqtSignal(bool, object)
     on_update_data = pyqtSignal(dict)
     on_feedback_log_object = pyqtSignal(str, object)
@@ -37,7 +35,6 @@ class IpsoRunnable(QRunnable):
         self.signals_holder.on_started.connect(kwargs.get("on_started", None))
         self.signals_holder.on_ending.connect(kwargs.get("on_ending", None))
         self.signals_holder.on_ended.connect(kwargs.get("on_ended", None))
-        self.signals_holder.on_script_progress.connect(kwargs.get("on_script_progress", None))
         self.signals_holder.on_update_images.connect(kwargs.get("on_update_images", None))
         self.signals_holder.on_update_data.connect(kwargs.get("on_update_data", None))
         self.signals_holder.on_feedback_log_object.connect(
@@ -54,16 +51,10 @@ class IpsoRunnable(QRunnable):
 
         self.ipt = kwargs.get("ipt", None)
         self.exec_param = kwargs.get("exec_param", None)
-        self.script = kwargs.get("script", None)
         self.pipeline = kwargs.get("pipeline", None)
 
         # Error holder
         self.error_list = ErrorHolder(self)
-
-    def _script_progress_callback(self, step: int, total: int, msg: str, sender: object):
-        self.signals_holder.on_script_progress.emit(
-            step, total, msg, None if self.batch_process else sender
-        )
 
     def _pipeline_progress_callback(
         self, result: bool, msg: str, sender: object, current_step: int, total_step: int
@@ -98,8 +89,6 @@ class IpsoRunnable(QRunnable):
                 scale_factor=self.scale_factor,
             )
             wrapper.lock = True
-            if (self.ipt is not None) and (self.script is not None):
-                self.script.pre_process_image(wrapper=wrapper, use_last_result=True)
 
             if wrapper is None:
                 self.error_list.add_error(
@@ -213,50 +202,6 @@ class IpsoRunnable(QRunnable):
                 self.signals_holder.on_ending.emit(res, status_message, log_message, log_object)
             return res
 
-    def _process_script(self, image_dict):
-        status_message = ""
-        log_message = ""
-        res = False
-        log_object = self.error_list
-        try:
-            before = timer()
-            wrapper = self._get_wrapper(image_dict=image_dict)
-            if wrapper is None:
-                return False
-            if self.script is None:
-                self.error_list.add_error(
-                    new_error_text="No script selected: Missing script",
-                    new_error_kind="script_error",
-                )
-                status_message = "No script selected: Missing script"
-                return False
-
-            log_object = self.script.last_error
-
-            ret = self.script.process_image(self._script_progress_callback, wrapper=wrapper)
-            if self.batch_process:
-                self.signals_holder.on_update_images.emit(self.batch_process, wrapper)
-            else:
-                self.signals_holder.on_update_data.emit(wrapper.csv_data_holder.data_list)
-            after = timer()
-            if ret:
-                status_message = f"Successfully processed script in {format_time(after - before)}"
-                log_message = status_message
-            else:
-                status_message = f"Script processing failed in {format_time(after - before)}"
-                log_message = status_message
-
-        except Exception as e:
-            log_object.add_error(
-                new_error_text="Unable to process script", new_error_kind="script_error"
-            )
-            status_message = f"Exception while processing script, cf. log"
-            self.signals_holder.on_feedback_log_object.emit("Unable to process script", log_object)
-        finally:
-            if status_message:
-                self.signals_holder.on_ending.emit(res, status_message, log_message, log_object)
-            return res
-
     def _process_pipeline(self, image_dict):
         status_message = ""
         log_message = None
@@ -267,24 +212,29 @@ class IpsoRunnable(QRunnable):
 
             wrapper = self._get_wrapper(image_dict=image_dict)
             if wrapper is None:
-                return False
+                return
             if self.pipeline is None:
                 self.error_list.add_error(
-                    new_error_text="No pipeline selected: Missing script",
-                    new_error_kind="pipeline_process_error",
+                    new_error_text="No pipeline selected", new_error_kind="pipeline_process_error",
                 )
-                status_message = "No pipeline selected: Missing script"
-                return False
+                status_message = "No pipeline selected"
+                return
 
-            log_object = pp_last_error
+            log_object = self.pipeline.last_error
 
-            ret = self.pipeline.execute(
+            res = self.pipeline.execute(
                 src_image=wrapper,
                 call_back=self._pipeline_progress_callback,
                 target_module=self.target_module,
                 silent_mode=self.batch_process,
             )
-            status_message = f"Pipeline processed in {format_time(timer() - before)}"
+            if not res:
+                log_object.add_error(
+                    new_error_text="Failed to process pipeline",
+                    new_error_kind="pipeline_process_error",
+                    new_error_level=log_object.error_level,
+                )
+                status_message = f"Failed to process pipeline, cf. log"
         except Exception as e:
             log_object.add_error(
                 new_error_text="Unable to process pipeline",
@@ -314,9 +264,6 @@ class IpsoRunnable(QRunnable):
             elif self.ipt is not None:
                 self.signals_holder.on_started.emit("ipt", self.batch_process)
                 self._process_image(self.file_data)
-            elif self.script is not None:
-                self.signals_holder.on_started.emit("script", self.batch_process)
-                self._process_script(self.file_data)
             else:
                 raise NotImplementedError
         except Exception as e:

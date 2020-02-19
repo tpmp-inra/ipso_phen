@@ -947,7 +947,7 @@ class IptStrictPipeline(object):
                     )
                 else:
                     wrapper.mosaic_data = np.array(["source", "exposure_fixed", "current_image"])
-                wrapper.print_mosaic(padding=(-4, -4, -4, -4))
+                wrapper.print_mosaic(padding=4)
                 wrapper.store_mosaic = old_mosaic
             else:
                 res = True
@@ -1388,7 +1388,7 @@ class IptStrictPipeline(object):
         code_ += ws_ct + "]\n"
         ws_ct = remove_tab(ws_ct)
         code_ += ws_ct + "])\n"
-        code_ += ws_ct + "wrapper.print_mosaic(padding=(-4, -4, -4, -4))\n"
+        code_ += ws_ct + "wrapper.print_mosaic(padding=(4)\n"
         ws_ct = remove_tab(ws_ct)
         code_ += "\n"
 

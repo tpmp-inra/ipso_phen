@@ -346,7 +346,7 @@ class IptHolder(object):
         f.write(f'{spaces}"""Test that tool returns a boolean"""\n')
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(
-            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_IMAGE_CHECK_STR}',))\n"
+            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_ASSERT_STR}',))\n"
         )
         f.write(f"{spaces}res = op.process_wrapper(\n")
         spaces = add_tab(spaces)
@@ -427,7 +427,7 @@ class IptHolder(object):
                 "visualization",
             ],
             [
-                [ipc.TOOL_GROUP_IMAGE_CHECK_STR],
+                [ipc.TOOL_GROUP_ASSERT_STR],
                 [
                     ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
@@ -557,7 +557,7 @@ class IptHolder(object):
                         f.write(f"{spaces}unittest.main()\n")
 
             for file in files_to_format:
-                subprocess.run(args=('black', file))
+                subprocess.run(args=("black", file))
 
         finally:
             self._log_callback = None
