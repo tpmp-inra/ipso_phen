@@ -217,22 +217,21 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                 centroid_width = self.get_value_of("centroid_width")
 
                 # Start with the sure ones
+                self.demo_image = wrapper.draw_image(
+                    src_image=ori_img,
+                    src_mask=mask,
+                    objects=obj,
+                    background="bw",
+                    foreground="source",
+                    contour_thickness=line_width,
+                    hull_thickness=line_width if self.has_param("hull_area") else 0,
+                    width_thickness=line_width if self.has_param("shape_width") else 0,
+                    height_thickness=line_width if self.has_param("shape_height") else 0,
+                    centroid_width=centroid_width if self.has_param("centroid_x") else 0,
+                    centroid_line_width=line_width,
+                )
                 wrapper.store_image(
-                    image=wrapper.draw_image(
-                        src_image=ori_img,
-                        src_mask=mask,
-                        objects=obj,
-                        background="bw",
-                        foreground="source",
-                        contour_thickness=line_width,
-                        hull_thickness=line_width if self.has_param("hull_area") else 0,
-                        width_thickness=line_width if self.has_param("shape_width") else 0,
-                        height_thickness=line_width if self.has_param("shape_height") else 0,
-                        centroid_width=centroid_width if self.has_param("centroid_x") else 0,
-                        centroid_line_width=line_width,
-                    ),
-                    text="shapes",
-                    force_store=True,
+                    image=self.demo_image, text="shapes",
                 )
                 wrapper.store_image(
                     image=wrapper.draw_image(

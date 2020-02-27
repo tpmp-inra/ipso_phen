@@ -145,7 +145,7 @@ class IptCircleRoi(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR]
+        return [ipc.TOOL_GROUP_ROI]
 
     @property
     def description(self):

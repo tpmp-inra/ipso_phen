@@ -751,10 +751,27 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.gv_last_processed_item = QMouseGraphicsView(self)
         self.ver_layout_last_image.addWidget(self.gv_last_processed_item)
 
-        self.gv_source_image = QMouseGraphicsView(self.spl_ver_main_tab_source)
-        self.gv_output_image = QMouseGraphicsView(self.spl_ver_main_img_data)
+        layout = QVBoxLayout()
+        self.frm_src_img.setLayout(layout)
+        self.gv_source_image = QMouseGraphicsView(self.frm_src_img)
+        layout.addWidget(self.gv_source_image)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
 
-        self.tw_script_sim_output = QtWidgets.QTableWidget(self.spl_ver_main_img_data)
+        layout = QVBoxLayout()
+        self.frm_res_img.setLayout(layout)
+        self.gv_output_image = QMouseGraphicsView(self.frm_res_img)
+        layout.addWidget(self.gv_output_image)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        layout = QVBoxLayout()
+        self.frm_data.setLayout(layout)
+        self.tw_script_sim_output = QtWidgets.QTableWidget(self.frm_data)
+        layout.addWidget(self.tw_script_sim_output)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+
         self.tw_script_sim_output.setFrameShadow(QtWidgets.QFrame.Plain)
         self.tw_script_sim_output.setAlternatingRowColors(True)
         self.tw_script_sim_output.setObjectName("tw_script_sim_output")
@@ -1013,11 +1030,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sl_pp_thread_count.valueChanged.connect(self.on_sl_pp_thread_count_index_changed)
         self.bt_pp_select_output_folder.clicked.connect(self.on_bt_pp_select_output_folder)
         self.bt_pp_select_script.clicked.connect(self.on_bt_pp_load)
-        self.bt_pp_clear_script.clicked.connect(self.on_bt_pp_new)
         self.bt_pp_reset.clicked.connect(self.on_bt_pp_reset)
         self.bt_pp_start.clicked.connect(self.on_bt_pp_start)
         self.rb_pp_default_process.clicked.connect(self.on_rb_pp_default_process)
-        self.rb_pp_active_script.clicked.connect(self.on_rb_pp_active_script)
         self.rb_pp_load_script.clicked.connect(self.on_rb_pp_load_script)
 
         # Pipeline editor V2
@@ -1791,33 +1806,29 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.dk_log.restoreState(state)
             self.action_show_log.setChecked(self.dk_log.isVisible())
 
-            spl_state = settings_.value("spl_ver_main", None)
+            # Two way splitter for main side panels in pipeline builder
+            spl_state = settings_.value("spl_pb_ver_main", None)
             if spl_state is not None:
-                self.spl_ver_main.restoreState(spl_state)
+                self.spl_pb_ver_main.restoreState(spl_state)
             else:
-                w = (available_width - 50) // 7
-                self.spl_ver_main.setSizes((w * 3, w * 4))
+                w = (available_width - 50) // 8
+                self.spl_pb_ver_main.setSizes((w * 3, w * 5))
 
-            spl_state = settings_.value("spl_ver_main_img_data", None)
+            # Three way splitter between source, result and data panels in pipeline builder
+            spl_state = settings_.value("spl_ver_src_res_data", None)
             if spl_state is not None:
-                self.spl_ver_main_img_data.restoreState(spl_state)
+                self.spl_ver_src_res_data.restoreState(spl_state)
             else:
-                w = (available_width - 50) // 7
-                self.spl_ver_main_img_data.setSizes((w * 5, w * 2))
+                w = ((available_width - 50) // 8 * 5) // 6
+                self.spl_ver_src_res_data.setSizes((w, w * 4, w))
 
-            spl_state = settings_.value("spl_hor_main_left", None)
+            # Three way splitter for left side panels in pipeline builder
+            spl_state = settings_.value("spl_hor_pb_left", None)
             if spl_state is not None:
-                self.spl_hor_main_left.restoreState(spl_state)
+                self.spl_hor_pb_left.restoreState(spl_state)
             else:
                 h = (available_height - 50) // 5
-                self.spl_hor_main_left.setSizes((h * 1, h * 1, h * 2))
-
-            spl_state = settings_.value("spl_ver_main_tab_source", None)
-            if spl_state is not None:
-                self.spl_ver_main_tab_source.restoreState(spl_state)
-            else:
-                w = (available_width - 50) // 7 * 3 // 3
-                self.spl_ver_main_tab_source.setSizes((w * 2, w * 1))
+                self.spl_hor_pb_left.setSizes((h * 1, h * 1, h * 2))
 
             # Data editor splitters
             spl_state = settings_.value("spl_de_left", None)
@@ -2034,8 +2045,16 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             settings_.setValue("settings_exists", True)
 
+            # Geometry
             settings_.setValue("main_geometry", self.saveGeometry())
             settings_.setValue("main_state", self.saveState())
+            settings_.setValue("dimension", self.geometry())
+            settings_.setValue("spl_pb_ver_main", self.spl_pb_ver_main.saveState())
+            settings_.setValue("spl_hor_pb_left", self.spl_hor_pb_left.saveState())
+            settings_.setValue("spl_ver_src_res_data", self.spl_ver_src_res_data.saveState())
+            settings_.setValue("spl_de_left", self.spl_de_left.saveState())
+            settings_.setValue("spl_de_right", self.spl_de_right.saveState())
+            settings_.setValue("spl_de_hor", self.spl_de_hor.saveState())
 
             settings_.setValue("global_tab_name", self.selected_main_tab)
             settings_.setValue("toolbox_tab_index", self.tw_tool_box.currentIndex())
@@ -2043,21 +2062,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 "actionEnable_annotations", self.actionEnable_annotations.isChecked()
             )
             settings_.setValue("actionEnable_log", self.actionEnable_log.isChecked())
-            settings_.setValue("dimension", self.geometry())
-            settings_.setValue("spl_ver_main_tab_source", self.spl_ver_main_tab_source.saveState())
-            settings_.setValue("spl_ver_main", self.spl_ver_main.saveState())
-            settings_.setValue("spl_ver_main_img_data", self.spl_ver_main_img_data.saveState())
-            settings_.setValue("spl_hor_main_left", self.spl_hor_main_left.saveState())
             settings_.setValue("process_mode", self.current_tool.name)
             settings_.setValue("selected_style", self._selected_style)
             settings_.setValue("selected_theme", self._selected_theme)
             settings_.setValue("multithread", self.action_use_multithreading.isChecked())
             settings_.setValue("log_geometry", self.dk_log.geometry())
-
-            # Data editor
-            settings_.setValue("spl_de_left", self.spl_de_left.saveState())
-            settings_.setValue("spl_de_right", self.spl_de_right.saveState())
-            settings_.setValue("spl_de_hor", self.spl_de_hor.saveState())
 
             for k, v in self.dynamic_folders.items():
                 settings_.setValue(k, v)
@@ -2492,7 +2501,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     {
                         "plant_name": self._src_image_wrapper.plant,
                         "name": data.name,
-                        "image": data.get_relevant_image(),
+                        "image": data.get_feedback_image(),
                         "data": data.last_result.get("data", {}),
                     },
                 )
@@ -2717,7 +2726,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def on_bt_pp_reset(self):
         self.le_pp_output_folder.setText(self.dynamic_folders["pp_output"])
         self.on_rb_pp_default_process()
-        self.le_pp_selected_pipeline.setText("")
         self.cb_pp_overwrite.setChecked(False)
         self.cb_pp_generate_series_id.setChecked(False)
         self.cb_pp_append_experience_name.setChecked(True)
@@ -2730,29 +2738,18 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         self.sp_pp_time_delta.setValue(20)
         self._custom_csv_name = False
 
-    def _update_pp_pipeline_state(self, default_process: bool, active: bool, load_script: bool):
+    def _update_pp_pipeline_state(self, default_process: bool, pipeline: bool):
         self.rb_pp_default_process.setChecked(default_process)
-        self.rb_pp_active_script.setChecked(active)
-        self.rb_pp_load_script.setChecked(load_script)
+        self.rb_pp_load_script.setChecked(pipeline)
 
     def on_rb_pp_default_process(self):
-        self._update_pp_pipeline_state(True, False, False)
-
-    def on_rb_pp_active_script(self):
-        if self.pipeline is not None:
-            self._update_pp_pipeline_state(False, True, False)
-        else:
-            self._update_pp_pipeline_state(True, False, False)
-            self.update_feedback(
-                status_message="No active pipeline found, reverting to default process",
-                use_status_as_log=True,
-            )
+        self._update_pp_pipeline_state(True, False)
 
     def on_rb_pp_load_script(self):
-        if self.le_pp_selected_pipeline.text() in ["", _ACTIVE_SCRIPT_TAG]:
-            self.on_bt_pp_load()()
+        if self.pipeline is None:
+            self.on_bt_pp_load()
         else:
-            self._update_pp_pipeline_state(False, False, True)
+            self._update_pp_pipeline_state(False, True)
 
     @pyqtSlot()
     def on_bt_pp_select_output_folder(self):
@@ -2974,7 +2971,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
             if self.rb_pp_default_process.isChecked():
                 script_ = None
-            elif self.rb_pp_active_script.isChecked() or self.rb_pp_load_script.isChecked():
+            elif self.rb_pp_load_script.isChecked():
                 script_ = self.pipeline.copy()
             else:
                 self.update_feedback(
@@ -4849,16 +4846,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     ipc.TOOL_GROUP_THRESHOLD_STR in value.use_case
                 )
                 self.action_build_roi_with_raw_image.setEnabled(
-                    bool(
-                        set(value.use_case)
-                        & {ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR}
-                    )
+                    bool(set(value.use_case) & {ipc.TOOL_GROUP_ROI,})
                 )
                 self.action_build_roi_with_pre_processed_image.setEnabled(
-                    bool(
-                        set(value.use_case)
-                        & {ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR}
-                    )
+                    bool(set(value.use_case) & {ipc.TOOL_GROUP_ROI,})
                 )
                 self.actionSet_contour_cleaner.setEnabled(
                     ipc.TOOL_GROUP_MASK_CLEANUP_STR in value.use_case
@@ -4982,6 +4973,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 do_feedback=self.update_feedback,
             )
         )
+        self.tb_pp_desc.clear()
         if value is not None:
             model = self.tv_pp_view.model()
             if model is not None:
@@ -4998,6 +4990,10 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             index = model.createIndex(2, 0, model.rootNodes[2])
             self.tv_pp_view.selectionModel().selection().select(index, index)
             self.tv_pp_view.expand(index)
+            self.tb_pp_desc.insertPlainText(value.description)
+            self._update_pp_pipeline_state(default_process=False, pipeline=True)
+        else:
+            self._update_pp_pipeline_state(default_process=True, pipeline=False)
 
     @property
     def current_database(self):

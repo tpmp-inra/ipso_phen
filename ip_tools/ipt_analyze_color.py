@@ -213,18 +213,15 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     index=False,
                 )
 
-            wrapper.store_image(
-                image=wrapper.draw_image(
-                    src_image=img,
-                    channel=self.get_value_of("channel"),
-                    color_map=self.get_value_of("color_map"),
-                    foreground="false_colour",
-                    src_mask=mask,
-                    background=self.get_value_of("background"),
-                ),
-                text=f"pseudo_on",
-                force_store=True,
+            self.demo_image = wrapper.draw_image(
+                src_image=img,
+                channel=self.get_value_of("channel"),
+                color_map=self.get_value_of("color_map"),
+                foreground="false_colour",
+                src_mask=mask,
+                background=self.get_value_of("background"),
             )
+            wrapper.store_image(image=self.demo_image, text=f"pseudo_on")
 
             # handle color quantiles
             n = self.get_value_of("quantile_color")

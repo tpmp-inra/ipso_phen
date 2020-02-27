@@ -106,10 +106,7 @@ class IptKeepLinkedContours(IptBase):
                 delete_all_bellow=delete_all_bellow,
             )
             wrapper.store_image(self.result, "mask", text_overlay=False)
-            wrapper.store_image(
-                image=wrapper.retrieve_stored_image("src_img_with_cnt_after_agg_iter_last"),
-                text="klc_illustration",
-            )
+            self.demo_image = wrapper.retrieve_stored_image("src_img_with_cnt_after_agg_iter_last")
 
             res = True
         except Exception as e:

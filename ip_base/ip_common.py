@@ -15,8 +15,7 @@ TOOL_GROUP_IMAGE_GENERATOR_STR = "Image generator"
 TOOL_GROUP_IMAGE_INFO_STR = "Image info"
 TOOL_GROUP_MASK_CLEANUP_STR = "Mask cleanup"
 TOOL_GROUP_PRE_PROCESSING_STR = "Pre processing"
-TOOL_GROUP_ROI_PP_IMAGE_STR = "ROI on pre processed image"
-TOOL_GROUP_ROI_RAW_IMAGE_STR = "ROI on raw image"
+TOOL_GROUP_ROI = "Create an ROI"
 TOOL_GROUP_THRESHOLD_STR = "Threshold"
 TOOL_GROUP_VISUALIZATION_STR = "Visualization"
 TOOL_GROUP_WHITE_BALANCE_STR = "White balance"
@@ -25,6 +24,8 @@ TOOL_GROUP_PCV_STR = "PlantCV"
 # Deprecated
 TOOL_GROUP_ROI_DYNAMIC_STR = "ROI (dynamic)"
 TOOL_GROUP_ROI_STATIC_STR = "ROI (static)"
+TOOL_GROUP_ROI_PP_IMAGE_STR = "ROI on pre processed image"
+TOOL_GROUP_ROI_RAW_IMAGE_STR = "ROI on raw image"
 
 tool_group_hints = {
     TOOL_GROUP_ANCILLARY_STR: "Tools mostly used inside other tools",
@@ -40,9 +41,8 @@ tool_group_hints = {
     TOOL_GROUP_PRE_PROCESSING_STR: """Transform the image to help segmentation, 
     the image may not retain it's 
     properties. Changes here will be ignored when extracting features""",
-    TOOL_GROUP_ROI_PP_IMAGE_STR: "Create a ROI after image has been preprocessed",
+    TOOL_GROUP_ROI: "Create a ROI",
     TOOL_GROUP_ASSERT_STR: "Assert something, returns wether or not assertion is passed",
-    TOOL_GROUP_ROI_RAW_IMAGE_STR: "Create a ROI from raw image",
     TOOL_GROUP_THRESHOLD_STR: "Creates a mask that keeps only parts of the image",
     TOOL_GROUP_VISUALIZATION_STR: "Visualization tools",
     TOOL_GROUP_WHITE_BALANCE_STR: """Tools to help change white balance, depending on where those tools are set in the pipeline they or
@@ -53,12 +53,11 @@ tool_group_hints = {
 
 tool_groups_pipeline = [
     TOOL_GROUP_ASSERT_STR,
-    TOOL_GROUP_ROI_RAW_IMAGE_STR,
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
     TOOL_GROUP_EXPOSURE_FIXING_STR,
     TOOL_GROUP_MASK_CLEANUP_STR,
     TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_ROI_PP_IMAGE_STR,
+    TOOL_GROUP_ROI,
     TOOL_GROUP_THRESHOLD_STR,
     TOOL_GROUP_WHITE_BALANCE_STR,
     TOOL_GROUP_IMAGE_GENERATOR_STR,

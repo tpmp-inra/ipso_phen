@@ -1106,7 +1106,7 @@ class PipelineModel(TreeModel):
                     source = nd.source if src_group is None else src_group.name
                     in_t = ipc.io_type_to_str(nd.input_type)
                     out = ipc.io_type_to_str(nd.output_type)
-                    return f"{nd.name} - Src: {source}, {in_t} -> {out}, merge: {merge}"
+                    return f"{nd.name}, src: {source}, merge: {merge} - ({in_t} -> {out})"
                 elif isinstance(nd, ModuleNode):
                     in_t = ipc.io_type_to_str(nd.input_type)
                     out = ipc.io_type_to_str(nd.output_type)
@@ -1129,7 +1129,7 @@ class PipelineModel(TreeModel):
                     merge = ipc.merge_mode_to_str(nd.merge_mode)
                     src_group = nd.root.find_by_uuid(nd.source)
                     source = nd.source if src_group is None else src_group.name
-                    return f"{nd.name} - src: {source}, {in_t} ->{out}, merge: {merge}\nDouble click to edit"
+                    return f"{nd.name}\nsrc: {source}\n{in_t} ->{out}\nmerge: {merge}\nDouble click to edit"
                 elif isinstance(nd, ModuleNode):
                     return nd.tool.hint
                 else:
@@ -1691,7 +1691,7 @@ class QMosaicEditor(QGroupBox):
 
         self.setCheckable(True)
         self.setChecked(data.enabled)
-        self.setTitle("Mosaic settings")
+        self.setTitle("Enable mosaic")
         self.toggled.connect(self.on_toggled)
 
         self.table = QTableView(self)

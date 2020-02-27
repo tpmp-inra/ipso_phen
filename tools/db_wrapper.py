@@ -578,7 +578,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         files_added = 0
         if src_files_path:
             self.src_files_path = src_files_path
-        if os.src_files_path.isdir(self.src_files_path):
+        if os.path.isdir(self.src_files_path):
             # Grab all images in folder
             img_lst = ImageList(extensions)
             img_lst.add_folder(self.src_files_path)
