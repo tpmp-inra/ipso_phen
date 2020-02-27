@@ -130,19 +130,19 @@ class AbstractImageProcessor(ImageWrapper):
         """
         return False
 
-    def _load_source_image(self, store_source=False):
+    def load_source_image(self, store_source=False):
         """
         Loads source image and applies corrections if needed
 
         :param store_source: if true image will be stores in image_list
         :return:numpy array -- Fixed source image
         """
-        stream = open(self.file_path, "rb")
-        bytes = bytearray(stream.read())
-        np_array = np.asarray(bytes, dtype=np.uint8)
-        src_img = cv2.imdecode(np_array, 3)
-
+        src_img = None
         try:
+            stream = open(self.file_path, "rb")
+            bytes = bytearray(stream.read())
+            np_array = np.asarray(bytes, dtype=np.uint8)
+            src_img = cv2.imdecode(np_array, 3)
             src_img = self.file_handler.fix_image(src_image=src_img)
         except Exception as e:
             self.error_holder.add_error(f"Failed to load {repr(self)} because {repr(e)}")
@@ -166,7 +166,9 @@ class AbstractImageProcessor(ImageWrapper):
 
         if not self.good_image:
             self.error_holder.add_error(
-                "Unable to load source image", new_error_kind="source_issue"
+                new_error_text="Unable to load source image",
+                new_error_kind="source_issue",
+                new_error_level=4,
             )
 
         return src_img
@@ -1752,6 +1754,9 @@ class AbstractImageProcessor(ImageWrapper):
         cv2.drawContours(hull_img, hulls, -1, (0, 255, 0), 4)
         self.store_image(hull_img, "src_img_with_cnt_approx_{}".format(eps))
 
+        if len(hulls) == 0:
+            return np.zeros_like(src_mask)
+
         # Find the largest hull
         big_hull = hulls[0]
         big_idx = 0
@@ -1907,7 +1912,9 @@ class AbstractImageProcessor(ImageWrapper):
             cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE["color"], 8)
             if area_ > 0:
                 cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2)
-        self.store_image(hull_img, f"src_img_with_cnt_after_agg_iter_last")
+        self.store_image(
+            image=hull_img, text=f"src_img_with_cnt_after_agg_iter_last", force_store=True
+        )
 
         # At this point we have the zone were the contours are allowed to be
         contours = self.get_contours(
@@ -3627,13 +3634,17 @@ class AbstractImageProcessor(ImageWrapper):
     def _get_csv_file_path(self):
         return os.path.join(self.dst_path, "partials", self.csv_file_name)
 
+    def check_source_image(self):
+        _ = self.source_image
+        return self.good_image
+
     @property
     def source_image(self):
         if self._source_image is None:
             if self._current_image is not None:
                 self._source_image = self._current_image.copy()
             else:
-                self._source_image = self._load_source_image()
+                self._source_image = self.load_source_image()
                 self._current_image = None
         if self._source_image is None:
             return None

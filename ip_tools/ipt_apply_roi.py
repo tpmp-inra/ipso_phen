@@ -23,12 +23,27 @@ class IptApplyRoi(IptBase):
         )
         self.add_combobox(
             name="io_mode",
-            desc="Select output mode",
+            desc="Select target",
             default_value="mask",
             values={"image": "Image", "mask": "Mask"},
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Apply ROI:
+        Apply selected ROI to image/mask
+        ROI can be of type "keep", "delete", "erode", "dilate", "open", "close"
+        Select correct IO type for pipeline use
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Select action (roi_type):
+            * Erase contents outside ROI if cropping with not rectangular shape (erase_outside):
+            * Select target (io_mode):
+        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -36,10 +51,10 @@ class IptApplyRoi(IptBase):
         res = False
         try:
             if self.get_value_of("enabled") == 1:
-                input_source = self.get_value_of("input_source")
-                if input_source == "image":
+                io_mode = self.get_value_of("io_mode")
+                if io_mode == "image":
                     img = wrapper.current_image
-                elif input_source == "mask":
+                elif io_mode == "mask":
                     img = self.get_mask()
                     if img is None:
                         wrapper.error_holder.add_error(
@@ -81,6 +96,12 @@ class IptApplyRoi(IptBase):
         finally:
             return res
 
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if ipc.TOOL_GROUP_PRE_PROCESSING_STR in use_cases:
+            self.set_value_of("io_mode", "image")
+        elif ipc.TOOL_GROUP_MASK_CLEANUP_STR in use_cases:
+            self.set_value_of("io_mode", "mask")
+
     @property
     def name(self):
         return "Apply ROI"
@@ -103,7 +124,7 @@ class IptApplyRoi(IptBase):
 
     @property
     def use_case(self):
-        return ["Pre processing"]
+        return [ipc.TOOL_GROUP_PRE_PROCESSING_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR]
 
     @property
     def description(self):

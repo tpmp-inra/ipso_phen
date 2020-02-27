@@ -313,9 +313,7 @@ class IptHolder(object):
         )
         f.write(f"{spaces}op.apply_test_values_overrides(\n")
         spaces = add_tab(spaces)
-        f.write(
-            f"{spaces}use_cases=(ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR)\n"
-        )
+        f.write(f"{spaces}use_cases=(ipc.TOOL_GROUP_ROI)\n")
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
         f.write(f"{spaces}res = op.process_wrapper(\n")
@@ -438,7 +436,7 @@ class IptHolder(object):
                 [ipc.TOOL_GROUP_IMAGE_GENERATOR_STR],
                 [ipc.TOOL_GROUP_MASK_CLEANUP_STR],
                 [ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR, ipc.TOOL_GROUP_IMAGE_GENERATOR_STR],
-                [ipc.TOOL_GROUP_ROI_PP_IMAGE_STR, ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR],
+                [ipc.TOOL_GROUP_ROI],
                 [ipc.TOOL_GROUP_VISUALIZATION_STR],
             ],
         ):
@@ -487,7 +485,7 @@ class IptHolder(object):
                         continue
                     op = cls_()
                     file_name = os.path.join(
-                        os.path.dirname(__file__), "..", "test", f"test_{name}.py",
+                        os.path.dirname(__file__), "..", "test", f"test_auto_{name}.py",
                     )
                     if os.path.isfile(file_name):
                         self.log_state(

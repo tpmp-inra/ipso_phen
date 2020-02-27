@@ -31,7 +31,7 @@ from ip_base.ip_common import (
     TOOL_GROUP_IMAGE_INFO_STR,
     TOOL_GROUP_MASK_CLEANUP_STR,
     TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_ROI_PP_IMAGE_STR,
+    TOOL_GROUP_ROI,
     TOOL_GROUP_THRESHOLD_STR,
     TOOL_GROUP_VISUALIZATION_STR,
     TOOL_GROUP_WHITE_BALANCE_STR,
@@ -1148,6 +1148,7 @@ class IptBase(IptParamHolder, ABC):
         self._wrapper = wrapper
         self._result = None
         self.result = None
+        self.demo_image = None
         self._old_lock_state = False
 
     def __repr__(self):
@@ -1226,6 +1227,7 @@ class IptBase(IptParamHolder, ABC):
         """
         self._kwargs = kwargs
         wrapper = self._get_wrapper()
+        self.demo_image = None
         if kwargs.get("reset_wrapper", True) is True:
             wrapper.reset()
         return wrapper
@@ -1880,8 +1882,7 @@ class IptBase(IptParamHolder, ABC):
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                     ipc.TOOL_GROUP_THRESHOLD_STR,
                     ipc.TOOL_GROUP_WHITE_BALANCE_STR,
-                    ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                    ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
+                    ipc.TOOL_GROUP_ROI,
                 )
             )
         ):
@@ -1909,9 +1910,7 @@ class IptBase(IptParamHolder, ABC):
             set((ipc.TOOL_GROUP_THRESHOLD_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
         ):
             return ipc.IO_MASK
-        elif set(self.use_case).intersection(
-            set((ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,))
-        ):
+        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_ROI,))):
             return ipc.IO_ROI
         elif set(self.use_case).intersection(
             set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR))

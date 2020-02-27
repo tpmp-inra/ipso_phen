@@ -62,7 +62,7 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
                 + 5.780
             )
             calc_img = self.to_uint8(cv2.bitwise_and(c, c, mask=mask), normalize=True)
-            pseudo = wrapper.draw_image(
+            self.demo_image = wrapper.draw_image(
                 src_image=img,
                 channel=calc_img,
                 background=self.get_value_of("background"),
@@ -70,7 +70,7 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
                 color_map=self.get_value_of("color_map"),
             )
             wrapper.store_image(calc_img, "chlorophyll_calculated")
-            wrapper.store_image(pseudo, "pseudo_chlorophyll_on_img", force_store=True)
+            wrapper.store_image(self.demo_image, "pseudo_chlorophyll_on_img")
             tmp_tuple = cv2.meanStdDev(
                 c.reshape(c.shape[1] * c.shape[0]),
                 mask=mask.reshape(mask.shape[1] * mask.shape[0]),

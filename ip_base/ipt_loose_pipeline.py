@@ -19,6 +19,7 @@ from ip_base.ipt_strict_pipeline import IptStrictPipeline
 from ip_base.ip_abstract import AbstractImageProcessor
 import tools.error_holder as eh
 from tools.common_functions import format_time
+from tools.regions import RectangleRegion
 
 last_script_version = "0.2.0.0"
 
@@ -112,18 +113,45 @@ class Node(object):
         else:
             return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
 
+    def get_feedback_image(self):
+        mask = self.last_result.get("mask", None)
+        image = self.last_result.get("image", None)
+        if mask is not None and image is not None:
+            h = max(mask.shape[0], image.shape[0])
+            w = max(mask.shape[1], image.shape[1])
+            canvas = ipc.enclose_image(
+                a_cnv=np.full(
+                    shape=(h + 4, w * 2 + 6, 3), fill_value=ipc.C_SILVER, dtype=np.uint8,
+                ),
+                img=image,
+                rect=RectangleRegion(left=2, top=2, width=w, height=h),
+            )
+            return ipc.enclose_image(
+                a_cnv=canvas,
+                img=np.dstack((mask, mask, mask)),
+                rect=RectangleRegion(left=w + 4, top=2, width=w, height=h),
+            )
+
+        elif mask is not None:
+            return mask
+        elif image is not None:
+            return image
+        else:
+            return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+
     def do_call_back(
         self, call_back, res, msg, data, is_progress=True, force_call_back=False, **kwargs
     ):
-        call_back(
-            eh.error_level_to_str(res),
-            msg,
-            data
-            if call_back is not None and (force_call_back or not self.root.parent.silent)
-            else None,
-            self.absolute_index + 1 if is_progress else -1,
-            self.absolute_count if is_progress else -1,
-        )
+        if call_back is not None:
+            call_back(
+                eh.error_level_to_str(res),
+                msg,
+                data
+                if call_back is not None and (force_call_back or not self.root.parent.silent)
+                else None,
+                self.absolute_index + 1 if is_progress else -1,
+                self.absolute_count if is_progress else -1,
+            )
         if res > 0:
             self.root.parent.last_error.add_error(
                 new_error_text=msg, new_error_kind="pipeline_process_error", new_error_level=res,
@@ -215,16 +243,26 @@ class ModuleNode(Node):
                 # Get data
                 if hasattr(self.tool, "data_dict"):
                     self.last_result["data"] = self.tool.data_dict
-                # Get image or mask
-                key = "mask" if self.output_type == ipc.IO_MASK else "image"
-                if self.uuid == target_module and len(wrapper.image_list) > 0:
-                    self.last_result[key] = wrapper.image_list[-1]["image"]
-                elif isinstance(self.tool.result, np.ndarray):
-                    self.last_result[key] = self.tool.result
-                elif len(wrapper.image_list) > 0:
-                    self.last_result[key] = wrapper.image_list[-1]["image"]
-                else:
-                    self.last_result[key] = wrapper.current_image
+                # Get mask
+                if self.output_type == ipc.IO_MASK:
+                    self.last_result["mask"] = self.tool.result
+                # Get image
+                if self.output_type == ipc.IO_ROI:
+                    self.last_result["image"] = wrapper.draw_rois(
+                        img=wrapper.current_image, rois=[self.last_result["roi"]]
+                    )
+                elif (
+                    self.output_type in [ipc.IO_MASK, ipc.IO_NONE]
+                    and self.tool.demo_image is not None
+                ):
+                    self.last_result["image"] = self.tool.demo_image
+                elif self.output_type == ipc.IO_DATA:
+                    if self.tool.demo_image is not None:
+                        self.last_result["image"] = self.tool.demo_image
+                    else:
+                        self.last_result["image"] = wrapper.current_image
+                elif self.output_type == ipc.IO_IMAGE and isinstance(self.tool.result, np.ndarray):
+                    self.last_result["image"] = self.tool.result
                 self.do_call_back(
                     call_back=call_back,
                     res=eh.ERR_LVL_OK,
@@ -501,7 +539,7 @@ class GroupNode(Node):
         if only_rois and rois:
             self.last_result["roi"] = rois
             self.last_result["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=rois)
-        elif is_current_image_changed:
+        elif is_current_image_changed or (len(wrapper.image_list) == 0):
             self.last_result["image"] = wrapper.current_image
         else:
             self.last_result["image"] = wrapper.image_list[-1]["image"]
@@ -512,16 +550,17 @@ class GroupNode(Node):
 
         if self.is_root:
             if self.parent.settings.mosaic.enabled:
+                self.root.parent.mosaic = wrapper.build_mosaic(
+                    image_names=self.parent.settings.mosaic.images,
+                    images_dict=self.parent.stored_mosaic_images,
+                )
                 self.do_call_back(
                     call_back=call_back,
                     res=eh.ERR_LVL_OK,
                     msg=f"Pipeline processed in {format_time(timer() - before)}",
                     data={
                         "name": f"{wrapper.luid}_final_mosaic",
-                        "image": wrapper.build_mosaic(
-                            image_names=self.parent.settings.mosaic.images,
-                            images_dict=self.parent.stored_mosaic_images,
-                        ),
+                        "image": self.root.parent.mosaic,
                         "data": self.last_result["data"],
                     },
                     force_call_back=True,
@@ -536,7 +575,7 @@ class GroupNode(Node):
                     force_call_back=True,
                     is_progress=False,
                 )
-        else:
+        elif not target_module:
             self.do_call_back(
                 call_back=call_back,
                 res=eh.ERR_LVL_OK,
@@ -806,6 +845,7 @@ class LoosePipeline(object):
         self.set_template(kwargs.get("template", None))
         self.silent = False
         self.last_error = eh.ErrorHolder("Loose pipeline")
+        self.mosaic = None
 
         self.set_callbacks()
 
@@ -915,7 +955,6 @@ class LoosePipeline(object):
         self.last_error.clear()
         if isinstance(src_image, str):
             wrapper = AbstractImageProcessor(src_image)
-            wrapper.lock = True
         elif isinstance(src_image, AbstractImageProcessor):
             wrapper = src_image
         else:
@@ -926,6 +965,7 @@ class LoosePipeline(object):
         if self.last_wrapper_luid != wrapper.luid:
             self.invalidate()
             self.last_wrapper_luid = wrapper.luid
+        wrapper.lock = True
         wrapper.target_database = kwargs.get("target_data_base", None)
         wrapper.store_images = self.root.parent.debug_mode or kwargs.get("target_module", "")
         self.silent = silent_mode
@@ -1046,7 +1086,7 @@ class LoosePipeline(object):
 
             rois = tmp.get_operators(
                 constraints={
-                    "kind": [ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR]
+                    "kind": [ipc.TOOL_GROUP_ROI_PP_IMAGE_STR, ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR]
                 }
             )
             dst_group = res.root.find_by_uuid(uuid="apply_roi")

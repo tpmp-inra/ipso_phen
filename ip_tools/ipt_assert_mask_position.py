@@ -11,6 +11,17 @@ class IptAssertMaskPosition(IptBase):
         self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):
+        """
+        Assert mask position:
+        Check that the mask intersects with a named ROI
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -41,6 +52,10 @@ class IptAssertMaskPosition(IptBase):
                         img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_GREEN)
                     else:
                         img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_RED)
+                        wrapper.error_holder.add_error(
+                            new_error_text=f'{self. name}: check failed for ROI "{enforcer.name}""',
+                            new_error_level=2,
+                        )
                 wrapper.store_image(image=img, text=f"enforcers", force_store=True)
 
                 self.result = None
