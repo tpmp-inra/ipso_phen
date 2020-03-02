@@ -3149,13 +3149,13 @@ class AbstractImageProcessor(ImageWrapper):
             return self.source_image
         elif img_name.lower() == "current_image":
             return self.current_image
+        elif img_name.lower() == "mask" and self.mask is not None:
+            return self.mask.copy()
         else:
             for dic in self.image_list:
                 if dic["name"].lower() == img_name.lower():
                     return dic["image"]
-            if img_name.lower() == "mask" and self.mask is not None:
-                return self.mask.copy()
-            elif "exp_fixed" in img_name.lower():
+            if "exp_fixed" in img_name.lower():
                 foreground = self.retrieve_stored_image("exposure_fixed")
                 if foreground is None:
                     foreground = self.current_image

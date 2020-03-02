@@ -3695,7 +3695,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def on_tb_ge_dataframe_selection_changed(self, selected, deselected):
         image = None
-        color = qApp.palette().window()
+        brush_color = qApp.palette().window()
 
         qApp.palette().HighlightedText
 
@@ -3703,13 +3703,13 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             current_row = index.row()
             break
         else:
-            self.gv_de_image.scene().setBackgroundBrush(color)
+            self.gv_de_image.scene().setBackgroundBrush(brush_color)
             self.gv_de_image.main_image = image
             return
 
         df = self.get_de_dataframe()
         if df is None:
-            self.gv_de_image.scene().setBackgroundBrush(color)
+            self.gv_de_image.scene().setBackgroundBrush(brush_color)
             self.gv_de_image.main_image = image
             return
 
@@ -3737,6 +3737,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
                     )
                     color = QColor(*ipc.bgr_to_rgb(colors[val]))
+            else:
+                color = QColor(*ipc.bgr_to_rgb(ipc.C_WHITE))
             image = df.iloc[current_row, df.columns.get_loc(src_path)]
             image_columns = [
                 df.iloc[current_row, df.columns.get_loc(c)]
@@ -4204,7 +4206,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         )
 
     def widget_connect(self, widget, param):
-        if isinstance(param.allowed_values, dict):
+        if param.grid_search_mode:
+            param.gs_input.textEdited.connect(self.on_grid_search_param_changed)
+            param.gs_auto_fill.clicked.connect(self.on_grid_search_auto_fill_range)
+            param.gs_reset.clicked.connect(self.on_grid_search_reset)
+            return
+        elif isinstance(param.allowed_values, dict):
             call_back = self.on_process_param_changed_cb
         elif isinstance(param.allowed_values, str):
             if param.allowed_values == "single_line_text_output":
@@ -4983,9 +4990,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.tv_pp_view.header().setStretchLastSection(False)
             self.tv_pp_view.header().setSectionResizeMode(0, QHeaderView.Stretch)
             self.tv_pp_view.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.tv_pp_view.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-            self.tv_pp_view.setColumnWidth(1, 16)
-            self.tv_pp_view.setColumnWidth(2, 16)
+            self.tv_pp_view.setColumnWidth(1, 12)
 
             index = model.createIndex(2, 0, model.rootNodes[2])
             self.tv_pp_view.selectionModel().selection().select(index, index)

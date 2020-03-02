@@ -61,9 +61,37 @@ def cv2_to_qimage(img):
     return QPixmap.fromImage(QImage(img, width_, height_, width_ * 3, qformat).rgbSwapped())
 
 
-def build_widgets(tool, param, allow_real_time: bool, call_backs: dict, do_feedback=None):
+def build_widgets(
+    tool,
+    param,
+    allow_real_time: bool,
+    call_backs: dict,
+    do_feedback=None,
+    grid_search_mode: bool = False,
+):
     widget = None
-    if isinstance(param.allowed_values, dict):
+    if grid_search_mode:
+        if not param.is_input:
+            return None, None
+        label = QLabel(param.desc)
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        le = QLineEditWthParam(tool=tool, param=param)
+        param.gs_input = le
+        layout.addWidget(le)
+
+        bt_af = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
+        bt_af.setIcon(QIcon(":/common/resources/Lightning.png"))
+        param.gs_auto_fill = bt_af
+        layout.addWidget(bt_af)
+
+        bt_reset = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
+        bt_reset.setIcon(QIcon(":/common/resources/Refresh.png"))
+        param.gs_reset = bt_reset
+        layout.addWidget(bt_reset)
+    elif isinstance(param.allowed_values, dict):
         label = QLabel(param.desc)
         widget = QComboBoxWthParam(
             tool=tool, param=param, label=label, allow_real_time=allow_real_time
@@ -145,7 +173,11 @@ def build_widgets(tool, param, allow_real_time: bool, call_backs: dict, do_feedb
     else:
         tool_name = tool.name
     param.init(
-        tool_name=tool_name, label=label, widget=widget, **call_backs,
+        tool_name=tool_name,
+        label=label,
+        widget=widget,
+        grid_search_mode=grid_search_mode,
+        **call_backs,
     )
 
     return widget, label
@@ -214,6 +246,33 @@ class PandasNode(TreeNode):
             return True
 
 
+class ModuleToolbar:
+    def __init__(self, module, title):
+        self.module = module
+        self.title = title
+        bt_sd = QPushButton(QIcon(), "Set as init values")
+        bt_sd.setToolTip("Use as default configuration when tool is added to pipeline")
+        bt_sd.clicked.connect(self.on_set_as_default)
+        bt_reset = QPushButton(QIcon(), "Reset to defaults")
+        bt_reset.setToolTip("Reset widgets to default values")
+        bt_reset.clicked.connect(self.on_reset_module)
+        self.widgets = [
+            {"name": "Toggle grid search"},
+            {"name": "Set as init values", "widget": bt_sd},
+            {"name": "Reset to defaults", "widget": bt_reset},
+        ]
+
+    def on_reset_module(self):
+        self.module.tool.reset()
+        self.module.root.invalidate(self.module)
+
+    def on_toggle_grid_search(self):
+        pass
+
+    def on_set_as_default(self):
+        pass
+
+
 class PipelineNode(TreeNode):
     def __init__(self, node_data, parent, row, call_backs, do_feedback):
         TreeNode.__init__(
@@ -228,17 +287,38 @@ class PipelineNode(TreeNode):
     def _getChildren(self):
         if isinstance(self.node_data, str):
             return []
-        elif isinstance(self.node_data, ModuleNode):
+        elif isinstance(self.node_data, ModuleToolbar):
             return [
                 PipelineNode(
-                    node_data=gizmo,
+                    node_data=tool_button,
                     parent=self,
                     row=index,
                     call_backs=self.call_backs,
                     do_feedback=self.do_feedback,
                 )
+                for index, tool_button in enumerate(self.node_data.widgets)
+            ]
+        elif isinstance(self.node_data, ModuleNode):
+            tool_bar = [
+                PipelineNode(
+                    node_data=ModuleToolbar(self.node_data, title="More ..."),
+                    parent=self,
+                    row=0,
+                    call_backs=self.call_backs,
+                    do_feedback=self.do_feedback,
+                )
+            ]
+            widgets = [
+                PipelineNode(
+                    node_data=gizmo,
+                    parent=self,
+                    row=index + 1,
+                    call_backs=self.call_backs,
+                    do_feedback=self.do_feedback,
+                )
                 for index, gizmo in enumerate(self.node_data.tool.gizmos)
             ]
+            return widgets
         elif isinstance(self.node_data, PipelineSettings):
             return [
                 PipelineNode(
@@ -296,6 +376,7 @@ class PipelineNode(TreeNode):
                     allow_real_time=not isinstance(tool, PipelineSettings),
                     do_feedback=self.do_feedback,
                     call_backs=self.call_backs,
+                    grid_search_mode=False,  # isinstance(nd, ModuleNode),
                 )
                 if widget is not None:
                     layout.addWidget(widget)
@@ -314,20 +395,17 @@ class PipelineNode(TreeNode):
                     self.run_button.clicked.connect(run_call_back)
                 else:
                     self.run_button.setEnabled(False)
-                self.reset_button = QPushButton(QIcon(":/common/resources/Refresh.png"), "")
-                self.reset_button.clicked.connect(self.on_reset_button)
-                self.reset_button.setToolTip("Reset module to default values")
             elif isinstance(new_data, MosaicData):
                 self.widget_holder = QMosaicEditor(parent=None, data=new_data)
+            elif isinstance(new_data, ModuleToolbar):
+                pass
+            elif isinstance(new_data, dict) and "widget" in new_data:
+                self.widget_holder = new_data["widget"]
         except Exception as e:
             print(f'Failed to process, because "{repr(e)}"')
             return False
         else:
             return True
-
-    def on_reset_button(self):
-        self.node_data.tool.reset()
-        self.node_data.root.invalidate(self.node_data)
 
     def insert_children(self, row, data):
         try:
@@ -622,7 +700,7 @@ class PipelineDelegate(QStyledItemDelegate):
     def paint(self, painter, option, index):
         if index.column() == 0:
             ip = index.internalPointer()
-            if isinstance(ip.node_data, (IptParam, MosaicData)):
+            if index.internalPointer().widget_holder is not None:
                 self.parent().setIndexWidget(
                     index, index.internalPointer().widget_holder,
                 )
@@ -637,14 +715,11 @@ class PipelineDelegate(QStyledItemDelegate):
                 QStyledItemDelegate.paint(self, painter, option, index)
             else:
                 QStyledItemDelegate.paint(self, painter, option, index)
-        elif index.column() in [1, 2]:
+        elif index.column() == 1:
             ip = index.internalPointer()
             if isinstance(ip.node_data, ModuleNode):
                 self.parent().setIndexWidget(
-                    index,
-                    index.internalPointer().run_button
-                    if index.column() == 2
-                    else index.internalPointer().reset_button,
+                    index, index.internalPointer().run_button,
                 )
             else:
                 QStyledItemDelegate.paint(self, painter, option, index)
@@ -1085,7 +1160,7 @@ class PipelineModel(TreeModel):
         return 3 if data is None else data.child_count()
 
     def columnCount(self, parent):
-        return 3
+        return 2
 
     def data(self, index, role):
         if index.column() == 0:
@@ -1111,6 +1186,10 @@ class PipelineModel(TreeModel):
                     in_t = ipc.io_type_to_str(nd.input_type)
                     out = ipc.io_type_to_str(nd.output_type)
                     return f"{nd.name}, {in_t} -> {out}"
+                elif isinstance(nd, ModuleToolbar):
+                    return nd.title
+                elif isinstance(nd, dict) and "name" in nd.keys():
+                    return nd["name"]
                 else:
                     return "no data"
             elif role == Qt.ToolTipRole:
@@ -1132,6 +1211,10 @@ class PipelineModel(TreeModel):
                     return f"{nd.name}\nsrc: {source}\n{in_t} ->{out}\nmerge: {merge}\nDouble click to edit"
                 elif isinstance(nd, ModuleNode):
                     return nd.tool.hint
+                elif isinstance(nd, ModuleToolbar):
+                    nd.title + "\n" + "Configure:\n" + "\n\t".join([w["name"] for w in nd.widgets])
+                elif isinstance(nd, dict) and "name" in nd.keys():
+                    return nd["name"]
                 else:
                     return "no data"
             elif role == Qt.CheckStateRole:
@@ -1148,10 +1231,11 @@ class PipelineModel(TreeModel):
         if index.column() == 0:
             if role == Qt.CheckStateRole:
                 item = self.get_item(index)
-                item.enabled = value
-                item.node_data.root.invalidate(item.node_data)
-                self.dataChanged.emit(index, index)
-                self.layoutChanged.emit()
+                if isinstance(item.node_data, (GroupNode, ModuleNode)):
+                    item.enabled = value
+                    item.node_data.root.invalidate(item.node_data)
+                    self.dataChanged.emit(index, index)
+                    self.layoutChanged.emit()
                 return True
             elif role == Qt.EditRole:
                 item = self.get_item(index)
@@ -1289,6 +1373,7 @@ class PipelineModel(TreeModel):
         flags = super(self.__class__, self).flags(index)
         flags |= Qt.ItemIsSelectable
         flags |= Qt.ItemIsEnabled
+        flags |= Qt.ItemIsUserCheckable
         if index.column() == 0:
             nd = self.get_item(index).node_data
             if isinstance(nd, (GroupNode, str)):
@@ -1297,6 +1382,8 @@ class PipelineModel(TreeModel):
                 flags |= Qt.ItemIsUserCheckable
                 if isinstance(nd, GroupNode):
                     flags |= Qt.ItemIsTristate
+            if isinstance(nd, dict) and "widget" not in nd:
+                flags |= Qt.ItemIsUserCheckable
         return flags
 
 

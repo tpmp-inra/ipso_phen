@@ -286,7 +286,7 @@
                  <number>4</number>
                 </property>
                 <property name="rightMargin">
-                 <number>4</number>
+                 <number>8</number>
                 </property>
                 <property name="bottomMargin">
                  <number>4</number>
@@ -294,87 +294,7 @@
                 <property name="spacing">
                  <number>0</number>
                 </property>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="lbl_selection">
-                  <property name="font">
-                   <font>
-                    <weight>50</weight>
-                    <bold>false</bold>
-                   </font>
-                  </property>
-                  <property name="text">
-                   <string>Selection:</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QPushButton" name="bt_add_to_selection">
-                  <property name="toolTip">
-                   <string>Add to image browser images matching the current query</string>
-                  </property>
-                  <property name="text">
-                   <string>Add</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QPushButton" name="bt_remove_from_selection">
-                  <property name="toolTip">
-                   <string>Remove from image browser images matching the current query</string>
-                  </property>
-                  <property name="text">
-                   <string>Remove</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <widget class="QPushButton" name="bt_keep_annotated">
-                  <property name="toolTip">
-                   <string>Remove from image brawser all images that are not tagged with an annotation</string>
-                  </property>
-                  <property name="text">
-                   <string>Keep tagged</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="4">
-                 <widget class="QPushButton" name="bt_clear_selection">
-                  <property name="text">
-                   <string>Clear</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="5">
-                 <widget class="QPushButton" name="bt_add_random">
-                  <property name="toolTip">
-                   <string>Add to image browser n random images matching the current query</string>
-                  </property>
-                  <property name="text">
-                   <string>Add random</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="6">
-                 <widget class="QSpinBox" name="sp_add_random_count">
-                  <property name="maximum">
-                   <number>10000</number>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="7">
-                 <spacer name="horizontalSpacer_3">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>190</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="1" column="0" colspan="8">
+                <item row="1" column="0" colspan="9">
                  <widget class="QTableView" name="tv_image_browser">
                   <property name="alternatingRowColors">
                    <bool>false</bool>
@@ -389,6 +309,86 @@
                    <bool>false</bool>
                   </attribute>
                  </widget>
+                </item>
+                <item row="0" column="6">
+                 <widget class="QPushButton" name="bt_add_random">
+                  <property name="toolTip">
+                   <string>Add to image browser n random images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Add random</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QPushButton" name="bt_remove_from_selection">
+                  <property name="toolTip">
+                   <string>Remove from image browser images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Remove</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="bt_add_to_selection">
+                  <property name="toolTip">
+                   <string>Add to image browser images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Add</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QPushButton" name="bt_keep_annotated">
+                  <property name="toolTip">
+                   <string>Remove from image brawser all images that are not tagged with an annotation</string>
+                  </property>
+                  <property name="text">
+                   <string>Keep tagged</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lbl_selection">
+                  <property name="font">
+                   <font>
+                    <weight>50</weight>
+                    <bold>false</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Selection:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QPushButton" name="bt_clear_selection">
+                  <property name="text">
+                   <string>Clear</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="7">
+                 <widget class="QSpinBox" name="sp_add_random_count">
+                  <property name="maximum">
+                   <number>10000</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="5">
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>190</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </widget>
@@ -581,8 +581,8 @@
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>697</width>
-                         <height>91</height>
+                         <width>689</width>
+                         <height>77</height>
                         </rect>
                        </property>
                        <layout class="QHBoxLayout" name="horizontalLayout_4">
@@ -814,7 +814,7 @@
                     </property>
                     <widget class="QWidget" name="tb_pipeline_v2">
                      <attribute name="title">
-                      <string>Pipeline v2</string>
+                      <string>Pipeline</string>
                      </attribute>
                      <layout class="QGridLayout" name="gridLayout_15">
                       <item row="0" column="0">
@@ -1148,7 +1148,7 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>695</width>
+                           <width>687</width>
                            <height>70</height>
                           </rect>
                          </property>
