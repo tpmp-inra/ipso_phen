@@ -216,6 +216,8 @@ class ModuleNode(Node):
         wrapper.error_holder.clear()
         if not self.last_result:
             before = timer()
+            if self.tool.has_param("path") and self.root.parent.image_output_path:
+                self.tool.set_value_of(key="path", value=self.root.parent.image_output_path)
             if self.tool.process_wrapper(wrapper=wrapper):
                 # Get ROI
                 if self.output_type == ipc.IO_ROI:

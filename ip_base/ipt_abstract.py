@@ -62,6 +62,7 @@ class IptParam(object):
         self.on_change = None
         self._widgets = {}
         self._grid_search_options = kwargs.get("_grid_search_options", str(self.default_value))
+        self.grid_search_mode = False
 
         self.ui_update_callbacks = {}
 
@@ -105,7 +106,7 @@ class IptParam(object):
             return
         callback(**kwargs)
 
-    def init(self, tool_name, label, widget, **kwargs):
+    def init(self, tool_name, label, widget, grid_search_mode: bool = False, **kwargs):
         self.ui_update_callbacks = dict(**kwargs)
 
         self.update_ui(
@@ -117,10 +118,13 @@ class IptParam(object):
 
         self.label = label
         self.update_label()
+        self.grid_search_mode = grid_search_mode
         if self.is_input:
             self.input = widget
             if widget is None:
                 return False
+            elif grid_search_mode:
+                self.update_ui(callback="set_text", widget=self.gs_input, text=self.value)
             elif isinstance(self.allowed_values, dict):
                 self.update_ui(
                     callback="add_items",
@@ -385,6 +389,22 @@ class IptParam(object):
     @gs_input.setter
     def gs_input(self, value):
         self._widgets["gs_input"] = value
+
+    @property
+    def gs_auto_fill(self):
+        return self._widgets.get("gs_auto_fill", None)
+
+    @gs_auto_fill.setter
+    def gs_auto_fill(self, value):
+        self._widgets["gs_auto_fill"] = value
+
+    @property
+    def gs_reset(self):
+        return self._widgets.get("gs_reset", None)
+
+    @gs_reset.setter
+    def gs_reset(self, value):
+        self._widgets["gs_reset"] = value
 
     @property
     def is_input(self):
