@@ -276,7 +276,7 @@ class IptExposureChecker(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [TOOL_GROUP_PRE_PROCESSING_STR]
 
     @property
     def description(self):

@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_circle_roi import IptCircleRoi
+from ip_base.ip_abstract import AbstractImageProcessor
 import tools.regions as regions
 import ip_base.ip_common as ipc
 
@@ -37,14 +38,15 @@ class TestIptCircleRoi(unittest.TestCase):
     def test_roi_out(self):
         """Test that tool generates an ROI"""
         op = IptCircleRoi()
-        self.assertTrue(
-            hasattr(op, "generate_roi"), "Class must have method generate_roi"
-        )
-        op.apply_test_values_overrides(use_cases=(ipc.TOOL_GROUP_ROI))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
+        op.apply_test_values_overrides(use_cases=("Create an ROI",))
+        wrapper = AbstractImageProcessor(
+            os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
+        )
+        res = op.process_wrapper(wrapper=wrapper)
+        self.assertTrue(
+            hasattr(op, "generate_roi"), "Class must have method generate_roi"
         )
         self.assertTrue(res, "Failed to process Circle ROI")
         r = op.generate_roi()

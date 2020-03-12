@@ -20,7 +20,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
         self.add_combobox(
             name="source_image",
             desc="Image to copy",
-            default_value="fixed",
+            default_value="source",
             values=dict(
                 source="Source image",
                 fixed="Fixed image",

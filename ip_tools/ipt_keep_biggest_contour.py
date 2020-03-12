@@ -65,11 +65,11 @@ class IptKeepBiggestContours(IptBase):
                 dilation_iter=dilation_iter,
                 root_position=root_position,
             )
-            wrapper.store_image(self.result, f"KLC_mask_{params_as_str}", text_overlay=True)
             wrapper.store_image(self.result, "mask", text_overlay=False)
 
             res_img = wrapper.draw_image(channel=channel, background="source")
-            wrapper.store_image(res_img, f"KLC_{channel}_{params_as_str}", text_overlay=True)
+            wrapper.store_image(res_img, "keep_linked_contours", text_overlay=True)
+            self.demo_image = res_img
 
             res = wrapper.ensure_mask_zone()
             if not res:

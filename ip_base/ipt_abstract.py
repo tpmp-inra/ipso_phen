@@ -44,6 +44,7 @@ import ip_base.ip_common as ipc
 CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
 PARAMS_NAME_KEY = "params"
+GRID_SEARCH_PARAMS_NAME_KEY = "grid_search_params"
 
 
 class IptParam(object):
@@ -124,7 +125,9 @@ class IptParam(object):
             if widget is None:
                 return False
             elif grid_search_mode:
-                self.update_ui(callback="set_text", widget=self.gs_input, text=self.value)
+                self.update_ui(
+                    callback="set_text", widget=self.gs_input, text=self.grid_search_options
+                )
             elif isinstance(self.allowed_values, dict):
                 self.update_ui(
                     callback="add_items",
@@ -399,6 +402,14 @@ class IptParam(object):
         self._widgets["gs_auto_fill"] = value
 
     @property
+    def gs_copy_from_param(self):
+        return self._widgets.get("gs_copy_from_param", None)
+
+    @gs_copy_from_param.setter
+    def gs_copy_from_param(self, value):
+        self._widgets["gs_copy_from_param"] = value
+
+    @property
     def gs_reset(self):
         return self._widgets.get("gs_reset", None)
 
@@ -645,7 +656,7 @@ class IptParamHolder(object):
             **values,
             **{
                 channel_info[1]: get_hr_channel_name(channel_info[1])
-                for channel_info in create_channel_generator()
+                for channel_info in create_channel_generator(include_msp=True)
             },
         }
         param = IptParam(
@@ -1222,6 +1233,7 @@ class IptBase(IptParamHolder, ABC):
             CLASS_NAME_KEY: type(self).__name__,
             MODULE_NAME_KEY: type(self).__module__,
             PARAMS_NAME_KEY: self.params_to_dict(),
+            GRID_SEARCH_PARAMS_NAME_KEY: {p.name: p.grid_search_options for p in self.gizmos},
         }
 
     @classmethod
@@ -1232,9 +1244,16 @@ class IptBase(IptParamHolder, ABC):
         for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
                 try:
-                    return obj(**json_data[PARAMS_NAME_KEY])
+                    ipt = obj(**json_data[PARAMS_NAME_KEY])
                 except Exception as e:
                     return e
+        gs_params = json_data.get(GRID_SEARCH_PARAMS_NAME_KEY, None)
+        if gs_params:
+            for p in ipt.gizmos:
+                gp = gs_params.get(p.name, None)
+                if gp:
+                    p.grid_search_options = gp
+        return ipt
 
     def execute(self, param, **kwargs):
         pass
@@ -1565,6 +1584,9 @@ class IptBase(IptParamHolder, ABC):
         return self.apply_morphology_from_params(mask)
 
     def apply_morphology_from_params(self, mask, store_result: bool = False):
+        if mask is None:
+            return None
+
         kernel_size = self.get_value_of("kernel_size", 0)
         iter_ = self.get_value_of("proc_times", 1)
         kernel_shape = self.get_value_of("kernel_shape", None)
@@ -1613,14 +1635,9 @@ class IptBase(IptParamHolder, ABC):
             mask[labels == label] = 255
 
             # detect contours in the mask and grab the largest one
-            if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-                contours_ = cv2.findContours(
-                    mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-                )[-2]
-            else:
-                _, contours_, _ = cv2.findContours(
-                    mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-                )[-2]
+            contours_ = ipc.get_contours(
+                mask=mask, retrieve_mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
+            )
             c = max(contours_, key=cv2.contourArea)
 
             # Draw min area rect enclosing object

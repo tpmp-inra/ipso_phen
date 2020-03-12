@@ -11,9 +11,6 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_linear_transformation import IptLinearTransformation
 from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_strict_pipeline import IptStrictPipeline
-from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
-
 import ip_base.ip_common as ipc
 
 
@@ -43,45 +40,15 @@ class TestIptLinearTransformation(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptLinearTransformation()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
-                os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
-            )
-        )
-        self.assertTrue(res, "Failed to process Image transformations")
-        self.assertIsInstance(
-            op.result, np.ndarray, "Empty result for Image transformations"
-        )
-
-    def test_feature_out(self):
-        """Test that when using the basic mask generated script this tool extracts features"""
-        op = IptLinearTransformation()
-        op.apply_test_values_overrides()
-        self.assertIsInstance(
-            op,
-            IptBaseAnalyzer,
-            "Image transformations must inherit from IptBaseAnalyzer",
-        )
-        script = IptStrictPipeline.load(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "sample_pipelines",
-                "test_extractors.json",
-            )
-        )
-        script.add_operator(operator=op, kind=ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR)
         wrapper = AbstractImageProcessor(
             os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
-        res = script.process_image(wrapper=wrapper)
-        self.assertTrue(res, "Failed to process Image transformations with test script")
-        self.assertNotEqual(
-            first=len(wrapper.csv_data_holder.data_list),
-            second=0,
-            msg="Image transformations returned no data",
+        res = op.process_wrapper(wrapper=wrapper)
+        self.assertTrue(res, "Failed to process Image transformations")
+        self.assertIsInstance(
+            op.result, np.ndarray, "Empty result for Image transformations"
         )
 
     def test_documentation(self):

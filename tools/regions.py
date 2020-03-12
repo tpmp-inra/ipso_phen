@@ -2,6 +2,8 @@ import cv2
 import math
 import numpy as np
 
+import ip_base.ip_common as ipc
+
 
 def tag_to_color(tag: str):
     if tag.lower() == "keep":
@@ -786,3 +788,85 @@ class AnnulusRegion(CircleRegion):
     def ar(self) -> float:
         """Returns aspect ratio"""
         return 1
+
+
+class CompositeRegion(AbstractRegion):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.items = kwargs.get("items", [])
+        self.op = kwargs.get("op", "intersection")
+        self.width = kwargs.get("width", 0)
+        self.height = kwargs.get("height", 0)
+
+    def __repr__(self):
+        return "".join(repr(i) for i in self.items)
+
+    def to_mask(self, width, height):
+
+        masks = [i.to_mask(width, height) for i in self.items]
+        if self.op == "intersection":
+            return ipc.multi_and(masks)
+        if self.op == "union":
+            return ipc.multi_or(masks)
+
+    def draw_to(self, dst_img, line_width=-1, color=None):
+        if color is None:
+            color = self.color
+        mask = self.to_mask(dst_img.shape[1], dst_img.shape[0])
+        if mask is None:
+            return np.zeros((dst_img.shape[0], dst_img.shape[1]), dtype=np.uint8)
+        if line_width > 0:
+            mask = ipc.morphological_gradient(image=mask, kernel_size=line_width)
+        if len(dst_img.shape) == 3 and dst_img.shape[2] == 3:
+            mask = np.dstack((mask, mask, mask))
+        mask = cv2.inRange(mask, (1, 1, 1), (255, 255, 255))
+        res = dst_img.copy()
+        res[mask > 0] = color
+        return res
+
+    def fill(self, dst_img, color):
+        return self.draw_to(dst_img=dst_img, color=color)
+
+    def is_empty(self):
+        for i in self.items:
+            if not i.is_empty():
+                return False
+        else:
+            return True
+
+    def as_rect(self):
+        cnt = ipc.group_contours(mask=self.to_mask(self.width, self.height))
+        x, y, w, h = cv2.boundingRect(cnt)
+        return RectangleRegion(
+            left=x, width=w, top=y, height=h, tag=self.tag, color=self.color, target=self.target,
+        )
+
+    def as_circle(self):
+        cnt = ipc.group_contours(mask=self.to_mask(self.width, self.height))
+        (x, y), radius = cv2.minEnclosingCircle(cnt)
+        return CircleRegion(
+            cx=x, cy=y, radius=radius, tag=self.tag, color=self.color, target=self.target
+        )
+
+    def as_annulus(self):
+        cnt = ipc.group_contours(mask=self.to_mask(self.width, self.height))
+        (x, y), radius = cv2.minEnclosingCircle(cnt)
+        return AnnulusRegion(
+            cx=x,
+            cy=y,
+            radius=radius,
+            in_radius=0,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
+        )
+
+    @property
+    def area(self) -> float:
+        mask = self.to_mask(self.width, self.height)
+        return np.count_non_zero(mask)
+
+    @property
+    def ar(self) -> float:
+        """Returns aspect ratio"""
+        return self.as_rect().ar

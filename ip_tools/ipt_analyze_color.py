@@ -276,5 +276,5 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return """Analyses object color.\nNeeds a mask as an input.\n
+        return """Analyses object color.\nNeeds a mask as an input.
         Normally used in a pipeline after a clean mask is created."""

@@ -337,6 +337,6 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return """Needs vertical and horizontal noise removal before been called.\n
-        Checks light barrier image quality.\n
+        return """Needs vertical and horizontal noise removal before been called.
+        Checks light barrier image quality.
         Outputs main error and partial errors."""

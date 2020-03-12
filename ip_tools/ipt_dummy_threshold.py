@@ -71,5 +71,5 @@ class IptDummyThreshold(IptBase):
 
     @property
     def description(self):
-        return """Dummy threshold.\n
+        return """Dummy threshold.
         Pass through threshold, expects binary mask as entry"""

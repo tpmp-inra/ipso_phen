@@ -39,11 +39,12 @@ class TestIptRotate(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptRotate()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
+        wrapper = AbstractImageProcessor(
+            os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
+        res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Rotate")
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Rotate")
 
@@ -57,6 +58,7 @@ class TestIptRotate(unittest.TestCase):
             )
         )
         wrapper.store_images = True
+        res = op.process_wrapper(wrapper=wrapper)
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Simple white balance")
         self.assertGreater(

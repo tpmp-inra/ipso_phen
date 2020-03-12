@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_horizontal_line_remover import IptHorizontalLineDetector
+from ip_base.ip_abstract import AbstractImageProcessor
 import ip_base.ip_common as ipc
 
 
@@ -39,14 +40,15 @@ class TestIptHorizontalLineDetector(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptHorizontalLineDetector()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
+        wrapper = AbstractImageProcessor(
+            os.path.join(
                 os.path.dirname(__file__),
                 "..",
                 "sample_images",
                 "18HP01U17-CAM11-20180712221558.bmp",
             )
         )
+        res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Horizontal line remover")
         self.assertIsInstance(
             op.result, np.ndarray, "Empty result for Horizontal line remover"

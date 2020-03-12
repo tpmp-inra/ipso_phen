@@ -10,6 +10,8 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_apply_roi import IptApplyRoi
+from ip_base.ip_abstract import AbstractImageProcessor
+from ip_base.ipt_loose_pipeline import LoosePipeline
 import ip_base.ip_common as ipc
 
 
@@ -38,13 +40,44 @@ class TestIptApplyRoi(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptApplyRoi()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
+        wrapper = AbstractImageProcessor(
+            os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
+        res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Apply ROI")
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Apply ROI")
+
+    def test_mask_transformation(self):
+        """Test that when using the basic mask generated script this tool produces a mask"""
+        op = IptApplyRoi()
+        op.apply_test_values_overrides(use_cases=("Mask cleanup",))
+        script = LoosePipeline.load(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "sample_pipelines",
+                "test_cleaners.json",
+            )
+        )
+        script.add_module(operator=op, target_group="grp_test_cleaners")
+        wrapper = AbstractImageProcessor(
+            os.path.join(
+                os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
+            )
+        )
+        res = script.execute(src_image=wrapper, silent_mode=True)
+        self.assertTrue(res, "Failed to process Apply ROI with test script")
+        self.assertIsInstance(
+            wrapper.mask, np.ndarray, "Empty result for Range threshold"
+        )
+        self.assertEqual(len(wrapper.mask.shape), 2, "Masks can only have one channel")
+        self.assertEqual(
+            np.sum(wrapper.mask[wrapper.mask != 255]),
+            0,
+            "Masks values can only be 0 or 255",
+        )
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""

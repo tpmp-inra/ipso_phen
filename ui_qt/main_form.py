@@ -151,8 +151,8 @@ _ACTIVE_SCRIPT_TAG = "Active script"
 _IMAGE_LISTS_PATH = "./saved_data/image_lists.json"
 
 _PRAGMA_NAME = "IPSO Phen"
-_PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json *.tipp)
-;;JSON compatible file (*.json);;pipelines (*.tipp)"""
+_PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json)
+;;JSON compatible pipeline (*.json)"""
 
 
 def excepthook(excType, excValue, tracebackobj):
@@ -935,9 +935,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         # Toolbox
         self.bt_process_image.clicked.connect(self.on_bt_process_image)
         self.bt_reset_op.clicked.connect(self.on_bt_reset_op)
-        self.bt_run_grid_search.clicked.connect(self.on_bt_run_grid_search)
-        self.bt_reset_grid_search.clicked.connect(self.on_bt_reset_grid_search)
-        self.bt_update_grid_search.clicked.connect(self.on_bt_update_grid_search)
         self.bt_tool_help.clicked.connect(self.on_bt_tool_help)
         self.bt_tool_show_code.clicked.connect(self.on_bt_tool_show_code)
 
@@ -1485,6 +1482,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         try:
             # Add progress bar
             self._global_progress_bar = QProgressBar()
+            self._global_progress_bar.setMaximumWidth(300)
+            self._global_progress_bar.setMinimumWidth(300)
             self.statusBar().addPermanentWidget(self._global_progress_bar, stretch=0)
             self.global_progress_update(0, 0)
             # Add stop button
@@ -1975,16 +1974,11 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             # Fill process modes
             lst = self._ip_tools_holder.ipt_list
             target_process = str(settings_.value("process_Mode", "Default"))
-            process_name = ""
             for i, ip_t in enumerate(lst):
-                for p in ip_t.gizmos:
-                    if p.is_input:
-                        p.value = settings_.value(f"tools/{ip_t.name}/{p.name}", p.default_value)
-                        p.grid_search_options = settings_.value(
-                            f"tools/{ip_t.name}/{p.name}_gso", str(p.default_value)
-                        )
                 if ip_t.name.lower() == target_process.lower():
                     process_name = ip_t.name
+            else:
+                process_name = ""
 
             if not process_name:
                 process_name = lst[0].name
@@ -2129,15 +2123,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             settings_.setValue("thread_count", self.sl_pp_thread_count.value())
             settings_.setValue("sp_pp_time_delta", self.sp_pp_time_delta.value())
             settings_.endGroup()
-
-            lst = self._ip_tools_holder.ipt_list
-            for data_ in lst:
-                settings_.beginGroup(f"tools/{data_.name}")
-                for param in data_.gizmos:
-                    if param.is_input:
-                        settings_.setValue(param.name, param.value)
-                        settings_.setValue(f"{param.name}_gso", param.grid_search_options)
-                settings_.endGroup()
 
             model = self.get_image_model()
             if model is not None and model.rowCount() > 0:
@@ -2407,9 +2392,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
     def on_action_build_ipso_phen_documentation(self):
         # Build tools overview
         with open(os.path.join("docs", "tools.md"), "w", encoding="utf8") as f:
-            f.write("# Tools overview by category\n")
+            f.write("# Tools overview by category\n\n")
             f.write("!!! info\n")
-            f.write("    Some tools may be in more than one category\n")
+            f.write("    Some tools may be in more than one category  \n")
             lst = self._ip_tools_holder.ipt_list
             for use_case in self._ip_tools_holder.use_cases:
                 if use_case == "none":
@@ -2420,8 +2405,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 for ipt_ in op_lst:
                     tool_name = f'ipt_{ipt_.name.replace(" ", "_")}'
                     if os.path.isfile(os.path.join("docs", f"{tool_name}.md")):
-                        f.write(f"### {ipt_.name}\n")
-                        f.write(ipt_.description.replace("\n", "<br>") + "<br>\n")
+                        f.write(f"### {ipt_.name}\n\n")
+                        f.write(ipt_.description.replace("\n", "  \n") + "  \n")
                         f.write(f"Details [here]({tool_name}.md)\n\n")
 
         # Fill TOC
@@ -2442,7 +2427,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             f.write("- Home: index.md\n")
             f.write("- Installation: installation.md\n")
             f.write("- First steps: first_steps.md\n")
-            f.write("- Samples: samples.md\n")
             f.write("- User interface: user_interface.md\n")
             f.write("- Tools:\n")
             f.write("  - Overview (by category): tools.md\n")
@@ -2453,12 +2437,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 link_ = td
                 f.write(f"    - {text_}: {link_}\n")
             f.write("- Testing: testing.md\n")
-            f.write("- Using the grid search: grid_search.md\n")
-            f.write("- Tutorial - Pipelines: pipelines.md\n")
+            f.write("- Grid search: grid_search.md\n")
+            f.write("- Pipelines: pipelines.md\n")
             f.write("- Pipeline processor: pipeline_processor.md\n")
+            f.write("- Samples: samples.md\n")
             f.write("- Advanced features:\n")
             f.write("  - Creating custom tools: custom_tools.md\n")
-            f.write("  - Script pipelines: script_pipelines.md\n")
             f.write("  - Class pipelines: class_pipelines.md\n")
             f.write("  - File handlers: file_handlers.md")
 
@@ -2493,7 +2477,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def pp_callback(self, result, msg, data, current_step, total_steps):
         if result == "OK":
-            if msg and data is not None:
+            if msg:
                 self.update_feedback(status_message=msg, log_message=msg)
             if isinstance(data, (GroupNode, ModuleNode)):
                 self.cb_available_outputs.addItem(
@@ -2501,16 +2485,18 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     {
                         "plant_name": self._src_image_wrapper.plant,
                         "name": data.name,
-                        "image": data.get_feedback_image(),
+                        "image": data.get_feedback_image(data.last_result),
                         "data": data.last_result.get("data", {}),
                     },
                 )
                 self.cb_available_outputs.setCurrentIndex(self.cb_available_outputs.count() - 1)
             elif isinstance(data, AbstractImageProcessor):
                 self.add_images_to_viewer(
-                    wrapper=data, data_dict=data.csv_data_holder.data_list, avoid_duplicates=False
+                    wrapper=data, data_dict=data.csv_data_holder.data_list, avoid_duplicates=True
                 )
             elif isinstance(data, dict):
+                if "plant_name" not in data:
+                    data["plant_name"] = self._src_image_wrapper.plant
                 self.cb_available_outputs.addItem(data["name"], data)
                 self.cb_available_outputs.setCurrentIndex(self.cb_available_outputs.count() - 1)
         elif result == "ERROR":
@@ -2521,15 +2507,43 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             self.update_feedback(
                 status_message=msg, log_message=f"{ui_consts.LOG_WARNING_STR}: {msg}"
             )
+        elif result == "GRID_SEARCH_START":
+            self.update_feedback(
+                status_message=f"Starting grid search with {total_steps} configurations",
+                use_status_as_log=True,
+            )
+        elif result == "GRID_SEARCH_OK":
+            self.cb_available_outputs.addItem(data["name"], data)
+            self.cb_available_outputs.setCurrentIndex(self.cb_available_outputs.count() - 1)
+        elif result == "GRID_SEARCH_NOK":
+            self.update_feedback(status_message=msg, use_status_as_log=True)
+        elif result == "GRID_SEARCH_END":
+            self.update_feedback(status_message=f"Ending grid search", use_status_as_log=True)
         else:
             self.log_exception(f'Unknown result: "Unknown pipeline result {result}"')
 
         if current_step >= 0 and total_steps >= 0:
-            self.pb_pp_progress.setValue(
-                round((min(current_step, total_steps)) / total_steps * 100)
-            )
+            if "GRID_SEARCH" in result:
+                self.update_thread_counts(
+                    thread_step=current_step, thread_total=total_steps, thread_waiting=0
+                )
+            else:
+                self.pb_pp_progress.setValue(
+                    round((min(current_step, total_steps)) / total_steps * 100)
+                )
         if not self.multithread:
             self.process_events()
+
+    def pp_set_spanning(self):
+        model: PipelineModel = self.tv_pp_view.model()
+        if model is not None:
+            for index in model.iter_items(root=None):
+                self.tv_pp_view.setFirstColumnSpanned(
+                    index.row(), index.parent(), not hasattr(index.internalPointer(), "run_button")
+                )
+
+    def on_pp_data_changed(self, topleft, bottomright, roles):
+        self.pp_set_spanning()
 
     def on_bt_pp_new(self):
         pp = LoosePipeline(name="None", description="Double click to edit description")
@@ -2558,10 +2572,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         )[0]
         if file_name_:
             self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
-            if not file_name_.lower().endswith(".tipp") and not file_name_.lower().endswith(
-                ".json"
-            ):
-                file_name_ += ".tipp"
+            if not file_name_.lower().endswith(".json"):
+                file_name_ += ".json"
             res = self.pipeline.save(file_name_)
             if res:
                 self.update_feedback(
@@ -3112,32 +3124,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         if not self._initializing and selected_mode.real_time:
             self.run_process(wrapper=self._src_image_wrapper, ipt=selected_mode)
 
-    @pyqtSlot()
-    def on_bt_reset_grid_search(self):
-        if self._initializing:
-            return
-        self._updating_process_modes = True
-        selected_mode = self.current_tool
-        try:
-            selected_mode.reset_grid_search()
-        except Exception as e:
-            self.log_exception(f"Failed to reset tool grid search: {repr(e)}")
-        finally:
-            self._updating_process_modes = False
-
-    @pyqtSlot()
-    def on_bt_update_grid_search(self):
-        if self._initializing:
-            return
-        self._updating_process_modes = True
-        selected_mode = self.current_tool
-        try:
-            selected_mode.update_grid_search()
-        except Exception as e:
-            self.log_exception(f"Failed to reset tool grid search: {repr(e)}")
-        finally:
-            self._updating_process_modes = False
-
     def add_images_to_viewer(
         self, wrapper, avoid_duplicates: bool = False, data_dict: dict = None
     ):
@@ -3309,6 +3295,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         pipeline: LoosePipeline,
         exec_param: int,
         target_module: str,
+        grid_search_mode: bool = False,
     ):
         if self.act_settings_sir_keep.isChecked():
             scale_factor = 1
@@ -3342,6 +3329,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             exec_param=exec_param,
             scale_factor=scale_factor,
             target_module=target_module,
+            grid_search_mode=grid_search_mode,
         )
         self.threads_waiting += 1
         if self.multithread:
@@ -3355,6 +3343,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         ipt=None,
         exec_param=None,
         target_module: str = "",
+        grid_search_mode: bool = False,
     ):
         if wrapper is None:
             # Collect images
@@ -3446,6 +3435,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     pipeline=pipeline_,
                     exec_param=exec_param,
                     target_module=target_module,
+                    grid_search_mode=grid_search_mode,
                 )
 
         except Exception as e:
@@ -3518,60 +3508,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         ).exec_()
 
     @pyqtSlot()
-    def on_bt_run_grid_search(self):
-        if not self.multithread:
-            self.update_feedback(
-                status_message="WARNING - Grid search in single thread mode",
-                log_message=f"""{ui_consts.LOG_EXCEPTION_STR}:
-                Launching grid search in single thread mode, this will end badly""",
-            )
-        try:
-            self.set_global_enabled_state(new_state=False)
-            self.process_events()
-            self.thread_pool.clear()
-
-            # build tools list
-            self.update_feedback(
-                status_message="Bulding tools for grid search, please wait...",
-                use_status_as_log=True,
-            )
-            param_settings_list = [
-                p.decode_grid_search_options() for p in self.current_tool.gizmos
-            ]
-            procs = list(itertools.product(*param_settings_list))
-            if self.chk_random_grid_search.isChecked():
-                random.shuffle(procs)
-            keys = [p.name for p in self.current_tool.gizmos]
-
-            self.update_thread_counts(thread_step=0, thread_total=len(procs), thread_waiting=0)
-
-            # Launch grid search
-            self.update_feedback(
-                status_message=f"Launching grid search for {len(procs)} items",
-                use_status_as_log=True,
-            )
-            image_data = dict(
-                path=self._src_image_wrapper.file_path, luid=self._src_image_wrapper.luid
-            )
-            for p in procs:
-                if self._batch_stop_current is True:
-                    break
-                self.run_runnable(
-                    image_data=image_data,
-                    is_batch_process=True,
-                    ipt=self.current_tool.__class__(
-                        **{k: (int(v) if str.isdigit(v) else v) for k, v in zip(keys, p)}
-                    ),
-                    exec_param=None,
-                )
-        except Exception as e:
-            self.log_exception(f'Error while launching grid search: "{repr(e)}"')
-        else:
-            self.update_feedback(
-                status_message="All grid search threads launched", use_status_as_log=True
-            )
-
-    @pyqtSlot()
     def on_bt_clear_result(self):
         img_count = self.cb_available_outputs.count()
         self._batch_is_active = False
@@ -3591,40 +3527,46 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         add_time_stamp: bool = False,
         index: int = -1,
     ):
-        if not self._src_image_wrapper.good_image:
-            self.update_feedback(
-                status_message="Bad image", log_message=self._src_image_wrapper.error_holder
-            )
-            return False
-
-        if not text:
-            if index >= 0:
-                text = make_safe_name(
-                    f'{image_data["plant_name"]}_{str(index)}_{image_data["name"]}'
+        try:
+            if not self._src_image_wrapper.good_image:
+                self.update_feedback(
+                    status_message="Bad image", log_message=self._src_image_wrapper.error_holder
                 )
-            else:
-                text = make_safe_name(f'{image_data["plant_name"]}_{image_data["name"]}')
-            if add_time_stamp:
-                text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
+                return False
 
-        if not image_path:
-            image_path = os.path.join(self.static_folders["image_output"], f"{text}.jpg")
+            if not text:
+                if index >= 0:
+                    text = make_safe_name(
+                        f'{image_data["plant_name"]}_{str(index)}_{image_data["name"]}'
+                    )
+                else:
+                    text = make_safe_name(f'{image_data["plant_name"]}_{image_data["name"]}')
+                if add_time_stamp:
+                    text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
+
+            if not image_path:
+                image_path = os.path.join(self.static_folders["image_output"], f"{text}.jpg")
+            else:
+                image_path = os.path.join(image_path, f"{text}.jpg")
+            cv2.imwrite(image_path, image_data["image"])
+            image_data["written"] = True
+        except Exception as e:
+            self.log_exception(f'Failed to save image: "{repr(e)}"')
+            return False
         else:
-            image_path = os.path.join(image_path, f"{text}.jpg")
-        cv2.imwrite(image_path, image_data["image"])
-        image_data["written"] = True
+            return True
 
     @pyqtSlot()
     def on_bt_save_current_image(self):
         cb = self.cb_available_outputs
         if cb.count():
-            self.save_image(
+            if self.save_image(
                 image_data=cb.itemData(cb.currentIndex()), text="", add_time_stamp=True
-            )
-            self.update_feedback(
-                status_message=f"Saved {cb.currentText()}", use_status_as_log=True
-            )
-            open_file((self.static_folders["image_output"], ""))
+            ):
+                self.update_feedback(
+                    status_message=f"Saved {cb.currentText()}", use_status_as_log=True
+                )
+                open_file((self.static_folders["image_output"], ""))
 
     @pyqtSlot()
     def on_bt_save_all_images(self):
@@ -3632,8 +3574,8 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         image_name_root = dt.now().strftime("%Y%B%d_%H%M%S")
         for i in range(0, cb.count()):
             image_name = f"img_{image_name_root}_{i}.jpg"
-            self.save_image(image_data=cb.itemData(i), text="", add_time_stamp=True, index=i)
-            self.update_feedback(status_message=f"Saved {image_name} -- {i + 1}/{cb.count()}")
+            if self.save_image(image_data=cb.itemData(i), text="", add_time_stamp=True, index=i):
+                self.update_feedback(status_message=f"Saved {image_name} -- {i + 1}/{cb.count()}")
         self.update_feedback(status_message=f"Saved {cb.count()} images", use_status_as_log=True)
         open_file((self.static_folders["image_output"], ""))
 
@@ -4209,6 +4151,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
         if param.grid_search_mode:
             param.gs_input.textEdited.connect(self.on_grid_search_param_changed)
             param.gs_auto_fill.clicked.connect(self.on_grid_search_auto_fill_range)
+            param.gs_copy_from_param.clicked.connect(self.on_grid_search_gs_copy_from_param)
             param.gs_reset.clicked.connect(self.on_grid_search_reset)
             return
         elif isinstance(param.allowed_values, dict):
@@ -4265,6 +4208,17 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             btn.module.root.invalidate(btn.module)
             self.run_process(
                 wrapper=self._src_image_wrapper, ipt=btn.module.tool, target_module=btn.module.uuid
+            )
+
+    def widget_run_grid_search(self):
+        btn = self.sender()
+        if hasattr(btn, "module"):
+            btn.module.root.invalidate(btn.module)
+            self.run_process(
+                wrapper=self._src_image_wrapper,
+                ipt=btn.module.tool,
+                target_module=btn.module.uuid,
+                grid_search_mode=True,
             )
 
     def widget_set_text(self, widget, text):
@@ -4385,6 +4339,12 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         widget = self.sender()
         widget.param.grid_search_options = new_text
+
+    def on_grid_search_gs_copy_from_param(self):
+        if self._updating_process_modes:
+            return
+        widget = self.sender()
+        widget.param.grid_search_options = widget.param.str_value
 
     def on_grid_search_auto_fill_range(self):
         if self._updating_process_modes:
@@ -4836,8 +4796,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         p.clear_widgets()
                 for i in reversed(range(self.gl_tool_params.count())):
                     self.gl_tool_params.itemAt(i).widget().setParent(None)
-                for i in reversed(range(self.gl_grid_search_params.count())):
-                    self.gl_grid_search_params.itemAt(i).widget().setParent(None)
 
                 # Update script generator menu
                 self.action_add_exposure_fixer.setEnabled(
@@ -4880,31 +4838,6 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         self.gl_tool_params.addWidget(label, row_, 0, 1, 2)
                     else:
                         pass
-                    # Fill grid search controls
-                    if param.is_input and not param.allowed_values == "input_button":
-                        # Build label
-                        param.gs_label = QLabel(param.desc)
-                        self.gl_grid_search_params.addWidget(param.gs_label, row_, 0)
-                        # Build text input
-                        widget = QLineEditWthParam(tool=value, param=param)
-                        widget.setText(param.grid_search_options)
-                        param.gs_input = widget
-                        widget.textEdited.connect(self.on_grid_search_param_changed)
-                        self.gl_grid_search_params.addWidget(widget, row_, 1)
-                        # Build auto filler
-                        bt_af = QPushButtonWthParam(tool=value, param=param, allow_real_time=False)
-                        bt_af.setIcon(QIcon(":/common/resources/Lightning.png"))
-                        bt_af.clicked.connect(self.on_grid_search_auto_fill_range)
-                        bt_af.setToolTip("Autofill range")
-                        self.gl_grid_search_params.addWidget(bt_af, row_, 2)
-                        # Build rest
-                        bt_reset = QPushButtonWthParam(
-                            tool=value, param=param, allow_real_time=False
-                        )
-                        bt_reset.setIcon(QIcon(":/common/resources/Refresh.png"))
-                        bt_reset.clicked.connect(self.on_grid_search_reset)
-                        bt_reset.setToolTip("Reset to default value")
-                        self.gl_grid_search_params.addWidget(bt_reset, row_, 3)
 
                     self.process_events()
                 value.update_inputs(
@@ -4960,43 +4893,50 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
 
     @pipeline.setter
     def pipeline(self, value: LoosePipeline):
-        self.tv_pp_view.setModel(
-            PipelineModel(
-                pipeline=value,
-                call_backs=dict(
-                    set_text=self.widget_set_text,
-                    set_value=self.widget_set_value,
-                    add_items=self.widget_add_items,
-                    set_range=self.widget_set_range,
-                    set_checked=self.widget_set_checked,
-                    set_name=self.widget_set_name,
-                    set_tool_tip=self.widget_set_tool_tip,
-                    clear=self.widget_clear,
-                    update_table=self.widget_update_table,
-                    set_current_index=self.widget_set_current_index,
-                    connect_call_back=self.widget_connect,
-                    run_callback=self.widget_run_module,
-                ),
-                do_feedback=self.update_feedback,
-            )
+        if value is not None and (
+            not value.image_output_path or not os.path.isdir(value.image_output_path)
+        ):
+            value.image_output_path = self.static_folders["image_output"]
+        model = PipelineModel(
+            pipeline=value,
+            call_backs=dict(
+                set_text=self.widget_set_text,
+                set_value=self.widget_set_value,
+                add_items=self.widget_add_items,
+                set_range=self.widget_set_range,
+                set_checked=self.widget_set_checked,
+                set_name=self.widget_set_name,
+                set_tool_tip=self.widget_set_tool_tip,
+                clear=self.widget_clear,
+                update_table=self.widget_update_table,
+                set_current_index=self.widget_set_current_index,
+                connect_call_back=self.widget_connect,
+                run_callback=self.widget_run_module,
+                run_grid_search_callback=self.widget_run_grid_search,
+                run_grid_search=None,
+            ),
+            do_feedback=self.update_feedback,
         )
+        model.dataChanged.connect(self.on_pp_data_changed)
+        self.tv_pp_view.setModel(model)
         self.tb_pp_desc.clear()
-        if value is not None:
-            model = self.tv_pp_view.model()
-            if model is not None:
-                selectionModel = self.tv_pp_view.selectionModel()
-                selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
-                self.tv_pp_view.setItemDelegate(PipelineDelegate(parent=self.tv_pp_view))
+        if value is not None and model is not None:
+            selectionModel = self.tv_pp_view.selectionModel()
+            selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
+            self.tv_pp_view.setItemDelegate(PipelineDelegate(parent=self.tv_pp_view))
             self.tv_pp_view.header().setStretchLastSection(False)
             self.tv_pp_view.header().setSectionResizeMode(0, QHeaderView.Stretch)
             self.tv_pp_view.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            self.tv_pp_view.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
             self.tv_pp_view.setColumnWidth(1, 12)
+            self.tv_pp_view.setColumnWidth(2, 12)
 
             index = model.createIndex(2, 0, model.rootNodes[2])
             self.tv_pp_view.selectionModel().selection().select(index, index)
             self.tv_pp_view.expand(index)
             self.tb_pp_desc.insertPlainText(value.description)
             self._update_pp_pipeline_state(default_process=False, pipeline=True)
+            self.pp_set_spanning()
         else:
             self._update_pp_pipeline_state(default_process=True, pipeline=False)
 

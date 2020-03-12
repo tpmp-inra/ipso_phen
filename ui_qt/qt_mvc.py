@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import (
     QWidget,
     QGroupBox,
 )
+from PyQt5.QtCore import QSize
 from ip_base.ipt_loose_pipeline import GroupNode, ModuleNode, MosaicData, PipelineSettings
 from ip_base.ipt_abstract import IptBase, IptParam, IptParamHolder
 import ip_base.ip_common as ipc
@@ -84,11 +85,19 @@ def build_widgets(
 
         bt_af = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
         bt_af.setIcon(QIcon(":/common/resources/Lightning.png"))
+        bt_af.setToolTip("Auto fill gris search params")
         param.gs_auto_fill = bt_af
         layout.addWidget(bt_af)
 
+        bt_update_from_param = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
+        bt_update_from_param.setIcon(QIcon(":/common/resources/Down.png"))
+        bt_update_from_param.setToolTip("Copy value from tool")
+        param.gs_copy_from_param = bt_update_from_param
+        layout.addWidget(bt_update_from_param)
+
         bt_reset = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
         bt_reset.setIcon(QIcon(":/common/resources/Refresh.png"))
+        bt_reset.setToolTip("Reset to default value")
         param.gs_reset = bt_reset
         layout.addWidget(bt_reset)
     elif isinstance(param.allowed_values, dict):
@@ -246,33 +255,6 @@ class PandasNode(TreeNode):
             return True
 
 
-class ModuleToolbar:
-    def __init__(self, module, title):
-        self.module = module
-        self.title = title
-        bt_sd = QPushButton(QIcon(), "Set as init values")
-        bt_sd.setToolTip("Use as default configuration when tool is added to pipeline")
-        bt_sd.clicked.connect(self.on_set_as_default)
-        bt_reset = QPushButton(QIcon(), "Reset to defaults")
-        bt_reset.setToolTip("Reset widgets to default values")
-        bt_reset.clicked.connect(self.on_reset_module)
-        self.widgets = [
-            {"name": "Toggle grid search"},
-            {"name": "Set as init values", "widget": bt_sd},
-            {"name": "Reset to defaults", "widget": bt_reset},
-        ]
-
-    def on_reset_module(self):
-        self.module.tool.reset()
-        self.module.root.invalidate(self.module)
-
-    def on_toggle_grid_search(self):
-        pass
-
-    def on_set_as_default(self):
-        pass
-
-
 class PipelineNode(TreeNode):
     def __init__(self, node_data, parent, row, call_backs, do_feedback):
         TreeNode.__init__(
@@ -287,21 +269,21 @@ class PipelineNode(TreeNode):
     def _getChildren(self):
         if isinstance(self.node_data, str):
             return []
-        elif isinstance(self.node_data, ModuleToolbar):
+        elif isinstance(self.node_data, dict) and "grid_search" in self.node_data:
             return [
                 PipelineNode(
-                    node_data=tool_button,
+                    node_data=gizmo,
                     parent=self,
-                    row=index,
+                    row=index + 1,
                     call_backs=self.call_backs,
                     do_feedback=self.do_feedback,
                 )
-                for index, tool_button in enumerate(self.node_data.widgets)
+                for index, gizmo in enumerate(self.node_data["grid_search"].tool.gizmos)
             ]
         elif isinstance(self.node_data, ModuleNode):
             tool_bar = [
                 PipelineNode(
-                    node_data=ModuleToolbar(self.node_data, title="More ..."),
+                    node_data={"name": "Grid search", "grid_search": self.node_data},
                     parent=self,
                     row=0,
                     call_backs=self.call_backs,
@@ -318,7 +300,7 @@ class PipelineNode(TreeNode):
                 )
                 for index, gizmo in enumerate(self.node_data.tool.gizmos)
             ]
-            return widgets
+            return widgets + tool_bar
         elif isinstance(self.node_data, PipelineSettings):
             return [
                 PipelineNode(
@@ -370,13 +352,15 @@ class PipelineNode(TreeNode):
                     tool = nd.tool
                 elif isinstance(nd, PipelineSettings):
                     tool = nd
+                elif isinstance(nd, dict):
+                    tool = nd["grid_search"]
                 label, widget = build_widgets(
                     tool=tool,
                     param=new_data,
                     allow_real_time=not isinstance(tool, PipelineSettings),
                     do_feedback=self.do_feedback,
                     call_backs=self.call_backs,
-                    grid_search_mode=False,  # isinstance(nd, ModuleNode),
+                    grid_search_mode=isinstance(nd, dict),
                 )
                 if widget is not None:
                     layout.addWidget(widget)
@@ -389,16 +373,32 @@ class PipelineNode(TreeNode):
                 run_call_back = self.call_backs.get("run_callback", None)
                 self.run_button = QPushButton(QIcon(":/image_process/resources/Play.png"), "")
                 self.run_button.setToolTip("Run to this module")
+                self.run_button.setMinimumHeight(28)
+                self.run_button.setIconSize(QSize(24, 24))
                 if run_call_back is not None:
                     self.run_button.setEnabled(True)
                     self.run_button.module = new_data
                     self.run_button.clicked.connect(run_call_back)
                 else:
                     self.run_button.setEnabled(False)
+                self.reset_button = QPushButton(QIcon(":/common/resources/Refresh.png"), "")
+                self.reset_button.setToolTip("Reset widgets to default values")
+                self.reset_button.setMaximumWidth(200)
+                self.reset_button.clicked.connect(self.on_reset_module)
+            elif isinstance(new_data, dict) and "grid_search" in new_data:
+                run_call_back = self.call_backs.get("run_grid_search_callback", None)
+                self.run_button = QPushButton(QIcon(":/image_process/resources/Play.png"), "")
+                self.run_button.setToolTip("Run to this module using grid search")
+                self.run_button.setMinimumHeight(28)
+                self.run_button.setIconSize(QSize(24, 24))
+                if run_call_back is not None:
+                    self.run_button.setEnabled(True)
+                    self.run_button.module = new_data["grid_search"]
+                    self.run_button.clicked.connect(run_call_back)
+                else:
+                    self.run_button.setEnabled(False)
             elif isinstance(new_data, MosaicData):
                 self.widget_holder = QMosaicEditor(parent=None, data=new_data)
-            elif isinstance(new_data, ModuleToolbar):
-                pass
             elif isinstance(new_data, dict) and "widget" in new_data:
                 self.widget_holder = new_data["widget"]
         except Exception as e:
@@ -406,6 +406,10 @@ class PipelineNode(TreeNode):
             return False
         else:
             return True
+
+    def on_reset_module(self):
+        self.node_data.tool.reset()
+        self.node_data.root.invalidate(self.node_data)
 
     def insert_children(self, row, data):
         try:
@@ -469,40 +473,43 @@ class QColorDelegate(QItemDelegate):
         self._palette: QPalette = kwargs.get("palette")
 
     def paint(self, painter, option, index):
-        painter.save()
+        try:
+            painter.save()
 
-        df: pd.DataFrame = self.parent().model().df
-        # set background color
-        is_error_column = "error" in df.columns[index.column()]
-        painter.setPen(QPen(Qt.NoPen))
-        if is_error_column:
-            try:
-                num_val = int(index.data(Qt.DisplayRole))
-                max_val = df[df.columns[index.column()]].max()
-            except ValueError:
-                num_val = None
-                max_val = None
-            if (num_val is not None) and (max_val is not None):
-                colors = ipc.build_color_steps(
-                    start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
-                )
-                painter.setBrush(QBrush(QColor(*ipc.bgr_to_rgb(colors[num_val]))))
-        else:
-            if option.state & QStyle.State_Selected:
-                painter.setBrush(self._palette.highlight())
+            df: pd.DataFrame = self.parent().model().df
+            # set background color
+            is_error_column = "error" in df.columns[index.column()]
+            painter.setPen(QPen(Qt.NoPen))
+            if is_error_column:
+                try:
+                    num_val = int(index.data(Qt.DisplayRole))
+                    max_val = df[df.columns[index.column()]].max()
+                except ValueError:
+                    num_val = None
+                    max_val = None
+                if (num_val is not None) and (max_val is not None):
+                    colors = ipc.build_color_steps(
+                        start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
+                    )
+                    painter.setBrush(QBrush(QColor(*ipc.bgr_to_rgb(colors[num_val]))))
             else:
-                painter.setBrush(self._palette.window())
-        painter.drawRect(option.rect)
+                if option.state & QStyle.State_Selected:
+                    painter.setBrush(self._palette.highlight())
+                else:
+                    painter.setBrush(self._palette.window())
+            painter.drawRect(option.rect)
 
-        # set text color
-        value = index.data(Qt.DisplayRole)
-        if option.state & QStyle.State_Selected:
-            painter.setPen(QPen(self._palette.color(QPalette.HighlightedText)))
-        else:
-            painter.setPen(QPen(self._palette.color(QPalette.Text)))
-        painter.drawText(option.rect, Qt.AlignCenter, str(value))
+            # set text color
+            value = index.data(Qt.DisplayRole)
+            if option.state & QStyle.State_Selected:
+                painter.setPen(QPen(self._palette.color(QPalette.HighlightedText)))
+            else:
+                painter.setPen(QPen(self._palette.color(QPalette.Text)))
+            painter.drawText(option.rect, Qt.AlignCenter, str(value))
 
-        painter.restore()
+            painter.restore()
+        except Exception as e:
+            print(f"Failed to paint in {self.__class__.__name__}")
 
     def set_palette(self, new_palette):
         self._palette: QPalette = new_palette
@@ -572,33 +579,36 @@ class QImageDrawerDelegate(QItemDelegate):
         self.annotations = {}
 
     def paint(self, painter, option, index):
-        painter.save()
+        try:
+            painter.save()
 
-        df: pd.DataFrame = self.parent().model().images
+            df: pd.DataFrame = self.parent().model().images
 
-        # Try cache retrieval
-        data = self.get_annotation(row_number=index.row())
-        if data is not None:
-            color_dict = self.colors.get(data["kind"].lower(), self._default_colors)
-        else:
-            color_dict = self._default_colors
-        bg_color = color_dict["s_bgd" if option.state & QStyle.State_Selected else "bgd"]
-        fg_color = color_dict["s_fnt" if option.state & QStyle.State_Selected else "fnt"]
+            # Try cache retrieval
+            data = self.get_annotation(row_number=index.row())
+            if data is not None:
+                color_dict = self.colors.get(data["kind"].lower(), self._default_colors)
+            else:
+                color_dict = self._default_colors
+            bg_color = color_dict["s_bgd" if option.state & QStyle.State_Selected else "bgd"]
+            fg_color = color_dict["s_fnt" if option.state & QStyle.State_Selected else "fnt"]
 
-        fnt = painter.font()
-        fnt.setBold(option.state & QStyle.State_Selected)
-        painter.setFont(fnt)
+            fnt = painter.font()
+            fnt.setBold(option.state & QStyle.State_Selected)
+            painter.setFont(fnt)
 
-        # Draw
-        painter.setPen(QPen(Qt.NoPen))
-        painter.setBrush(QBrush(bg_color))
-        painter.drawRect(option.rect)
-        painter.setPen(QPen(fg_color))
-        painter.drawText(
-            option.rect, Qt.AlignVCenter | Qt.AlignCenter, str(index.data(Qt.DisplayRole))
-        )
+            # Draw
+            painter.setPen(QPen(Qt.NoPen))
+            painter.setBrush(QBrush(bg_color))
+            painter.drawRect(option.rect)
+            painter.setPen(QPen(fg_color))
+            painter.drawText(
+                option.rect, Qt.AlignVCenter | Qt.AlignCenter, str(index.data(Qt.DisplayRole))
+            )
 
-        painter.restore()
+            painter.restore()
+        except Exception as e:
+            print(f"Failed to paint in {self.__class__.__name__}")
 
     def get_annotation(self, **kwargs):
         if self.use_annotations is False:
@@ -698,31 +708,38 @@ class PipelineDelegate(QStyledItemDelegate):
         self.widget = None
 
     def paint(self, painter, option, index):
-        if index.column() == 0:
-            ip = index.internalPointer()
-            if index.internalPointer().widget_holder is not None:
-                self.parent().setIndexWidget(
-                    index, index.internalPointer().widget_holder,
-                )
-            elif isinstance(ip.node_data, (GroupNode, ModuleNode)):
-                option.palette.setColor(
-                    QPalette.Text,
-                    Qt.red
-                    if ip is not None and not ip.node_data.root.check_input(ip.node_data)
-                    else painter.pen().color(),
-                )
-                option.font.setBold(isinstance(ip.node_data, GroupNode))
-                QStyledItemDelegate.paint(self, painter, option, index)
-            else:
-                QStyledItemDelegate.paint(self, painter, option, index)
-        elif index.column() == 1:
-            ip = index.internalPointer()
-            if isinstance(ip.node_data, ModuleNode):
-                self.parent().setIndexWidget(
-                    index, index.internalPointer().run_button,
-                )
-            else:
-                QStyledItemDelegate.paint(self, painter, option, index)
+        try:
+            if index.column() == 0:
+                ip = index.internalPointer()
+                if index.internalPointer().widget_holder is not None:
+                    self.parent().setIndexWidget(
+                        index, index.internalPointer().widget_holder,
+                    )
+                elif isinstance(ip.node_data, (GroupNode, ModuleNode)):
+                    option.palette.setColor(
+                        QPalette.Text,
+                        Qt.red
+                        if ip is not None and not ip.node_data.root.check_input(ip.node_data)
+                        else painter.pen().color(),
+                    )
+                    option.font.setBold(isinstance(ip.node_data, GroupNode))
+                    QStyledItemDelegate.paint(self, painter, option, index)
+                else:
+                    QStyledItemDelegate.paint(self, painter, option, index)
+            elif index.column() == 1:
+                node = index.internalPointer()
+                if hasattr(node, "reset_button"):
+                    self.parent().setIndexWidget(index, node.reset_button)
+                else:
+                    QStyledItemDelegate.paint(self, painter, option, index)
+            elif index.column() == 2:
+                node = index.internalPointer()
+                if hasattr(node, "run_button"):
+                    self.parent().setIndexWidget(index, node.run_button)
+                else:
+                    QStyledItemDelegate.paint(self, painter, option, index)
+        except Exception as e:
+            print(f"Failed to paint in {self.__class__.__name__}")
 
     def createEditor(self, parent, option, index):
         nd = index.internalPointer().node_data
@@ -813,7 +830,10 @@ class MosaicDelegate(QStyledItemDelegate):
         self.pipeline = kwargs["pipeline"]
 
     def paint(self, painter, option, index):
-        QStyledItemDelegate.paint(self, painter, option, index)
+        try:
+            QStyledItemDelegate.paint(self, painter, option, index)
+        except Exception as e:
+            print(f"Failed to paint in {self.__class__.__name__}")
 
     def createEditor(self, parent, option, index):
         cb = QComboBox(parent=parent)
@@ -1160,7 +1180,7 @@ class PipelineModel(TreeModel):
         return 3 if data is None else data.child_count()
 
     def columnCount(self, parent):
-        return 2
+        return 3
 
     def data(self, index, role):
         if index.column() == 0:
@@ -1186,8 +1206,6 @@ class PipelineModel(TreeModel):
                     in_t = ipc.io_type_to_str(nd.input_type)
                     out = ipc.io_type_to_str(nd.output_type)
                     return f"{nd.name}, {in_t} -> {out}"
-                elif isinstance(nd, ModuleToolbar):
-                    return nd.title
                 elif isinstance(nd, dict) and "name" in nd.keys():
                     return nd["name"]
                 else:
@@ -1211,8 +1229,6 @@ class PipelineModel(TreeModel):
                     return f"{nd.name}\nsrc: {source}\n{in_t} ->{out}\nmerge: {merge}\nDouble click to edit"
                 elif isinstance(nd, ModuleNode):
                     return nd.tool.hint
-                elif isinstance(nd, ModuleToolbar):
-                    nd.title + "\n" + "Configure:\n" + "\n\t".join([w["name"] for w in nd.widgets])
                 elif isinstance(nd, dict) and "name" in nd.keys():
                     return nd["name"]
                 else:
@@ -1223,6 +1239,8 @@ class PipelineModel(TreeModel):
                     isinstance(nd, ModuleNode) or isinstance(nd, GroupNode)
                 ):
                     return node.enabled
+                elif isinstance(nd, dict) and "checked" in nd:
+                    return nd["checked"]
             else:
                 return None
         return None
@@ -1235,7 +1253,11 @@ class PipelineModel(TreeModel):
                     item.enabled = value
                     item.node_data.root.invalidate(item.node_data)
                     self.dataChanged.emit(index, index)
-                    self.layoutChanged.emit()
+                elif isinstance(item.node_data, dict) and "checked" in item.node_data:
+                    item.node_data["checked"] = value
+                    item.parent.parent.node_data.grid_search_mode = value
+                    self.dataChanged.emit(index.parent().parent(), index.parent().parent())
+                self.layoutChanged.emit()
                 return True
             elif role == Qt.EditRole:
                 item = self.get_item(index)

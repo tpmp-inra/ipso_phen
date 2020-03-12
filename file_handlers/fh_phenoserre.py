@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-import cv2
+import numpy as np
 
 from file_handlers.fh_base import FileHandlerBase
 
@@ -18,8 +18,8 @@ class FileHandlerPhenoserre(FileHandlerBase):
 
     def fix_image(self, src_image):
         if self.is_nir and self.view_option == "top":
-            src_img = cv2.flip(src_image, 0)
-            src_img = cv2.flip(src_image, 1)
+            src_img = np.flip(src_image, 0)
+            src_img = np.flip(src_image, 1)
         else:
             return super().fix_image(src_image)
 

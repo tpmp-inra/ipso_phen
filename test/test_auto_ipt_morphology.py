@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_morphology import IptMorphology
 from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_strict_pipeline import IptStrictPipeline
+from ip_base.ipt_loose_pipeline import LoosePipeline
 import ip_base.ip_common as ipc
 
 
@@ -40,7 +40,7 @@ class TestIptMorphology(unittest.TestCase):
         """Test that when using the basic mask generated script this tool produces a mask"""
         op = IptMorphology()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
-        script = IptStrictPipeline.load(
+        script = LoosePipeline.load(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
@@ -48,13 +48,13 @@ class TestIptMorphology(unittest.TestCase):
                 "test_cleaners.json",
             )
         )
-        script.add_operator(operator=op, kind=ipc.TOOL_GROUP_MASK_CLEANUP_STR)
+        script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = AbstractImageProcessor(
             os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
-        res = script.process_image(wrapper=wrapper)
+        res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Morphology with test script")
         self.assertIsInstance(
             wrapper.mask, np.ndarray, "Empty result for Range threshold"

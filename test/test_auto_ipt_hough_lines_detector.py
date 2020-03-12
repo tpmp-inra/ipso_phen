@@ -8,15 +8,18 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ip_tools.ipt_edge_detector import IptEdgeDetector
+from ip_tools.ipt_hough_lines_detector import IptHoughLines
 from ip_base.ip_abstract import AbstractImageProcessor
+from ip_base.ipt_loose_pipeline import LoosePipeline
+from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
+
 import ip_base.ip_common as ipc
 
 
-class TestIptEdgeDetector(unittest.TestCase):
+class TestIptHoughLines(unittest.TestCase):
     def test_use_case(self):
         """Check that all use cases are allowed"""
-        op = IptEdgeDetector()
+        op = IptHoughLines()
         for uc in op.use_case:
             self.assertIn(
                 uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
@@ -24,42 +27,57 @@ class TestIptEdgeDetector(unittest.TestCase):
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
-        op = IptEdgeDetector()
+        op = IptHoughLines()
         if "(wip)" not in op.name.lower():
             self.assertIsNotNone(
-                op.process_wrapper.__doc__, "Missing docstring for Edge detectors"
+                op.process_wrapper.__doc__, "Missing docstring for Hough lines detector"
             )
 
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
-    def test_visualization(self):
-        """Test that visualization tools add images to list"""
-        op = IptEdgeDetector()
-        op.apply_test_values_overrides(use_cases=("Visualization",))
+    def test_feature_out(self):
+        """Test that when using the basic mask generated script this tool extracts features"""
+        op = IptHoughLines()
+        op.apply_test_values_overrides(use_cases=("",))
+        script = LoosePipeline.load(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "sample_pipelines",
+                "test_extractors.json",
+            )
+        )
+        script.add_module(operator=op, target_group="grp_test_extractors")
         wrapper = AbstractImageProcessor(
             os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
-        wrapper.store_images = True
-        res = op.process_wrapper(wrapper=wrapper)
-        self.assertTrue(res, "Failed to process Simple white balance")
-        self.assertGreater(
-            len(wrapper.image_list), 0, "Visualizations must add images to list"
+        res = script.execute(src_image=wrapper, silent_mode=True)
+        self.assertIsInstance(
+            op,
+            IptBaseAnalyzer,
+            "Hough lines detector must inherit from IptBaseAnalyzer",
+        )
+        self.assertTrue(res, "Failed to process Hough lines detector with test script")
+        self.assertNotEqual(
+            first=len(wrapper.csv_data_holder.data_list),
+            second=0,
+            msg="Hough lines detector returned no data",
         )
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""
-        op = IptEdgeDetector()
+        op = IptHoughLines()
         op_doc_name = op.name.replace(" ", "_")
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
                 os.path.join(os.path.dirname(__file__), "..", "docs", f"{op_doc_name}")
             ),
-            "Missing documentation file for Edge detectors",
+            "Missing documentation file for Hough lines detector",
         )
 
 

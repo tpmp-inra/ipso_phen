@@ -1,1 +1,1 @@
-.\ipso_pip_env\Scripts\activate.bat
+.\ipso_env\Scripts\activate.bat
