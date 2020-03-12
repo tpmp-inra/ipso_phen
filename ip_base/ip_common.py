@@ -1,6 +1,8 @@
 import cv2
 import numpy as np
 import random
+from typing import Any, Union
+from distutils.version import LooseVersion
 
 from tools.csv_writer import AbstractCsvWriter
 
@@ -515,6 +517,256 @@ def enclose_image(a_cnv, img, rect, frame_width: int = 0):
         )
 
     return a_cnv
+
+
+def multi_and(image_list: tuple):
+    """Performs an AND with all the images in the tuple
+
+    :param image_list:
+    :return: image
+    """
+    img_lst = [i for i in image_list if i is not None]
+    list_len_ = len(img_lst)
+
+    if list_len_ == 0:
+        return None
+    elif list_len_ == 1:
+        return img_lst[0]
+    else:
+        res = cv2.bitwise_and(img_lst[0], img_lst[1])
+        if len(img_lst) > 2:
+            for current_image in img_lst[2:]:
+                res = cv2.bitwise_and(res, current_image)
+
+        return res
+
+
+def multi_or(image_list: tuple):
+    """Performs an OR with all the images in the tuple
+
+    :param image_list:
+    :return: image
+    """
+    img_lst = [i for i in image_list if i is not None]
+    list_len_ = len(img_lst)
+
+    if list_len_ == 0:
+        return None
+    elif list_len_ == 1:
+        return img_lst[0]
+    else:
+        res = cv2.bitwise_or(img_lst[0], img_lst[1])
+        if list_len_ > 2:
+            for current_image in img_lst[2:]:
+                res = cv2.bitwise_or(res, current_image)
+        return res
+
+
+def get_kernel(size: int, shape: int):
+    """Builds morphology kernel
+
+    :param size: kernel size, must be odd number
+    :param shape: select shape of kernel
+    :return: Morphology kernel
+    """
+    return cv2.getStructuringElement(shape, (size, size))
+
+
+def open(
+    image: Any,
+    kernel_size: int = 3,
+    kernel_shape: int = cv2.MORPH_ELLIPSE,
+    rois: tuple = (),
+    proc_times: int = 1,
+):
+    """Morphology - Open wrapper
+
+    Arguments:
+        image {numpy array} -- Source image
+        kernel_size {int} -- kernel size
+        kernel_shape {int} -- cv2 constant
+        roi -- Region of Interrest
+        proc_times {int} -- iterations
+
+    Returns:
+        numpy array -- opened image
+    """
+    morph_kernel = get_kernel(kernel_size, kernel_shape)
+    if rois:
+        result = image.copy()
+        for roi in rois:
+            r = roi.as_rect()
+            result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
+                result[r.top : r.bottom, r.left : r.right],
+                cv2.MORPH_OPEN,
+                morph_kernel,
+                iterations=proc_times,
+            )
+    else:
+        result = cv2.morphologyEx(image, cv2.MORPH_OPEN, morph_kernel, iterations=proc_times)
+    return result
+
+
+def close(
+    image: Any,
+    kernel_size: int = 3,
+    kernel_shape: int = cv2.MORPH_ELLIPSE,
+    rois: tuple = (),
+    proc_times: int = 1,
+):
+    """Morphology - Close wrapper
+
+    Arguments:
+        image {numpy array} -- Source image
+        kernel_size {int} -- kernel size
+        kernel_shape {int} -- cv2 constant
+        roi -- Region of Interest
+        proc_times {int} -- iterations
+
+    Returns:
+        numpy array -- closed image
+    """
+    morph_kernel = get_kernel(kernel_size, kernel_shape)
+    if rois:
+        result = image.copy()
+        for roi in rois:
+            r = roi.as_rect()
+            result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
+                result[r.top : r.bottom, r.left : r.right],
+                cv2.MORPH_CLOSE,
+                morph_kernel,
+                iterations=proc_times,
+            )
+    else:
+        result = cv2.morphologyEx(image, cv2.MORPH_CLOSE, morph_kernel, iterations=proc_times)
+    return result
+
+
+def dilate(
+    image: Any,
+    kernel_size: int = 3,
+    kernel_shape: int = cv2.MORPH_ELLIPSE,
+    rois: tuple = (),
+    proc_times: int = 1,
+):
+    """Morphology - Dilate wrapper
+
+    Arguments:
+        image {numpy array} -- Source image
+        kernel_size {int} -- kernel size
+        kernel_shape {int} -- cv2 constant
+        roi -- Region of Interrest
+        proc_times {int} -- iterations
+
+    Returns:
+        numpy array -- dilated image
+    """
+    morph_kernel = get_kernel(kernel_size, kernel_shape)
+    if rois:
+        result = image.copy()
+        for roi in rois:
+            if roi is not None:
+                r = roi.as_rect()
+                result[r.top : r.bottom, r.left : r.right] = cv2.dilate(
+                    result[r.top : r.bottom, r.left : r.right],
+                    morph_kernel,
+                    iterations=proc_times,
+                )
+    else:
+        result = cv2.dilate(image, morph_kernel, iterations=proc_times)
+    return result
+
+
+def erode(
+    image: Any,
+    kernel_size: int = 3,
+    kernel_shape: int = cv2.MORPH_ELLIPSE,
+    rois: tuple = (),
+    proc_times: int = 1,
+):
+    """Morphology - Erode wrapper
+
+    Arguments:
+        image {numpy array} -- Source image
+        kernel_size {int} -- kernel size
+        kernel_shape {int} -- cv2 constant
+        roi -- Region of Interrest
+        proc_times {int} -- iterations
+
+    Returns:
+        numpy array -- eroded image
+    """
+    morph_kernel = get_kernel(kernel_size, kernel_shape)
+    if rois:
+        result = image.copy()
+        for roi in rois:
+            if roi is not None:
+                r = roi.as_rect()
+                result[r.top : r.bottom, r.left : r.right] = cv2.erode(
+                    result[r.top : r.bottom, r.left : r.right],
+                    morph_kernel,
+                    iterations=proc_times,
+                )
+    else:
+        result = cv2.erode(image, morph_kernel, iterations=proc_times)
+    return result
+
+
+def morphological_gradient(
+    image: Any, kernel_size: int = 3, kernel_shape: int = cv2.MORPH_ELLIPSE, rois: tuple = (),
+):
+    """Morphology - Erode wrapper
+
+    Arguments:
+        image {numpy array} -- Source image
+        kernel_size {int} -- kernel size
+        kernel_shape {int} -- cv2 constant
+        roi -- Region of Interrest
+        proc_times {int} -- iterations
+
+    Returns:
+        numpy array -- eroded image
+    """
+    morph_kernel = get_kernel(kernel_size, kernel_shape)
+    if rois:
+        result = image.copy()
+        for roi in rois:
+            if roi is not None:
+                r = roi.as_rect()
+                result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
+                    result[r.top : r.bottom, r.left : r.right], cv2.MORPH_GRADIENT, morph_kernel
+                )
+    else:
+        result = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, morph_kernel)
+    return result
+
+
+def get_contours(mask, retrieve_mode, method):
+    return cv2.findContours(mask.copy(), retrieve_mode, method)[-2:-1][0]
+
+
+def get_contours_and_hierarchy(mask, retrieve_mode, method):
+    return cv2.findContours(mask.copy(), retrieve_mode, method)[-2:]
+
+
+def group_contours(mask):
+    """Gets contours from mask and merges them into single one"""
+    id_objects, obj_hierarchy = get_contours_and_hierarchy(
+        mask=mask, retrieve_mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE
+    )
+
+    stack = np.zeros((len(id_objects), 1))
+
+    for c, cnt in enumerate(id_objects):
+        if obj_hierarchy[0][c][2] == -1 and obj_hierarchy[0][c][3] > -1:
+            stack[c] = 0
+        else:
+            stack[c] = 1
+    ids = np.where(stack == 1)[0]
+    if len(ids) > 0:
+        return np.vstack([id_objects[i] for i in ids])
+    else:
+        return []
 
 
 class MaskLineData(object):

@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_otsu_merger import IptOtsuOverthinked
+from ip_base.ip_abstract import AbstractImageProcessor
 import ip_base.ip_common as ipc
 
 
@@ -38,11 +39,12 @@ class TestIptOtsuOverthinked(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptOtsuOverthinked()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
+        wrapper = AbstractImageProcessor(
+            os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
+        res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Otsu merger")
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Otsu merger")
 

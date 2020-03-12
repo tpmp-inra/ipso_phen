@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_check_source import IptCheckSource
+from ip_base.ip_abstract import AbstractImageProcessor
 import ip_base.ip_common as ipc
 
 
@@ -37,11 +38,12 @@ class TestIptCheckSource(unittest.TestCase):
         """Test that tool returns a boolean"""
         op = IptCheckSource()
         op.apply_test_values_overrides(use_cases=("Assert...",))
-        res = op.process_wrapper(
-            wrapper=os.path.join(
+        wrapper = AbstractImageProcessor(
+            os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
+        res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Check source image")
         self.assertIsInstance(
             op.result, bool, "Check source image must return a boolean"

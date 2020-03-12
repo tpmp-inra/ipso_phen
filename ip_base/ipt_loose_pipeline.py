@@ -2,6 +2,7 @@ from uuid import uuid4
 import json
 from datetime import datetime as dt
 from timeit import default_timer as timer
+import itertools
 
 import numpy as np
 
@@ -58,9 +59,18 @@ class PipelineSettings(IptParamHolder):
             default_value=0,
             hint="Display module's intermediary images",
         )
+        self.add_checkbox(
+            name="allow_step_mosaics",
+            desc="Allow mosaics for steps",
+            default_value=1,
+            hint="If checked, some steps will return mosaics instead of single images",
+        )
+        self.add_checkbox(
+            name="show_source_image", desc="Show source image/mask for each tool", default_value=0,
+        )
         self.add_combobox(
             name="stop_on",
-            desc="Stop processing on error level reaches",
+            desc="Stop processing on error level",
             default_value=eh.ERR_LVL_EXCEPTION,
             values={i: eh.error_level_to_str(i) for i in range(1, 6)},
             hint="If any error of the selected level or higher happens the process will halt",
@@ -113,10 +123,10 @@ class Node(object):
         else:
             return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
 
-    def get_feedback_image(self):
-        mask = self.last_result.get("mask", None)
-        image = self.last_result.get("image", None)
-        if mask is not None and image is not None:
+    def get_feedback_image(self, data: dict):
+        mask = data.get("mask", None)
+        image = data.get("image", None)
+        if mask is not None and image is not None and self.root.parent.allow_step_mosaics:
             h = max(mask.shape[0], image.shape[0])
             w = max(mask.shape[1], image.shape[1])
             canvas = ipc.enclose_image(
@@ -210,80 +220,168 @@ class ModuleNode(Node):
         self.tool = kwargs.get("tool")
         self.tool.owner = self
 
-    def execute(self, wrapper: AbstractImageProcessor, **kwargs):
-        call_back = kwargs.get("call_back", None)
-        target_module = kwargs.get("target_module", "")
-        wrapper.error_holder.clear()
-        if not self.last_result:
-            before = timer()
-            if self.tool.has_param("path") and self.root.parent.image_output_path:
-                self.tool.set_value_of(key="path", value=self.root.parent.image_output_path)
-            if self.tool.process_wrapper(wrapper=wrapper):
-                # Get ROI
-                if self.output_type == ipc.IO_ROI:
-                    func = getattr(self.tool, "generate_roi", None)
-                    if callable(func):
-                        roi = func(wrapper=wrapper)
-                        if roi is not None:
-                            self.last_result["roi"] = roi
-                            if not wrapper.store_images:
-                                wrapper.store_image(
-                                    image=roi.draw_to(
-                                        dst_img=wrapper.current_image,
-                                        line_width=wrapper.width // 200,
-                                    ),
-                                    text=self.name,
-                                    force_store=True,
-                                )
-                    else:
-                        self.do_call_back(
-                            call_back=call_back,
-                            res=eh.ERR_LVL_ERROR,
-                            msg=f"Failed to generate ROI from  {self.name}",
-                            data=wrapper if self.root.parent.debug_mode else self,
-                        )
-                # Get data
-                if hasattr(self.tool, "data_dict"):
-                    self.last_result["data"] = self.tool.data_dict
-                # Get mask
-                if self.output_type == ipc.IO_MASK:
-                    self.last_result["mask"] = self.tool.result
-                # Get image
-                if self.output_type == ipc.IO_ROI:
-                    self.last_result["image"] = wrapper.draw_rois(
-                        img=wrapper.current_image, rois=[self.last_result["roi"]]
-                    )
-                elif (
-                    self.output_type in [ipc.IO_MASK, ipc.IO_NONE]
-                    and self.tool.demo_image is not None
-                ):
-                    self.last_result["image"] = self.tool.demo_image
-                elif self.output_type == ipc.IO_DATA:
-                    if self.tool.demo_image is not None:
-                        self.last_result["image"] = self.tool.demo_image
-                    else:
-                        self.last_result["image"] = wrapper.current_image
-                elif self.output_type == ipc.IO_IMAGE and isinstance(self.tool.result, np.ndarray):
-                    self.last_result["image"] = self.tool.result
+    def _execute_standard(self, wrapper, tool, call_back=None, target_module: str = ""):
+        res = {}
+        if self.root.parent.show_source_image:
+            if (
+                self.input_type == ipc.IO_IMAGE
+                and wrapper is not None
+                and wrapper.current_image is not None
+            ):
                 self.do_call_back(
                     call_back=call_back,
                     res=eh.ERR_LVL_OK,
-                    msg=f"Successfully processed {self.name} in {format_time(timer() - before)}",
-                    data=wrapper if self.root.parent.debug_mode else self,
+                    msg="",
+                    data={
+                        "plant_name": wrapper.plant,
+                        "name": f"{self.name} (source)",
+                        "image": wrapper.current_image,
+                        "data": {},
+                    },
                 )
-
-            else:
+            if self.input_type == ipc.IO_MASK and wrapper is not None and wrapper.mask is not None:
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_ERROR,
-                    msg=f"Failed to processed {self.name}",
-                    data=wrapper
-                    if self.root.parent.debug_mode or self.uuid == target_module
-                    else self,
+                    res=eh.ERR_LVL_OK,
+                    msg="",
+                    data={
+                        "plant_name": wrapper.plant,
+                        "name": f"{self.name} (source)",
+                        "image": wrapper.mask,
+                        "data": {},
+                    },
+                )
+        if tool.process_wrapper(wrapper=wrapper):
+            # Get ROI
+            if self.output_type == ipc.IO_ROI:
+                func = getattr(tool, "generate_roi", None)
+                if callable(func):
+                    roi = func(wrapper=wrapper)
+                    if roi is not None:
+                        res["roi"] = roi
+                        if not wrapper.store_images:
+                            wrapper.store_image(
+                                image=roi.draw_to(
+                                    dst_img=wrapper.current_image, line_width=wrapper.width // 200,
+                                ),
+                                text=self.name,
+                                force_store=True,
+                            )
+                else:
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=eh.ERR_LVL_ERROR,
+                        msg=f"Failed to generate ROI from  {self.name}",
+                        data=wrapper if self.root.parent.debug_mode else self,
+                    )
+            # Get data
+            if hasattr(tool, "data_dict"):
+                res["data"] = tool.data_dict
+            # Get mask
+            if self.output_type == ipc.IO_MASK:
+                res["mask"] = tool.result
+                if tool.result is None:
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=eh.ERR_LVL_WARNING,
+                        msg=f"Failed to generate mask from  {self.name}",
+                        data=None,
+                    )
+            # Get image
+            if self.output_type == ipc.IO_ROI:
+                res["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=[res["roi"]])
+            elif self.output_type in [ipc.IO_MASK, ipc.IO_NONE] and tool.demo_image is not None:
+                res["image"] = tool.demo_image
+            elif self.output_type == ipc.IO_DATA:
+                if tool.demo_image is not None:
+                    res["image"] = tool.demo_image
+                else:
+                    res["image"] = wrapper.current_image
+            elif self.output_type == ipc.IO_IMAGE and isinstance(tool.result, np.ndarray):
+                res["image"] = tool.result
+
+        return res
+
+    def _execute_grid_search(self, wrapper, call_back):
+        def inner_call_back(res, msg, data, step, total):
+            if call_back is not None:
+                call_back(
+                    res, msg, data, step, total,
                 )
 
-        if wrapper.error_holder.error_count > 0:
-            self.root.parent.last_error.append(wrapper.error_holder)
+        param_settings_list = [p.decode_grid_search_options() for p in self.tool.gizmos]
+        size = 1
+        for ps in param_settings_list:
+            if len(ps) > 0:
+                size *= len(ps)
+        inner_call_back(
+            res="GRID_SEARCH_START", msg="", data=None, step=0, total=size,
+        )
+
+        procs = list(itertools.product(*param_settings_list))
+        keys = [p.name for p in self.tool.gizmos]
+
+        for i, p in enumerate(procs):
+            res = self._execute_standard(
+                wrapper=wrapper,
+                tool=self.tool.__class__(
+                    **{k: (int(v) if str.isdigit(v) else v) for k, v in zip(keys, p)}
+                ),
+            )
+            inner_call_back(
+                res="GRID_SEARCH_OK" if res else "GRID_SEARCH_NOK",
+                msg=f"Failed to process element",
+                data={
+                    "plant_name": wrapper.plant,
+                    "name": wrapper.short_name,
+                    "image": self.get_feedback_image(res),
+                    "data": res.get("data", {}),
+                },
+                step=i + 1,
+                total=size,
+            )
+
+        inner_call_back(
+            res="GRID_SEARCH_END", msg="", data=None, step=size, total=size,
+        )
+
+    def execute(self, wrapper: AbstractImageProcessor, **kwargs):
+        call_back = kwargs.get("call_back", None)
+        target_module = kwargs.get("target_module", "")
+        grid_search_mode = kwargs.get("grid_search_mode", "")
+        wrapper.error_holder.clear()
+        if not self.last_result:
+            if self.tool.has_param("path") and self.root.parent.image_output_path:
+                self.tool.set_value_of(key="path", value=self.root.parent.image_output_path)
+            if target_module == self.uuid and grid_search_mode:
+                self._execute_grid_search(wrapper=wrapper, call_back=call_back)
+                self.last_result = {}
+            else:
+                before = timer()
+                self.last_result = self._execute_standard(
+                    wrapper=wrapper,
+                    tool=self.tool,
+                    call_back=call_back,
+                    target_module=target_module,
+                )
+                if self.last_result:
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=eh.ERR_LVL_OK,
+                        msg=f"Successfully processed {self.name} in {format_time(timer() - before)}",
+                        data=wrapper if self.root.parent.debug_mode else self,
+                    )
+                else:
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=eh.ERR_LVL_ERROR,
+                        msg=f"Failed to processed {self.name} in {format_time(timer() - before)}",
+                        data=wrapper
+                        if self.root.parent.debug_mode or self.uuid == target_module
+                        else self,
+                    )
+            if wrapper.error_holder.error_count > 0:
+                self.root.parent.last_error.append(wrapper.error_holder)
 
         return self.last_result
 
@@ -324,6 +422,8 @@ class ModuleNode(Node):
             return f'{self.tool.name} {self.tool.get_value_of("roi_name")}'
         elif self.tool.has_param("channel"):
             return f'{self.tool.name} {self.tool.get_value_of("channel")}'
+        elif self.tool.name == "Morphology":
+            return f'{self.tool.name} {self.tool.get_value_of("morph_op")}'
         elif self.tool.has_param("roi_names"):
             return f'{self.tool.name} {self.tool.get_value_of("roi_names")}'
         else:
@@ -564,6 +664,7 @@ class GroupNode(Node):
                         "name": f"{wrapper.luid}_final_mosaic",
                         "image": self.root.parent.mosaic,
                         "data": self.last_result["data"],
+                        "plant_name": "unknown" if wrapper is None else wrapper.plant,
                     },
                     force_call_back=True,
                     is_progress=False,
@@ -702,6 +803,8 @@ class GroupNode(Node):
         return res
 
     def find_by_uuid(self, uuid):
+        if self.uuid == uuid:
+            return self
         for node in self.iter_items():
             if node.uuid == uuid:
                 return node
@@ -952,7 +1055,19 @@ class LoosePipeline(object):
                     uuid="build_images",
                 )
 
-    def execute(self, src_image: str, silent_mode: bool = False, **kwargs):
+    def add_module(self, operator, target_group: str = "") -> bool:
+        if not target_group:
+            target_group = self.root
+        else:
+            target_group = self.root.find_by_uuid(target_group)
+        if target_group is None or operator is None:
+            return False
+        target_group.add_module(tool=operator)
+        return True
+
+    def execute(
+        self, src_image: [str, AbstractImageProcessor], silent_mode: bool = False, **kwargs
+    ):
         self.stop_processing = False
         self.last_error.clear()
         if isinstance(src_image, str):
@@ -1192,6 +1307,22 @@ class LoosePipeline(object):
     @last_image.setter
     def last_image(self, value):
         self.settings.set_value_of("last_image", value)
+
+    @property
+    def allow_step_mosaics(self):
+        return self.settings.get_value_of("allow_step_mosaics")
+
+    @allow_step_mosaics.setter
+    def allow_step_mosaics(self, value):
+        self.settings.set_value_of("allow_step_mosaics", value)
+
+    @property
+    def show_source_image(self):
+        return self.settings.get_value_of("show_source_image")
+
+    @show_source_image.setter
+    def show_source_image(self, value):
+        self.settings.set_value_of("show_source_image", value)
 
     @property
     def stop_processing(self):

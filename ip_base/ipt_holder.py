@@ -30,6 +30,7 @@ else:
 
 DEFAULT_TEST_IMAGE = "arabido_small.jpg"
 HELIASEN_TEST_IMAGE = "18HP01U17-CAM11-20180712221558.bmp"
+_FORCE_OVERWRITE = True
 
 
 def add_tab(sc: str) -> str:
@@ -68,6 +69,56 @@ class IptHolder(object):
     def list_by_use_case(self, use_case: str = ""):
         return [op for op in self.ipt_list if not use_case or (use_case in op.use_case)]
 
+    def write_init_pipeline(self, f, use_case, pipeline_name, test_image, group_uuid, op, spaces):
+        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
+        f.write(f"{spaces}op.apply_test_values_overrides(use_cases=('{use_case}',))\n")
+        f.write(f"{spaces}script = LoosePipeline.load(\n")
+        spaces = add_tab(spaces)
+        f.write(f"{spaces}os.path.join(\n")
+        spaces = add_tab(spaces)
+        f.write(
+            f'{spaces}os.path.dirname(__file__), "..", "sample_pipelines", "{pipeline_name}",\n'
+        )
+        spaces = remove_tab(spaces)
+        f.write(f"{spaces})\n")
+        spaces = remove_tab(spaces)
+        f.write(f"{spaces})\n")
+        f.write(f"{spaces}script.add_module(operator=op, target_group='{group_uuid}')\n")
+        f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
+        spaces = add_tab(spaces)
+        f.write(
+            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "sample_images", "{test_image}",)\n'
+        )
+        spaces = remove_tab(spaces)
+        f.write(f"{spaces})\n")
+        f.write(f"{spaces}res = script.execute(src_image=wrapper, silent_mode=True)\n")
+        return spaces
+
+    def write_init_operator(
+        self,
+        f,
+        use_case: str,
+        test_image: str,
+        op,
+        spaces: str,
+        run_op: bool = True,
+        store_images: bool = False,
+    ):
+        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
+        f.write(f"{spaces}op.apply_test_values_overrides(use_cases=('{use_case}',))\n")
+        f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
+        spaces = add_tab(spaces)
+        f.write(
+            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "sample_images", "{test_image}",)\n'
+        )
+        spaces = remove_tab(spaces)
+        f.write(f"{spaces})\n")
+        if store_images:
+            f.write(f"{spaces}wrapper.store_images = True\n")
+        if run_op:
+            f.write(f"{spaces}res = op.process_wrapper(wrapper=wrapper)\n")
+        return spaces
+
     def write_imports(self, f, op, tests_needed: dict):
         f.write("import os\n")
         f.write("import sys\n")
@@ -84,16 +135,14 @@ class IptHolder(object):
         f.write("sys.path.insert(0, os.path.dirname(fld_name))\n")
         f.write('sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))\n\n')
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
+        f.write("from ip_base.ip_abstract import AbstractImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
-            f.write("from ip_base.ip_abstract import AbstractImageProcessor\n")
-            f.write("from ip_base.ipt_strict_pipeline import IptStrictPipeline\n")
+            f.write("from ip_base.ipt_loose_pipeline import LoosePipeline\n")
             if "script_in_info_out" in tests_needed:
                 f.write("from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
 
         if "img_in_roi_out" in tests_needed:
             f.write("import tools.regions as regions\n")
-        if "visualization" in tests_needed:
-            f.write("from ip_base.ip_abstract import AbstractImageProcessor\n")
         f.write("import ip_base.ip_common as ipc\n\n\n")
 
     def write_test_use_case(self, f, op, spaces):
@@ -148,25 +197,16 @@ class IptHolder(object):
         f.write(f"{spaces}def test_mask_generation(self):\n")
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that when an image is in a mask goes out"""\n')
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(
-            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_THRESHOLD_STR}',))\n"
+        self.write_init_operator(
+            f=f,
+            use_case=ipc.TOOL_GROUP_THRESHOLD_STR,
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            op=op,
+            spaces=spaces,
+            run_op=True,
         )
-        f.write(f"{spaces}res = op.process_wrapper(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}wrapper=os.path.join(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.dirname(__file__),\n")
-        f.write(f'{spaces}"..",\n')
-        f.write(f'{spaces}"sample_images",\n')
-        if op.package.lower() == "heliasen":
-            f.write(f'{spaces}"{HELIASEN_TEST_IMAGE}",\n')
-        else:
-            f.write(f'{spaces}"{DEFAULT_TEST_IMAGE}",\n')
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process {op.name}")\n')
         f.write(
             f'{spaces}self.assertIsInstance(op.result, np.ndarray, "Empty result for {op.name}")\n'
@@ -183,25 +223,16 @@ class IptHolder(object):
         f.write(f"{spaces}def test_image_transformation(self):\n")
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that when an image is in an image goes out"""\n')
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(
-            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_PRE_PROCESSING_STR}',))\n"
+        self.write_init_operator(
+            f=f,
+            use_case=ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            op=op,
+            spaces=spaces,
+            run_op=True,
         )
-        f.write(f"{spaces}res = op.process_wrapper(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}wrapper=os.path.join(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.dirname(__file__),\n")
-        f.write(f'{spaces}"..",\n')
-        f.write(f'{spaces}"sample_images",\n')
-        if op.package.lower() == "heliasen":
-            f.write(f'{spaces}"{HELIASEN_TEST_IMAGE}",\n')
-        else:
-            f.write(f'{spaces}"{DEFAULT_TEST_IMAGE}",\n')
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process {op.name}")\n')
         f.write(
             f'{spaces}self.assertIsInstance(op.result, np.ndarray, "Empty result for {op.name}")\n\n'
@@ -214,36 +245,17 @@ class IptHolder(object):
         f.write(
             f'{spaces}"""Test that when using the basic mask generated script this tool produces a mask"""\n'
         )
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(
-            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_MASK_CLEANUP_STR}',))\n"
+        spaces = self.write_init_pipeline(
+            f=f,
+            use_case=ipc.TOOL_GROUP_MASK_CLEANUP_STR,
+            pipeline_name="test_cleaners.json",
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            group_uuid="grp_test_cleaners",
+            op=op,
+            spaces=spaces,
         )
-        f.write(f"{spaces}script = IptStrictPipeline.load(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.join(\n")
-        spaces = add_tab(spaces)
-        f.write(
-            f'{spaces}os.path.dirname(__file__), "..", "sample_pipelines", "test_cleaners.json",\n'
-        )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        f.write(
-            f"{spaces}script.add_operator(operator=op, kind=ipc.TOOL_GROUP_MASK_CLEANUP_STR)\n"
-        )
-        f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
-        spaces = add_tab(spaces)
-        if op.package.lower() == "heliasen":
-            img_name = HELIASEN_TEST_IMAGE
-        else:
-            img_name = DEFAULT_TEST_IMAGE
-        f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "sample_images", "{img_name}",)\n'
-        )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        f.write(f"{spaces}res = script.process_image(wrapper=wrapper)\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process {op.name} with test script")\n')
         f.write(
             f'{spaces}self.assertIsInstance(wrapper.mask, np.ndarray, "Empty result for Range threshold")\n'
@@ -262,37 +274,20 @@ class IptHolder(object):
         f.write(
             f'{spaces}"""Test that when using the basic mask generated script this tool extracts features"""\n'
         )
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(f"{spaces}op.apply_test_values_overrides()\n")
+        spaces = self.write_init_pipeline(
+            f=f,
+            use_case="",
+            pipeline_name="test_extractors.json",
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            group_uuid="grp_test_extractors",
+            op=op,
+            spaces=spaces,
+        )
         f.write(
             f'{spaces}self.assertIsInstance(op, IptBaseAnalyzer, "{op.name} must inherit from IptBaseAnalyzer")\n'
         )
-        f.write(f"{spaces}script = IptStrictPipeline.load(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.join(\n")
-        spaces = add_tab(spaces)
-        f.write(
-            f'{spaces}os.path.dirname(__file__), "..", "sample_pipelines", "test_extractors.json",\n'
-        )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        f.write(
-            f"{spaces}script.add_operator(operator=op, kind=ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR)\n"
-        )
-        f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
-        spaces = add_tab(spaces)
-        if op.package.lower() == "heliasen":
-            img_name = HELIASEN_TEST_IMAGE
-        else:
-            img_name = DEFAULT_TEST_IMAGE
-        f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "sample_images", "{img_name}",)\n'
-        )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        f.write(f"{spaces}res = script.process_image(wrapper=wrapper)\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process {op.name} with test script")\n')
         f.write(f"{spaces}self.assertNotEqual(\n")
         spaces = add_tab(spaces)
@@ -307,30 +302,19 @@ class IptHolder(object):
         f.write(f"{spaces}def test_roi_out(self):\n")
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that tool generates an ROI"""\n')
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
+        self.write_init_operator(
+            f=f,
+            use_case=ipc.TOOL_GROUP_ROI,
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            op=op,
+            spaces=spaces,
+            run_op=True,
+        )
         f.write(
             f'{spaces}self.assertTrue(hasattr(op, "generate_roi"), "Class must have method generate_roi")\n'
         )
-        f.write(f"{spaces}op.apply_test_values_overrides(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}use_cases=(ipc.TOOL_GROUP_ROI)\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        f.write(f"{spaces}res = op.process_wrapper(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}wrapper=os.path.join(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.dirname(__file__),\n")
-        f.write(f'{spaces}"..",\n')
-        f.write(f'{spaces}"sample_images",\n')
-        if op.package.lower() == "heliasen":
-            f.write(f'{spaces}"{HELIASEN_TEST_IMAGE}",\n')
-        else:
-            f.write(f'{spaces}"{DEFAULT_TEST_IMAGE}",\n')
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process {op.name}")\n')
         f.write(f"{spaces}r = op.generate_roi()\n")
         f.write(
@@ -342,25 +326,16 @@ class IptHolder(object):
         f.write(f"{spaces}def test_bool_out(self):\n")
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that tool returns a boolean"""\n')
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(
-            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_ASSERT_STR}',))\n"
+        self.write_init_operator(
+            f=f,
+            use_case=ipc.TOOL_GROUP_ASSERT_STR,
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            op=op,
+            spaces=spaces,
+            run_op=True,
         )
-        f.write(f"{spaces}res = op.process_wrapper(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}wrapper=os.path.join(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.dirname(__file__),\n")
-        f.write(f'{spaces}"..",\n')
-        f.write(f'{spaces}"sample_images",\n')
-        if op.package.lower() == "heliasen":
-            f.write(f'{spaces}"{HELIASEN_TEST_IMAGE}",\n')
-        else:
-            f.write(f'{spaces}"{DEFAULT_TEST_IMAGE}",\n')
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process {op.name}")\n')
         f.write(
             f'{spaces}self.assertIsInstance(op.result, bool, "{op.name} must return a boolean")\n\n'
@@ -371,18 +346,17 @@ class IptHolder(object):
         f.write(f"{spaces}def test_visualization(self):\n")
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that visualization tools add images to list"""\n')
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(
-            f"{spaces}op.apply_test_values_overrides(use_cases=('{ipc.TOOL_GROUP_VISUALIZATION_STR}',))\n"
+        self.write_init_operator(
+            f=f,
+            use_case=ipc.TOOL_GROUP_VISUALIZATION_STR,
+            test_image=HELIASEN_TEST_IMAGE
+            if op.package.lower() == "heliasen"
+            else DEFAULT_TEST_IMAGE,
+            op=op,
+            spaces=spaces,
+            run_op=True,
+            store_images=True,
         )
-        if op.package.lower() == "heliasen":
-            img_name = HELIASEN_TEST_IMAGE
-        else:
-            img_name = DEFAULT_TEST_IMAGE
-        f.write(
-            f'{spaces}wrapper = AbstractImageProcessor(os.path.join(os.path.dirname(__file__), "..", "sample_images", "{img_name}",))\n'
-        )
-        f.write(f"{spaces}wrapper.store_images = True\n")
         f.write(f"{spaces}res = op.process_wrapper(wrapper=wrapper)\n")
         f.write(f'{spaces}self.assertTrue(res, "Failed to process Simple white balance")\n')
         f.write(
@@ -465,6 +439,9 @@ class IptHolder(object):
         try:
             i = 1
             files_to_format = []
+            self.log_state(
+                status_message=f"Building test scripts ...", use_status_as_log=True,
+            )
             for (_, name, _) in pkgutil.iter_modules(ip_tools.__path__):
                 if "pcv" in name and not allow_pcv:
                     self.log_state(
@@ -487,14 +464,14 @@ class IptHolder(object):
                     file_name = os.path.join(
                         os.path.dirname(__file__), "..", "test", f"test_auto_{name}.py",
                     )
-                    if os.path.isfile(file_name):
+                    if not _FORCE_OVERWRITE and os.path.isfile(file_name):
                         self.log_state(
                             log_message=f"Skipped test script for {op.name}, script already exists"
                         )
                         continue
                     self.log_state(
-                        status_message=f"Building test script for {op.name}...",
-                        use_status_as_log=False,
+                        status_message=f"Building test script for {op.name}",
+                        use_status_as_log=True,
                     )
                     files_to_format.append(file_name)
                     with open(file_name, "w", encoding="utf8") as f:
@@ -554,8 +531,14 @@ class IptHolder(object):
                         spaces = add_tab(spaces)
                         f.write(f"{spaces}unittest.main()\n")
 
-            for file in files_to_format:
-                subprocess.run(args=("black", file))
+            self.log_state(
+                status_message=f"Formatting test scripts ...", use_status_as_log=True,
+            )
+            for test_script in files_to_format:
+                self.log_state(
+                    status_message=f"Formating {test_script}", use_status_as_log=True,
+                )
+                subprocess.run(args=("black", test_script))
 
         finally:
             self._log_callback = None

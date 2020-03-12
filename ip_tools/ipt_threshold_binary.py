@@ -129,5 +129,5 @@ class IptThreshold(IptBase):
 
     @property
     def description(self):
-        return """Performs range threshold keeping only pixels with values between min and max.\n
+        return """Performs range threshold keeping only pixels with values between min and max.
         Morphology operation can be performed afterwards"""

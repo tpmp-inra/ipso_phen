@@ -289,7 +289,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
     def use_case(self):
         return [
             TOOL_GROUP_PRE_PROCESSING_STR,
-            TOOL_GROUP_FEATURE_EXTRACTION_STR,
             TOOL_GROUP_EXPOSURE_FIXING_STR,
         ]
 

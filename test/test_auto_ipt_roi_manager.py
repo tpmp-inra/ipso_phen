@@ -9,8 +9,8 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_roi_manager import IptRoiManager
-import tools.regions as regions
 from ip_base.ip_abstract import AbstractImageProcessor
+import tools.regions as regions
 import ip_base.ip_common as ipc
 
 

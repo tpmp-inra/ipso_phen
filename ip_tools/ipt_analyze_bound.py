@@ -185,7 +185,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return """Analyses object bound.\n
-        Needs a mask as an input.\n
+        return """Analyses object bound.
+        Needs a mask as an input.
         Normally used in a pipeline after a clean mask is created.
         """

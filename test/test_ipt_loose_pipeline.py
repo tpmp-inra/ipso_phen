@@ -36,7 +36,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
         wrapper = AbstractImageProcessor(
             os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
         )
-        res = pipeline.execute(wrapper=wrapper, silent_mode=True)
+        res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Keep countours near ROIs with test pipeline")
         self.assertIsInstance(wrapper.mask, np.ndarray, "Empty result for Range threshold")
         self.assertEqual(len(wrapper.mask.shape), 2, "Masks can only have one channel")
@@ -52,7 +52,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
         wrapper = AbstractImageProcessor(
             os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
         )
-        res = pipeline.execute(wrapper=wrapper, silent_mode=True)
+        res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Keep countours near ROIs with test pipeline")
         self.assertIsInstance(wrapper.mask, np.ndarray, "Empty result for Range threshold")
         self.assertEqual(len(wrapper.mask.shape), 2, "Masks can only have one channel")
@@ -68,7 +68,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
         wrapper = AbstractImageProcessor(
             os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
         )
-        res = pipeline.execute(wrapper=wrapper, silent_mode=True)
+        res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Keep countours near ROIs with test pipeline")
         self.assertIsInstance(wrapper.mask, np.ndarray, "Empty result for Range threshold")
         self.assertEqual(len(wrapper.mask.shape), 2, "Masks can only have one channel")

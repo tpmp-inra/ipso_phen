@@ -49,6 +49,7 @@ class IpsoRunnable(QRunnable):
         self.batch_process = kwargs.get("batch_process", False)
         self.scale_factor = kwargs.get("scale_factor", 1)
         self.target_module = kwargs.get("target_module", "")
+        self.grid_search_mode = kwargs.get("grid_search_mode", False)
 
         self.ipt = kwargs.get("ipt", None)
         self.exec_param = kwargs.get("exec_param", None)
@@ -258,6 +259,8 @@ class IpsoRunnable(QRunnable):
                 call_back=self._pipeline_progress_callback,
                 target_module=self.target_module,
                 silent_mode=self.batch_process,
+                grid_search_mode=self.grid_search_mode,
+                target_data_base=self.data_base,
             )
             if not res:
                 log_object.add_error(
@@ -396,7 +399,11 @@ class IpsoGroupProcessor(QRunnable):
                 else:
                     self.script.image_output_path = ipo.dst_path
                     res = self.script.execute(
-                        src_image=ipo, call_back=None, target_module=None, silent_mode=True,
+                        src_image=ipo,
+                        call_back=None,
+                        target_module=None,
+                        silent_mode=True,
+                        target_data_base=self.database,
                     )
             except Exception as e:
                 if self.script is None:

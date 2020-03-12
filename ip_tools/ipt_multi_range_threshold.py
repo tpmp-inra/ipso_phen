@@ -217,19 +217,18 @@ class IptMultiRangeThreshold(IptBase):
                     ),
                     text="mask_3",
                 )
-                wrapper.store_image(
-                    image=wrapper.build_mosaic(
-                        image_names=np.array(
-                            [
-                                ["current_image", "colored_mask", "mask"],
-                                ["mask_1", "mask_2", "mask_3"],
-                            ]
-                        )
-                    ),
-                    text="mosaic",
-                    text_overlay=text,
-                    font_color=ipc.C_WHITE,
+                mosaic = wrapper.build_mosaic(
+                    image_names=np.array(
+                        [
+                            ["current_image", "colored_mask", "mask"],
+                            ["mask_1", "mask_2", "mask_3"],
+                        ]
+                    )
                 )
+                wrapper.store_image(
+                    image=mosaic, text="mosaic", text_overlay=text, font_color=ipc.C_WHITE,
+                )
+                self.demo_image = mosaic
 
         except Exception as e:
             res = False

@@ -9,6 +9,7 @@ sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_default import IptDefault
+from ip_base.ip_abstract import AbstractImageProcessor
 import ip_base.ip_common as ipc
 
 

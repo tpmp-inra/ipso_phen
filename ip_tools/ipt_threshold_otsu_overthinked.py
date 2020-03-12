@@ -15,7 +15,7 @@ class IptOtsuOverthinked(IptBase):
         self.add_combobox(
             name="merge_method",
             desc="Merge method:",
-            default_value="squares",
+            default_value="l_and",
             values=dict(l_and="Logical AND", l_or="Logical OR"),
             hint="Selected merge method",
         )

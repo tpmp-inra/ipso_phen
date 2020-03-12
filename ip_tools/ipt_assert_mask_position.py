@@ -6,6 +6,10 @@ import ip_base.ip_common as ipc
 
 
 class IptAssertMaskPosition(IptBase):
+    def __init__(self, wrapper=None, **kwargs):
+        super().__init__(wrapper=wrapper, **kwargs)
+        self._create_test_mask = False
+
     def build_params(self):
         self.add_enabled_checkbox()
         self.add_roi_selector()
@@ -30,7 +34,11 @@ class IptAssertMaskPosition(IptBase):
         try:
             if self.get_value_of("enabled") == 1:
                 mask = self.get_mask()
-                if mask is None:
+                if mask is None and self._create_test_mask:
+                    mask = wrapper.get_mask(
+                        src_img=wrapper.current_image, channel="h", min_t=10, max_t=100,
+                    )
+                elif mask is None:
                     wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                     return
 
@@ -56,9 +64,10 @@ class IptAssertMaskPosition(IptBase):
                             new_error_text=f'{self. name}: check failed for ROI "{enforcer.name}""',
                             new_error_level=2,
                         )
-                wrapper.store_image(image=img, text=f"enforcers", force_store=True)
+                self.demo_image = img
+                wrapper.store_image(image=img, text=f"enforcers")
 
-                self.result = None
+                self.result = res
             else:
                 wrapper.store_image(wrapper.current_image, "current_image")
                 res = True
@@ -71,6 +80,10 @@ class IptAssertMaskPosition(IptBase):
             pass
         finally:
             return res
+
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if ipc.TOOL_GROUP_ASSERT_STR in use_cases:
+            self._create_test_mask = True
 
     @property
     def name(self):
@@ -94,7 +107,7 @@ class IptAssertMaskPosition(IptBase):
 
     @property
     def use_case(self):
-        return ["Assert..."]
+        return [ipc.TOOL_GROUP_ASSERT_STR]
 
     @property
     def description(self):

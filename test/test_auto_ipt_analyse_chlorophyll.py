@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ip_tools.ipt_analyse_chlorophyll import IptAnalyzeChlorophyll
 from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_strict_pipeline import IptStrictPipeline
+from ip_base.ipt_loose_pipeline import LoosePipeline
 from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
 
 import ip_base.ip_common as ipc
@@ -40,11 +40,8 @@ class TestIptAnalyzeChlorophyll(unittest.TestCase):
     def test_feature_out(self):
         """Test that when using the basic mask generated script this tool extracts features"""
         op = IptAnalyzeChlorophyll()
-        op.apply_test_values_overrides()
-        self.assertIsInstance(
-            op, IptBaseAnalyzer, "Analyze chlorophyll must inherit from IptBaseAnalyzer"
-        )
-        script = IptStrictPipeline.load(
+        op.apply_test_values_overrides(use_cases=("",))
+        script = LoosePipeline.load(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
@@ -52,13 +49,16 @@ class TestIptAnalyzeChlorophyll(unittest.TestCase):
                 "test_extractors.json",
             )
         )
-        script.add_operator(operator=op, kind=ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR)
+        script.add_module(operator=op, target_group="grp_test_extractors")
         wrapper = AbstractImageProcessor(
             os.path.join(
                 os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",
             )
         )
-        res = script.process_image(wrapper=wrapper)
+        res = script.execute(src_image=wrapper, silent_mode=True)
+        self.assertIsInstance(
+            op, IptBaseAnalyzer, "Analyze chlorophyll must inherit from IptBaseAnalyzer"
+        )
         self.assertTrue(res, "Failed to process Analyze chlorophyll with test script")
         self.assertNotEqual(
             first=len(wrapper.csv_data_holder.data_list),
