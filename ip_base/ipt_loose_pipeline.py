@@ -212,6 +212,18 @@ class Node(object):
     def stop_processing(self, value):
         self.root.parent.stop_processing = value
 
+    @property
+    def is_module(self):
+        return isinstance(self, ModuleNode)
+
+    @property
+    def is_group(self):
+        return isinstance(self, GroupNode)
+
+    @property
+    def is_root(self):
+        return isinstance(self.parent, LoosePipeline)
+
 
 class ModuleNode(Node):
     def __init__(self, **kwargs):
@@ -418,13 +430,13 @@ class ModuleNode(Node):
             )
 
     def sugar_name(self):
-        if self.tool.has_param("roi_name"):
+        if self.tool.has_param("roi_name") and self.tool.get_value_of("roi_name"):
             return f'{self.tool.name} {self.tool.get_value_of("roi_name")}'
         elif self.tool.has_param("channel"):
             return f'{self.tool.name} {self.tool.get_value_of("channel")}'
         elif self.tool.name == "Morphology":
             return f'{self.tool.name} {self.tool.get_value_of("morph_op")}'
-        elif self.tool.has_param("roi_names"):
+        elif self.tool.has_param("roi_names") and self.tool.get_value_of("roi_names"):
             return f'{self.tool.name} {self.tool.get_value_of("roi_names")}'
         else:
             return self.tool.name
@@ -927,10 +939,6 @@ class GroupNode(Node):
     def enabled(self, value):
         for node in self.nodes:
             node.enabled = value
-
-    @property
-    def is_root(self):
-        return isinstance(self.parent, LoosePipeline)
 
 
 class LoosePipeline(object):

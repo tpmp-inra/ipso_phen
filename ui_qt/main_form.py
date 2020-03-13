@@ -2484,7 +2484,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                     data.name,
                     {
                         "plant_name": self._src_image_wrapper.plant,
-                        "name": data.name,
+                        "name": data.name
+                        if not data.is_root
+                        else f"Pipeline {self._src_image_wrapper.uuid}",
                         "image": data.get_feedback_image(data.last_result),
                         "data": data.last_result.get("data", {}),
                     },
@@ -2638,81 +2640,81 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
             )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Simple white balance"),
-                enabled=True,
-            )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Image transformations"),
-                enabled=True,
-            )
+            tool = self.find_tool_by_name("Simple white balance")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
+            tool = self.find_tool_by_name("Image transformations")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
             self.tv_pp_view.expand(added_index)
         elif text == "Pre process image":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
             )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Check exposure"),
-                enabled=True,
-            )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Partial posterizer"),
-                enabled=True,
-            )
+            tool = self.find_tool_by_name("Check exposure")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
+            tool = self.find_tool_by_name("Partial posterizer")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
             self.tv_pp_view.expand(added_index)
         elif text == "Threshold":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_AND, name=text,
             )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Multi range threshold"),
-                enabled=True,
-            )
+            tool = self.find_tool_by_name("Multi range threshold")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
             self.tv_pp_view.expand(added_index)
         elif text == "Mask cleanup":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
             )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Keep linked Contours"),
-                enabled=True,
-            )
+            tool = self.find_tool_by_name("Keep linked Contours")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
             self.tv_pp_view.expand(added_index)
         elif text == "Feature extraction":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_NONE, name=text,
             )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Observation data"),
-                enabled=True,
-            )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Analyze object"),
-                enabled=True,
-            )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Analyze color"),
-                enabled=True,
-            )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Analyze bound"),
-                enabled=True,
-            )
-            model.add_module(
-                selected_items=added_index,
-                module=self.find_tool_by_name("Analyze chlorophyll"),
-                enabled=True,
-            )
+            tool = self.find_tool_by_name("Observation data")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
+            tool = self.find_tool_by_name("Analyze object")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
+            tool = self.find_tool_by_name("Analyze color")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
+            tool = self.find_tool_by_name("Analyze bound")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
+            tool = self.find_tool_by_name("Analyze chlorophyll")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
             self.tv_pp_view.expand(added_index)
         else:
             tool = self.find_tool_by_name(text)
@@ -2722,7 +2724,9 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                 )
                 return
             else:
-                added_index = model.add_module(selected_items=index, module=tool, enabled=True,)
+                added_index = model.add_module(
+                    selected_items=index, module=tool.copy(copy_wrapper=False), enabled=True,
+                )
             self.tv_pp_view.expand(added_index.parent())
 
     def on_bt_pp_run(self):
