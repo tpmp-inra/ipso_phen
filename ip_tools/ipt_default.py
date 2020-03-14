@@ -46,6 +46,7 @@ class IptDefault(IptBaseAnalyzer):
             return False
         res = False
         try:
+            self.data_dict = {}
             threshold_only = self.get_value_of("threshold_only")
             build_mosaic = self.get_value_of("build_mosaic")
             boundary_position = self.get_value_of("boundary_position")
@@ -64,7 +65,9 @@ class IptDefault(IptBaseAnalyzer):
             self.result = wrapper.mask
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed to run default process: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass

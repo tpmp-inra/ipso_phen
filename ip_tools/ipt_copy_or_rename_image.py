@@ -20,7 +20,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
         self.add_combobox(
             name="source_image",
             desc="Image to copy",
-            default_value="fixed",
+            default_value="source",
             values=dict(
                 source="Source image",
                 fixed="Fixed image",
@@ -96,6 +96,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             if self.get_value_of("enabled") == 1:
                 # Get source image
                 source = self.get_value_of("source_image")
@@ -193,7 +194,9 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f"Copy or rename image FAILED, exception: {repr(e)}")
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             pass
         finally:

@@ -92,6 +92,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -212,17 +213,15 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     index=False,
                 )
 
-            wrapper.store_image(
-                image=wrapper.draw_image(
-                    src_image=img,
-                    channel=self.get_value_of("channel"),
-                    color_map=self.get_value_of("color_map"),
-                    foreground="false_colour",
-                    src_mask=mask,
-                    background=self.get_value_of("background"),
-                ),
-                text=f"pseudo_on",
+            self.demo_image = wrapper.draw_image(
+                src_image=img,
+                channel=self.get_value_of("channel"),
+                color_map=self.get_value_of("color_map"),
+                foreground="false_colour",
+                src_mask=mask,
+                background=self.get_value_of("background"),
             )
+            wrapper.store_image(image=self.demo_image, text=f"pseudo_on")
 
             # handle color quantiles
             n = self.get_value_of("quantile_color")
@@ -245,7 +244,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -275,5 +276,5 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return """Analyses object color.\nNeeds a mask as an input.\n
+        return """Analyses object color.\nNeeds a mask as an input.
         Normally used in a pipeline after a clean mask is created."""

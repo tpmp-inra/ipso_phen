@@ -69,7 +69,7 @@ def call_ipt_code(
     """
 
     if generate_imports:
-        res = "from ip_tools import call_ipt\n"
+        res = "from ip_base.ipt_functional import call_ipt\n"
         res += "\n"
     else:
         res = ""

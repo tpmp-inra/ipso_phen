@@ -6,12 +6,17 @@ from ip_base.ip_common import TOOL_GROUP_THRESHOLD_STR
 
 
 class IptSauvola(IptBase):
-
     def build_params(self):
-        self.add_channel_selector(default_value='l')
-        self.add_checkbox(name='invert_mask', desc='Invert mask', default_value=0, hint='Invert result')
-        self.add_slider(name='window_size', desc='Window size', default_value=25, minimum=3, maximum=100)
-        self.add_slider(name='k', desc='k threshold formula', default_value=20, minimum=0, maximum=100)
+        self.add_channel_selector(default_value="l")
+        self.add_checkbox(
+            name="invert_mask", desc="Invert mask", default_value=0, hint="Invert result"
+        )
+        self.add_slider(
+            name="window_size", desc="Window size", default_value=25, minimum=3, maximum=100
+        )
+        self.add_slider(
+            name="k", desc="k threshold formula", default_value=20, minimum=0, maximum=100
+        )
         self.add_morphology_operator()
         self.add_text_overlay(0)
 
@@ -40,11 +45,11 @@ class IptSauvola(IptBase):
         if wrapper is None:
             return False
 
-        window_size = self.get_value_of('window_size')
-        k = self.get_value_of('k') / 100
-        channel = self.get_value_of('channel')
-        invert_mask = self.get_value_of('invert_mask') == 1
-        text_overlay = self.get_value_of('text_overlay') == 1
+        window_size = self.get_value_of("window_size")
+        k = self.get_value_of("k") / 100
+        channel = self.get_value_of("channel")
+        invert_mask = self.get_value_of("invert_mask") == 1
+        text_overlay = self.get_value_of("text_overlay") == 1
 
         if window_size % 2 == 0:
             window_size += 1
@@ -62,12 +67,14 @@ class IptSauvola(IptBase):
             self.result = self.apply_morphology_from_params(binary_sauvola)
             wrapper.store_image(
                 self.result,
-                f'sauvola_binarization_{self.input_params_as_str(exclude_defaults=True)}',
-                text_overlay=text_overlay
+                f"sauvola_binarization_{self.input_params_as_str(exclude_defaults=True)}",
+                text_overlay=text_overlay,
             )
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(f'Sauvola FAILED, exception: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             res = True
         finally:
@@ -75,7 +82,7 @@ class IptSauvola(IptBase):
 
     @property
     def name(self):
-        return 'Sauvola binarization'
+        return "Sauvola binarization"
 
     @property
     def real_time(self):
@@ -83,11 +90,11 @@ class IptSauvola(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):
@@ -95,11 +102,13 @@ class IptSauvola(IptBase):
 
     @property
     def description(self):
-        return "Sauvola binarization: From skimage - Applies Sauvola local threshold to an array.\n" + \
-            "Sauvola is a modification of Niblack technique." + \
-            "In the original method a threshold T is calculated for every pixel in the image using the following formula:" + \
-            "T = m(x,y) * (1 + k * ((s(x,y) / R) - 1))" + \
-            "where m(x,y) and s(x,y) are the mean and standard deviation of pixel (x,y)" + \
-            "neighborhood defined by a rectangular window with size w times w centered around the pixel." + \
-            "k is a configurable parameter that weights the effect of standard deviation. R is the maximum standard deviation" + \
-            "of a greyscale image."
+        return (
+            "Sauvola binarization: From skimage - Applies Sauvola local threshold to an array.\n"
+            + "Sauvola is a modification of Niblack technique."
+            + "In the original method a threshold T is calculated for every pixel in the image using the following formula:"
+            + "T = m(x,y) * (1 + k * ((s(x,y) / R) - 1))"
+            + "where m(x,y) and s(x,y) are the mean and standard deviation of pixel (x,y)"
+            + "neighborhood defined by a rectangular window with size w times w centered around the pixel."
+            + "k is a configurable parameter that weights the effect of standard deviation. R is the maximum standard deviation"
+            + "of a greyscale image."
+        )

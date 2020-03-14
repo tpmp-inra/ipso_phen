@@ -3,11 +3,10 @@ import numpy as np
 from ip_base.ip_abstract import AbstractImageProcessor
 from ip_base.ip_common import DefaultCsvWriter
 
-_EXPERIMENT = ''.lower()  # Put the name of the experiment attached to this pipeline
+_EXPERIMENT = "".lower()  # Put the name of the experiment attached to this pipeline
 
 
 class IpStub(AbstractImageProcessor):
-
     @staticmethod
     def can_process(dict_data: dict) -> bool:
         """
@@ -15,7 +14,7 @@ class IpStub(AbstractImageProcessor):
             :param dict_data: Dictionary containing filter data
             :return: True if current class can process data
         """
-        return False and (dict_data['experiment'] in [_EXPERIMENT])
+        return False and (dict_data["experiment"] in [_EXPERIMENT])
 
     def init_csv_writer(self):
         """
@@ -83,7 +82,7 @@ class IpStub(AbstractImageProcessor):
             if self.mask is None:
                 return False
             else:
-                self.store_image(self.mask, 'channel_mask', self.rois)
+                self.store_image(self.mask, "channel_mask", self.rois_list)
                 return np.count_nonzero(self.mask) > 0
 
     def clean_mask(self, source_image):
@@ -99,12 +98,12 @@ class IpStub(AbstractImageProcessor):
         """
         try:
             mask = self.mask
-            self.store_image(mask, 'mask')
+            self.store_image(mask, "mask")
         except Exception as e:
             self.error_holder.add_error(f'Failed to clean mask because "{repr(e)}"')
             return False
         else:
-            self.store_image(mask, 'mask')
+            self.store_image(mask, "mask")
             self.mask = mask
             if self.mask is None:
                 return False

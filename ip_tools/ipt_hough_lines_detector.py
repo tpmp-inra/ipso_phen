@@ -161,6 +161,7 @@ class IptHoughLines(IptBaseAnalyzer):
             return False
         res = False
         try:
+            self.data_dict = {}
             votes_threshold = self.get_value_of("votes_threshold", 100)
             max_line_gap = self.get_value_of("max_line_gap", 100)
             min_line_size = self.get_value_of("min_line_size", 100)
@@ -252,7 +253,9 @@ class IptHoughLines(IptBaseAnalyzer):
 
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed to detect Hough lines, exception: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass

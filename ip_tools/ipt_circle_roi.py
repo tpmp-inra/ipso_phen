@@ -54,7 +54,9 @@ class IptCircleRoi(IptBase):
             else:
                 res = False
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed to execute: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -96,7 +98,9 @@ class IptCircleRoi(IptBase):
 
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed : "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -141,7 +145,7 @@ class IptCircleRoi(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR]
+        return [ipc.TOOL_GROUP_ROI]
 
     @property
     def description(self):

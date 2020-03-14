@@ -27,12 +27,11 @@ from ip_base.ip_common import (
     TOOL_GROUP_DEFAULT_PROCESS_STR,
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
     TOOL_GROUP_EXPOSURE_FIXING_STR,
-    TOOL_GROUP_IMAGE_CHECK_STR,
     TOOL_GROUP_IMAGE_GENERATOR_STR,
     TOOL_GROUP_IMAGE_INFO_STR,
     TOOL_GROUP_MASK_CLEANUP_STR,
     TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_ROI_PP_IMAGE_STR,
+    TOOL_GROUP_ROI,
     TOOL_GROUP_THRESHOLD_STR,
     TOOL_GROUP_VISUALIZATION_STR,
     TOOL_GROUP_WHITE_BALANCE_STR,
@@ -45,6 +44,7 @@ import ip_base.ip_common as ipc
 CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
 PARAMS_NAME_KEY = "params"
+GRID_SEARCH_PARAMS_NAME_KEY = "grid_search_params"
 
 
 class IptParam(object):
@@ -60,8 +60,10 @@ class IptParam(object):
         self.kind = kwargs.get("kind", "unk_k")
         self.options = kwargs.get("options", {})
         self._value = kwargs.get("_value", self.default_value)
+        self.on_change = None
         self._widgets = {}
         self._grid_search_options = kwargs.get("_grid_search_options", str(self.default_value))
+        self.grid_search_mode = False
 
         self.ui_update_callbacks = {}
 
@@ -105,7 +107,7 @@ class IptParam(object):
             return
         callback(**kwargs)
 
-    def init(self, tool_name, label, widget, **kwargs):
+    def init(self, tool_name, label, widget, grid_search_mode: bool = False, **kwargs):
         self.ui_update_callbacks = dict(**kwargs)
 
         self.update_ui(
@@ -117,10 +119,15 @@ class IptParam(object):
 
         self.label = label
         self.update_label()
+        self.grid_search_mode = grid_search_mode
         if self.is_input:
             self.input = widget
             if widget is None:
                 return False
+            elif grid_search_mode:
+                self.update_ui(
+                    callback="set_text", widget=self.gs_input, text=self.grid_search_options
+                )
             elif isinstance(self.allowed_values, dict):
                 self.update_ui(
                     callback="add_items",
@@ -187,7 +194,9 @@ class IptParam(object):
         widget = self.input
         if widget is None:
             return False
-        if isinstance(self.allowed_values, dict):
+        if self.kind == "button":
+            return True
+        elif isinstance(self.allowed_values, dict):
             if (
                 (new_values is not None)
                 and isinstance(new_values, dict)
@@ -319,7 +328,10 @@ class IptParam(object):
 
     @value.setter
     def value(self, value):
-        self._value = value
+        if value != self._value:
+            self._value = value
+            if self.on_change is not None:
+                self.on_change(self)
 
     @property
     def str_value(self):
@@ -382,6 +394,30 @@ class IptParam(object):
         self._widgets["gs_input"] = value
 
     @property
+    def gs_auto_fill(self):
+        return self._widgets.get("gs_auto_fill", None)
+
+    @gs_auto_fill.setter
+    def gs_auto_fill(self, value):
+        self._widgets["gs_auto_fill"] = value
+
+    @property
+    def gs_copy_from_param(self):
+        return self._widgets.get("gs_copy_from_param", None)
+
+    @gs_copy_from_param.setter
+    def gs_copy_from_param(self, value):
+        self._widgets["gs_copy_from_param"] = value
+
+    @property
+    def gs_reset(self):
+        return self._widgets.get("gs_reset", None)
+
+    @gs_reset.setter
+    def gs_reset(self, value):
+        self._widgets["gs_reset"] = value
+
+    @property
     def is_input(self):
         return not isinstance(self.allowed_values, str) or ("input" in self.allowed_values)
 
@@ -402,6 +438,7 @@ class IptParamHolder(object):
     def __init__(self, **kwargs):
         super(IptParamHolder, self).__init__()
 
+        self.block_feedback = False
         self._kwargs = None
         self._param_list = kwargs.get("_param_list", None)
         if self._param_list is None:
@@ -426,12 +463,16 @@ class IptParamHolder(object):
         pass
 
     def reset(self, is_update_widgets: bool = True):
-        for p in self._param_list:
-            p.value = p.default_value
-            if is_update_widgets:
-                p.update_label()
-                p.update_input()
-                p.update_output()
+        self.block_feedback = True
+        try:
+            for p in self._param_list:
+                p.value = p.default_value
+                if is_update_widgets:
+                    p.update_label()
+                    p.update_input()
+                    p.update_output()
+        finally:
+            self.block_feedback = False
 
     def add(self, new_item) -> IptParam:
         try:
@@ -491,6 +532,17 @@ class IptParamHolder(object):
         )
         param.widget_type = "checkbox"
         return self.add(param)
+
+    def add_mosaic_data(
+        self, name: str, desc: str, default_value: [["source"], ["mask"]], hint: str = "",
+    ):
+        param = IptParam(
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values="mosaic_data",
+            hint=hint,
+        )
 
     def add_text_input(
         self,
@@ -604,7 +656,7 @@ class IptParamHolder(object):
             **values,
             **{
                 channel_info[1]: get_hr_channel_name(channel_info[1])
-                for channel_info in create_channel_generator()
+                for channel_info in create_channel_generator(include_msp=True)
             },
         }
         param = IptParam(
@@ -1127,6 +1179,7 @@ class IptBase(IptParamHolder, ABC):
         self._wrapper = wrapper
         self._result = None
         self.result = None
+        self.demo_image = None
         self._old_lock_state = False
 
     def __repr__(self):
@@ -1180,6 +1233,7 @@ class IptBase(IptParamHolder, ABC):
             CLASS_NAME_KEY: type(self).__name__,
             MODULE_NAME_KEY: type(self).__module__,
             PARAMS_NAME_KEY: self.params_to_dict(),
+            GRID_SEARCH_PARAMS_NAME_KEY: {p.name: p.grid_search_options for p in self.gizmos},
         }
 
     @classmethod
@@ -1190,9 +1244,16 @@ class IptBase(IptParamHolder, ABC):
         for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
                 try:
-                    return obj(**json_data[PARAMS_NAME_KEY])
+                    ipt = obj(**json_data[PARAMS_NAME_KEY])
                 except Exception as e:
                     return e
+        gs_params = json_data.get(GRID_SEARCH_PARAMS_NAME_KEY, None)
+        if gs_params:
+            for p in ipt.gizmos:
+                gp = gs_params.get(p.name, None)
+                if gp:
+                    p.grid_search_options = gp
+        return ipt
 
     def execute(self, param, **kwargs):
         pass
@@ -1205,6 +1266,7 @@ class IptBase(IptParamHolder, ABC):
         """
         self._kwargs = kwargs
         wrapper = self._get_wrapper()
+        self.demo_image = None
         if kwargs.get("reset_wrapper", True) is True:
             wrapper.reset()
         return wrapper
@@ -1255,7 +1317,7 @@ class IptBase(IptParamHolder, ABC):
                                 i + 1,
                                 tot_,
                                 f"""{ip.name}:
-                                 {ip.input_params_as_str(exclude_defaults=True, 
+                                 {ip.input_params_as_str(exclude_defaults=True,
                                  excluded_params=("progress_callback",))}""",
                                 dic,
                             )
@@ -1522,6 +1584,9 @@ class IptBase(IptParamHolder, ABC):
         return self.apply_morphology_from_params(mask)
 
     def apply_morphology_from_params(self, mask, store_result: bool = False):
+        if mask is None:
+            return None
+
         kernel_size = self.get_value_of("kernel_size", 0)
         iter_ = self.get_value_of("proc_times", 1)
         kernel_shape = self.get_value_of("kernel_shape", None)
@@ -1570,14 +1635,9 @@ class IptBase(IptParamHolder, ABC):
             mask[labels == label] = 255
 
             # detect contours in the mask and grab the largest one
-            if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-                contours_ = cv2.findContours(
-                    mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-                )[-2]
-            else:
-                _, contours_, _ = cv2.findContours(
-                    mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-                )[-2]
+            contours_ = ipc.get_contours(
+                mask=mask, retrieve_mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
+            )
             c = max(contours_, key=cv2.contourArea)
 
             # Draw min area rect enclosing object
@@ -1859,8 +1919,7 @@ class IptBase(IptParamHolder, ABC):
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                     ipc.TOOL_GROUP_THRESHOLD_STR,
                     ipc.TOOL_GROUP_WHITE_BALANCE_STR,
-                    ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                    ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
+                    ipc.TOOL_GROUP_ROI,
                 )
             )
         ):
@@ -1888,9 +1947,7 @@ class IptBase(IptParamHolder, ABC):
             set((ipc.TOOL_GROUP_THRESHOLD_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
         ):
             return ipc.IO_MASK
-        elif set(self.use_case).intersection(
-            set((ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR, ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,))
-        ):
+        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_ROI,))):
             return ipc.IO_ROI
         elif set(self.use_case).intersection(
             set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR))

@@ -120,6 +120,7 @@ class IptAugmentData(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             p = self.find_by_name(name="gamma_values")
             gsl = None if p is None else p.decode_string(p.value)
             src_img = wrapper.current_image
@@ -141,7 +142,9 @@ class IptAugmentData(IptBaseAnalyzer):
                 self.save_image(image=src_img, gamma=1, path=dst_path)
                 res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass

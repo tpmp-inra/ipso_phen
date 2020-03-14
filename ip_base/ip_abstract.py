@@ -119,7 +119,7 @@ class AbstractImageProcessor(ImageWrapper):
 
         :return: Csv writer
         """
-        return ipc.DefaultCsvWriter()
+        return ipc.AbstractCsvWriter()
 
     @staticmethod
     def can_process(dict_data: dict) -> bool:
@@ -130,19 +130,19 @@ class AbstractImageProcessor(ImageWrapper):
         """
         return False
 
-    def _load_source_image(self, store_source=False):
+    def load_source_image(self, store_source=False):
         """
         Loads source image and applies corrections if needed
 
         :param store_source: if true image will be stores in image_list
         :return:numpy array -- Fixed source image
         """
-        stream = open(self.file_path, "rb")
-        bytes = bytearray(stream.read())
-        np_array = np.asarray(bytes, dtype=np.uint8)
-        src_img = cv2.imdecode(np_array, 3)
-
+        src_img = None
         try:
+            stream = open(self.file_path, "rb")
+            bytes = bytearray(stream.read())
+            np_array = np.asarray(bytes, dtype=np.uint8)
+            src_img = cv2.imdecode(np_array, 3)
             src_img = self.file_handler.fix_image(src_image=src_img)
         except Exception as e:
             self.error_holder.add_error(f"Failed to load {repr(self)} because {repr(e)}")
@@ -166,7 +166,9 @@ class AbstractImageProcessor(ImageWrapper):
 
         if not self.good_image:
             self.error_holder.add_error(
-                "Unable to load source image", new_error_kind="source_issue"
+                new_error_text="Unable to load source image",
+                new_error_kind="source_issue",
+                new_error_level=4,
             )
 
         return src_img
@@ -229,13 +231,6 @@ class AbstractImageProcessor(ImageWrapper):
                 y += cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
         else:
             print(f'Unknown position: "{position}"')
-
-    def get_contours(self, mask, retrieve_mode, method):
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-            contours, _ = cv2.findContours(mask.copy(), retrieve_mode, method)
-        else:
-            _, contours, _ = cv2.findContours(mask.copy(), retrieve_mode, method)
-        return contours
 
     def draw_image(self, **kwargs):
         """Build pseudo color image
@@ -348,11 +343,11 @@ class AbstractImageProcessor(ImageWrapper):
                 return np.full(foreground_img.shape, ipc.C_FUCHSIA, np.uint8)
             if bck_grd_luma != 100:
                 bck_grd_luma /= 100
-                l, a, b = cv2.split(cv2.cvtColor(background_img, cv2.COLOR_BGR2LAB))
-                l = (l * bck_grd_luma).astype(np.uint)
-                l[l >= 255] = 255
-                l = l.astype(np.uint8)
-                background_img = cv2.merge((l, a, b))
+                lum, a, b = cv2.split(cv2.cvtColor(background_img, cv2.COLOR_BGR2LAB))
+                lum = (lum * bck_grd_luma).astype(np.uint)
+                lum[lum >= 255] = 255
+                lum = lum.astype(np.uint8)
+                background_img = cv2.merge((lum, a, b))
                 background_img = cv2.cvtColor(background_img, cv2.COLOR_LAB2BGR)
             # Merge foreground & background
             foreground_img = cv2.bitwise_and(foreground_img, foreground_img, mask=mask_)
@@ -370,14 +365,9 @@ class AbstractImageProcessor(ImageWrapper):
                 or (width_thickness > 0)
             ):
                 if obj is None:
-                    if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-                        id_objects, obj_hierarchy = cv2.findContours(
-                            mask_, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
-                        )[-2:]
-                    else:
-                        _, id_objects, obj_hierarchy = cv2.findContours(
-                            mask_, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
-                        )[-2:]
+                    id_objects, obj_hierarchy = ipc.get_contours_and_hierarchy(
+                        mask=mask_, retrieve_mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE
+                    )
                     obj, _ = self.object_composition(img, id_objects, obj_hierarchy)
                 if contour_thickness > 0:
                     cv2.drawContours(img, obj, -1, ipc.C_FUCHSIA, contour_thickness)
@@ -489,7 +479,7 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Print ROIs if needed
             if isinstance(rois, bool) and rois:
-                rois = self.rois
+                rois = self.rois_list
             if rois:
                 for roi in rois:
                     cp = roi.draw_to(cp, line_width=2)
@@ -639,7 +629,7 @@ class AbstractImageProcessor(ImageWrapper):
                 return self.store_image(self.mask, "mask")
         return None
 
-    def print_mosaic(self, padding: tuple = (-2, -2, -2, -2)):
+    def print_mosaic(self, padding: 2):
         if (self.store_mosaic.lower() != "none") or (self.write_mosaic.lower() != "none"):
             if self._mosaic_data is None:
                 if self.store_mosaic.lower() == "debug":
@@ -765,7 +755,7 @@ class AbstractImageProcessor(ImageWrapper):
                 stack[c] = 1
         ids = np.where(stack == 1)[0]
         if len(ids) > 0:
-            group = np.vstack((contours[i] for i in ids))
+            group = np.vstack([contours[i] for i in ids])
             cv2.drawContours(mask, contours, -1, 255, -1, hierarchy=hierarchy)
 
             if self.store_images:
@@ -1570,7 +1560,7 @@ class AbstractImageProcessor(ImageWrapper):
             dil_mask = src_mask.copy()
         self.store_image(dil_mask, "dil_mask")
 
-        contours = self.get_contours(
+        contours = ipc.get_contours(
             mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
         )
         self.store_image(
@@ -1629,7 +1619,7 @@ class AbstractImageProcessor(ImageWrapper):
                     main_hull = hull
 
         # At this point we have the zone were the contours are allowed to be
-        contours = self.get_contours(
+        contours = ipc.get_contours(
             mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
         )
         for cnt in contours:
@@ -1702,7 +1692,7 @@ class AbstractImageProcessor(ImageWrapper):
         # Delete all small contours
         if delete_all_bellow > 0:
             fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
-            contours = self.get_contours(
+            contours = ipc.get_contours(
                 mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
             )
             small_img = src_mask.copy()
@@ -1731,7 +1721,7 @@ class AbstractImageProcessor(ImageWrapper):
         else:
             dil_mask = src_mask.copy()
         self.store_image(dil_mask, "dil_mask")
-        contours = self.get_contours(
+        contours = ipc.get_contours(
             mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
         )
         self.store_image(
@@ -1751,6 +1741,9 @@ class AbstractImageProcessor(ImageWrapper):
         hull_img = src_image.copy()
         cv2.drawContours(hull_img, hulls, -1, (0, 255, 0), 4)
         self.store_image(hull_img, "src_img_with_cnt_approx_{}".format(eps))
+
+        if len(hulls) == 0:
+            return np.zeros_like(src_mask)
 
         # Find the largest hull
         big_hull = hulls[0]
@@ -1907,10 +1900,12 @@ class AbstractImageProcessor(ImageWrapper):
             cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE["color"], 8)
             if area_ > 0:
                 cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2)
-        self.store_image(hull_img, f"src_img_with_cnt_after_agg_iter_last")
+        self.store_image(
+            image=hull_img, text=f"src_img_with_cnt_after_agg_iter_last", force_store=True
+        )
 
         # At this point we have the zone were the contours are allowed to be
-        contours = self.get_contours(
+        contours = ipc.get_contours(
             mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
         )
         for cnt in contours:
@@ -1963,14 +1958,9 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         # Identify objects
-        if LooseVersion(cv2.__version__) > LooseVersion("4.0.0"):
-            id_objects, obj_hierarchy = cv2.findContours(
-                mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
-            )[-2:]
-        else:
-            _, id_objects, obj_hierarchy = cv2.findContours(
-                mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE
-            )[-2:]
+        id_objects, obj_hierarchy = ipc.get_contours_and_hierarchy(
+            mask=mask, retrieve_mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE
+        )
 
         if self.store_images:
             ori_img = np.copy(img)
@@ -2092,70 +2082,21 @@ class AbstractImageProcessor(ImageWrapper):
         finally:
             return res
 
-    @staticmethod
-    def _get_kernel(size: int, shape: int):
-        """Builds morphology kernel
-
-        :param size: kernel size, must be odd number
-        :param shape: select shape of kernel
-        :return: Morphology kernel
-        """
-        return cv2.getStructuringElement(shape, (size, size))
-
-    def multi_and(self, image_list: tuple, print_intermediate: bool = False):
-        """Performs an AND with all the images in the tuple if print_intermediate temporary files are stored
+    def multi_and(self, image_list: tuple):
+        """Performs an AND with all the images in the tuple
 
         :param image_list:
-        :param print_intermediate:
         :return: image
         """
-        list_len_ = len(image_list)
+        return ipc.multi_and(image_list)
 
-        if list_len_ == 0:
-            return None
-        elif list_len_ == 1:
-            return image_list[0]
-        else:
-            list_index = 0
-            res = cv2.bitwise_and(image_list[0], image_list[1])
-            if print_intermediate:
-                self.store_image(res, "{}_and{}".format(list_index, list_index + 1))
-                list_index += 2
-            if len(image_list) > 2:
-                for current_image in image_list[2:]:
-                    res = cv2.bitwise_and(res, current_image)
-                    if print_intermediate:
-                        self.store_image(res, "res_and{}".format(list_index))
-                        list_index += 1
-
-            return res
-
-    def multi_or(self, image_list: tuple, print_intermediate: bool = False):
-        """Performs an OR with all the images in the tuple if print_intermediate temporary files are stored
+    def multi_or(self, image_list: tuple):
+        """Performs an OR with all the images in the tuple
 
         :param image_list:
-        :param print_intermediate:
         :return: image
         """
-        list_len_ = len(image_list)
-
-        if list_len_ == 0:
-            return None
-        elif list_len_ == 1:
-            return image_list[0]
-        else:
-            list_index = 0
-            res = cv2.bitwise_or(image_list[0], image_list[1])
-            if print_intermediate:
-                self.store_image(res, "{}_and{}".format(list_index, list_index + 1))
-                list_index += 2
-            if list_len_ > 2:
-                for current_image in image_list[2:]:
-                    res = cv2.bitwise_or(res, current_image)
-                    if print_intermediate:
-                        self.store_image(res, "res_and{}".format(list_index))
-                        list_index += 1
-            return res
+        return ipc.multi_or(image_list)
 
     def open(
         self,
@@ -2173,26 +2114,19 @@ class AbstractImageProcessor(ImageWrapper):
             kernel_size {int} -- kernel size
             kernel_shape {int} -- cv2 constant
             roi -- Region of Interrest
-
-        Keyword Arguments:
             dbg_text {str} -- debug text (default: {''})
+            proc_times {int} -- iterations
 
         Returns:
             numpy array -- opened image
         """
-        morph_kernel = self._get_kernel(kernel_size, kernel_shape)
-        if rois:
-            result = image.copy()
-            for roi in rois:
-                r = roi.as_rect()
-                result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
-                    result[r.top : r.bottom, r.left : r.right],
-                    cv2.MORPH_OPEN,
-                    morph_kernel,
-                    iterations=proc_times,
-                )
-        else:
-            result = cv2.morphologyEx(image, cv2.MORPH_OPEN, morph_kernel, iterations=proc_times)
+        result = ipc.open(
+            image=image,
+            kernel_size=kernel_size,
+            kernel_shape=kernel_shape,
+            rois=rois,
+            proc_times=proc_times,
+        )
         if dbg_text:
             self.store_image(result, "{}_open_{}".format(dbg_text, kernel_size), rois)
         return result
@@ -2213,26 +2147,19 @@ class AbstractImageProcessor(ImageWrapper):
             kernel_size {int} -- kernel size
             kernel_shape {int} -- cv2 constant
             roi -- Region of Interest
-
-        Keyword Arguments:
-            dbg_text {str} -- debug text (default: {''})
+            dbg_text {str} -- debug text (default: {''})            
+            proc_times {int} -- iterations
 
         Returns:
             numpy array -- closed image
         """
-        morph_kernel = self._get_kernel(kernel_size, kernel_shape)
-        if rois:
-            result = image.copy()
-            for roi in rois:
-                r = roi.as_rect()
-                result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
-                    result[r.top : r.bottom, r.left : r.right],
-                    cv2.MORPH_CLOSE,
-                    morph_kernel,
-                    iterations=proc_times,
-                )
-        else:
-            result = cv2.morphologyEx(image, cv2.MORPH_CLOSE, morph_kernel, iterations=proc_times)
+        result = ipc.close(
+            image=image,
+            kernel_size=kernel_size,
+            kernel_shape=kernel_shape,
+            rois=rois,
+            proc_times=proc_times,
+        )
         if dbg_text:
             self.store_image(result, "{}_close_{}".format(dbg_text, kernel_size), rois)
         return result
@@ -2253,27 +2180,19 @@ class AbstractImageProcessor(ImageWrapper):
             kernel_size {int} -- kernel size
             kernel_shape {int} -- cv2 constant
             roi -- Region of Interrest
-
-        Keyword Arguments:
             dbg_text {str} -- debug text (default: {''})
             proc_times {int} -- iterations
 
         Returns:
             numpy array -- dilated image
         """
-        morph_kernel = self._get_kernel(kernel_size, kernel_shape)
-        if rois:
-            result = image.copy()
-            for roi in rois:
-                if roi is not None:
-                    r = roi.as_rect()
-                    result[r.top : r.bottom, r.left : r.right] = cv2.dilate(
-                        result[r.top : r.bottom, r.left : r.right],
-                        morph_kernel,
-                        iterations=proc_times,
-                    )
-        else:
-            result = cv2.dilate(image, morph_kernel, iterations=proc_times)
+        result = ipc.dilate(
+            image=image,
+            kernel_size=kernel_size,
+            kernel_shape=kernel_shape,
+            rois=rois,
+            proc_times=proc_times,
+        )
         if dbg_text:
             self.store_image(
                 result, "{}_dilate_{}_{}_times".format(dbg_text, kernel_size, proc_times), rois
@@ -2296,27 +2215,19 @@ class AbstractImageProcessor(ImageWrapper):
             kernel_size {int} -- kernel size
             kernel_shape {int} -- cv2 constant
             roi -- Region of Interrest
-
-        Keyword Arguments:
             dbg_text {str} -- debug text (default: {''})
             proc_times {int} -- iterations
 
         Returns:
             numpy array -- eroded image
         """
-        morph_kernel = self._get_kernel(kernel_size, kernel_shape)
-        if rois:
-            result = image.copy()
-            for roi in rois:
-                if roi is not None:
-                    r = roi.as_rect()
-                    result[r.top : r.bottom, r.left : r.right] = cv2.erode(
-                        result[r.top : r.bottom, r.left : r.right],
-                        morph_kernel,
-                        iterations=proc_times,
-                    )
-        else:
-            result = cv2.erode(image, morph_kernel, iterations=proc_times)
+        result = ipc.erode(
+            image=image,
+            kernel_size=kernel_size,
+            kernel_shape=kernel_shape,
+            rois=rois,
+            proc_times=proc_times,
+        )
         if dbg_text:
             self.store_image(
                 result, "{}_erode_{}_{}_times".format(dbg_text, kernel_size, proc_times), rois
@@ -2602,7 +2513,7 @@ class AbstractImageProcessor(ImageWrapper):
         if roi_list:
             for roi in roi_list:
                 images_.append(roi.keep(src_mask))
-            res = self.multi_or(tuple(images_), False)
+            res = self.multi_or(tuple(images_))
         else:
             res = src_mask
         if dbg_str:
@@ -2674,7 +2585,7 @@ class AbstractImageProcessor(ImageWrapper):
             numpy array -- image with rois applied
         """
 
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if dbg_str:
                 tmp_str = "{}_{}".format(dbg_str, roi.name)
             else:
@@ -3142,14 +3053,14 @@ class AbstractImageProcessor(ImageWrapper):
             return self.source_image
         elif img_name.lower() == "current_image":
             return self.current_image
+        elif img_name.lower() == "mask" and self.mask is not None:
+            return self.mask.copy()
         else:
             for dic in self.image_list:
                 if dic["name"].lower() == img_name.lower():
                     return dic["image"]
-            if img_name.lower() == "mask" and self.mask is not None:
-                return self.mask.copy()
-            elif "exp_fixed" in img_name.lower():
-                foreground = self.retrieve_stored_image("exposure_fixed").copy()
+            if "exp_fixed" in img_name.lower():
+                foreground = self.retrieve_stored_image("exposure_fixed")
                 if foreground is None:
                     foreground = self.current_image
                 if img_name.lower() == "mask_on_exp_fixed_bw_with_morph":
@@ -3177,7 +3088,7 @@ class AbstractImageProcessor(ImageWrapper):
                 elif img_name.lower() == "mask_on_exp_fixed_bw_roi":
                     return self.draw_rois(
                         img=self.draw_image(
-                            src_image=self.retrieve_stored_image("exposure_fixed"),
+                            src_image=foreground,
                             src_mask=self.mask,
                             foreground="source",
                             background="bw",
@@ -3185,13 +3096,10 @@ class AbstractImageProcessor(ImageWrapper):
                         rois=self.rois_list,
                     )
                 elif img_name.lower() == "exp_fixed_roi":
-                    return self.draw_rois(
-                        img=self.retrieve_stored_image("exposure_fixed"),
-                        rois=self.rois_list,
-                    )
+                    return self.draw_rois(img=foreground, rois=self.rois_list,)
                 elif img_name.lower() == "exp_fixed_pseudo_on_bw":
                     return self.draw_image(
-                        src_image=self.retrieve_stored_image("exposure_fixed"),
+                        src_image=foreground,
                         channel="l",
                         src_mask=self.mask,
                         foreground="false_colour",
@@ -3254,39 +3162,44 @@ class AbstractImageProcessor(ImageWrapper):
         shape=None,
         image_names=None,
         background_color: tuple = (125, 125, 125),
-        padding: tuple = (-2, -2, -2, -2),
-    ):
+        padding: tuple = 2,
+        images_dict: dict = {},
+    ) -> np.ndarray:
         """Creates a mosaic aggregating stored images
 
         Arguments:
             shape {numpy array} -- height, width, channel count
-            image_names {array} -- array of image names
+            image_names {array, list} -- array of image names
 
         Returns:
             numpy array -- image containing the mosaic
         """
-
         if image_names is None:
             image_names = self._mosaic_data
+        if isinstance(image_names, np.ndarray):
+            image_names = image_names.tolist()
+        if len(image_names) > 0 and not isinstance(image_names[0], list):
+            image_names = [image_names]
+
+        column_count = len(image_names[0])
+        line_count = len(image_names)
         if shape is None:
-            h, w = self.height, self.width
-            if len(image_names.shape) == 1:
-                w *= image_names.shape[0]
-            else:
-                w *= image_names.shape[1]
-                h *= image_names.shape[0]
-            h = round(h / 2)
-            w = round(w / 2)
-            shape = (h, w, 3)
+            shape = (
+                self.height * line_count + padding * line_count + padding,
+                self.width * column_count + padding * column_count + padding,
+                3,
+            )
 
         canvas = np.full(shape, background_color, np.uint8)
-        if image_names.ndim == 0:
+        if len(image_names) == 0:
             return canvas
 
         def parse_line(a_line, a_line_idx, a_cnv):
             for c, column in enumerate(a_line):
                 if isinstance(column, str):
                     src_img = self.retrieve_stored_image(column)
+                    if src_img is None:
+                        src_img = images_dict.get(column, None)
                 else:
                     src_img = column
                 if src_img is None:
@@ -3298,21 +3211,14 @@ class AbstractImageProcessor(ImageWrapper):
                         top=int((shape[0] / line_count) * a_line_idx),
                         height=int(shape[0] / line_count),
                     )
-                    r.inflate(*padding)
+                    r.expand(-padding)
                     a_cnv = ipc.enclose_image(a_cnv, src_img, r)
 
-        if len(image_names.shape) == 1:
-            column_count = image_names.shape[0]
-            line_count = 1
-            parse_line(image_names, 0, canvas)
-        elif len(image_names.shape) == 2:
-            line_count, column_count = image_names.shape
+        try:
             for l, line in enumerate(image_names):
                 parse_line(line, l, canvas)
-        else:
-            raise NotImplementedError(
-                "Unable to handle {} dimensions arrays".format(len(image_names.shape))
-            )
+        except Exception as e:
+            print(f'Failed to build mosaic, because "{repr(e)}"')
 
         return canvas
 
@@ -3324,7 +3230,7 @@ class AbstractImageProcessor(ImageWrapper):
     def default_process(self, **kwargs):
         res = True
         try:
-            self._rois_list = []
+            self.rois_list = []
             self.image_list = []
 
             mode = kwargs.get("method", "process_mode_test_channels")
@@ -3374,7 +3280,7 @@ class AbstractImageProcessor(ImageWrapper):
         return kwargs.get("src_img", self.current_image)
 
     def build_channel_mask(self, source_image, **kwargs):
-        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(source_image, self.rois)
+        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(source_image, self.rois_list)
         self.store_image(mosaic_image_, "full_channel_mosaic")
 
         return False
@@ -3510,7 +3416,7 @@ class AbstractImageProcessor(ImageWrapper):
             boolean -- True if contained
         """
 
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if (tag == "" or tag == roi.tag) and roi.contains(pt):
                 return True
         return False
@@ -3553,7 +3459,7 @@ class AbstractImageProcessor(ImageWrapper):
             Rectangle -- rectangle associated to the roi
         """
 
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if roi.name.lower() == roi_name:
                 return roi
         if exists_only is True:
@@ -3567,7 +3473,7 @@ class AbstractImageProcessor(ImageWrapper):
 
     def get_rois(self, tags: set = None):
         lst = []
-        for roi in self._rois_list:
+        for roi in self.rois_list:
             if (tags is None) or (roi.tag in tags):
                 lst.append(roi)
         return lst
@@ -3577,12 +3483,22 @@ class AbstractImageProcessor(ImageWrapper):
         Add an already existing ROI object
         
         Arguments:
-            new_roi {Region} -- Rectangle or Circle of interrest
+            new_roi {Region} -- Any ROI
         """
         roi = self.get_roi(roi_name=new_roi.name, exists_only=True)
         if roi is not None:
-            self.rois_list.remove(roi)
+            self._rois_list.remove(roi)
         self._rois_list.append(new_roi)
+
+    def add_rois(self, roi_list):
+        """
+        Add ROIs to collection
+        
+        Arguments:
+            roi_list {List} -- List of ROIs
+        """
+        for roi in roi_list:
+            self.add_roi(roi)
 
     def add_circle_roi(self, left, top, radius, name, tag="", color=None) -> CircleRegion:
         """Add Circle of Interest to list
@@ -3622,13 +3538,17 @@ class AbstractImageProcessor(ImageWrapper):
     def _get_csv_file_path(self):
         return os.path.join(self.dst_path, "partials", self.csv_file_name)
 
+    def check_source_image(self):
+        _ = self.source_image
+        return self.good_image
+
     @property
     def source_image(self):
         if self._source_image is None:
             if self._current_image is not None:
                 self._source_image = self._current_image.copy()
             else:
-                self._source_image = self._load_source_image()
+                self._source_image = self.load_source_image()
                 self._current_image = None
         if self._source_image is None:
             return None
@@ -3800,10 +3720,6 @@ class AbstractImageProcessor(ImageWrapper):
             ]
 
         return res
-
-    @property
-    def rois(self):
-        return self._rois_list
 
     mask = property(_get_mask, _set_mask)
 

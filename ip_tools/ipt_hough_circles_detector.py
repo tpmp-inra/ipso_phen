@@ -11,8 +11,7 @@ from ip_base.ip_common import (
     C_YELLOW,
     C_ORANGE,
     build_color_steps,
-    TOOL_GROUP_ROI_PP_IMAGE_STR,
-    TOOL_GROUP_ROI_RAW_IMAGE_STR,
+    TOOL_GROUP_ROI,
 )
 from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 from ip_base.ipt_abstract import IptBase
@@ -341,7 +340,9 @@ class IptHoughCircles(IptBase):
             )
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -436,7 +437,7 @@ class IptHoughCircles(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_ROI_PP_IMAGE_STR, TOOL_GROUP_ROI_RAW_IMAGE_STR]
+        return [TOOL_GROUP_ROI]
 
     @property
     def description(self):

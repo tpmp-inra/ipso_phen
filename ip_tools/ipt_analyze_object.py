@@ -145,6 +145,7 @@ class IptAnalyzeObject(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -216,21 +217,21 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                 centroid_width = self.get_value_of("centroid_width")
 
                 # Start with the sure ones
+                self.demo_image = wrapper.draw_image(
+                    src_image=ori_img,
+                    src_mask=mask,
+                    objects=obj,
+                    background="bw",
+                    foreground="source",
+                    contour_thickness=line_width,
+                    hull_thickness=line_width if self.has_param("hull_area") else 0,
+                    width_thickness=line_width if self.has_param("shape_width") else 0,
+                    height_thickness=line_width if self.has_param("shape_height") else 0,
+                    centroid_width=centroid_width if self.has_param("centroid_x") else 0,
+                    centroid_line_width=line_width,
+                )
                 wrapper.store_image(
-                    image=wrapper.draw_image(
-                        src_image=ori_img,
-                        src_mask=mask,
-                        objects=obj,
-                        background="bw",
-                        foreground="source",
-                        contour_thickness=line_width,
-                        hull_thickness=line_width if self.has_param("hull_area") else 0,
-                        width_thickness=line_width if self.has_param("shape_width") else 0,
-                        height_thickness=line_width if self.has_param("shape_height") else 0,
-                        centroid_width=centroid_width if self.has_param("centroid_x") else 0,
-                        centroid_line_width=line_width,
-                    ),
-                    text="shapes",
+                    image=self.demo_image, text="shapes",
                 )
                 wrapper.store_image(
                     image=wrapper.draw_image(
@@ -288,9 +289,15 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                     qtl_img = np.zeros_like(mask)
                     qtl_img = np.dstack((qtl_img, qtl_img, qtl_img))
                     for i in range(n):
-                        total_, hull_, solidity_, min_, max_, avg_, std_ = msk_dt.width_quantile_stats(
-                            n, i, tag=i
-                        )
+                        (
+                            total_,
+                            hull_,
+                            solidity_,
+                            min_,
+                            max_,
+                            avg_,
+                            std_,
+                        ) = msk_dt.width_quantile_stats(n, i, tag=i)
                         self.add_value(f"quantile_width_{i + 1}_{n}_area", total_, True)
                         self.add_value(f"quantile_width_{i + 1}_{n}_hull", hull_, True)
                         self.add_value(f"quantile_width_{i + 1}_{n}_solidity", solidity_, True)
@@ -309,7 +316,9 @@ class IptAnalyzeObject(IptBaseAnalyzer):
             else:
                 res = False
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass

@@ -76,6 +76,29 @@ class IptThresholdDistance(IptBase):
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Image from distances:
+        Build an image from distance calculation
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Channel (channel_1):
+            * Transformation applied to channel 1 (transformation_1):
+            * Channel (channel_2):
+            * Transformation applied to channel 2 (transformation_2):
+            * Channel (channel_3):
+            * Transformation applied to channel 3 (transformation_3):
+            * Distance origin (origin): Can be zero, the mean or median colour or a selected one.
+            * Distance (distance):
+            * Target IPT (tool_target): no clue
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Select pseudo color map (color_map):
+            * Overlay text on top of images (text_overlay): Draw description text on top of images
+            * Displayed output (build_mosaic): Choose mosaic type to display
+        --------------
+        """
 
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -244,7 +267,9 @@ class IptThresholdDistance(IptBase):
                     image=self.result, text="image_from_distances", text_overlay=text_overlay
                 )
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass

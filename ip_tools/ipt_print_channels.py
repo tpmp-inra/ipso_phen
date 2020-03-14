@@ -53,8 +53,8 @@ class IptPrintChannels(IptBase):
             self.result = c
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(
-                f'Failed to print channels, exception: "{repr(e)}"'
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
             )
         else:
             res = True

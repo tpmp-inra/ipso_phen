@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>962</width>
-    <height>799</height>
+    <width>1294</width>
+    <height>1108</height>
    </rect>
   </property>
   <property name="font">
@@ -40,14 +40,14 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_pipeline_builder">
        <attribute name="title">
         <string>Pipeline builder</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_14">
-        <item row="0" column="0">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_5">
           <item>
            <widget class="QCheckBox" name="chk_experiment">
@@ -226,8 +226,8 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
-         <widget class="QSplitter" name="spl_ver_main">
+        <item>
+         <widget class="QSplitter" name="spl_pb_ver_main">
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
@@ -242,8 +242,23 @@
             <number>1</number>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
-             <widget class="QSplitter" name="spl_hor_main_left">
+             <widget class="QSplitter" name="spl_hor_pb_left">
               <property name="frameShape">
                <enum>QFrame::NoFrame</enum>
               </property>
@@ -258,97 +273,28 @@
                 <enum>QFrame::NoFrame</enum>
                </property>
                <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
+                <enum>QFrame::Raised</enum>
                </property>
                <property name="lineWidth">
                 <number>0</number>
                </property>
-               <layout class="QVBoxLayout" name="verticalLayout">
-                <item>
-                 <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0">
-                  <item>
-                   <widget class="QLabel" name="lbl_selection">
-                    <property name="font">
-                     <font>
-                      <weight>50</weight>
-                      <bold>false</bold>
-                     </font>
-                    </property>
-                    <property name="text">
-                     <string>Selection:</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="bt_add_to_selection">
-                    <property name="toolTip">
-                     <string>Add to image browser images matching the current query</string>
-                    </property>
-                    <property name="text">
-                     <string>Add</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="bt_remove_from_selection">
-                    <property name="toolTip">
-                     <string>Remove from image browser images matching the current query</string>
-                    </property>
-                    <property name="text">
-                     <string>Remove</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="bt_keep_annotated">
-                    <property name="toolTip">
-                     <string>Remove from image brawser all images that are not tagged with an annotation</string>
-                    </property>
-                    <property name="text">
-                     <string>Keep tagged</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="bt_clear_selection">
-                    <property name="text">
-                     <string>Clear</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QPushButton" name="bt_add_random">
-                    <property name="toolTip">
-                     <string>Add to image browser n random images matching the current query</string>
-                    </property>
-                    <property name="text">
-                     <string>Add random</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QSpinBox" name="sp_add_random_count">
-                    <property name="maximum">
-                     <number>10000</number>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="horizontalSpacer_3">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                 </layout>
-                </item>
-                <item>
+               <layout class="QGridLayout" name="gridLayout_18">
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>4</number>
+                </property>
+                <property name="rightMargin">
+                 <number>8</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <item row="1" column="0" colspan="9">
                  <widget class="QTableView" name="tv_image_browser">
                   <property name="alternatingRowColors">
                    <bool>false</bool>
@@ -364,6 +310,86 @@
                   </attribute>
                  </widget>
                 </item>
+                <item row="0" column="6">
+                 <widget class="QPushButton" name="bt_add_random">
+                  <property name="toolTip">
+                   <string>Add to image browser n random images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Add random</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <widget class="QPushButton" name="bt_remove_from_selection">
+                  <property name="toolTip">
+                   <string>Remove from image browser images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Remove</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="bt_add_to_selection">
+                  <property name="toolTip">
+                   <string>Add to image browser images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Add</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QPushButton" name="bt_keep_annotated">
+                  <property name="toolTip">
+                   <string>Remove from image brawser all images that are not tagged with an annotation</string>
+                  </property>
+                  <property name="text">
+                   <string>Keep tagged</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="lbl_selection">
+                  <property name="font">
+                   <font>
+                    <weight>50</weight>
+                    <bold>false</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Selection:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QPushButton" name="bt_clear_selection">
+                  <property name="text">
+                   <string>Clear</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="7">
+                 <widget class="QSpinBox" name="sp_add_random_count">
+                  <property name="maximum">
+                   <number>10000</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="5">
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>190</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </widget>
               <widget class="QFrame" name="frame_3">
@@ -371,334 +397,254 @@
                 <enum>QFrame::NoFrame</enum>
                </property>
                <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
+                <enum>QFrame::Raised</enum>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>4</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
                 <item>
-                 <widget class="QSplitter" name="spl_ver_main_tab_source">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
+                 <widget class="QTabWidget" name="tw_tool_box">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>0</height>
+                   </size>
                   </property>
-                  <widget class="QTabWidget" name="tw_tool_box">
-                   <property name="minimumSize">
-                    <size>
-                     <width>0</width>
-                     <height>0</height>
-                    </size>
-                   </property>
-                   <property name="maximumSize">
-                    <size>
-                     <width>16777215</width>
-                     <height>16777215</height>
-                    </size>
-                   </property>
-                   <property name="tabShape">
-                    <enum>QTabWidget::Rounded</enum>
-                   </property>
-                   <property name="currentIndex">
-                    <number>0</number>
-                   </property>
-                   <property name="documentMode">
-                    <bool>false</bool>
-                   </property>
-                   <property name="tabBarAutoHide">
-                    <bool>false</bool>
-                   </property>
-                   <widget class="QWidget" name="tb_tool_help">
-                    <attribute name="title">
-                     <string>Help</string>
-                    </attribute>
-                    <layout class="QGridLayout" name="gridLayout_6">
-                     <item row="0" column="0">
-                      <widget class="QTextBrowser" name="txtb_tool_help"/>
-                     </item>
-                    </layout>
-                   </widget>
-                   <widget class="QWidget" name="tb_annotations">
-                    <attribute name="title">
-                     <string>Annotations</string>
-                    </attribute>
-                    <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0">
-                     <item row="1" column="0">
-                      <widget class="QLabel" name="label_3">
+                  <property name="maximumSize">
+                   <size>
+                    <width>16777215</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="tabShape">
+                   <enum>QTabWidget::Rounded</enum>
+                  </property>
+                  <property name="currentIndex">
+                   <number>1</number>
+                  </property>
+                  <property name="documentMode">
+                   <bool>false</bool>
+                  </property>
+                  <property name="tabBarAutoHide">
+                   <bool>false</bool>
+                  </property>
+                  <widget class="QWidget" name="tb_annotations">
+                   <attribute name="title">
+                    <string>Annotations</string>
+                   </attribute>
+                   <layout class="QGridLayout" name="gridLayout_4" columnstretch="0,0,0,0">
+                    <item row="1" column="0">
+                     <widget class="QLabel" name="label_3">
+                      <property name="text">
+                       <string>Annotation level:</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="5" column="0" colspan="4">
+                     <widget class="QTextEdit" name="te_annotations"/>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QComboBox" name="cb_annotation_level">
+                      <property name="sizeAdjustPolicy">
+                       <enum>QComboBox::AdjustToContents</enum>
+                      </property>
+                      <item>
                        <property name="text">
-                        <string>Annotation level:</string>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="5" column="0" colspan="4">
-                      <widget class="QTextEdit" name="te_annotations"/>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QComboBox" name="cb_annotation_level">
-                       <property name="sizeAdjustPolicy">
-                        <enum>QComboBox::AdjustToContents</enum>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>Info</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/Info.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>OK</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/OK.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Warning</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/Warning.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Error</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/Error.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Critical</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/Danger.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Source issue</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/Problem.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Unknown</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/annotation_level/resources/Help.png</normalon>
-                         </iconset>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item row="1" column="3">
-                      <widget class="QToolButton" name="bt_delete_annotation">
-                       <property name="text">
-                        <string/>
+                        <string>Info</string>
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normalon>:/annotation_level/resources/Delete.png</normalon>
+                         <normalon>:/annotation_level/resources/Info.png</normalon>
                         </iconset>
                        </property>
-                       <property name="iconSize">
-                        <size>
-                         <width>24</width>
-                         <height>24</height>
-                        </size>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <spacer name="horizontalSpacer">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                    </layout>
-                   </widget>
-                   <widget class="QWidget" name="tab">
-                    <attribute name="title">
-                     <string>Grid search</string>
-                    </attribute>
-                    <layout class="QGridLayout" name="gridLayout_2">
-                     <item row="0" column="0" colspan="4">
-                      <widget class="QScrollArea" name="scrollArea">
-                       <property name="widgetResizable">
-                        <bool>true</bool>
-                       </property>
-                       <widget class="QWidget" name="scrollAreaWidgetContents_3">
-                        <property name="geometry">
-                         <rect>
-                          <x>0</x>
-                          <y>0</y>
-                          <width>667</width>
-                          <height>77</height>
-                         </rect>
-                        </property>
-                        <layout class="QHBoxLayout" name="horizontalLayout_4">
-                         <item>
-                          <layout class="QGridLayout" name="gl_grid_search_params"/>
-                         </item>
-                        </layout>
-                       </widget>
-                      </widget>
-                     </item>
-                     <item row="3" column="0">
-                      <widget class="QPushButton" name="bt_update_grid_search">
+                      </item>
+                      <item>
                        <property name="text">
-                        <string>Update</string>
+                        <string>OK</string>
                        </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="1">
-                      <widget class="QPushButton" name="bt_reset_grid_search">
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/OK.png</normalon>
+                        </iconset>
+                       </property>
+                      </item>
+                      <item>
                        <property name="text">
-                        <string>Reset</string>
+                        <string>Warning</string>
                        </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="3">
-                      <widget class="QPushButton" name="bt_run_grid_search">
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Warning.png</normalon>
+                        </iconset>
+                       </property>
+                      </item>
+                      <item>
                        <property name="text">
-                        <string>Run grid search</string>
+                        <string>Error</string>
                        </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="2">
-                      <widget class="QCheckBox" name="chk_random_grid_search">
-                       <property name="toolTip">
-                        <string>Run grid search in random order</string>
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Error.png</normalon>
+                        </iconset>
                        </property>
+                      </item>
+                      <item>
                        <property name="text">
-                        <string>Random</string>
+                        <string>Critical</string>
                        </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                   <widget class="QWidget" name="tb_last_batch">
-                    <attribute name="title">
-                     <string>Last batch</string>
-                    </attribute>
-                    <layout class="QGridLayout" name="gridLayout_9">
-                     <item row="1" column="1">
-                      <spacer name="horizontalSpacer_10">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Danger.png</normalon>
+                        </iconset>
                        </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item row="1" column="0">
-                      <widget class="QPushButton" name="bt_set_batch_as_selection">
+                      </item>
+                      <item>
                        <property name="text">
-                        <string>Set as selection</string>
+                        <string>Source issue</string>
                        </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="0" colspan="2">
-                      <widget class="QListWidget" name="lw_last_batch"/>
-                     </item>
-                    </layout>
-                   </widget>
-                   <widget class="QWidget" name="tb_tool_generated_code">
-                    <attribute name="title">
-                     <string>Code</string>
-                    </attribute>
-                    <layout class="QGridLayout" name="gridLayout_7">
-                     <item row="0" column="0" colspan="2">
-                      <widget class="QTextBrowser" name="txtb_code">
-                       <property name="maximumSize">
-                        <size>
-                         <width>16777215</width>
-                         <height>16777215</height>
-                        </size>
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Problem.png</normalon>
+                        </iconset>
                        </property>
-                       <property name="lineWrapMode">
-                        <enum>QTextEdit::NoWrap</enum>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
-                   <widget class="QWidget" name="tb_statistics">
-                    <attribute name="title">
-                     <string>Statistics</string>
-                    </attribute>
-                    <layout class="QGridLayout" name="gridLayout_8">
-                     <item row="0" column="0" colspan="4">
-                      <widget class="QTextBrowser" name="lv_stats">
-                       <property name="font">
-                        <font>
-                         <family>Courier</family>
-                        </font>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="0">
-                      <widget class="QPushButton" name="bt_update_selection_stats">
+                      </item>
+                      <item>
                        <property name="text">
-                        <string>Build statistics</string>
+                        <string>Unknown</string>
                        </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="3">
-                      <widget class="QPushButton" name="bt_clear_statistics">
-                       <property name="text">
-                        <string>Clear</string>
+                       <property name="icon">
+                        <iconset>
+                         <normalon>:/annotation_level/resources/Help.png</normalon>
+                        </iconset>
                        </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="2">
-                      <spacer name="horizontalSpacer_5">
-                       <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
-                       </property>
-                       <property name="sizeHint" stdset="0">
-                        <size>
-                         <width>40</width>
-                         <height>20</height>
-                        </size>
-                       </property>
-                      </spacer>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QCheckBox" name="cb_stat_include_annotations">
-                       <property name="text">
-                        <string>Include annotations</string>
-                       </property>
-                      </widget>
-                     </item>
-                    </layout>
-                   </widget>
+                      </item>
+                     </widget>
+                    </item>
+                    <item row="1" column="3">
+                     <widget class="QToolButton" name="bt_delete_annotation">
+                      <property name="text">
+                       <string/>
+                      </property>
+                      <property name="icon">
+                       <iconset>
+                        <normalon>:/annotation_level/resources/Delete.png</normalon>
+                       </iconset>
+                      </property>
+                      <property name="iconSize">
+                       <size>
+                        <width>24</width>
+                        <height>24</height>
+                       </size>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="2">
+                     <spacer name="horizontalSpacer">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </widget>
+                  <widget class="QWidget" name="tb_last_batch">
+                   <attribute name="title">
+                    <string>Last batch</string>
+                   </attribute>
+                   <layout class="QGridLayout" name="gridLayout_9">
+                    <item row="1" column="1">
+                     <spacer name="horizontalSpacer_10">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QPushButton" name="bt_set_batch_as_selection">
+                      <property name="text">
+                       <string>Set as selection</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="0" column="0" colspan="2">
+                     <widget class="QListWidget" name="lw_last_batch"/>
+                    </item>
+                   </layout>
+                  </widget>
+                  <widget class="QWidget" name="tb_statistics">
+                   <attribute name="title">
+                    <string>Statistics</string>
+                   </attribute>
+                   <layout class="QGridLayout" name="gridLayout_8">
+                    <item row="0" column="0" colspan="4">
+                     <widget class="QTextBrowser" name="lv_stats">
+                      <property name="font">
+                       <font>
+                        <family>Courier</family>
+                       </font>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="0">
+                     <widget class="QPushButton" name="bt_update_selection_stats">
+                      <property name="text">
+                       <string>Build statistics</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="3">
+                     <widget class="QPushButton" name="bt_clear_statistics">
+                      <property name="text">
+                       <string>Clear</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="1" column="2">
+                     <spacer name="horizontalSpacer_5">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item row="1" column="1">
+                     <widget class="QCheckBox" name="cb_stat_include_annotations">
+                      <property name="text">
+                       <string>Include annotations</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
                   </widget>
                  </widget>
                 </item>
@@ -709,9 +655,24 @@
                 <enum>QFrame::NoFrame</enum>
                </property>
                <property name="frameShadow">
-                <enum>QFrame::Plain</enum>
+                <enum>QFrame::Raised</enum>
                </property>
                <layout class="QHBoxLayout" name="horizontalLayout">
+                <property name="spacing">
+                 <number>0</number>
+                </property>
+                <property name="leftMargin">
+                 <number>0</number>
+                </property>
+                <property name="topMargin">
+                 <number>4</number>
+                </property>
+                <property name="rightMargin">
+                 <number>4</number>
+                </property>
+                <property name="bottomMargin">
+                 <number>4</number>
+                </property>
                 <item>
                  <layout class="QGridLayout" name="gridLayout_16">
                   <item row="1" column="0">
@@ -791,12 +752,269 @@
                     <property name="currentIndex">
                      <number>0</number>
                     </property>
+                    <widget class="QWidget" name="tb_pipeline_v2">
+                     <attribute name="title">
+                      <string>Pipeline</string>
+                     </attribute>
+                     <layout class="QGridLayout" name="gridLayout_15">
+                      <item row="0" column="0">
+                       <widget class="QPushButton" name="bt_pp_new">
+                        <property name="toolTip">
+                         <string>New pipeline</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="1">
+                       <widget class="QPushButton" name="bt_pp_load">
+                        <property name="toolTip">
+                         <string>Load pipeline...</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="2">
+                       <widget class="QPushButton" name="bt_pp_save">
+                        <property name="toolTip">
+                         <string>Save pipeline...</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="3">
+                       <spacer name="horizontalSpacer_8">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>13</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item row="0" column="4">
+                       <widget class="QPushButton" name="bt_pp_up">
+                        <property name="toolTip">
+                         <string>Move item up</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Up.png</normaloff>:/common/resources/Up.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="5">
+                       <widget class="QPushButton" name="bt_pp_down">
+                        <property name="toolTip">
+                         <string>Move item down</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Down.png</normaloff>:/common/resources/Down.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="6">
+                       <spacer name="horizontalSpacer_15">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>13</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item row="0" column="7">
+                       <widget class="QPushButton" name="bt_pp_delete">
+                        <property name="toolTip">
+                         <string>Delete item</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="8">
+                       <spacer name="horizontalSpacer_14">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>13</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item row="0" column="9">
+                       <widget class="QPushButton" name="bt_pp_select_tool">
+                        <property name="maximumSize">
+                         <size>
+                          <width>28</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                        <property name="toolTip">
+                         <string>Add module/group</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Add.png</normaloff>:/common/resources/Add.png</iconset>
+                        </property>
+                        <property name="flat">
+                         <bool>false</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="10">
+                       <spacer name="horizontalSpacer_13">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeType">
+                         <enum>QSizePolicy::Fixed</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>13</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item row="0" column="11">
+                       <widget class="QPushButton" name="bt_pp_invalidate">
+                        <property name="toolTip">
+                         <string>Clear cache pipeline cache</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset resource="main_form.qrc">
+                          <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="12">
+                       <widget class="QToolButton" name="bt_pp_run">
+                        <property name="toolTip">
+                         <string>Run pipeline</string>
+                        </property>
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="icon">
+                         <iconset>
+                          <normalon>:/image_process/resources/Play.png</normalon>
+                         </iconset>
+                        </property>
+                        <property name="iconSize">
+                         <size>
+                          <width>24</width>
+                          <height>24</height>
+                         </size>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="0" column="13">
+                       <widget class="QProgressBar" name="pb_pp_progress">
+                        <property name="minimumSize">
+                         <size>
+                          <width>0</width>
+                          <height>0</height>
+                         </size>
+                        </property>
+                        <property name="maximumSize">
+                         <size>
+                          <width>16777215</width>
+                          <height>16777215</height>
+                         </size>
+                        </property>
+                        <property name="value">
+                         <number>0</number>
+                        </property>
+                        <property name="textVisible">
+                         <bool>false</bool>
+                        </property>
+                        <property name="textDirection">
+                         <enum>QProgressBar::BottomToTop</enum>
+                        </property>
+                       </widget>
+                      </item>
+                      <item row="1" column="0" colspan="14">
+                       <widget class="QTreeView" name="tv_pp_view">
+                        <property name="alternatingRowColors">
+                         <bool>false</bool>
+                        </property>
+                        <property name="selectionBehavior">
+                         <enum>QAbstractItemView::SelectRows</enum>
+                        </property>
+                        <property name="verticalScrollMode">
+                         <enum>QAbstractItemView::ScrollPerPixel</enum>
+                        </property>
+                        <property name="animated">
+                         <bool>false</bool>
+                        </property>
+                        <attribute name="headerVisible">
+                         <bool>false</bool>
+                        </attribute>
+                       </widget>
+                      </item>
+                     </layout>
+                    </widget>
                     <widget class="QWidget" name="tab_tools">
                      <attribute name="title">
-                      <string>Tools</string>
+                      <string>Standalone tools</string>
                      </attribute>
                      <layout class="QGridLayout" name="gridLayout_3">
-                      <item row="0" column="6">
+                      <item row="0" column="7">
                        <widget class="QPushButton" name="bt_process_image">
                         <property name="text">
                          <string/>
@@ -817,7 +1035,7 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="0" column="4">
+                      <item row="0" column="5">
                        <widget class="QPushButton" name="bt_reset_op">
                         <property name="text">
                          <string/>
@@ -844,7 +1062,20 @@
                         </property>
                        </widget>
                       </item>
-                      <item row="1" column="0" colspan="7">
+                      <item row="0" column="4">
+                       <spacer name="horizontalSpacer_11">
+                        <property name="orientation">
+                         <enum>Qt::Horizontal</enum>
+                        </property>
+                        <property name="sizeHint" stdset="0">
+                         <size>
+                          <width>40</width>
+                          <height>20</height>
+                         </size>
+                        </property>
+                       </spacer>
+                      </item>
+                      <item row="1" column="0" colspan="8">
                        <widget class="QScrollArea" name="scrollArea_2">
                         <property name="frameShape">
                          <enum>QFrame::HLine</enum>
@@ -863,8 +1094,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>665</width>
-                           <height>70</height>
+                           <width>63</width>
+                           <height>26</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">
@@ -888,428 +1119,21 @@
                         </widget>
                        </widget>
                       </item>
-                      <item row="0" column="3">
-                       <widget class="QCheckBox" name="chk_use_pipeline_as_preprocessor">
-                        <property name="text">
-                         <string>Use pipeline as preprocessor</string>
-                        </property>
-                       </widget>
-                      </item>
                       <item row="0" column="2">
-                       <spacer name="horizontalSpacer_11">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>40</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tab_pipeline">
-                     <attribute name="title">
-                      <string>Pipeline</string>
-                     </attribute>
-                     <layout class="QGridLayout" name="gridLayout">
-                      <item row="0" column="5">
-                       <widget class="QPushButton" name="bt_save_pipeline">
-                        <property name="toolTip">
-                         <string>Save script...</string>
-                        </property>
+                       <widget class="QPushButton" name="bt_tool_help">
                         <property name="text">
                          <string/>
                         </property>
                         <property name="icon">
                          <iconset resource="main_form.qrc">
-                          <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
+                          <normaloff>:/annotation_level/resources/Help.png</normaloff>:/annotation_level/resources/Help.png</iconset>
                         </property>
                        </widget>
                       </item>
                       <item row="0" column="3">
-                       <widget class="QPushButton" name="bt_clear_pipeline">
-                        <property name="toolTip">
-                         <string>New script</string>
-                        </property>
+                       <widget class="QPushButton" name="bt_tool_show_code">
                         <property name="text">
-                         <string/>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="main_form.qrc">
-                          <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="4">
-                       <widget class="QPushButton" name="bt_load_pipeline">
-                        <property name="toolTip">
-                         <string>Load script...</string>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="icon">
-                         <iconset resource="main_form.qrc">
-                          <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="8">
-                       <widget class="QProgressBar" name="pb_script_gen_progress">
-                        <property name="minimumSize">
-                         <size>
-                          <width>200</width>
-                          <height>0</height>
-                         </size>
-                        </property>
-                        <property name="value">
-                         <number>0</number>
-                        </property>
-                        <property name="textVisible">
-                         <bool>true</bool>
-                        </property>
-                        <property name="textDirection">
-                         <enum>QProgressBar::BottomToTop</enum>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="0">
-                       <widget class="QLabel" name="lbl_pipeline">
-                        <property name="font">
-                         <font>
-                          <weight>75</weight>
-                          <bold>true</bold>
-                         </font>
-                        </property>
-                        <property name="text">
-                         <string>Pipeline:</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="6">
-                       <spacer name="horizontalSpacer_9">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="sizeType">
-                         <enum>QSizePolicy::Fixed</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>22</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                      <item row="0" column="7">
-                       <widget class="QToolButton" name="bt_script_gen_run">
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normalon>:/image_process/resources/Play.png</normalon>
-                         </iconset>
-                        </property>
-                        <property name="iconSize">
-                         <size>
-                          <width>24</width>
-                          <height>24</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="1" column="0" colspan="9">
-                       <layout class="QGridLayout" name="gl_pipeline_data"/>
-                      </item>
-                      <item row="0" column="1">
-                       <widget class="QLabel" name="lbl_pipeline_name">
-                        <property name="text">
-                         <string>T</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item row="0" column="2">
-                       <spacer name="horizontalSpacer_4">
-                        <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
-                        </property>
-                        <property name="sizeHint" stdset="0">
-                         <size>
-                          <width>40</width>
-                          <height>20</height>
-                         </size>
-                        </property>
-                       </spacer>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tab_script">
-                     <attribute name="title">
-                      <string>Script</string>
-                     </attribute>
-                     <layout class="QHBoxLayout" name="horizontalLayout_9">
-                      <item>
-                       <widget class="QTextBrowser" name="txtb_script"/>
-                      </item>
-                     </layout>
-                    </widget>
-                    <widget class="QWidget" name="tb_pipeline_v2">
-                     <attribute name="title">
-                      <string>Pipeline V2</string>
-                     </attribute>
-                     <layout class="QVBoxLayout" name="verticalLayout_3">
-                      <item>
-                       <layout class="QHBoxLayout" name="horizontalLayout_8">
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_new">
-                          <property name="toolTip">
-                           <string>New script</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_load">
-                          <property name="toolTip">
-                           <string>Load script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_save">
-                          <property name="toolTip">
-                           <string>Save script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_8">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeType">
-                           <enum>QSizePolicy::Fixed</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>10</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_up">
-                          <property name="toolTip">
-                           <string>Save script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/Up.png</normaloff>:/common/resources/Up.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_down">
-                          <property name="toolTip">
-                           <string>Save script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/Down.png</normaloff>:/common/resources/Down.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_15">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeType">
-                           <enum>QSizePolicy::Fixed</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>10</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_delete">
-                          <property name="toolTip">
-                           <string>Save script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_14">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeType">
-                           <enum>QSizePolicy::Fixed</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>10</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_select_tool">
-                          <property name="text">
-                           <string>Selected tool: </string>
-                          </property>
-                          <property name="flat">
-                           <bool>false</bool>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_add_tool">
-                          <property name="toolTip">
-                           <string>Save script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/Add.png</normaloff>:/common/resources/Add.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_13">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeType">
-                           <enum>QSizePolicy::Fixed</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>10</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="bt_pp_add_group">
-                          <property name="toolTip">
-                           <string>Save script...</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset resource="main_form.qrc">
-                            <normaloff>:/common/resources/AddMulti.png</normaloff>:/common/resources/AddMulti.png</iconset>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_12">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeType">
-                           <enum>QSizePolicy::Fixed</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>10</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                        <item>
-                         <widget class="QToolButton" name="bt_pp_run">
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normalon>:/image_process/resources/Play.png</normalon>
-                           </iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>24</width>
-                            <height>24</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QProgressBar" name="pb_pp_progress">
-                          <property name="minimumSize">
-                           <size>
-                            <width>0</width>
-                            <height>0</height>
-                           </size>
-                          </property>
-                          <property name="value">
-                           <number>0</number>
-                          </property>
-                          <property name="textVisible">
-                           <bool>true</bool>
-                          </property>
-                          <property name="textDirection">
-                           <enum>QProgressBar::BottomToTop</enum>
-                          </property>
-                         </widget>
-                        </item>
-                       </layout>
-                      </item>
-                      <item>
-                       <widget class="QTreeView" name="tv_pp_view">
-                        <property name="animated">
-                         <bool>false</bool>
+                         <string>Show code</string>
                         </property>
                        </widget>
                       </item>
@@ -1332,9 +1156,9 @@
            <property name="frameShadow">
             <enum>QFrame::Plain</enum>
            </property>
-           <layout class="QGridLayout" name="gridLayout_12">
-            <item row="0" column="0">
-             <layout class="QHBoxLayout" name="horizontalLayout_10">
+           <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
                <widget class="QComboBox" name="cb_available_outputs">
                 <property name="maxVisibleItems">
@@ -1360,11 +1184,38 @@
               </item>
              </layout>
             </item>
-            <item row="1" column="0">
-             <widget class="QSplitter" name="spl_ver_main_img_data">
+            <item>
+             <widget class="QSplitter" name="spl_ver_src_res_data">
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
+              <widget class="QFrame" name="frm_src_img">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+               <property name="lineWidth">
+                <number>1</number>
+               </property>
+              </widget>
+              <widget class="QFrame" name="frm_res_img">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+              </widget>
+              <widget class="QFrame" name="frm_data">
+               <property name="frameShape">
+                <enum>QFrame::StyledPanel</enum>
+               </property>
+               <property name="frameShadow">
+                <enum>QFrame::Raised</enum>
+               </property>
+              </widget>
              </widget>
             </item>
            </layout>
@@ -1377,361 +1228,432 @@
        <attribute name="title">
         <string>Pipeline processor</string>
        </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
-         <widget class="QGroupBox" name="groupBox">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
+         <widget class="QSplitter" name="splitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
           </property>
-          <property name="font">
-           <font>
-            <weight>75</weight>
-            <bold>true</bold>
-           </font>
-          </property>
-          <property name="title">
-           <string>Pipeline processor options:</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_11">
-           <item row="1" column="0">
-            <widget class="QLabel" name="lbl_csv_file_name">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>CSV file name:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QToolButton" name="bt_pp_select_output_folder">
-             <property name="text">
-              <string>...</string>
-             </property>
-             <property name="icon">
-              <iconset resource="main_form.qrc">
-               <normaloff>:/common/resources/folder_blue.png</normaloff>:/common/resources/folder_blue.png</iconset>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QLineEdit" name="edt_csv_file_name"/>
-           </item>
-           <item row="7" column="0" colspan="3">
-            <layout class="QHBoxLayout" name="horizontalLayout_11">
-             <item>
-              <widget class="QCheckBox" name="cb_pp_generate_series_id">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>Generate series id</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <spacer name="horizontalSpacer_7">
-               <property name="orientation">
-                <enum>Qt::Horizontal</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>40</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_4">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>max delta from first image in series:</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QSpinBox" name="sp_pp_time_delta">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="maximum">
-                <number>10080</number>
-               </property>
-               <property name="value">
-                <number>20</number>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLabel" name="label_5">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <weight>50</weight>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="text">
-                <string>minutes</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-           <item row="8" column="0">
-            <widget class="QLabel" name="label_9">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Thread count:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="2">
-            <widget class="QLabel" name="lb_pp_thread_count">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>0</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="label_2">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Output folder:</string>
-             </property>
-            </widget>
-           </item>
-           <item row="8" column="1">
-            <widget class="QSlider" name="sl_pp_thread_count">
-             <property name="orientation">
-              <enum>Qt::Horizontal</enum>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="1">
-            <widget class="QLineEdit" name="le_pp_output_folder">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="readOnly">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="5" column="0" colspan="3">
-            <widget class="QGroupBox" name="groupBox_2">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="title">
-              <string>Pipeline:</string>
-             </property>
-             <property name="flat">
-              <bool>false</bool>
-             </property>
-             <layout class="QGridLayout" name="gridLayout_5">
-              <item row="2" column="3">
-               <widget class="QToolButton" name="bt_pp_clear_script">
+          <widget class="QWidget" name="">
+           <layout class="QVBoxLayout" name="verticalLayout_4">
+            <item>
+             <widget class="QGroupBox" name="groupBox_2">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="title">
+               <string>Pipeline:</string>
+              </property>
+              <property name="flat">
+               <bool>false</bool>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_5">
+               <item row="1" column="2">
+                <widget class="QToolButton" name="bt_pp_select_script">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="main_form.qrc">
+                   <normaloff>:/common/resources/List.png</normaloff>:/common/resources/List.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="2">
+                <widget class="QLabel" name="lb_pp_thread_count">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>0</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="1">
+                <widget class="QSlider" name="sl_pp_thread_count">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0">
+                <widget class="QLabel" name="label_9">
+                 <property name="sizePolicy">
+                  <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+                   <horstretch>0</horstretch>
+                   <verstretch>0</verstretch>
+                  </sizepolicy>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Thread count:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QRadioButton" name="rb_pp_load_script">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Pipeline</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0" colspan="4">
+                <widget class="QRadioButton" name="rb_pp_default_process">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Default process (script pipeline)</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="1">
+                <widget class="QTextBrowser" name="tb_pp_desc">
+                 <property name="maximumSize">
+                  <size>
+                   <width>16777215</width>
+                   <height>64</height>
+                  </size>
+                 </property>
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="font">
+               <font>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="title">
+               <string>Output options:</string>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_11">
+               <item row="1" column="1">
+                <widget class="QLineEdit" name="edt_csv_file_name"/>
+               </item>
+               <item row="1" column="0">
+                <widget class="QLabel" name="lbl_csv_file_name">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>CSV file name:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="2">
+                <widget class="QToolButton" name="bt_pp_select_output_folder">
+                 <property name="text">
+                  <string>...</string>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="main_form.qrc">
+                   <normaloff>:/common/resources/folder_blue.png</normaloff>:/common/resources/folder_blue.png</iconset>
+                 </property>
+                </widget>
+               </item>
+               <item row="6" column="0" colspan="3">
+                <layout class="QHBoxLayout" name="horizontalLayout_11">
+                 <item>
+                  <widget class="QCheckBox" name="cb_pp_generate_series_id">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>Generate series id</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="horizontalSpacer_7">
+                   <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                   </property>
+                   <property name="sizeHint" stdset="0">
+                    <size>
+                     <width>40</width>
+                     <height>20</height>
+                    </size>
+                   </property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_4">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>max delta from first image in series:</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QSpinBox" name="sp_pp_time_delta">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="maximum">
+                    <number>10080</number>
+                   </property>
+                   <property name="value">
+                    <number>20</number>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="label_5">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="font">
+                    <font>
+                     <weight>50</weight>
+                     <bold>false</bold>
+                    </font>
+                   </property>
+                   <property name="text">
+                    <string>minutes</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item row="0" column="1">
+                <widget class="QLineEdit" name="le_pp_output_folder">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="readOnly">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item row="0" column="0">
+                <widget class="QLabel" name="label_2">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Output folder:</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="4" column="0" colspan="3">
+                <widget class="QCheckBox" name="cb_pp_append_timestamp_to_output_folder">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Append timestamp to output folder</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="3" column="0" colspan="3">
+                <widget class="QCheckBox" name="cb_pp_append_experience_name">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Append experience name to output folder</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="2" column="0" colspan="3">
+                <widget class="QCheckBox" name="cb_pp_overwrite">
+                 <property name="font">
+                  <font>
+                   <weight>50</weight>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Overwrite existing files?</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QGridLayout" name="gridLayout_10">
+              <item row="0" column="0">
+               <widget class="QLabel" name="label_6">
                 <property name="text">
-                 <string>...</string>
-                </property>
-                <property name="icon">
-                 <iconset resource="main_form.qrc">
-                  <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
+                 <string>Images in queue (hover for more info)</string>
                 </property>
                </widget>
               </item>
-              <item row="1" column="0" colspan="4">
-               <widget class="QRadioButton" name="rb_pp_active_script">
+              <item row="0" column="1">
+               <widget class="QCheckBox" name="cb_queue_auto_scroll">
                 <property name="text">
-                 <string>Active script</string>
+                 <string>Auto scroll</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
-              <item row="0" column="0" colspan="4">
-               <widget class="QRadioButton" name="rb_pp_default_process">
-                <property name="text">
-                 <string>Default process</string>
-                </property>
-               </widget>
+              <item row="1" column="0" colspan="2">
+               <widget class="QListWidget" name="lw_images_queue"/>
               </item>
-              <item row="2" column="0">
-               <widget class="QRadioButton" name="rb_pp_load_script">
-                <property name="text">
-                 <string>Load script</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <widget class="QLineEdit" name="le_pp_selected_pipeline">
+             </layout>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <item>
+               <widget class="QPushButton" name="bt_pp_reset">
                 <property name="font">
                  <font>
                   <weight>50</weight>
                   <bold>false</bold>
                  </font>
                 </property>
-                <property name="readOnly">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="2">
-               <widget class="QToolButton" name="bt_pp_select_script">
                 <property name="text">
-                 <string>...</string>
+                 <string>Reset</string>
                 </property>
                 <property name="icon">
                  <iconset resource="main_form.qrc">
-                  <normaloff>:/common/resources/List.png</normaloff>:/common/resources/List.png</iconset>
+                  <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>944</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QPushButton" name="bt_pp_start">
+                <property name="minimumSize">
+                 <size>
+                  <width>100</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="font">
+                 <font>
+                  <pointsize>16</pointsize>
+                  <weight>75</weight>
+                  <bold>true</bold>
+                 </font>
+                </property>
+                <property name="text">
+                 <string>Start</string>
+                </property>
+                <property name="icon">
+                 <iconset resource="main_form.qrc">
+                  <normaloff>:/image_process/resources/Play.png</normaloff>:/image_process/resources/Play.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>24</width>
+                  <height>24</height>
+                 </size>
                 </property>
                </widget>
               </item>
              </layout>
-            </widget>
-           </item>
-           <item row="4" column="0" colspan="3">
-            <widget class="QCheckBox" name="cb_pp_append_timestamp_to_output_folder">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Append timestamp to output folder</string>
-             </property>
-            </widget>
-           </item>
-           <item row="3" column="0" colspan="3">
-            <widget class="QCheckBox" name="cb_pp_append_experience_name">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Append experience name to output folder</string>
-             </property>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="3">
-            <widget class="QCheckBox" name="cb_pp_overwrite">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Overwrite existing files?</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSplitter" name="splitter">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <widget class="QWidget" name="layoutWidget">
-           <layout class="QGridLayout" name="gridLayout_10">
-            <item row="0" column="0">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Images in queue (hover for more info)</string>
-              </property>
-             </widget>
-            </item>
-            <item row="0" column="1">
-             <widget class="QCheckBox" name="cb_queue_auto_scroll">
-              <property name="text">
-               <string>Auto scroll</string>
-              </property>
-              <property name="checked">
-               <bool>true</bool>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
-             <widget class="QListWidget" name="lw_images_queue"/>
             </item>
            </layout>
           </widget>
@@ -1747,70 +1669,6 @@
            </layout>
           </widget>
          </widget>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_3">
-          <item>
-           <widget class="QPushButton" name="bt_pp_reset">
-            <property name="font">
-             <font>
-              <weight>50</weight>
-              <bold>false</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Reset</string>
-            </property>
-            <property name="icon">
-             <iconset resource="main_form.qrc">
-              <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>944</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QPushButton" name="bt_pp_start">
-            <property name="minimumSize">
-             <size>
-              <width>100</width>
-              <height>0</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>16</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="text">
-             <string>Start</string>
-            </property>
-            <property name="icon">
-             <iconset resource="main_form.qrc">
-              <normaloff>:/image_process/resources/Play.png</normaloff>:/image_process/resources/Play.png</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>24</width>
-              <height>24</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-         </layout>
         </item>
        </layout>
       </widget>
@@ -1886,7 +1744,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>962</width>
+     <width>1294</width>
      <height>21</height>
     </rect>
    </property>
@@ -2005,7 +1863,6 @@
       <string>Debug</string>
      </property>
      <addaction name="action_use_multithreading"/>
-     <addaction name="action_use_pipeline_cache"/>
     </widget>
     <widget class="QMenu" name="menuPipeline_builder">
      <property name="title">
@@ -2034,39 +1891,6 @@
     <addaction name="menuCode_generation_mode"/>
     <addaction name="separator"/>
     <addaction name="mnu_debug"/>
-   </widget>
-   <widget class="QMenu" name="menu_script_generator">
-    <property name="title">
-     <string>Pipeline</string>
-    </property>
-    <widget class="QMenu" name="menuAdd_ROI">
-     <property name="title">
-      <string>Add ROI</string>
-     </property>
-     <addaction name="action_build_roi_with_raw_image"/>
-     <addaction name="action_build_roi_with_pre_processed_image"/>
-    </widget>
-    <addaction name="action_new_script"/>
-    <addaction name="action_load_script"/>
-    <addaction name="action_save_script"/>
-    <addaction name="action_save_as_python_script"/>
-    <addaction name="separator"/>
-    <addaction name="action_add_exposure_fixer"/>
-    <addaction name="action_add_white_balance_corrector"/>
-    <addaction name="actionAdd_white_balance_fixer"/>
-    <addaction name="actionAdd_channel_mask"/>
-    <addaction name="menuAdd_ROI"/>
-    <addaction name="actionSet_contour_cleaner"/>
-    <addaction name="action_add_feature_extractor"/>
-    <addaction name="action_add_image_generator"/>
-   </widget>
-   <widget class="QMenu" name="mnu_tools_root">
-    <property name="title">
-     <string>Tools</string>
-    </property>
-    <property name="toolTipsVisible">
-     <bool>true</bool>
-    </property>
    </widget>
    <widget class="QMenu" name="menu_help">
     <property name="title">
@@ -2103,8 +1927,6 @@
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_settings"/>
-   <addaction name="mnu_tools_root"/>
-   <addaction name="menu_script_generator"/>
    <addaction name="menu_data_editor"/>
    <addaction name="menu_view"/>
    <addaction name="menu_help"/>

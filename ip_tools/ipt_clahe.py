@@ -1,22 +1,29 @@
 import cv2
 
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_WHITE_BALANCE_STR, ensure_odd
+from ip_base.ip_common import (
+    TOOL_GROUP_PRE_PROCESSING_STR,
+    TOOL_GROUP_WHITE_BALANCE_STR,
+    ensure_odd,
+)
 
 
 class IptClahe(IptBase):
-
     def build_params(self):
-        self.add_color_space(default_value='HSV')
+        self.add_color_space(default_value="HSV")
         self.add_slider(
-            name='median_filter_size',
-            desc='Median filter size (odd values only)',
+            name="median_filter_size",
+            desc="Median filter size (odd values only)",
             default_value=0,
             minimum=0,
-            maximum=51
+            maximum=51,
         )
-        self.add_slider(name='clip_limit', desc='Clip limit', default_value=2, minimum=2, maximum=100)
-        self.add_slider(name='tile_grid_size', desc='Tile grid size', default_value=8, minimum=2, maximum=100)
+        self.add_slider(
+            name="clip_limit", desc="Clip limit", default_value=2, minimum=2, maximum=100
+        )
+        self.add_slider(
+            name="tile_grid_size", desc="Tile grid size", default_value=8, minimum=2, maximum=100
+        )
         self.add_text_overlay()
 
     def process_wrapper(self, **kwargs):
@@ -37,11 +44,11 @@ class IptClahe(IptBase):
         if wrapper is None:
             return False
 
-        clip_limit = self.get_value_of('clip_limit')
-        tile_grid_size = self.get_value_of('tile_grid_size')
-        color_space = self.get_value_of('color_space')
-        median_filter_size = self.get_value_of('median_filter_size')
-        text_overlay = self.get_value_of('text_overlay') == 1
+        clip_limit = self.get_value_of("clip_limit")
+        tile_grid_size = self.get_value_of("tile_grid_size")
+        color_space = self.get_value_of("color_space")
+        median_filter_size = self.get_value_of("median_filter_size")
+        text_overlay = self.get_value_of("text_overlay") == 1
 
         res = False
         try:
@@ -56,14 +63,18 @@ class IptClahe(IptBase):
                 src_img,
                 color_space=color_space,
                 clip_limit=(clip_limit, clip_limit, clip_limit),
-                tile_grid_size=(tile_grid_size, tile_grid_size)
+                tile_grid_size=(tile_grid_size, tile_grid_size),
             )
 
-            wrapper.store_image(self.result, f'CLAHE_{self.input_params_as_str()}', text_overlay=text_overlay)
+            wrapper.store_image(
+                self.result, f"CLAHE_{self.input_params_as_str()}", text_overlay=text_overlay
+            )
 
         except Exception as e:
             res = False
-            self._wrapper.error_holder.add_error(f'CLAHE FAILED, exception: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             res = True
         finally:
@@ -71,7 +82,7 @@ class IptClahe(IptBase):
 
     @property
     def name(self):
-        return 'CLAHE'
+        return "CLAHE"
 
     @property
     def real_time(self):
@@ -79,11 +90,11 @@ class IptClahe(IptBase):
 
     @property
     def result_name(self):
-        return 'image'
+        return "image"
 
     @property
     def output_kind(self):
-        return 'image'
+        return "image"
 
     @property
     def use_case(self):
@@ -91,4 +102,4 @@ class IptClahe(IptBase):
 
     @property
     def description(self):
-        return 'Contrast Limited Adaptive Histogram Equalization (CLAHE).\nEqualizes image using multiple histograms'
+        return "Contrast Limited Adaptive Histogram Equalization (CLAHE).\nEqualizes image using multiple histograms"

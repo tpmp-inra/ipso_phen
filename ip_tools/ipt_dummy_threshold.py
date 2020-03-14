@@ -37,7 +37,9 @@ class IptDummyThreshold(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f"Dummy threshold FAILED, exception: {repr(e)}")
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             pass
         finally:
@@ -69,5 +71,5 @@ class IptDummyThreshold(IptBase):
 
     @property
     def description(self):
-        return """Dummy threshold.\n
+        return """Dummy threshold.
         Pass through threshold, expects binary mask as entry"""

@@ -4,15 +4,19 @@ The rise in popularity of high throughput plant phenotyping facilities leads to 
 
 ## Introduction
 
-Toulouse Plant Microbe Phenotyping (TPMP) is a high throughput platform located on the INRA Occitanie-Toulouse campus in France. It has five camera groups in two robots settings taking pictures from the top or the side of the plant. Species studied to date have been *Marchantia*, *Arabidopsis*, *Medicago*, Tomato, Tobacco, Sunflower, Eucalyptus, Wheat and *Brachypodium*. This large amount of possible combinations generated the need for a tool to create, test and run analysis pipelines. After evaluating the software tools freely available, we created IPSO Phen, an all-in-one image processing toolbox.
+Toulouse Plant Microbe Phenotyping (TPMP) is a high throughput platform located on the INRA Occitanie-Toulouse campus in France. It has five camera groups in two robots settings taking pictures from the top or the side of the plant. Species studied to date have been _Marchantia_, _Arabidopsis_, _Medicago_, Tomato, Tobacco, Sunflower, Eucalyptus, Wheat and _Brachypodium_. This large amount of possible combinations generated the need for a tool to create, test and run analysis pipelines. After evaluating the software tools freely available, we created IPSO Phen, an all-in-one image processing toolbox.
 IPSO Phen groups in a single interface around fifty different image-processing tools that can be combined into pipelines. The settings of both tools and pipelines can be thoroughly tested on fixed or random sets of images from the experiments. IPSO Phen can access images either from a file system or through a database.
 
 ## [Image processing tools](tools.md)
 
 ![Image processing tool](images/md_image_2.jpg)
 IPSO Phen comes with a variety of image-processing tools that belong to different categories such as pre-processing, threshold, segmentation, feature extraction, etc… Each tool generates its own interface to customize and test its settings.  
-Among the available tools, there is an image pre-processor based on Otsu’s  automatic clustering-based threshold method, various classic threshold methods and an advanced contour cleaning tool able to remove noise while keeping split contours.  
-Each tool can be used directly in a Python script by copying and pasting the code generated in the "code" tab next to the "Help" tab.
+Among the available tools, there is an image pre-processor based on Otsu’s automatic clustering-based threshold method, various classic threshold methods and an advanced contour cleaning tool able to remove noise while keeping split contours.  
+Next to the tool selector, the question mark button displays a help window for the selected tool and next to it the "Show code" button shows the code that can be pasted directly into a python script.
+
+## [Pipelines](pipelines.md)
+
+The user can arrange any number of image processing tools into a customizable pipeline that can be fully edited, saved and restored for later usage. Pipelines can also arrange a series of tools into groups if needed. More on pipelines and groups [here](pipelines.md).
 
 ## [Testing](testing.md)
 
@@ -20,21 +24,13 @@ At any point, the user can choose to test the current tool or pipeline configura
 
 ## [Grid search](grid_search.md)
 
-The grid search allows the exploration of a whole solution space defined by a customized range for each setting. It is an easy way to check a large amount of settings with just one click. The results  can be reviewed on the user interface or be converted into a video.
-
-## [Pipelines](pipelines.md)
-
-The user can arrange any number of image processing tools into a customizable pipeline (Image below) that can be fully edited, saved and restored for later usage. Before executing the pipeline (IPSO Phen supports parallel execution) the user may select which features to extract from images. Once the process ends, IPSO Phen generates a CSV file.
+The grid search allows the exploration of a whole solution space defined by a customized range for each setting. It is an easy way to check a large amount of settings with just one click. The results can be reviewed on the user interface or be converted into a video. Grid search options can be accessed from every tool added to a pipeline.
 
 ## Advanced features
 
-### [Script pipelines](pipelines.md)
-
-For advanced Python users there is also the possibility to generate fully functional Python script reproducing the behavior of the pipeline, this allows customization in any way needed.
-
 ### [Class pipelines](class_pipelines.md)
 
-Also for advanced python users. Class pipelines can be automatically selected by the program when using the default tool. They allow the same level of customization than script pipelines.
+For advanced python users. Class pipelines can be automatically selected by the program when using the default tool. They allow the same level of customization than script pipelines. These class pipelines are scripts manually created by the user.
 
 ### [Adding tools](custom_tools.md)
 

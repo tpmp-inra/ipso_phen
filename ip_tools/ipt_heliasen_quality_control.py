@@ -33,6 +33,7 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             if self.get_value_of("enabled") == 1:
                 img = wrapper.current_image
                 mask = self.get_mask()
@@ -303,7 +304,7 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                f"Heliasen Quality Control FAILED, exception: {repr(e)}"
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
             )
         else:
             pass
@@ -336,6 +337,6 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return """Needs vertical and horizontal noise removal before been called.\n
-        Checks light barrier image quality.\n
+        return """Needs vertical and horizontal noise removal before been called.
+        Checks light barrier image quality.
         Outputs main error and partial errors."""
