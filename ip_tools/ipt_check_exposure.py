@@ -126,6 +126,7 @@ class IptExposureChecker(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             text_overlay = self.get_value_of("text_overlay") == 1
             br_dict = None
@@ -248,7 +249,9 @@ class IptExposureChecker(IptBaseAnalyzer):
             res = True
 
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -273,7 +276,7 @@ class IptExposureChecker(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [TOOL_GROUP_PRE_PROCESSING_STR]
 
     @property
     def description(self):

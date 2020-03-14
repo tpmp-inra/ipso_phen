@@ -46,6 +46,8 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
             if not self.has_key_matching("chlorophyll"):
                 return
 
+            self.data_dict = {}
+
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -59,17 +61,16 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
                 + (-0.0030 * b * 1.04115226337449)
                 + 5.780
             )
-            if wrapper.store_images:
-                calc_img = self.to_uint8(cv2.bitwise_and(c, c, mask=mask), normalize=True)
-                pseudo = wrapper.draw_image(
-                    src_image=img,
-                    channel=calc_img,
-                    background=self.get_value_of("background"),
-                    foreground="false_colour",
-                    color_map=self.get_value_of("color_map"),
-                )
-                wrapper.store_image(pseudo, "pseudo_chlorophyll_on_img")
-                wrapper.store_image(calc_img, "chlorophyll_calculated")
+            calc_img = self.to_uint8(cv2.bitwise_and(c, c, mask=mask), normalize=True)
+            self.demo_image = wrapper.draw_image(
+                src_image=img,
+                channel=calc_img,
+                background=self.get_value_of("background"),
+                foreground="false_colour",
+                color_map=self.get_value_of("color_map"),
+            )
+            wrapper.store_image(calc_img, "chlorophyll_calculated")
+            wrapper.store_image(self.demo_image, "pseudo_chlorophyll_on_img")
             tmp_tuple = cv2.meanStdDev(
                 c.reshape(c.shape[1] * c.shape[0]),
                 mask=mask.reshape(mask.shape[1] * mask.shape[0]),
@@ -77,7 +78,9 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
             self.add_value(key="chlorophyll_mean", value=tmp_tuple[0][0][0])
             self.add_value(key="chlorophyll_std_dev", value=tmp_tuple[1][0][0])
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             res = True

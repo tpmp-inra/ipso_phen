@@ -8,12 +8,10 @@ If you have an idea for a new image processing tool or you want to port an alrea
 We're going to build a really simple tool that rotates an image
 
 !!! warning
-    Before creating your own tools set 
-    ```python
-    USE_PROCESS_THREAD = False
-    ```
-    in *ui_consts.py*.
-    Otherwise you will not be able to debug your tool
+    Before creating your own tools set
+`python USE_PROCESS_THREAD = False`
+in _ui_consts.py_.
+Otherwise you will not be able to debug your tool
 
 ## Some rules about tools that I think should be respected
 
@@ -25,12 +23,11 @@ We're going to build a really simple tool that rotates an image
 
 - Each tool must have a help page, it can be generated from within the app.
 - Each tool must come with a test script, it can also be generated from the app.
-- The process_wrapper method must have a doc string, you can copy the contents of the *help tab* as seen below.
-
+- The process_wrapper method must have a doc string, you can copy the contents of the _help tab_ as seen below.
 
 ## Create the skeleton
 
-In the main menu select *File/New tool*, a wizard form should appear, cf. image below.  
+In the main menu select _File/New tool_, a wizard form should appear, cf. image below.  
 ![New tool wizard](images/custom_tools_wizard.jpg)  
 We fill the wizard as follows:
 
@@ -131,8 +128,8 @@ Now we're just going to add some code to the main method to actually rotate the 
 
 !!! tip
     Don't forget to add any needed import.  
-    For instance, here we use OpenCV which is imported with  
-    import cv2  
+    For instance, here we use OpenCV which is imported with      
+    import cv2
 
 ```python
 def process_wrapper(self, **kwargs):
@@ -188,7 +185,7 @@ def process_wrapper(self, **kwargs):
 
 !!! info
     **Debugging custom tools**:  
-    All tools are processed in a different thread which the Python debugger can't see. In order to be able to set breakpoints you must disable multi threading by changing the value of *USE_PROCESS_THREAD* to False in *ui_consts.py*.
+    All tools are processed in a different thread which the Python debugger can't see. In order to be able to set breakpoints you must disable multi threading by changing the value of _USE_PROCESS_THREAD_ to False in _ui_consts.py_.
 
 !!! warning
     **DO NOT FORGET** to set it back to true afterwards
@@ -197,7 +194,7 @@ def process_wrapper(self, **kwargs):
 
 The next time you launch IPSO Phen you should have:
 
-### The *Rotate* tool available for selection with its UI
+### The _Rotate_ tool available for selection with its UI
 
 ![Result image](images/custom_tools_ui.jpg)
 
@@ -205,7 +202,7 @@ The next time you launch IPSO Phen you should have:
 
 ![Result image](images/custom_tools_help.jpg)
 
-### The code generation should update itself when you change the tool 
+### The code generation should update itself when you change the tool
 
 ![Result image](images/custom_tools_code.jpg)
 
@@ -217,10 +214,10 @@ But most importantly, the tool should work.
 
 ### Generating the mark down documentation
 
-Click on *Help/Build tool documentation* to create a help file. All tool help files follow the same structure, when you click on *Build tool documentation*, the source image and the image on the output panel are used to generate the help. 
+Click on _Help/Build tool documentation_ to create a help file. All tool help files follow the same structure, when you click on _Build tool documentation_, the source image and the image on the output panel are used to generate the help.
 
-And then you can click on the menu item below to update IPSO Phen documentation so your tool will be included in the *Tools* section.
+And then you can click on the menu item below to update IPSO Phen documentation so your tool will be included in the _Tools_ section.
 
 ### Generating test script
 
-Click on *Help/Build test files* to generate all missing test scripts. A fully functioning script wil be generated for the new tool, no existing scripts will be overwritten.
+Click on _Help/Build test files_ to generate all missing test scripts. A fully functioning script wil be generated for the new tool, no existing scripts will be overwritten.

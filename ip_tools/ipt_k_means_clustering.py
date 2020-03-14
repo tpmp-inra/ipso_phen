@@ -175,7 +175,9 @@ class IptKMeansClustering(IptBase):
 
             wrapper.store_image(self.result, "k_means_cluster")
         except Exception as e:
-            wrapper.error_holder.add_error(f"K-means clustering FAILED, exception: {repr(e)}")
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             res = True
         finally:

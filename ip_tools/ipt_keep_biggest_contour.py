@@ -3,32 +3,31 @@ from ip_base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
 
 
 class IptKeepBiggestContours(IptBase):
-
     def build_params(self):
         self.add_combobox(
-            name='root_position',
-            desc='Root contour position',
-            default_value='BOTTOM_CENTER',
+            name="root_position",
+            desc="Root contour position",
+            default_value="BOTTOM_CENTER",
             values=dict(
-                TOP_LEFT='TOP_LEFT',
-                TOP_CENTER='TOP_CENTER',
-                TOP_RIGHT='TOP_RIGHT',
-                MIDDLE_LEFT='MIDDLE_LEFT',
-                MIDDLE_CENTER='MIDDLE_CENTER',
-                MIDDLE_RIGHT='MIDDLE_RIGHT',
-                BOTTOM_LEFT='BOTTOM_LEFT',
-                BOTTOM_CENTER='BOTTOM_CENTER',
-                BOTTOM_RIGHT='BOTTOM_RIGHT'
-            )
+                TOP_LEFT="TOP_LEFT",
+                TOP_CENTER="TOP_CENTER",
+                TOP_RIGHT="TOP_RIGHT",
+                MIDDLE_LEFT="MIDDLE_LEFT",
+                MIDDLE_CENTER="MIDDLE_CENTER",
+                MIDDLE_RIGHT="MIDDLE_RIGHT",
+                BOTTOM_LEFT="BOTTOM_LEFT",
+                BOTTOM_CENTER="BOTTOM_CENTER",
+                BOTTOM_RIGHT="BOTTOM_RIGHT",
+            ),
         )
         self.add_slider(
-            name='dilation_iter',
-            desc='Erosion/dilation iterations (kernel size 3)',
+            name="dilation_iter",
+            desc="Erosion/dilation iterations (kernel size 3)",
             default_value=0,
             minimum=-100,
-            maximum=100
+            maximum=100,
         )
-        self.add_channel_selector(default_value='l', desc='Pseudo color channel')
+        self.add_channel_selector(default_value="l", desc="Pseudo color channel")
 
     def process_wrapper(self, **kwargs):
         """
@@ -47,9 +46,9 @@ class IptKeepBiggestContours(IptBase):
         if wrapper is None:
             return False
 
-        root_position = self.get_value_of('root_position')
-        dilation_iter = self.get_value_of('dilation_iter')
-        channel = self.get_value_of('channel')
+        root_position = self.get_value_of("root_position")
+        dilation_iter = self.get_value_of("dilation_iter")
+        channel = self.get_value_of("channel")
 
         try:
             img = self.extract_source_from_args()
@@ -64,26 +63,28 @@ class IptKeepBiggestContours(IptBase):
                 src_image=wrapper.current_image,
                 src_mask=mask,
                 dilation_iter=dilation_iter,
-                root_position=root_position
+                root_position=root_position,
             )
-            wrapper.store_image(self.result, f'KLC_mask_{params_as_str}', text_overlay=True)
-            wrapper.store_image(self.result, 'mask', text_overlay=False)
+            wrapper.store_image(self.result, "mask", text_overlay=False)
 
-            res_img = wrapper.draw_image(channel=channel, background='source')
-            wrapper.store_image(res_img, f'KLC_{channel}_{params_as_str}', text_overlay=True)
+            res_img = wrapper.draw_image(channel=channel, background="source")
+            wrapper.store_image(res_img, "keep_linked_contours", text_overlay=True)
+            self.demo_image = res_img
 
             res = wrapper.ensure_mask_zone()
             if not res:
-                wrapper.error_holder.add_error('HANDLED FAILURE Mask not where expected to be')
+                wrapper.error_holder.add_error("HANDLED FAILURE Mask not where expected to be")
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed keep linked contours: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             return False
         else:
             return res
 
     @property
     def name(self):
-        return 'Keep Biggest Contours'
+        return "Keep Biggest Contours"
 
     @property
     def real_time(self):
@@ -91,11 +92,11 @@ class IptKeepBiggestContours(IptBase):
 
     @property
     def result_name(self):
-        return 'mask'
+        return "mask"
 
     @property
     def output_kind(self):
-        return 'mask'
+        return "mask"
 
     @property
     def use_case(self):

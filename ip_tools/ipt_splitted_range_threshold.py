@@ -1,7 +1,8 @@
 import numpy as np
 
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import all_colors_dict
+import ip_base.ip_common as ipc
+import tools.error_holder as eh
 
 
 class IptSplittedRangeThreshold(IptBase):
@@ -109,43 +110,34 @@ class IptSplittedRangeThreshold(IptBase):
                 )
 
                 # Build inside mask
-                inside_mask, stored_name = wrapper.get_mask(
+                inside_mask, _ = wrapper.get_mask(
                     src_img=img,
                     channel=self.get_value_of("channel"),
                     min_t=self.get_value_of("min_inside_t"),
                     max_t=self.get_value_of("max_inside_t"),
                     median_filter_size=self.get_value_of("median_filter_size"),
                 )
-                wrapper.store_image(image=inside_mask, text=stored_name)
-                inside_mask = wrapper.keep_rois(
-                    src_mask=inside_mask, tags=rois, dbg_str="cleaned_inside_mask", print_rois=True
-                )
+                inside_mask = wrapper.keep_rois(src_mask=inside_mask, tags=rois)
+                wrapper.store_image(image=inside_mask, text="inside_mask")
 
                 # Build outside mask
-                outside_mask, stored_name = wrapper.get_mask(
+                outside_mask, _ = wrapper.get_mask(
                     src_img=img,
                     channel=self.get_value_of("channel"),
                     min_t=self.get_value_of("min_outside_t"),
                     max_t=self.get_value_of("max_outside_t"),
                     median_filter_size=self.get_value_of("median_filter_size"),
                 )
-                wrapper.store_image(image=outside_mask, text=stored_name)
-                outside_mask = wrapper.delete_rois(
-                    src_mask=outside_mask,
-                    tags=rois,
-                    dbg_str="cleaned_outside_mask",
-                    print_rois=True,
-                )
+                outside_mask = wrapper.delete_rois(src_mask=outside_mask, tags=rois)
+                wrapper.store_image(image=outside_mask, text="outside_mask")
 
                 # Merge masks
-                self.result = wrapper.multi_or(
-                    image_list=(inside_mask, outside_mask), print_intermediate=False
-                )
+                self.result = wrapper.multi_or(image_list=(inside_mask, outside_mask))
                 self.result = self.apply_morphology_from_params(self.result)
 
                 bck_color = self.get_value_of(key="background_color")
                 if bck_color != "none":
-                    bck_color = all_colors_dict[bck_color]
+                    bck_color = ipc.all_colors_dict[bck_color]
                     masked_image = wrapper.draw_image(
                         src_image=wrapper.current_image, src_mask=self.result, background=bck_color
                     )
@@ -171,6 +163,7 @@ class IptSplittedRangeThreshold(IptBase):
                     )
                 else:
                     wrapper.store_image(main_image, main_result_name, text_overlay=text_overlay)
+                self.demo_image = main_image
 
                 if self.get_value_of("build_mosaic") == 1:
                     canvas = wrapper.build_mosaic(
@@ -185,7 +178,7 @@ class IptSplittedRangeThreshold(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                f"Splitted range threshold FAILED, exception: {repr(e)}"
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
             )
         else:
             pass
@@ -218,5 +211,5 @@ class IptSplittedRangeThreshold(IptBase):
 
     @property
     def description(self):
-        return """Performs range threshold with two sets of borders applied inside and outside of linked ROIs.\n
+        return """Performs range threshold with two sets of borders applied inside and outside of linked ROIs.
         If no ROIs are provided, all image will be considered within ROI."""

@@ -68,6 +68,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
@@ -115,41 +116,43 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                     force_add=self.get_value_of("override_shape_height"),
                 )
 
-                if wrapper.store_images:
-                    pseudo_color_channel = self.get_value_of("channel")
-                    c = wrapper.get_channel(src_img=img, channel=pseudo_color_channel)
-                    background_img = np.dstack((c, c, c))
-                    p_img = wrapper.draw_image(
-                        src_image=background_img,
-                        channel=pseudo_color_channel,
-                        src_mask=mask,
-                        foreground="false_colour",
-                        background="source",
-                        normalize_before=True,
-                        color_map=cv2.COLORMAP_SUMMER,
-                        roi=roi_top,
-                        centroid_width=10,
-                        height_thickness=4,
-                        width_thickness=4,
-                    )
-                    p_img = wrapper.draw_image(
-                        src_image=p_img,
-                        channel=pseudo_color_channel,
-                        src_mask=mask,
-                        foreground="false_colour",
-                        background="source",
-                        normalize_before=False,
-                        color_map=cv2.COLORMAP_HOT,
-                        roi=roi_bottom,
-                        centroid_width=10,
-                        height_thickness=4,
-                        width_thickness=4,
-                    )
-                    cv2.line(p_img, (0, line_position), (wrapper.width, line_position), C_RED, 3)
-                    wrapper.store_image(p_img, "bounds")
+                pseudo_color_channel = self.get_value_of("channel")
+                c = wrapper.get_channel(src_img=img, channel=pseudo_color_channel)
+                background_img = np.dstack((c, c, c))
+                p_img = wrapper.draw_image(
+                    src_image=background_img,
+                    channel=pseudo_color_channel,
+                    src_mask=mask,
+                    foreground="false_colour",
+                    background="source",
+                    normalize_before=True,
+                    color_map=cv2.COLORMAP_SUMMER,
+                    roi=roi_top,
+                    centroid_width=10,
+                    height_thickness=4,
+                    width_thickness=4,
+                )
+                p_img = wrapper.draw_image(
+                    src_image=p_img,
+                    channel=pseudo_color_channel,
+                    src_mask=mask,
+                    foreground="false_colour",
+                    background="source",
+                    normalize_before=False,
+                    color_map=cv2.COLORMAP_HOT,
+                    roi=roi_bottom,
+                    centroid_width=10,
+                    height_thickness=4,
+                    width_thickness=4,
+                )
+                cv2.line(p_img, (0, line_position), (wrapper.width, line_position), C_RED, 3)
+                self.demo_image = p_img
+                wrapper.store_image(p_img, "bounds")
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -182,7 +185,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return """Analyses object bound.\n
-        Needs a mask as an input.\n
+        return """Analyses object bound.
+        Needs a mask as an input.
         Normally used in a pipeline after a clean mask is created.
         """

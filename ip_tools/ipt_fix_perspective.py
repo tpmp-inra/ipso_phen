@@ -5,34 +5,7 @@ from skimage import measure
 import cv2
 
 from ip_base.ipt_abstract import IptBase
-
-
-def grab_contours(cnts):
-    # if the length the contours tuple returned by cv2.findContours
-    # is '2' then we are using either OpenCV v2.4, v4-beta, or
-    # v4-official
-    if len(cnts) == 2:
-        cnts = cnts[0]
-
-    # if the length of the contours tuple is '3' then we are using
-    # either OpenCV v3, v4-pre, or v4-alpha
-    elif len(cnts) == 3:
-        cnts = cnts[1]
-
-    # otherwise OpenCV has changed their cv2.findContours return
-    # signature yet again and I have no idea WTH is going on
-    else:
-        raise Exception(
-            (
-                "Contours tuple must have length 2 or 3, "
-                "otherwise OpenCV changed their cv2.findContours return "
-                "signature yet again. Refer to OpenCV's documentation "
-                "in that case"
-            )
-        )
-
-    # return the actual contours array
-    return cnts
+import ip_base.ip_common as ipc
 
 
 def sort_contours(cnts, method="left-to-right"):
@@ -301,8 +274,9 @@ class IptFixPerspective(IptBase):
                 mask = dots_mask
                 # find the contours in the mask, then sort them from left to
                 # right
-                cnts = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                cnts = grab_contours(cnts)
+                cnts = ipc.get_contours(
+                    mask=mask, retrieve_mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
+                )
                 cnts = sort_contours(cnts)[0]
 
                 # loop over the contours
@@ -403,7 +377,9 @@ class IptFixPerspective(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f"Fix perspective FAILED, exception: {repr(e)}")
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
         else:
             pass
         finally:
@@ -435,7 +411,7 @@ class IptFixPerspective(IptBase):
 
     @property
     def description(self):
-        return """Fixes perspective using four dots to detect rectangle boundary.\n
+        return """Fixes perspective using four dots to detect rectangle boundary.
         Use the included threshold utility to detect the dots."""
 
     @property

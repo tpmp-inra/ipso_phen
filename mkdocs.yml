@@ -14,7 +14,6 @@ nav:
 - Home: index.md
 - Installation: installation.md
 - First steps: first_steps.md
-- Samples: samples.md
 - User interface: user_interface.md
 - Tools:
   - Overview (by category): tools.md
@@ -25,6 +24,8 @@ nav:
     - Analyze color: ipt_Analyze_color.md
     - Analyze object: ipt_Analyze_object.md
     - Annulus ROI: ipt_Annulus_ROI.md
+    - Apply ROI: ipt_Apply_ROI.md
+    - Assert mask position: ipt_Assert_mask_position.md
     - Augment data: ipt_Augment_data.md
     - Calculate chlorophyll: ipt_Calculate_chlorophyll.md
     - Channel mixer: ipt_Channel_mixer.md
@@ -88,10 +89,10 @@ nav:
     - Triangle threshold: ipt_Triangle_threshold.md
 - Testing: testing.md
 - Using the grid search: grid_search.md
-- Tutorial - Pipelines: pipelines.md
+- Pipelines: pipelines.md
 - Pipeline processor: pipeline_processor.md
+- Samples: samples.md
 - Advanced features:
   - Creating custom tools: custom_tools.md
-  - Script pipelines: script_pipelines.md
   - Class pipelines: class_pipelines.md
   - File handlers: file_handlers.md

@@ -7,16 +7,27 @@ from ip_base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
 
 
 class IptImageStats(IptBaseAnalyzer):
-
     def build_params(self):
-        self.add_source_selector(default_value='source')
-        self.add_color_space(default_value='LAB')
-        self.add_text_output(is_single_line=True, name='channel_1_avg', desc='-', default_value='-')
-        self.add_text_output(is_single_line=True, name='channel_1_std', desc='-', default_value='-')
-        self.add_text_output(is_single_line=True, name='channel_2_avg', desc='-', default_value='-')
-        self.add_text_output(is_single_line=True, name='channel_2_std', desc='-', default_value='-')
-        self.add_text_output(is_single_line=True, name='channel_3_avg', desc='-', default_value='-')
-        self.add_text_output(is_single_line=True, name='channel_3_std', desc='-', default_value='-')
+        self.add_source_selector(default_value="source")
+        self.add_color_space(default_value="LAB")
+        self.add_text_output(
+            is_single_line=True, name="channel_1_avg", desc="-", default_value="-"
+        )
+        self.add_text_output(
+            is_single_line=True, name="channel_1_std", desc="-", default_value="-"
+        )
+        self.add_text_output(
+            is_single_line=True, name="channel_2_avg", desc="-", default_value="-"
+        )
+        self.add_text_output(
+            is_single_line=True, name="channel_2_std", desc="-", default_value="-"
+        )
+        self.add_text_output(
+            is_single_line=True, name="channel_3_avg", desc="-", default_value="-"
+        )
+        self.add_text_output(
+            is_single_line=True, name="channel_3_std", desc="-", default_value="-"
+        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -41,50 +52,59 @@ class IptImageStats(IptBaseAnalyzer):
 
         res = False
         try:
-            color_space = self.get_value_of('color_space')
+            self.data_dict = {}
+            color_space = self.get_value_of("color_space")
 
-            if color_space == 'HSV':
+            if color_space == "HSV":
                 channels = CHANNELS_BY_SPACE[HSV]
-            elif color_space == 'LAB':
+            elif color_space == "LAB":
                 channels = CHANNELS_BY_SPACE[LAB]
-            elif color_space == 'RGB':
+            elif color_space == "RGB":
                 channels = CHANNELS_BY_SPACE[RGB]
             else:
                 return
 
-            img = self.extract_source_from_args(ignore_list=('color_space',))
-            wrapper.store_image(img, 'used_source')
+            img = self.extract_source_from_args(ignore_list=("color_space",))
+            wrapper.store_image(img, "used_source")
 
             text_overlay = []
             for i, channel in enumerate(channels):
                 cc = wrapper.get_channel(img, channel=channel)
-                wrapper.store_image(cc, f'c{i+1}')
+                wrapper.store_image(cc, f"c{i+1}")
                 avg_, std_ = wrapper.get_channel_stats(channel=cc)
-                p_avg = self.find_by_name(f'channel_{i+1}_avg')
+                p_avg = self.find_by_name(f"channel_{i+1}_avg")
                 p_avg.update_output(
-                    label_text=f'Average pixel value for {get_hr_channel_name(channel)}', output_value=f'{avg_:.2f}'
+                    label_text=f"Average pixel value for {get_hr_channel_name(channel)}",
+                    output_value=f"{avg_:.2f}",
                 )
-                self.add_value(f'Average pixel value for {get_hr_channel_name(channel)}', f'{avg_:.2f}', True)
-                text_overlay.append(f'Avg value: {get_hr_channel_name(channel)}: {avg_:.2f}')
-                p_std = self.find_by_name(f'channel_{i+1}_std')
+                self.add_value(
+                    f"Average pixel value for {get_hr_channel_name(channel)}", f"{avg_:.2f}", True
+                )
+                text_overlay.append(f"Avg value: {get_hr_channel_name(channel)}: {avg_:.2f}")
+                p_std = self.find_by_name(f"channel_{i+1}_std")
                 p_std.update_output(
-                    label_text=f'Standard deviation for {get_hr_channel_name(channel)}', output_value=f'{std_}'
+                    label_text=f"Standard deviation for {get_hr_channel_name(channel)}",
+                    output_value=f"{std_}",
                 )
-                self.add_value(f'Standard deviation for {get_hr_channel_name(channel)}', f'{std_}', True)
-                text_overlay.append(f'Std value: {get_hr_channel_name(channel)}: {std_:.2f}')
-            text_overlay = '\n'.join(text_overlay)
+                self.add_value(
+                    f"Standard deviation for {get_hr_channel_name(channel)}", f"{std_}", True
+                )
+                text_overlay.append(f"Std value: {get_hr_channel_name(channel)}: {std_:.2f}")
+            text_overlay = "\n".join(text_overlay)
 
-            _mosaic_data = np.array([['c1', 'c2'], ['used_source', 'c3']])
+            _mosaic_data = np.array([["c1", "c2"], ["used_source", "c3"]])
             h, w = img.shape[:2]
             w *= 2
             h *= 2
             canvas = wrapper.build_mosaic((h, w, 3), _mosaic_data)
-            wrapper.store_image(canvas, 'mosaic_out', text_overlay=text_overlay)
+            wrapper.store_image(canvas, "mosaic_out", text_overlay=text_overlay)
 
             res = True
 
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -94,7 +114,7 @@ class IptImageStats(IptBaseAnalyzer):
 
     @property
     def name(self):
-        return 'Image statistics'
+        return "Image statistics"
 
     @property
     def real_time(self):
@@ -102,11 +122,11 @@ class IptImageStats(IptBaseAnalyzer):
 
     @property
     def result_name(self):
-        return 'none'
+        return "none"
 
     @property
     def output_kind(self):
-        return 'none'
+        return "none"
 
     @property
     def use_case(self):
@@ -114,4 +134,4 @@ class IptImageStats(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return 'Displays image color statistics'
+        return "Displays image color statistics"

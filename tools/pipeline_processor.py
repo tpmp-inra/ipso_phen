@@ -332,10 +332,10 @@ class PipelineProcessor:
                 del files_to_process[i]
                 results_list_.append(fl)
                 if self.log_item is not None:
-                    self.log_item(img_wrapper.luid, 'success', '', False)
+                    self.log_item(img_wrapper.luid, "success", "", False)
             else:
                 if self.log_item is not None:
-                    self.log_item(img_wrapper.luid, 'refresh', '', False)
+                    self.log_item(img_wrapper.luid, "refresh", "", False)
                 i += 1
             self.update_progress(
                 iteration=cpt, total=total, prefix="Checking completed tasks:", suffix="Complete"
@@ -347,7 +347,7 @@ class PipelineProcessor:
                 log_message="Already analyzed files: <ul>"
                 + "".join(f"<li>{s}</li>" for s in results_list_)
                 + "</ul>"
-            )            
+            )
         else:
             res = self.log_state(
                 status_message="Completed files checked",
@@ -367,44 +367,9 @@ class PipelineProcessor:
             total = len(csv_lst)
             start_idx = 0
             self.update_progress(iteration=0, total=1)
-            while start_idx < total:
-                try:
-                    df = pd.read_csv(csv_lst[start_idx])
-                except Exception as e:
-                    self.log_state(
-                        status_message="Merge error",
-                        error_holder=ErrorHolder(
-                            self,
-                            (
-                                dict(
-                                    text=f'Failed to merge text for : "{csv_lst[start_idx]}" because {repr(e)}',
-                                    type="merge_error",
-                                ),
-                            ),
-                        ),
-                    )
-                    self.update_progress(
-                        iteration=start_idx,
-                        total=total,
-                        prefix="Merging CSV files:",
-                        suffix="Complete",
-                    )
-                else:
-                    break
-            start_idx += 1
-            if df is None:
-                self.log_state(
-                    status_message="Merge failed",
-                    error_holder=ErrorHolder(
-                        self,
-                        (
-                            dict(text=f"Failed to merge result files", type="merge_error"),
-                            dict(text=f"No csv starting file was found", type="merge_error"),
-                        ),
-                    ),
-                )
-                return None
-            for i, csv_file in enumerate(csv_lst[start_idx:]):
+
+            df = pd.DataFrame()
+            for i, csv_file in enumerate(csv_lst):
                 try:
                     df = df.append(pd.read_csv(csv_file))
                 except Exception as e:
@@ -449,7 +414,7 @@ class PipelineProcessor:
             sort_list = ["plant"] if "plant" in list(df.columns) else []
             sort_list = sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
             if sort_list:
-                df.sort_values(by=sort_list, axis=0, inplace=True, na_position='first')
+                df.sort_values(by=sort_list, axis=0, inplace=True, na_position="first")
 
             df.reset_index(drop=True, inplace=True)
 

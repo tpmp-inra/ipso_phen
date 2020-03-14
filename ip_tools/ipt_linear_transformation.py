@@ -122,6 +122,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
 
         res = False
         try:
+            self.data_dict = {}
             img = self.extract_source_from_args()
             if self.get_value_of("enabled") == 1:
                 method = self.get_value_of("method")
@@ -259,7 +260,9 @@ class IptLinearTransformation(IptBaseAnalyzer):
                 res = True
 
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed : "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+            )
             res = False
         else:
             pass
@@ -286,7 +289,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
     def use_case(self):
         return [
             TOOL_GROUP_PRE_PROCESSING_STR,
-            TOOL_GROUP_FEATURE_EXTRACTION_STR,
             TOOL_GROUP_EXPOSURE_FIXING_STR,
         ]
 

@@ -3,6 +3,7 @@ import cv2
 
 from ip_base.ipt_abstract import IptBase
 from tools.regions import RectangleRegion
+import ip_base.ip_common as ipc
 
 
 class IptFixWhiteBalanceWithRoi(IptBase):
@@ -71,7 +72,7 @@ class IptFixWhiteBalanceWithRoi(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                f"Fix white balance with ROI FAILED, exception: {repr(e)}"
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
             )
         else:
             pass
@@ -100,12 +101,11 @@ class IptFixWhiteBalanceWithRoi(IptBase):
 
     @property
     def use_case(self):
-        return ["Exposure fixing", "Pre processing"]
+        return [ipc.TOOL_GROUP_WHITE_BALANCE_STR]
 
     @property
     def description(self):
-        return """
-        Fixes image white balance from ROI that is supposed to be white.
+        return """ Fixes image white balance from ROI that is supposed to be white.
         ROI must be present in pipeline.
         ROIs must be of type 'keep' or 'delete'.
         Only static ROIs are allowed."""
