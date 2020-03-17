@@ -99,6 +99,7 @@ class IptKeepCountoursNearRois(IptBase):
                     )
 
         self.wrapper.store_image(canvas, image_name)
+        return canvas
 
     def process_wrapper(self, **kwargs):
         """
@@ -112,15 +113,19 @@ class IptKeepCountoursNearRois(IptBase):
             * Activate tool (enabled): Toggle whether or not tool is active
             * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
             * ROI selection mode (roi_selection_mode):
-            * Maximum distance to ROI (init_max_distance): Maximum distance to add a contour on initialization phase.
+            * Maximum distance to ROI (init_max_distance):
+                    Maximum distance to add a contour on initialization phase.
                     If distance is >0, ROIs will dilated with a kernel of size distance.
             * Minimum contour size (init_min_size): Minimum accepted size for a contour on initialization phase
-            * Delete all contours smaller than (delete_all_bellow): All contours below this size will be permanently ignored.
+            * Delete all contours smaller than (delete_all_bellow):
+                    All contours below this size will be permanently ignored.
                     The more smaller contours are delete, the faster the algorithm
             * Merge distance for root contours (root_merge_distance):
-            * Aggregate small contours inside ROIs distance (small_contours_distance_tolerance): Aggregate small contours inside ROIs if closer than x to any root contour.
+            * Aggregate small contours inside ROIs distance (small_contours_distance_tolerance):
+                    Aggregate small contours inside ROIs if closer than x to any root contour.
                     Any aggregated contour is considered as a root one.
-            * Aggregate unknown contours distance (unk_contours_distance_tolerance): Aggregate unknown contours if closer than x to any root contour.
+            * Aggregate unknown contours distance (unk_contours_distance_tolerance):
+                    Aggregate unknown contours if closer than x to any root contour.
                     Any aggregated contour is considered as a root one.
         """
         wrapper = self.init_wrapper(**kwargs)
@@ -156,7 +161,7 @@ class IptKeepCountoursNearRois(IptBase):
                 wrapper.store_image(rois_mask, "rois_as_mask")
 
                 # Get source contours
-                contours = wrapper.get_contours(
+                contours = ipc.get_contours(
                     mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
                 )
 
@@ -251,7 +256,7 @@ class IptKeepCountoursNearRois(IptBase):
                         "print_label": False,
                     },
                 ]
-                bck_img = wrapper.retrieve_stored_image(img_name="exposure_fixed")
+                bck_img = wrapper.current_image
                 for roi in rois:
                     bck_img = roi.draw_to(dst_img=bck_img, line_width=2, color=ipc.C_WHITE)
                 self.draw_contours(
@@ -279,14 +284,14 @@ class IptKeepCountoursNearRois(IptBase):
                                 right["label"] = left["label"]
                                 stable = False
                     self.draw_contours(
-                        canvas=wrapper.retrieve_stored_image(img_name="exposure_fixed").copy(),
+                        canvas=wrapper.current_image,
                         contours=cnt_approx,
                         image_name=f"merging_root_{step}",
                         contours_data=cnt_data,
                     )
                     step += 1
                 self.draw_contours(
-                    canvas=wrapper.retrieve_stored_image(img_name="exposure_fixed").copy(),
+                    canvas=wrapper.current_image,
                     contours=cnt_approx,
                     image_name="root_labels_merged",
                     contours_data=cnt_data,
@@ -316,14 +321,14 @@ class IptKeepCountoursNearRois(IptBase):
                                 i += 1
                     if not stable:
                         self.draw_contours(
-                            canvas=wrapper.retrieve_stored_image(img_name="exposure_fixed").copy(),
+                            canvas=wrapper.current_image,
                             contours=cnt_approx,
                             image_name=f"merging_small_{step}",
                             contours_data=cnt_data,
                         )
                     step += 1
                 self.draw_contours(
-                    canvas=wrapper.retrieve_stored_image(img_name="exposure_fixed").copy(),
+                    canvas=wrapper.current_image,
                     contours=cnt_approx,
                     image_name="small_labels_merged",
                     contours_data=cnt_data,
@@ -353,24 +358,24 @@ class IptKeepCountoursNearRois(IptBase):
                                 i += 1
                     if not stable:
                         self.draw_contours(
-                            canvas=wrapper.retrieve_stored_image(img_name="exposure_fixed").copy(),
+                            canvas=wrapper.current_image,
                             contours=cnt_approx,
                             image_name=f"merging_unk_{step}",
                             contours_data=cnt_data,
                         )
                     step += 1
-                self.draw_contours(
-                    canvas=wrapper.retrieve_stored_image(img_name="exposure_fixed").copy(),
+                self.demo_image = self.draw_contours(
+                    canvas=wrapper.current_image,
                     contours=cnt_approx,
                     image_name="unk_labels_merged",
                     contours_data=cnt_data,
                 )
 
                 # Clean mask
-                contours = wrapper.get_contours(
+                contours = ipc.get_contours(
                     mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
                 )
-                src_image = wrapper.retrieve_stored_image(img_name="exposure_fixed").copy()
+                src_image = wrapper.current_image
                 for cnt in contours:
                     is_good_one = False
                     for root in cnt_approx["root"]:
