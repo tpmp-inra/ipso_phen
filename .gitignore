@@ -15,7 +15,7 @@
 class_pipelines/*.*
 script_pipelines/*.*
 *.json
-ipso_env
+env
 __pycache__
 .idea
 .vscode

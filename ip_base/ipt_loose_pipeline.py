@@ -111,6 +111,10 @@ class Node(object):
         self.last_result = {}
 
     def get_relevant_image(self):
+        demo_image = self.last_result.get("demo_image", None)
+        if demo_image is not None:
+            return demo_image
+
         if self.output_type == ipc.IO_IMAGE:
             return self.last_result.get("image", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8))
         elif self.output_type == ipc.IO_MASK:
@@ -124,6 +128,10 @@ class Node(object):
             return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
 
     def get_feedback_image(self, data: dict):
+        demo_image = data.get("demo_image", None)
+        if demo_image is not None:
+            return demo_image
+
         mask = data.get("mask", None)
         image = data.get("image", None)
         if mask is not None and image is not None and self.root.parent.allow_step_mosaics:
@@ -311,6 +319,9 @@ class ModuleNode(Node):
                     res["image"] = wrapper.current_image
             elif self.output_type == ipc.IO_IMAGE and isinstance(tool.result, np.ndarray):
                 res["image"] = tool.result
+            # Get demo image
+            if tool.demo_image is not None:
+                res["demo_image"] = tool.demo_image
 
         return res
 
