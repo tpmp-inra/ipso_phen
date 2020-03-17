@@ -1,0 +1,271 @@
+{
+  "title": "IPSO Phen pipeline V2",
+  "name": "test_extractors",
+  "description": "Test pipeline, used to test feature extractors. To be used with arabido_small in sample images",
+  "date": "2020_Mar_05_15-12-35",
+  "version": "0.2.0.0",
+  "settings": {
+    "debug_mode": 0,
+    "allow_step_mosaics": 1,
+    "stop_on": 3,
+    "mosaic_enabled": true,
+    "mosaic_images": [["source", "mask"]]
+  },
+  "Pipeline": {
+    "node_type": "group",
+    "merge_mode": "merge_mode_chain",
+    "name": "Pipeline",
+    "uuid": "b70ef113-a1a6-4949-b61d-e6d88fdbca61",
+    "source": "source",
+    "no_delete": false,
+    "nodes": [
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Fix image",
+        "uuid": "fix_image",
+        "source": "source",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Image transformations",
+              "package": "IPSO Phen",
+              "class__name__": "IptLinearTransformation",
+              "module__name__": "ip_tools.ipt_linear_transformation",
+              "params": {
+                "enabled": 1,
+                "method": "alpha_beta_target",
+                "apply_case": "always",
+                "alpha_gamma": 100,
+                "beta": 0,
+                "target_brightness": 100,
+                "max_delta_for_brightness": 255,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "show_over_under": 0,
+                "brg_calc": "std",
+                "text_overlay": 0
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "method": "alpha_beta",
+                "apply_case": "always",
+                "alpha_gamma": "100",
+                "beta": "0",
+                "target_brightness": "0",
+                "max_delta_for_brightness": "255",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "show_over_under": "0",
+                "brg_calc": "std",
+                "tb_output": "{}",
+                "text_overlay": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "09e5e80b-8f16-45e6-8f48-7842b5b56e52"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Temperature and tint",
+              "package": "IPSO Phen",
+              "class__name__": "IptTemperatureTint",
+              "module__name__": "ip_tools.ipt_temperature_tint",
+              "params": {
+                "enabled": 1,
+                "clip_method": "clip",
+                "temperature_adjustment": 0,
+                "tint_adjustment": 10,
+                "show_over_under": 0
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "clip_method": "clip",
+                "temperature_adjustment": "0",
+                "tint_adjustment": "0",
+                "show_over_under": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "35cf7ce3-bda1-49cd-97ef-006ecc3bc72d"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Pre process image",
+        "uuid": "pre_process_image",
+        "source": "fix_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Check exposure",
+              "package": "IPSO Phen",
+              "class__name__": "IptExposureChecker",
+              "module__name__": "ip_tools.ipt_check_exposure",
+              "params": {
+                "enabled": 1,
+                "overexposed_limit": 100,
+                "over_color": "black",
+                "underexposed_limit": 70,
+                "under_color": "black",
+                "show_grey_zones": 0,
+                "grey_zone_limit": 0,
+                "grey_zone_color": "fuchsia",
+                "source_brightness": "source",
+                "brg_calc": "std",
+                "average_as": "none",
+                "avg_weight": 100,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "text_overlay": 0
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "overexposed_limit": "255",
+                "over_color": "red",
+                "underexposed_limit": "0",
+                "under_color": "orange",
+                "show_grey_zones": "0",
+                "grey_zone_limit": "0",
+                "grey_zone_color": "fuchsia",
+                "sep_1": "",
+                "source_brightness": "source",
+                "brg_calc": "std",
+                "src_brightness": "-",
+                "src_contrast": "-",
+                "average_as": "none",
+                "avg_weight": "100",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "text_overlay": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "bcd33157-75d8-4ce8-af42-0707e5613bd6"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_and",
+        "name": "Build mask",
+        "uuid": "build_mask",
+        "source": "pre_process_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Multi range threshold",
+              "package": "TPMP",
+              "class__name__": "IptMultiRangeThreshold",
+              "module__name__": "ip_tools.ipt_multi_range_threshold",
+              "params": {
+                "enabled": 1,
+                "c1": "h",
+                "c1_low": 20,
+                "c1_high": 40,
+                "c2": "b",
+                "c2_low": 145,
+                "c2_high": 255,
+                "c3": "none",
+                "c3_low": 0,
+                "c3_high": 255,
+                "merge_mode": "multi_and",
+                "morph_op": "none",
+                "kernel_size": 3,
+                "kernel_shape": "ellipse",
+                "proc_times": 1,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "text_overlay": 0,
+                "build_mosaic": 0
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "c1": "h",
+                "c1_low": "0",
+                "c1_high": "255",
+                "c2": "none",
+                "c2_low": "0",
+                "c2_high": "255",
+                "c3": "none",
+                "c3_low": "0",
+                "c3_high": "255",
+                "merge_mode": "multi_and",
+                "sep1": "",
+                "morph_op": "none",
+                "kernel_size": "3",
+                "kernel_shape": "ellipse",
+                "proc_times": "1",
+                "sep2": "",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "sep3": "",
+                "text_overlay": "0",
+                "build_mosaic": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "5c4301a8-ea90-44f7-85de-7d0a36a42e89"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Clean mask",
+        "uuid": "clean_mask",
+        "source": "pre_process_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Keep linked Contours",
+              "package": "IPSO Phen",
+              "class__name__": "IptKeepLinkedContours",
+              "module__name__": "ip_tools.ipt_keep_linked_contours",
+              "params": {
+                "tolerance_distance": 100,
+                "tolerance_area": 1000,
+                "root_position": "MIDDLE_CENTER",
+                "dilation_iter": 0,
+                "area_override_size": 0,
+                "delete_all_bellow": 0,
+                "channel": "l"
+              },
+              "grid_search_params": {
+                "tolerance_distance": "100",
+                "tolerance_area": "5000",
+                "root_position": "BOTTOM_CENTER",
+                "dilation_iter": "0",
+                "area_override_size": "0",
+                "delete_all_bellow": "0",
+                "channel": "l"
+              }
+            },
+            "enabled": true,
+            "uuid": "a9c7f38d-8cfb-4e8a-aef8-2e605d9d55f2"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Test extractors",
+        "uuid": "grp_test_extractors",
+        "source": "fix_image",
+        "no_delete": false,
+        "nodes": []
+      }
+    ]
+  }
+}
