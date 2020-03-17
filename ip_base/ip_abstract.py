@@ -1471,14 +1471,7 @@ class AbstractImageProcessor(ImageWrapper):
                 res_ = KLC_OUTSIDE
 
             # Check area override limit
-            if (
-                (area_override_size > 0)
-                and (cv2.contourArea(test_cnt) > area_override_size)
-                and (
-                    self.rois_intersects("safe", test_cnt)
-                    or self.rois_intersects("safeish", test_cnt)
-                )
-            ):
+            if (area_override_size > 0) and (cv2.contourArea(test_cnt) > area_override_size):
                 return KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
             else:
                 return res_
@@ -1898,7 +1891,7 @@ class AbstractImageProcessor(ImageWrapper):
             y += h // 2
             area_ = cv2.contourArea(uh)
             cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE["color"], 8)
-            if area_ > 0:
+            if area_ > 10:
                 cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2)
         self.store_image(
             image=hull_img, text=f"src_img_with_cnt_after_agg_iter_last", force_store=True
