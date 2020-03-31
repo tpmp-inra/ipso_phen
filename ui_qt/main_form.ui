@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1294</width>
-    <height>1108</height>
+    <width>1028</width>
+    <height>913</height>
    </rect>
   </property>
   <property name="font">
@@ -40,7 +40,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_pipeline_builder">
        <attribute name="title">
@@ -1094,8 +1094,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>63</width>
-                           <height>26</height>
+                           <width>98</width>
+                           <height>28</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">
@@ -1234,7 +1234,7 @@
           <property name="orientation">
            <enum>Qt::Horizontal</enum>
           </property>
-          <widget class="QWidget" name="">
+          <widget class="QWidget" name="layoutWidget">
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QGroupBox" name="groupBox_2">
@@ -1744,7 +1744,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1294</width>
+     <width>1028</width>
      <height>21</height>
     </rect>
    </property>
