@@ -282,7 +282,8 @@ class ModuleNode(Node):
                         if not wrapper.store_images:
                             wrapper.store_image(
                                 image=roi.draw_to(
-                                    dst_img=wrapper.current_image, line_width=wrapper.width // 200,
+                                    dst_img=wrapper.current_image,
+                                    line_width=max(4, wrapper.width // 200),
                                 ),
                                 text=self.name,
                                 force_store=True,

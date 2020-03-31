@@ -40,7 +40,7 @@ def build_image(wrapper):
         ipt_id="IptLinearTransformation",
         source=wrapper,
         method="alpha_beta_target",
-        target_brightness=155,
+        target_brightness=65,
     )
 
 
