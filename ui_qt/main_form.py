@@ -2486,7 +2486,7 @@ class IpsoMainForm(QtWidgets.QMainWindow, Ui_MainWindow):
                         "plant_name": self._src_image_wrapper.plant,
                         "name": data.name
                         if not data.is_root
-                        else f"Pipeline {self._src_image_wrapper.uuid}",
+                        else f"Pipeline {self._src_image_wrapper.luid}",
                         "image": data.get_feedback_image(data.last_result),
                         "data": data.last_result.get("data", {}),
                     },
