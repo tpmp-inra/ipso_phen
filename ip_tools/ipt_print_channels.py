@@ -1,5 +1,9 @@
 from ip_base.ipt_abstract import IptBase
-from ip_base.ip_common import TOOL_GROUP_VISUALIZATION_STR, ensure_odd
+from ip_base.ip_common import (
+    TOOL_GROUP_VISUALIZATION_STR,
+    TOOL_GROUP_PRE_PROCESSING_STR,
+    ensure_odd,
+)
 
 
 class IptPrintChannels(IptBase):
@@ -40,7 +44,9 @@ class IptPrintChannels(IptBase):
             text_overlay = self.get_value_of("text_overlay") == 1
             normalize = self.get_value_of("normalize") == 1
 
-            median_filter_size = 0 if median_filter_size == 1 else ensure_odd(median_filter_size)
+            median_filter_size = (
+                0 if median_filter_size == 1 else ensure_odd(median_filter_size)
+            )
 
             c = wrapper.get_channel(
                 channel=channel, median_filter_size=median_filter_size, normalize=normalize
@@ -79,7 +85,7 @@ class IptPrintChannels(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_VISUALIZATION_STR]
+        return [TOOL_GROUP_VISUALIZATION_STR, TOOL_GROUP_PRE_PROCESSING_STR]
 
     @property
     def description(self):

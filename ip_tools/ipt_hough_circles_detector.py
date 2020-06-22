@@ -130,7 +130,9 @@ class IptHoughCircles(IptBase):
             minimum=0,
             maximum=4000,
         )
-        self.add_checkbox(name="draw_boundaries", desc="Draw max and min circles", default_value=0)
+        self.add_checkbox(
+            name="draw_boundaries", desc="Draw max and min circles", default_value=0
+        )
         self.add_checkbox(
             name="draw_candidates", desc="Draw discarded candidates", default_value=0
         )
@@ -218,14 +220,19 @@ class IptHoughCircles(IptBase):
                     edges = ed.result
                     if edge_only is True:
                         self.result = ed.result
+                        self.demo_image = self.result
                         return True
 
                 # Read params
                 min_radius = self.get_value_of("min_radius", scale_factor=wrapper.scale_factor)
                 max_radius = self.get_value_of("max_radius", scale_factor=wrapper.scale_factor)
-                step_radius = self.get_value_of("step_radius", scale_factor=wrapper.scale_factor)
+                step_radius = self.get_value_of(
+                    "step_radius", scale_factor=wrapper.scale_factor
+                )
                 max_peaks = self.get_value_of("max_peaks")
-                min_distance = self.get_value_of("min_distance", scale_factor=wrapper.scale_factor)
+                min_distance = self.get_value_of(
+                    "min_distance", scale_factor=wrapper.scale_factor
+                )
                 line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
                 draw_candidates = self.get_value_of("draw_candidates") == 1
 
@@ -237,7 +244,10 @@ class IptHoughCircles(IptBase):
                 roi = roi[0] if roi else None
                 if roi is not None:
                     edges = wrapper.crop_to_roi(
-                        img=edges, roi=roi, erase_outside_if_circle=True, dbg_str="cropped_edges"
+                        img=edges,
+                        roi=roi,
+                        erase_outside_if_circle=True,
+                        dbg_str="cropped_edges",
                     )
 
                 img = self.extract_source_from_args()
@@ -311,7 +321,11 @@ class IptHoughCircles(IptBase):
                                 img, (roi_root.x, roi_root.y), min_radius, C_RED, line_width + 4
                             )
                             cv2.circle(
-                                img, (roi_root.x, roi_root.y), max_radius, C_BLUE, line_width + 4
+                                img,
+                                (roi_root.x, roi_root.y),
+                                max_radius,
+                                C_BLUE,
+                                line_width + 4,
                             )
                     else:
                         self.result = None
@@ -330,7 +344,11 @@ class IptHoughCircles(IptBase):
                     cv2.circle(img, (center_x, center_y), radius, colors[i], line_width)
                     if annulus_size > 0 and radius - annulus_size > 0:
                         cv2.circle(
-                            img, (center_x, center_y), radius - annulus_size, colors[i], line_width
+                            img,
+                            (center_x, center_y),
+                            radius - annulus_size,
+                            colors[i],
+                            line_width,
                         )
                     i += 1
             wrapper.store_image(

@@ -138,7 +138,9 @@ class IptKeepCountoursNearRois(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                    wrapper.error_holder.add_error(
+                        f"FAIL {self.name}: mask must be initialized"
+                    )
                     return
 
                 # Get ROIs as mask
@@ -169,7 +171,8 @@ class IptKeepCountoursNearRois(IptBase):
                 init_max_distance = self.get_value_of("init_max_distance")
                 if init_max_distance > 0:
                     rois_mask = wrapper.dilate(
-                        image=rois_mask, kernel_size=ipc.ensure_odd(i=init_max_distance, min_val=3)
+                        image=rois_mask,
+                        kernel_size=ipc.ensure_odd(i=init_max_distance, min_val=3),
                     )
                     wrapper.store_image(rois_mask, "dilated_rois")
 

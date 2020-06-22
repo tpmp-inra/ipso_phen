@@ -220,7 +220,12 @@ class FileHandlerBase(ABC):
         return self.compare_timestamp(**kwargs) < 0
 
     def is_between_dates(
-        self, start_date, end_date, date_format="%Y_%m_%d", include_start=True, include_end=False
+        self,
+        start_date,
+        end_date,
+        date_format="%Y_%m_%d",
+        include_start=True,
+        include_end=False,
     ):
         if isinstance(start_date, str):
             start_date = dt.strptime(start_date, date_format)

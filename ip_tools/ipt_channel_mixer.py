@@ -7,7 +7,6 @@ from ip_base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
 class IptChannelMixer(IptBase):
     def build_params(self):
-        self.add_source_selector(default_value="source")
         self.add_color_space(default_value="HSV")
         self.add_separator("sep_1")
         self.add_slider(
@@ -77,7 +76,7 @@ class IptChannelMixer(IptBase):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = wrapper.current_image
 
             channels = []
             for i in range(0, 3):
@@ -149,4 +148,6 @@ class IptChannelMixer(IptBase):
 
     @property
     def description(self):
-        return "Creates an new image by combining 3 channels from of the color spaces available."
+        return (
+            "Creates an new image by combining 3 channels from of the color spaces available."
+        )

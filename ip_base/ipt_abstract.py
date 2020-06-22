@@ -114,7 +114,9 @@ class IptParam(object):
             callback="set_name", widget=widget, new_name=f"ipt_param_{tool_name}_{self.name}"
         )
         self.update_ui(
-            callback="set_name", widget=label, new_name=f"ipt_param_label_{tool_name}_{self.name}"
+            callback="set_name",
+            widget=label,
+            new_name=f"ipt_param_label_{tool_name}_{self.name}",
         )
 
         self.label = label
@@ -249,7 +251,9 @@ class IptParam(object):
         self.update_ui(callback="set_tool_tip", widget=widget, tool_tip=self.hint)
         return True
 
-    def update_output(self, label_text: str = "", output_value=None, ignore_list=(), invert=False):
+    def update_output(
+        self, label_text: str = "", output_value=None, ignore_list=(), invert=False
+    ):
         if not self.is_output:
             return False
         self._value = output_value
@@ -487,7 +491,11 @@ class IptParamHolder(object):
     ) -> IptParam:
         try:
             param = IptParam(
-                name=name, desc=desc, default_value=default_value, allowed_values=values, hint=hint
+                name=name,
+                desc=desc,
+                default_value=default_value,
+                allowed_values=values,
+                hint=hint,
             )
             param.widget_type = "combo_box"
             return self.add(param)
@@ -563,7 +571,12 @@ class IptParamHolder(object):
         return self.add(param)
 
     def add_text_output(
-        self, is_single_line: bool, name: str, desc: str, default_value: str = "-", hint: str = ""
+        self,
+        is_single_line: bool,
+        name: str,
+        desc: str,
+        default_value: str = "-",
+        hint: str = "",
     ) -> IptParam:
         if is_single_line:
             mode_ = "single_line_text_output"
@@ -770,7 +783,9 @@ class IptParamHolder(object):
         return self.add(param)
 
     def add_roi_name(self, default_value: str = "unnamed_roi") -> IptParam:
-        param = self.add_text_input(name="roi_name", desc="ROI name", default_value="unnamed_roi")
+        param = self.add_text_input(
+            name="roi_name", desc="ROI name", default_value="unnamed_roi"
+        )
         param.kind = "roi_name_selector"
         return param
 
@@ -790,7 +805,8 @@ class IptParamHolder(object):
             desc="Select ROI shape",
             default_value=default_value,
             allowed_values=dict(
-                rectangle="Rectangle", circle="Circle, will be treated as rectangle for morphology"
+                rectangle="Rectangle",
+                circle="Circle, will be treated as rectangle for morphology",
             ),
         )
         param.kind = "roi_shape_selector"
@@ -911,7 +927,9 @@ class IptParamHolder(object):
             name="morph_op",
             desc="Morphology operator",
             default_value=default_operator,
-            values=dict(none="none", erode="erode", dilate="dilate", open="open", close="close"),
+            values=dict(
+                none="none", erode="erode", dilate="dilate", open="open", close="close"
+            ),
         )
         self.add_spin_box(
             name="kernel_size", desc="Kernel size", default_value=3, minimum=3, maximum=101
@@ -1386,7 +1404,11 @@ class IptBase(IptParamHolder, ABC):
                     return ((img - img.min()) / (img.max() - img.min()) * 255).astype(np.uint8)
                 else:
                     c1, c2, c3 = cv2.split(img)
-                    c1, c2, c3 = cv2.equalizeHist(c1), cv2.equalizeHist(c2), cv2.equalizeHist(c3)
+                    c1, c2, c3 = (
+                        cv2.equalizeHist(c1),
+                        cv2.equalizeHist(c2),
+                        cv2.equalizeHist(c3),
+                    )
                     return np.dstack((c1, c2, c3))
             else:
                 return img.copy()
@@ -1469,7 +1491,9 @@ class IptBase(IptParamHolder, ABC):
                 raise NotImplementedError
         return res
 
-    def get_short_hash(self, exclude_list: tuple = (), add_plant_name: bool = True) -> [str, None]:
+    def get_short_hash(
+        self, exclude_list: tuple = (), add_plant_name: bool = True
+    ) -> [str, None]:
         wrapper = self.wrapper
         if wrapper is None:
             return None
@@ -1483,16 +1507,18 @@ class IptBase(IptParamHolder, ABC):
             return (
                 wrapper.plant
                 + "_"
-                + make_safe_name(str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))).replace(
-                    "_", ""
-                )
+                + make_safe_name(
+                    str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))
+                ).replace("_", "")
             )
         else:
-            return make_safe_name(str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))).replace(
-                "_", ""
-            )
+            return make_safe_name(
+                str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))
+            ).replace("_", "")
 
-    def extract_source_from_args(self, source_mode: str = "source_file", ignore_list: tuple = ()):
+    def extract_source_from_args(
+        self, source_mode: str = "source_file", ignore_list: tuple = ()
+    ):
         if not (source_mode in ignore_list):
             source_type = self.get_value_of(source_mode, "source")
         else:
@@ -1671,7 +1697,9 @@ class IptBase(IptParamHolder, ABC):
                 2,
             )
 
-        self._wrapper.store_image(watershed_image, f"{dbg_suffix}_vis_labels", text_overlay=True)
+        self._wrapper.store_image(
+            watershed_image, f"{dbg_suffix}_vis_labels", text_overlay=True
+        )
         self._wrapper.store_image(
             source_image, f"{dbg_suffix}_labels_on_source_image", text_overlay=True
         )
@@ -1699,7 +1727,10 @@ class IptBase(IptParamHolder, ABC):
         return res
 
     def input_params_as_str(
-        self, exclude_defaults: bool = True, excluded_params: tuple = (), forced_params: tuple = ()
+        self,
+        exclude_defaults: bool = True,
+        excluded_params: tuple = (),
+        forced_params: tuple = (),
     ):
         return ", ".join(
             [
@@ -1713,7 +1744,10 @@ class IptBase(IptParamHolder, ABC):
         )
 
     def input_params_as_html(
-        self, exclude_defaults: bool = True, excluded_params: tuple = (), forced_params: tuple = ()
+        self,
+        exclude_defaults: bool = True,
+        excluded_params: tuple = (),
+        forced_params: tuple = (),
     ):
         return (
             f"<ul>"
@@ -1735,7 +1769,9 @@ class IptBase(IptParamHolder, ABC):
         return ret
 
     def code_apply_roi(self, print_result=None, white_spaces=""):
-        ws = "".join([" " for _ in range(0, len(f"{white_spaces}ipt_res = ipt.process_wrapper("))])
+        ws = "".join(
+            [" " for _ in range(0, len(f"{white_spaces}ipt_res = ipt.process_wrapper("))]
+        )
         params_ = f",\n{ws}".join(
             [f"{p.name}={p.str_value}" for p in self.input_params(exclude_defaults=True)]
         )
@@ -1744,7 +1780,9 @@ class IptBase(IptParamHolder, ABC):
         code_ += f"{white_spaces}ipt = {type(self).__name__}({params_})\n"
         code_ += f'{white_spaces}if callable(getattr(ipt, "apply_roy")):\n'
         add_ws = "    "
-        code_ += f"{white_spaces}{add_ws}wrapper.current_image = ipt.apply_roy(wrapper=wrapper)\n"
+        code_ += (
+            f"{white_spaces}{add_ws}wrapper.current_image = ipt.apply_roy(wrapper=wrapper)\n"
+        )
 
         return code_
 
@@ -1939,6 +1977,7 @@ class IptBase(IptParamHolder, ABC):
                     ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                     ipc.TOOL_GROUP_WHITE_BALANCE_STR,
+                    ipc.TOOL_GROUP_VISUALIZATION_STR,
                 )
             )
         ):
