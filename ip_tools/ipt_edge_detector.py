@@ -185,10 +185,12 @@ class IptEdgeDetector(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_VISUALIZATION_STR, ipc.TOOL_GROUP_ANCILLARY_STR]
+        return [
+            ipc.TOOL_GROUP_VISUALIZATION_STR,
+            ipc.TOOL_GROUP_ANCILLARY_STR,
+            ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+        ]
 
     @property
     def description(self):
-        return (
-            "Performs edge detection with various common operators.\nMostly used by other tools."
-        )
+        return "Performs edge detection with various common operators.\nMostly used by other tools."

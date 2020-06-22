@@ -210,7 +210,9 @@ class QueryHandlerPostgres(QueryHandler):
                     cols = [c[0] for c in cols]
                 else:
                     cols = columns.replace(" ", "").split(",")
-                df = pd.DataFrame(self.connexion.execute(s, param_dict).fetchall(), columns=cols)
+                df = pd.DataFrame(
+                    self.connexion.execute(s, param_dict).fetchall(), columns=cols
+                )
             except Exception as e:
                 self.last_error = f"Query failed because: {repr(e)}"
                 df = None
@@ -258,10 +260,14 @@ class QueryHandlerSQLite(QueryHandler):
         if isinstance(value, dict):
             op = value["operator"]
             if op.lower() == "between":
-                return f"{key} {op} " + " AND ".join("?" for k in value.keys() if k != "operator")
+                return f"{key} {op} " + " AND ".join(
+                    "?" for k in value.keys() if k != "operator"
+                )
             elif op.lower() == "in":
                 return (
-                    f"{key} {op} (" + ", ".join("?" for _ in range(0, len(value["values"]))) + ")"
+                    f"{key} {op} ("
+                    + ", ".join("?" for _ in range(0, len(value["values"])))
+                    + ")"
                 )
         else:
             return f"{key} = ?"
