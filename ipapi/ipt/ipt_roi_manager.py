@@ -1,12 +1,12 @@
 import cv2
 
-from ipapi.base.ip_common import (
+from base.ip_common import (
     resize_image,
     TOOL_GROUP_ROI,
 )
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
-from ipapi.base.ip_common import TOOL_GROUP_VISUALIZATION_STR
+from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 
 
 class IptRoiManager(IptBase):

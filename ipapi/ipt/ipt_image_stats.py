@@ -1,9 +1,9 @@
 import numpy as np
 
-from ipapi.base.ip_common import get_hr_channel_name, CHANNELS_BY_SPACE, HSV, LAB, RGB
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
+from base.ip_common import get_hr_channel_name, CHANNELS_BY_SPACE, HSV, LAB, RGB
+from base.ipt_abstract import IptBase
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
 
 
 class IptImageStats(IptBaseAnalyzer):

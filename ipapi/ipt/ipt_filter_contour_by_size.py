@@ -1,7 +1,7 @@
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 import numpy as np
 import cv2
-from ipapi.base import ip_common as ipc
+from base import ip_common as ipc
 
 
 class IptFilterContourBySize(IptBase):

@@ -1,7 +1,7 @@
 import os
 from datetime import datetime as dt
 
-from ipapi.file_handlers.fh_base import FileHandlerBase
+from file_handlers.fh_base import FileHandlerBase
 
 
 class FileHandlerRobotRacine(FileHandlerBase):

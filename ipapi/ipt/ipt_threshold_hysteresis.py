@@ -2,9 +2,9 @@ import cv2
 import numpy as np
 from skimage.filters import apply_hysteresis_threshold
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
-from ipapi.base.ip_common import TOOL_GROUP_THRESHOLD_STR
+from base.ipt_abstract import IptBase
+from ipt.ipt_edge_detector import IptEdgeDetector
+from base.ip_common import TOOL_GROUP_THRESHOLD_STR
 
 
 class IptHysteresis(IptBase):

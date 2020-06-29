@@ -2,9 +2,9 @@ import os
 
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 from tools.common_functions import make_safe_name
-from ipapi.base.ip_common import TOOL_GROUP_IMAGE_GENERATOR_STR
+from base.ip_common import TOOL_GROUP_IMAGE_GENERATOR_STR
 
 
 class IptImageSplitter(IptBase):

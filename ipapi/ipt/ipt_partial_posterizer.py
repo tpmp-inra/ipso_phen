@@ -1,8 +1,8 @@
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 import cv2
 import numpy as np
-from ipapi.base.ip_common import all_colors_dict
-from ipapi.base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
+from base.ip_common import all_colors_dict
+from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
 
 class IptPartialPosterizer(IptBase):

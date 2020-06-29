@@ -6,7 +6,7 @@ import sys
 from abc import ABC, abstractclassmethod
 import pkgutil
 
-import ipapi.file_handlers
+import file_handlers
 from tools.common_functions import get_module_classes
 
 
@@ -467,14 +467,14 @@ class FileHandlerDefault(FileHandlerBase):
 
 def file_handler_factory(file_path: str) -> FileHandlerBase:
     # Build unique class list
-    ipapi.file_handlers_list = get_module_classes(
-        package=ipapi.file_handlers, class_inherits_from=FileHandlerBase, remove_abstract=True
+    file_handlers_list = get_module_classes(
+        package=file_handlers, class_inherits_from=FileHandlerBase, remove_abstract=True
     )
 
     # Create objects
     best_score = 0
     best_class = None
-    for cls in ipapi.file_handlers_list:
+    for cls in file_handlers_list:
         if (
             inspect.isclass(cls)
             and callable(getattr(cls, "probe", None))

@@ -880,7 +880,9 @@ class MaskData(object):
             ld_down = self.find_by_height(height=ht)
         return ld_up, ld_down
 
-    def horizontal_lines_at(self, height: int, min_length: int = 1, fully_isolated: bool = True):
+    def horizontal_lines_at(
+        self, height: int, min_length: int = 1, fully_isolated: bool = True
+    ):
         res = False
         try:
             # Get the lines we need

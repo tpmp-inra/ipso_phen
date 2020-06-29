@@ -6,7 +6,7 @@ import itertools
 
 import numpy as np
 
-from ipapi.base.ipt_abstract import (
+from base.ipt_abstract import (
     IptParam,
     IptBase,
     IptParamHolder,
@@ -14,10 +14,10 @@ from ipapi.base.ipt_abstract import (
     MODULE_NAME_KEY,
     PARAMS_NAME_KEY,
 )
-from ipapi.base.ipt_functional import get_ipt_class
-from ipapi.base import ip_common as ipc
-from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from base.ipt_functional import get_ipt_class
+from base import ip_common as ipc
+from base.ipt_strict_pipeline import IptStrictPipeline
+from base.ip_abstract import AbstractImageProcessor
 import tools.error_holder as eh
 from tools.common_functions import format_time
 from tools.regions import RectangleRegion

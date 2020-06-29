@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
+from base.ipt_abstract import IptBase
+from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
 
 class IptKMeansClustering(IptBase):

@@ -2,9 +2,9 @@ import math
 import numpy as np
 import cv2
 
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
 
 
 class IptHeliasenQualityControl(IptBaseAnalyzer):

@@ -2,12 +2,12 @@ import cv2
 import numpy as np
 from scipy import ndimage
 
-from ipapi.base.ip_common import (
+from base.ip_common import (
     DEFAULT_COLOR_MAP,
     TOOL_GROUP_CLUSTERING_STR,
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
 )
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptWatershedOpenCv(IptBaseMerger):

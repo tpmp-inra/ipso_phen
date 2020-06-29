@@ -1,8 +1,8 @@
 import numpy as np
 from skimage.segmentation import chan_vese
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import TOOL_GROUP_THRESHOLD_STR
+from base.ipt_abstract import IptBase
+from base.ip_common import TOOL_GROUP_THRESHOLD_STR
 
 
 class IptChanVese(IptBase):

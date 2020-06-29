@@ -9,9 +9,9 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipapi.ipt.ipt_pyramide_mean_shift import IptPyramidMeanShift
-from ipapi.base.ip_abstract import AbstractImageProcessor
-import ipapi.base.ip_common as ipc
+from ipt.ipt_pyramide_mean_shift import IptPyramidMeanShift
+from base.ip_abstract import AbstractImageProcessor
+import base.ip_common as ipc
 
 
 class TestIptPyramidMeanShift(unittest.TestCase):

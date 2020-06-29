@@ -3,8 +3,8 @@ import cv2
 from scipy.special import expit, logit
 from scipy import stats
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import (
+from base.ipt_abstract import IptBase
+from base.ip_common import (
     all_colors_dict,
     TOOL_GROUP_PRE_PROCESSING_STR,
     TOOL_GROUP_THRESHOLD_STR,

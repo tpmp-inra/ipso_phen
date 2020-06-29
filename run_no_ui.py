@@ -9,7 +9,7 @@ import pandas as pd
 import tools.db_wrapper as dbw
 from tools.common_functions import print_progress_bar, force_directories, format_time
 from tools.pipeline_processor import PipelineProcessor
-from ipapi.base.ipt_strict_pipeline import IptStrictPipeline, decode_ipt
+from base.ipt_strict_pipeline import IptStrictPipeline, decode_ipt
 
 
 g_log_file = ""

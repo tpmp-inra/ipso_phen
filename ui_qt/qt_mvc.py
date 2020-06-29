@@ -29,9 +29,9 @@ from PyQt5.QtWidgets import (
     QGroupBox,
 )
 from PyQt5.QtCore import QSize
-from ipapi.base.ipt_loose_pipeline import GroupNode, ModuleNode, MosaicData, PipelineSettings
-from ipapi.base.ipt_abstract import IptBase, IptParam, IptParamHolder
-import ipapi.base.ip_common as ipc
+from base.ipt_loose_pipeline import GroupNode, ModuleNode, MosaicData, PipelineSettings
+from base.ipt_abstract import IptBase, IptParam, IptParamHolder
+import base.ip_common as ipc
 import numpy as np
 import pandas as pd
 from PyQt5.QtCore import QAbstractItemModel, QAbstractTableModel, QModelIndex, Qt, pyqtSignal

@@ -5,9 +5,9 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-from ipapi.base.ip_common import get_hr_channel_name, channel_color
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR, enclose_image, C_BLACK
+from base.ip_common import get_hr_channel_name, channel_color
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR, enclose_image, C_BLACK
 from tools import regions
 import os
 

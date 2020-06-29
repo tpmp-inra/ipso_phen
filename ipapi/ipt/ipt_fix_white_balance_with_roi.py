@@ -1,9 +1,9 @@
 import numpy as np
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 from tools.regions import RectangleRegion
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 
 
 class IptFixWhiteBalanceWithRoi(IptBase):
