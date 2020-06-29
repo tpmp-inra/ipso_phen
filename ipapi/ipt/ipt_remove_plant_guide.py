@@ -2,8 +2,8 @@ import math
 import numpy as np
 import cv2
 
-import ipapi.base.ip_common as ipc
-from ipapi.base.ipt_abstract import IptBase
+import base.ip_common as ipc
+from base.ipt_abstract import IptBase
 
 
 class IptRemovePlantGuide(IptBase):

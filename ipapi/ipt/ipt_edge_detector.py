@@ -2,8 +2,8 @@ import cv2
 from skimage.feature import canny
 from skimage.filters import sobel, sobel_h, sobel_v, roberts, prewitt
 
-import ipapi.base.ip_common as ipc
-from ipapi.base.ipt_abstract import IptBase
+import base.ip_common as ipc
+from base.ipt_abstract import IptBase
 
 
 class IptEdgeDetector(IptBase):

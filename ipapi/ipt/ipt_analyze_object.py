@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-from ipapi.base.ip_common import MaskData
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
+from base.ip_common import MaskData
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
 
 
 class IptAnalyzeObject(IptBaseAnalyzer):

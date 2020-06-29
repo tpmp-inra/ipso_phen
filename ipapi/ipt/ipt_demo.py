@@ -1,8 +1,8 @@
 import inspect
 
-from ipapi.base.ipt_functional import call_ipt
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import TOOL_GROUP_DEMO_STR, TOOL_GROUP_VISUALIZATION_STR
+from base.ipt_functional import call_ipt
+from base.ipt_abstract import IptBase
+from base.ip_common import TOOL_GROUP_DEMO_STR, TOOL_GROUP_VISUALIZATION_STR
 
 
 class IptDemo(IptBase):

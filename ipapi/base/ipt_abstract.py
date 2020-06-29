@@ -10,7 +10,7 @@ import hashlib
 import cv2
 import numpy as np
 
-from ipapi.base.ip_common import (
+from base.ip_common import (
     C_BLACK,
     C_LIGHT_STEEL_BLUE,
     C_SILVER,
@@ -37,9 +37,9 @@ from ipapi.base.ip_common import (
     TOOL_GROUP_WHITE_BALANCE_STR,
     TOOL_GROUP_UNKNOWN_STR,
 )
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from base.ip_abstract import AbstractImageProcessor
 from tools.common_functions import make_safe_name
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 
 CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
@@ -1257,7 +1257,7 @@ class IptBase(IptParamHolder, ABC):
     @classmethod
     def from_json(cls, json_data: dict):
         class_name = json_data[CLASS_NAME_KEY]
-        module_name = json_data[MODULE_NAME_KEY].replace("ip_tools", "ipapi.ipt")
+        module_name = json_data[MODULE_NAME_KEY].replace("ip_tools", "ipt")
         __import__(module_name)
         for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
@@ -1765,7 +1765,7 @@ class IptBase(IptParamHolder, ABC):
     def code_imports(self, **kwargs):
         ret = [f"from {self.__module__} import {type(self).__name__}"]
         if kwargs.get("build_wrapper", "yes") is not False:
-            ret.append("from ipapi.base.ip_abstract import AbstractImageProcessor")
+            ret.append("from base.ip_abstract import AbstractImageProcessor")
         return ret
 
     def code_apply_roi(self, print_result=None, white_spaces=""):

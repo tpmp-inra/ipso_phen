@@ -9,11 +9,17 @@ from matplotlib import pyplot as plt
 import numpy as np
 import cv2
 
-from ipapi.file_handlers.fh_base import file_handler_factory
-from ipapi.base.image_wrapper import ImageWrapper
-import ipapi.base.ip_common as ipc
+from file_handlers.fh_base import file_handler_factory
+from base.image_wrapper import ImageWrapper
+import base.ip_common as ipc
 from tools.comand_line_wrapper import ArgWrapper
-from tools.regions import CircleRegion, RectangleRegion, EmptyRegion, Point, AbstractRegion
+from tools.regions import (
+    CircleRegion,
+    RectangleRegion,
+    EmptyRegion,
+    Point,
+    AbstractRegion,
+)
 from tools.common_functions import time_method, force_directories
 from tools.error_holder import ErrorHolder
 from tools.db_wrapper import DB_TYPE_MEMORY

@@ -2,9 +2,9 @@ import os
 import cv2
 import numpy as np
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from tools.common_functions import force_directories
-from ipapi.base.ip_common import TOOL_GROUP_IMAGE_GENERATOR_STR
+from base.ip_common import TOOL_GROUP_IMAGE_GENERATOR_STR
 
 
 class IptAugmentData(IptBaseAnalyzer):

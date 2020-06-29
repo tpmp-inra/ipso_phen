@@ -8,11 +8,11 @@ import pandas as pd
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QObject, QTimer, QRunnable, QThreadPool
 
 import tools.error_holder as err
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 from class_pipelines.ip_factory import ipo_factory
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import format_time, force_directories
-from ipapi.file_handlers.fh_base import file_handler_factory
+from file_handlers.fh_base import file_handler_factory
 from ui_qt import ui_consts
 
 

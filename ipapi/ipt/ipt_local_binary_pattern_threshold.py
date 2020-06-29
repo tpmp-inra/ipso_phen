@@ -3,8 +3,8 @@ import cv2
 from scipy.special import expit, logit
 from skimage.feature import local_binary_pattern
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
+from base.ipt_abstract import IptBase
+import base.ip_common as ipc
 from tools.regions import RectangleRegion
 
 

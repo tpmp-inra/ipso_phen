@@ -13,9 +13,9 @@ if __name__ == "__main__":
     sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from tools.common_functions import get_module_classes
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.ipt
-import ipapi.base.ip_common as ipc
+from base.ipt_abstract import IptBase
+import ipt
+import base.ip_common as ipc
 import os
 import inspect
 
@@ -52,7 +52,7 @@ class IptHolder(object):
         """
         # Build unique class list
         ipt_classes_list = get_module_classes(
-            package=ipapi.ipt, class_inherits_from=IptBase, remove_abstract=True
+            package=ipt, class_inherits_from=IptBase, remove_abstract=True
         )
 
         # Create objects
@@ -139,15 +139,15 @@ class IptHolder(object):
             'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))\n\n'
         )
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
-        f.write("from ipapi.base.ip_abstract import AbstractImageProcessor\n")
+        f.write("from base.ip_abstract import AbstractImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
-            f.write("from ipapi.base.ipt_loose_pipeline import LoosePipeline\n")
+            f.write("from base.ipt_loose_pipeline import LoosePipeline\n")
             if "script_in_info_out" in tests_needed:
-                f.write("from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
+                f.write("from base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
 
         if "img_in_roi_out" in tests_needed:
             f.write("import tools.regions as regions\n")
-        f.write("import ipapi.base.ip_common as ipc\n\n\n")
+        f.write("import base.ip_common as ipc\n\n\n")
 
     def write_test_use_case(self, f, op, spaces):
         f.write(f"{spaces}def test_use_case(self):\n")
@@ -450,7 +450,7 @@ class IptHolder(object):
             self.log_state(
                 status_message=f"Building test scripts ...", use_status_as_log=True,
             )
-            for (_, name, _) in pkgutil.iter_modules(ipapi.ipt.__path__):
+            for (_, name, _) in pkgutil.iter_modules(ipt.__path__):
                 if "pcv" in name and not allow_pcv:
                     self.log_state(
                         status_message=f"Ignoring {name}...",
@@ -458,7 +458,7 @@ class IptHolder(object):
                     )
                     continue
 
-                pkg_name = ipapi.ipt.__name__ + "." + name
+                pkg_name = ipt.__name__ + "." + name
                 pkg = __import__(pkg_name)
                 module = sys.modules[pkg_name]
                 for _, cls_ in inspect.getmembers(module):

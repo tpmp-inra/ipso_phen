@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from skimage.transform import hough_circle, hough_circle_peaks
 
-from ipapi.base.ip_common import (
+from base.ip_common import (
     C_RED,
     C_BLUE,
     C_YELLOW,
@@ -13,9 +13,9 @@ from ipapi.base.ip_common import (
     build_color_steps,
     TOOL_GROUP_ROI,
 )
-from ipapi.base.ip_common import TOOL_GROUP_VISUALIZATION_STR
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
+from base.ipt_abstract import IptBase
+from ipt.ipt_edge_detector import IptEdgeDetector
 from tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
 
 

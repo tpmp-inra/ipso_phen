@@ -1,7 +1,7 @@
 import numpy as np
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
+from base.ipt_abstract import IptBase
+import base.ip_common as ipc
 import tools.error_holder as eh
 
 

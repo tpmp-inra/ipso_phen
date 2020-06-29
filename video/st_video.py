@@ -20,8 +20,8 @@ os.chdir(fld_name)
 from tools.common_functions import force_directories, make_safe_name
 
 import tools.db_wrapper as dbw
-from ipapi.base.ip_abstract import AbstractImageProcessor
-from ipapi.base.ipt_functional import call_ipt
+from base.ip_abstract import AbstractImageProcessor
+from base.ipt_functional import call_ipt
 from tools.common_functions import print_progress_bar
 
 # import ptvsd

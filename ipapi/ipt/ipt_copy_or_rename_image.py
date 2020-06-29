@@ -2,9 +2,9 @@ import os
 
 import cv2
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from tools.common_functions import force_directories
-from ipapi.base import ip_common as ipc
+from base import ip_common as ipc
 from tools import regions
 
 

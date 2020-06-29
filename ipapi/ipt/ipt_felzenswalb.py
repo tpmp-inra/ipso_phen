@@ -3,8 +3,8 @@ import numpy as np
 from skimage.segmentation import felzenszwalb
 from skimage.util import img_as_float
 
-from ipapi.base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
+from base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptFelzenswalb(IptBaseMerger):

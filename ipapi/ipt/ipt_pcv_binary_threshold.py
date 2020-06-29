@@ -1,7 +1,7 @@
 from plantcv import plantcv as pcv
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
+from base.ipt_abstract import IptBase
+import base.ip_common as ipc
 
 
 class IptPcvBinaryThreshold(IptBase):

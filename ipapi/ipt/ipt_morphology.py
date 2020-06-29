@@ -1,5 +1,5 @@
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
+from base.ipt_abstract import IptBase
+from base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
 
 
 class IptMorphology(IptBase):

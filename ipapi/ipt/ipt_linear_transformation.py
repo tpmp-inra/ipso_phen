@@ -1,13 +1,13 @@
 import cv2
 import numpy as np
 
-from ipapi.base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import (
+from base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ip_common import (
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
     TOOL_GROUP_EXPOSURE_FIXING_STR,
 )
-from ipapi.base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
+from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
 
 class IptLinearTransformation(IptBaseAnalyzer):
