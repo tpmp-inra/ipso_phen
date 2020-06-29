@@ -11,12 +11,12 @@ Create circle ROIs
 
 ## Parameters
 
-- ROI name (roi_name):  (default: unnamed_roi)
+- ROI name (roi_name): (default: unnamed_roi)
 - Select action linked to ROI (roi_type): no clue (default: keep)
 - Target IPT (tool_target): no clue (default: none)
-- Center x coordinate (cx):  (default: 0)
-- Center y coordinate (cy):  (default: 0)
-- Radius (radius):  (default: 0)
+- Center x coordinate (cx): (default: 0)
+- Center y coordinate (cy): (default: 0)
+- Radius (radius): (default: 0)
 - Launch ROI draw form (draw_roi): Launch OpenCV window to select a ROI (default: 0)
 
 ## Example
@@ -30,7 +30,7 @@ Create circle ROIs
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 call_ipt(
     ipt_id="IptCircleRoi",

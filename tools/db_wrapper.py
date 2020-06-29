@@ -10,7 +10,7 @@ from sqlalchemy.sql import text
 from sqlalchemy_utils import database_exists
 
 from tools.image_list import ImageList
-from file_handlers.fh_base import file_handler_factory
+from ipapi.file_handlers.fh_base import file_handler_factory
 from tools.common_functions import print_progress_bar, force_directories, make_safe_name
 
 DB_USER = "fmavianemac"

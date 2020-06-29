@@ -19,7 +19,6 @@ Removes plant guide. Built for Heliasen light barrier
 
 ## Example
 
-
 ### Source
 
 ![Source image](images/18HP01U17-CAM11-20180712221558.bmp)
@@ -29,7 +28,7 @@ Removes plant guide. Built for Heliasen light barrier
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 mask = call_ipt(
     ipt_id="IptRemovePlantGuide",

@@ -8,11 +8,11 @@ import pandas as pd
 from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QObject, QTimer, QRunnable, QThreadPool
 
 import tools.error_holder as err
-import ip_base.ip_common as ipc
+import ipapi.base.ip_common as ipc
 from class_pipelines.ip_factory import ipo_factory
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import format_time, force_directories
-from file_handlers.fh_base import file_handler_factory
+from ipapi.file_handlers.fh_base import file_handler_factory
 from ui_qt import ui_consts
 
 
@@ -42,7 +42,9 @@ class IpsoRunnable(QRunnable):
             kwargs.get("on_feedback_log_object", None)
         )
         self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
-        self.signals_holder.on_pipeline_progress.connect(kwargs.get("on_pipeline_progress", None))
+        self.signals_holder.on_pipeline_progress.connect(
+            kwargs.get("on_pipeline_progress", None)
+        )
         # Process data
         self.file_data = kwargs.get("file_data", {})
         self.data_base = kwargs.get("database", None)
@@ -525,7 +527,9 @@ class IpsoGroupProcessor(QRunnable):
                         ),
                     )
                     self.signals_holder.on_log_str.emit(
-                        "", "exception", f"{ui_consts.LOG_EXCEPTION_STR}: {err_holder.to_html()}"
+                        "",
+                        "exception",
+                        f"{ui_consts.LOG_EXCEPTION_STR}: {err_holder.to_html()}",
                     )
                     err_holder = None
             self.signals_holder.on_ended.emit()
@@ -797,7 +801,8 @@ class IpsoCsvBuilder(QRunnable):
                             ["series_id"], axis=1
                         ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
                             os.path.join(
-                                self.pipeline.options.dst_path, f"{csv_sid_root_name}_median.csv"
+                                self.pipeline.options.dst_path,
+                                f"{csv_sid_root_name}_median.csv",
                             )
                         )
                         step_ += 1
@@ -829,7 +834,8 @@ class IpsoCsvBuilder(QRunnable):
                             by=["plant", "date"]
                         ).to_csv(
                             os.path.join(
-                                self.pipeline.options.dst_path, f"{csv_day_root_name}_median.csv"
+                                self.pipeline.options.dst_path,
+                                f"{csv_day_root_name}_median.csv",
                             )
                         )
                         step_ += 1

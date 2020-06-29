@@ -13,14 +13,14 @@ Only static ROIs are allowed.
 ## Usage
 
 - **Exposure fixing**: Fix image exposure, the resulting image will be used for color analysis
-- **Pre processing**: Transform the image to help segmentation, the image may not retain it's 
-    properties. Changes here will be ignored when extracting features
+- **Pre processing**: Transform the image to help segmentation, the image may not retain it's
+  properties. Changes here will be ignored when extracting features
 
 ## Parameters
 
 - Activate tool (enabled): Toggle whether or not tool is active (default: 1)
 - Name of ROI to be used (roi_names): Operation will only be applied inside of ROI (default: )
-- ROI selection mode (roi_selection_mode):  (default: all_linked)
+- ROI selection mode (roi_selection_mode): (default: all_linked)
 
 ## Example
 
@@ -33,7 +33,7 @@ Only static ROIs are allowed.
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 image = call_ipt(
     ipt_id="IptFixWhiteBalanceWithRoi",

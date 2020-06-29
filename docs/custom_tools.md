@@ -1,14 +1,14 @@
 # Custom tools (I want more)
 
 !!! warning
-    Python Object Oriented Programing knowledge needed below
+Python Object Oriented Programing knowledge needed below
 
 If you have an idea for a new image processing tool or you want to port an already existing one into IPSO Phen. As long as you understand Python Object Oriented programming it's relatively easy.
 
 We're going to build a really simple tool that rotates an image
 
 !!! warning
-    Before creating your own tools set
+Before creating your own tools set
 `python USE_PROCESS_THREAD = False`
 in _ui_consts.py_.
 Otherwise you will not be able to debug your tool
@@ -23,7 +23,7 @@ Otherwise you will not be able to debug your tool
 
 - Each tool must have a help page, it can be generated from within the app.
 - Each tool must come with a test script, it can also be generated from the app.
-- The process_wrapper method must have a doc string, you can copy the contents of the _help tab_ as seen below.
+- The process*wrapper method must have a doc string, you can copy the contents of the \_help tab* as seen below.
 
 ## Create the skeleton
 
@@ -38,14 +38,14 @@ We fill the wizard as follows:
 - **Groups**: Groups to which the tool will be added, using in the UI and when positioning the tool in a pipeline
 
 !!! warning
-    Try to avoid real time if tool takes more than a second to process
+Try to avoid real time if tool takes more than a second to process
 
 If the icon on the top right corner is read, it means that a tool with the same name already exists. IPSO Phen **will not** override an existing tool.
 
 Once we click on save we obtain the skeleton below
 
 ```python
-from ip_base.ipt_abstract import IptBase
+from ipapi.base.ipt_abstract import IptBase
 
 
 class IptRotate(IptBase):
@@ -120,16 +120,16 @@ def build_params(self):
 ```
 
 !!! info
-    Once the widgets are added the docstring is available from the main UI in the help tab (see below)
+Once the widgets are added the docstring is available from the main UI in the help tab (see below)
 
 ## The main method
 
 Now we're just going to add some code to the main method to actually rotate the image.
 
 !!! tip
-    Don't forget to add any needed import.  
-    For instance, here we use OpenCV which is imported with      
-    import cv2
+Don't forget to add any needed import.  
+ For instance, here we use OpenCV which is imported with  
+ import cv2
 
 ```python
 def process_wrapper(self, **kwargs):
@@ -184,11 +184,11 @@ def process_wrapper(self, **kwargs):
 ```
 
 !!! info
-    **Debugging custom tools**:  
-    All tools are processed in a different thread which the Python debugger can't see. In order to be able to set breakpoints you must disable multi threading by changing the value of _USE_PROCESS_THREAD_ to False in _ui_consts.py_.
+**Debugging custom tools**:  
+ All tools are processed in a different thread which the Python debugger can't see. In order to be able to set breakpoints you must disable multi threading by changing the value of _USE_PROCESS_THREAD_ to False in _ui_consts.py_.
 
 !!! warning
-    **DO NOT FORGET** to set it back to true afterwards
+**DO NOT FORGET** to set it back to true afterwards
 
 ## The actual tool
 

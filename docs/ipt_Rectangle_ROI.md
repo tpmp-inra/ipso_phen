@@ -11,13 +11,13 @@ Create rectangle ROIs
 
 ## Parameters
 
-- ROI name (roi_name):  (default: unnamed_roi)
+- ROI name (roi_name): (default: unnamed_roi)
 - Select action linked to ROI (roi_type): no clue (default: keep)
 - Target IPT (tool_target): no clue (default: none)
-- Left (left):  (default: 0)
-- Width (width):  (default: 0)
-- Top (top):  (default: 0)
-- Height (height):  (default: 0)
+- Left (left): (default: 0)
+- Width (width): (default: 0)
+- Top (top): (default: 0)
+- Height (height): (default: 0)
 - Apply to images that match (apply_case): List of key values pairs separated by |, to use list as value separate with ',' (default: )
 - Launch ROI draw form (draw_roi): Launch OpenCV window to select a ROI (default: 0)
 
@@ -32,7 +32,7 @@ Create rectangle ROIs
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 call_ipt(
     ipt_id="IptRectangleRoi",

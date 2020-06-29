@@ -9,8 +9,8 @@ Rotates an image according to selected angle
 
 - **Exposure fixing**: Fix image exposure, the resulting image will be used for color analysis
 - **Image generator**: Creates one or more images from a selected image
-- **Pre processing**: Transform the image to help segmentation, the image may not retain it's 
-    properties. Changes here will be ignored when extracting features
+- **Pre processing**: Transform the image to help segmentation, the image may not retain it's
+  properties. Changes here will be ignored when extracting features
 - **Visualization**: Visualization tools
 
 ## Parameters
@@ -29,7 +29,7 @@ Rotates an image according to selected angle
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 image = call_ipt(
     ipt_id="IptRotate",

@@ -87,18 +87,18 @@ from PyQt5.QtWidgets import (
     qApp,
 )
 
-from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_abstract import IptBase, IptParamHolder
-from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ip_base.ipt_functional import call_ipt_code
-from ip_base.ipt_holder import IptHolder
-from ip_base.ipt_strict_pipeline import IptStrictPipeline
-from ip_base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
-import ip_base.ip_common as ipc
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ipt_abstract import IptBase, IptParamHolder
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ipt_functional import call_ipt_code
+from ipapi.base.ipt_holder import IptHolder
+from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
+from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
+import ipapi.base.ip_common as ipc
 
 from class_pipelines.ip_factory import ipo_factory
 
-from file_handlers.fh_base import file_handler_factory
+from ipapi.file_handlers.fh_base import file_handler_factory
 
 from tools.regions import RectangleRegion, AbstractRegion
 from tools.comand_line_wrapper import ArgWrapper
@@ -111,7 +111,6 @@ from tools.common_functions import (
 )
 import tools.db_wrapper as dbw
 from tools.error_holder import ErrorHolder
-from tools.paths_factory import get_folders_paths
 from tools.pipeline_processor import PipelineProcessor
 
 from ui_qt import ui_consts
@@ -278,7 +277,7 @@ class NewToolDialog(QDialog):
         )
         file_name = base_name + ".py"
         # Update icon
-        if os.path.isfile(os.path.join("./ip_tools", file_name)):
+        if os.path.isfile(os.path.join("./ipapi.ipt", file_name)):
             # self.ui.bt_save.setEnabled(False)
             self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/Error.png"))
         else:
@@ -296,7 +295,7 @@ class NewToolDialog(QDialog):
         def remove_tab(sc: str) -> str:
             return sc[4:]
 
-        file_path = os.path.join("./ip_tools", self.ui.le_file_name.text())
+        file_path = os.path.join("./ipapi.ipt", self.ui.le_file_name.text())
         with open(file_path, "w", encoding="utf8") as f:
             spaces = ""
 
@@ -305,10 +304,12 @@ class NewToolDialog(QDialog):
                 self.check_boxes[ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR].isChecked()
                 or self.check_boxes[ipc.TOOL_GROUP_IMAGE_GENERATOR_STR].isChecked()
             ):
-                f.write(f"{spaces}from ip_base.ipt_abstract_analyzer import IptBaseAnalyzer\n")
+                f.write(
+                    f"{spaces}from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n"
+                )
                 inh_class_name_ = "IptBaseAnalyzer"
             else:
-                f.write(f"{spaces}from ip_base.ipt_abstract import IptBase\n")
+                f.write(f"{spaces}from ipapi.base.ipt_abstract import IptBase\n")
                 inh_class_name_ = "IptBase"
             f.write(f"\n\n")
 

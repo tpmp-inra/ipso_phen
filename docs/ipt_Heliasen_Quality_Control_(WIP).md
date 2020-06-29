@@ -2,11 +2,12 @@
 
 ## Description
 
-Needs vertical and horizontal noise removal before been called.  
-  
-        Checks light barrier image quality.  
-  
+Needs vertical and horizontal noise removal before been called.
+
+        Checks light barrier image quality.
+
         Outputs main error and partial errors.
+
 **Real time**: False
 
 ## Usage
@@ -26,8 +27,9 @@ Needs vertical and horizontal noise removal before been called.
 ### Parameters/Code
 
 Default values are not needed when calling function
+
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 call_ipt(
     ipt_id="IptHeliasenQualityControl",
@@ -38,7 +40,7 @@ call_ipt(
 
 ### Result image
 
-![Result image](images/ipt_Heliasen_Quality_Control_(WIP).jpg)
+![Result image](<images/ipt_Heliasen_Quality_Control_(WIP).jpg>)
 
 ### Result data
 

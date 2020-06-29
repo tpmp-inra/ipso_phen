@@ -2,7 +2,7 @@ import cv2
 import math
 import numpy as np
 
-import ip_base.ip_common as ipc
+import ipapi.base.ip_common as ipc
 
 
 def tag_to_color(tag: str):
@@ -283,7 +283,13 @@ class EmptyRegion(AbstractRegion):
 
     def as_rect(self):
         return RectangleRegion(
-            left=0, width=0, top=0, height=0, tag=self.tag, color=self.color, target=self.target,
+            left=0,
+            width=0,
+            top=0,
+            height=0,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
         )
 
     def as_circle(self):
@@ -293,12 +299,20 @@ class EmptyRegion(AbstractRegion):
 
     def as_annulus(self):
         return AnnulusRegion(
-            cx=0, cy=0, radius=0, in_radius=0, tag=self.tag, color=self.color, target=self.target,
+            cx=0,
+            cy=0,
+            radius=0,
+            in_radius=0,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
         )
 
     @property
     def area(self) -> float:
-        return 2 * math.pi * math.pow(self.radius, 2) - 2 * math.pi * math.pow(self.in_radius, 2)
+        return 2 * math.pi * math.pow(self.radius, 2) - 2 * math.pi * math.pow(
+            self.in_radius, 2
+        )
 
 
 class RectangleRegion(AbstractRegion):
@@ -418,7 +432,9 @@ class RectangleRegion(AbstractRegion):
 
     def to_mask(self, width, height):
         mask = np.zeros((height, width), dtype=np.uint8)
-        return cv2.rectangle(mask, (self.left, self.top), (self.right, self.bottom), (255,), -1,)
+        return cv2.rectangle(
+            mask, (self.left, self.top), (self.right, self.bottom), (255,), -1,
+        )
 
     def draw_to(self, dst_img, line_width=-1, color=None):
         return cv2.rectangle(
@@ -589,7 +605,9 @@ class CircleRegion(AbstractRegion):
         )
 
     def fill(self, dst_img, color):
-        return cv2.circle(dst_img.copy(), (self.center.x, self.center.y), self.radius, color, -1)
+        return cv2.circle(
+            dst_img.copy(), (self.center.x, self.center.y), self.radius, color, -1
+        )
 
     def is_empty(self) -> bool:
         return self.radius == 0
@@ -782,7 +800,9 @@ class AnnulusRegion(CircleRegion):
 
     @property
     def area(self) -> float:
-        return 2 * math.pi * math.pow(self.radius, 2) - 2 * math.pi * math.pow(self.in_radius, 2)
+        return 2 * math.pi * math.pow(self.radius, 2) - 2 * math.pi * math.pow(
+            self.in_radius, 2
+        )
 
     @property
     def ar(self) -> float:
@@ -838,7 +858,13 @@ class CompositeRegion(AbstractRegion):
         cnt = ipc.group_contours(mask=self.to_mask(self.width, self.height))
         x, y, w, h = cv2.boundingRect(cnt)
         return RectangleRegion(
-            left=x, width=w, top=y, height=h, tag=self.tag, color=self.color, target=self.target,
+            left=x,
+            width=w,
+            top=y,
+            height=h,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
         )
 
     def as_circle(self):

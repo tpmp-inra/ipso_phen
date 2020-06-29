@@ -3,7 +3,7 @@
 ## Description
 
 Morphology: Applies the selected morphology operator.  
-Needs to be part of a pipeline where a mask has already been generated.  
+Needs to be part of a pipeline where a mask has already been generated.
 
 **Real time**: False
 
@@ -13,10 +13,10 @@ Needs to be part of a pipeline where a mask has already been generated.
 
 ## Parameters
 
-- Morphology operator (morph_op):  (default: none)
-- Kernel size (kernel_size):  (default: 3)
-- Kernel shape (kernel_shape):  (default: ellipse)
-- Iterations (proc_times):  (default: 1)
+- Morphology operator (morph_op): (default: none)
+- Kernel size (kernel_size): (default: 3)
+- Kernel shape (kernel_shape): (default: ellipse)
+- Iterations (proc_times): (default: 1)
 
 ## Example
 
@@ -29,7 +29,7 @@ Needs to be part of a pipeline where a mask has already been generated.
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 mask = call_ipt(ipt_id="IptMorphology",
                 source="arabido_sample_plant.jpg",

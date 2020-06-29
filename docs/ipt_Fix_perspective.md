@@ -14,25 +14,25 @@ Use the included threshold utility to detect the dots.
 ## Parameters
 
 - Activate tool (enabled): Toggle whether or not tool is active (default: 1)
-- Module mode (mode):  (default: threshold)
-- Channel 1 (c1):  (default: h)
-- Min threshold for channel 1 (c1_low):  (default: 0)
-- Max threshold for channel 1 (c1_high):  (default: 255)
-- Channel 2 (c2):  (default: none)
-- Min threshold for channel 2 (c2_low):  (default: 0)
-- Max threshold for channel 2 (c2_high):  (default: 255)
-- Channel 3 (c3):  (default: none)
-- Min threshold for channel 3 (c3_low):  (default: 0)
-- Max threshold for channel 3 (c3_high):  (default: 255)
-- How to merge thresholds (merge_mode):  (default: multi_and)
-- Morphology operator (morph_op):  (default: none)
-- Kernel size (kernel_size):  (default: 3)
-- Kernel shape (kernel_shape):  (default: ellipse)
-- Iterations (proc_times):  (default: 1)
-- Minimal dot size (surface) (min_dot_size):  (default: 30)
-- Maximal dot size (surface) (max_dot_size):  (default: 3000)
-- Destination width (dst_width):  (default: 800)
-- Destination height (dst_height):  (default: 600)
+- Module mode (mode): (default: threshold)
+- Channel 1 (c1): (default: h)
+- Min threshold for channel 1 (c1_low): (default: 0)
+- Max threshold for channel 1 (c1_high): (default: 255)
+- Channel 2 (c2): (default: none)
+- Min threshold for channel 2 (c2_low): (default: 0)
+- Max threshold for channel 2 (c2_high): (default: 255)
+- Channel 3 (c3): (default: none)
+- Min threshold for channel 3 (c3_low): (default: 0)
+- Max threshold for channel 3 (c3_high): (default: 255)
+- How to merge thresholds (merge_mode): (default: multi_and)
+- Morphology operator (morph_op): (default: none)
+- Kernel size (kernel_size): (default: 3)
+- Kernel shape (kernel_shape): (default: ellipse)
+- Iterations (proc_times): (default: 1)
+- Minimal dot size (surface) (min_dot_size): (default: 30)
+- Maximal dot size (surface) (max_dot_size): (default: 3000)
+- Destination width (dst_width): (default: 800)
+- Destination height (dst_height): (default: 600)
 
 ## Example
 
@@ -45,7 +45,7 @@ Use the included threshold utility to detect the dots.
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 image = call_ipt(
     ipt_id="IptFixPerspective",
