@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 import math
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import (
+from base.ipt_abstract import IptBase
+from ipt.ipt_edge_detector import IptEdgeDetector
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from base.ip_common import (
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
     TOOL_GROUP_IMAGE_INFO_STR,
     C_GREEN,

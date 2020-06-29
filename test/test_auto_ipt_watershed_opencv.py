@@ -9,12 +9,12 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipapi.ipt.ipt_watershed_opencv import IptWatershedOpenCv
-from ipapi.base.ip_abstract import AbstractImageProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipt.ipt_watershed_opencv import IptWatershedOpenCv
+from base.ip_abstract import AbstractImageProcessor
+from base.ipt_loose_pipeline import LoosePipeline
+from base.ipt_abstract_analyzer import IptBaseAnalyzer
 
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 
 
 class TestIptWatershedOpenCv(unittest.TestCase):

@@ -1,8 +1,8 @@
 import cv2
 import numpy as np
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import TOOL_GROUP_THRESHOLD_STR, ensure_odd
+from base.ipt_abstract import IptBase
+from base.ip_common import TOOL_GROUP_THRESHOLD_STR, ensure_odd
 
 
 class IptThresholdTriangle(IptBase):

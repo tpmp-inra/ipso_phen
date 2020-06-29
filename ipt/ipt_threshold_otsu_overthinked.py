@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
 
-from ipapi.base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import (
+from base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
+from base.ipt_abstract import IptBase
+from base.ip_common import (
     TOOL_GROUP_PRE_PROCESSING_STR,
     TOOL_GROUP_THRESHOLD_STR,
     TOOL_GROUP_VISUALIZATION_STR,

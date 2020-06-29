@@ -3,8 +3,8 @@ from distutils.version import LooseVersion
 import numpy as np
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base import ip_common as ipc
+from base.ipt_abstract import IptBase
+from base import ip_common as ipc
 
 
 class IptKeepCountoursNearRois(IptBase):

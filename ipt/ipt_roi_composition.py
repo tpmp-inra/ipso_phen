@@ -1,4 +1,4 @@
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 from tools.regions import CompositeRegion, EmptyRegion
 
 

@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import (
+from base.ipt_abstract import IptBase
+from base.ip_common import (
     TOOL_GROUP_EXPOSURE_FIXING_STR,
     TOOL_GROUP_PRE_PROCESSING_STR,
     C_FUCHSIA,

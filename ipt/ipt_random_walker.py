@@ -4,8 +4,8 @@ from scipy import ndimage
 from skimage.feature import peak_local_max
 from skimage.segmentation import random_walker
 
-from ipapi.base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
+from base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptRandomWalker(IptBaseMerger):

@@ -8,10 +8,10 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipt.ipt_hough_circles_detector import IptHoughCircles
+from base.ip_abstract import AbstractImageProcessor
 import tools.regions as regions
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 
 
 class TestIptHoughCircles(unittest.TestCase):

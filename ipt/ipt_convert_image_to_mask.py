@@ -1,6 +1,6 @@
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 
 
 class IptConvertImageToMask(IptBase):

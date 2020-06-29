@@ -11,8 +11,8 @@ from datetime import datetime as dt
 import cv2
 import numpy as np
 
-from ipapi.base.ip_abstract import AbstractImageProcessor
-from ipapi.base.ip_common import (
+from base.ip_abstract import AbstractImageProcessor
+from base.ip_common import (
     AVAILABLE_FEATURES,
     C_RED,
     TOOL_GROUP_MASK_CLEANUP_STR,
@@ -26,7 +26,7 @@ from ipapi.base.ip_common import (
     TOOL_GROUP_FEATURE_EXTRACTION_STR,
     TOOL_GROUP_IMAGE_GENERATOR_STR,
 )
-from ipapi.base.ipt_abstract import (
+from base.ipt_abstract import (
     IptParam,
     IptBase,
     IptParamHolder,
@@ -34,7 +34,7 @@ from ipapi.base.ipt_abstract import (
     MODULE_NAME_KEY,
     PARAMS_NAME_KEY,
 )
-from ipapi.base.ipt_functional import call_ipt_code, call_ipt_func_code
+from base.ipt_functional import call_ipt_code, call_ipt_func_code
 from tools.csv_writer import AbstractCsvWriter
 from tools.common_functions import get_module_classes, force_directories
 from tools.error_holder import ErrorHolder
@@ -1005,8 +1005,8 @@ class IptStrictPipeline(object):
         # IPSO Phen libraries
         import_lst.extend(
             [
-                "from ipapi.base.ip_abstract import AbstractImageProcessor",
-                "from ipapi.base.ipt_functional import call_ipt, call_ipt_func",
+                "from base.ip_abstract import AbstractImageProcessor",
+                "from base.ipt_functional import call_ipt, call_ipt_func",
                 "from tools.csv_writer import AbstractCsvWriter",
             ]
         )

@@ -1,4 +1,4 @@
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 import os
 import cv2
 

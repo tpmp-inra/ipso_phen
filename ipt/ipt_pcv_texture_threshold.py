@@ -1,6 +1,6 @@
 from plantcv import plantcv as pcv
 
-from ipapi.base.ipt_abstract import IptBase
+from base.ipt_abstract import IptBase
 
 
 class IptPcvTextureThreshold(IptBase):

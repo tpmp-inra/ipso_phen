@@ -1,9 +1,9 @@
 import cv2
 
-from ipapi.base.ip_common import resize_image
-from ipapi.base.ipt_abstract import IptBase
+from base.ip_common import resize_image
+from base.ipt_abstract import IptBase
 from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
-import ipapi.base.ip_common as ipc
+import base.ip_common as ipc
 
 
 class IptRectangleRoi(IptBase):

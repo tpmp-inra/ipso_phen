@@ -4,8 +4,8 @@ from abc import ABC, abstractproperty
 
 from skimage.future import graph
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import DEFAULT_COLOR_MAP
+from base.ipt_abstract import IptBase
+from base.ip_common import DEFAULT_COLOR_MAP
 
 
 class IptBaseMerger(IptBase, ABC):
