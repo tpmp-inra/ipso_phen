@@ -2,8 +2,6 @@
 
 ## Description
 
-  
-
 **Real time**: False
 
 ## Usage
@@ -12,9 +10,9 @@
 
 ## Parameters
 
-- Normalize channel (normalize):  (default: 0)
+- Normalize channel (normalize): (default: 0)
 - Select source file type (source_file): no clue (default: source)
-- Select pseudo color map (color_map):  (default: c_2)
+- Select pseudo color map (color_map): (default: c_2)
 - Overlay text on top of images (text_overlay): Draw description text on top of images (default: 1)
 
 ## Example
@@ -28,7 +26,7 @@
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 raw_chlorophyll_image = call_ipt(
     ipt_id="IptCalculateChlorophyll",

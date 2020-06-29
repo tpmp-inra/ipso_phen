@@ -1,37 +1,53 @@
 # Analyze color
+
 ## Description
+
 Analyses object color.<br>
 Needs a mask as an input.<br>
 Normally used in a pipeline after a clean mask is created.<br>
 
 **Real time**: Does not apply
+
 ## Usage
+
 - **Feature extraction**: Tools to extract features from a segmented image
+
 ## Parameters
-- Add color mean information (color_mean):  (default: 1)
-- Add color standard deviation information (color_std_dev):  (default: 1)
-- Histogram bins (hist_bins):  (default: 256)
-- Select amount of quantiles for color analysis (quantile_color):  (default: 4)
-- Channel (channel):  (default: l)
-- Debug image background (background):  (default: bw)
-- Select pseudo color map (color_map):  (default: c_2)
---------------
+
+- Add color mean information (color_mean): (default: 1)
+- Add color standard deviation information (color_std_dev): (default: 1)
+- Histogram bins (hist_bins): (default: 256)
+- Select amount of quantiles for color analysis (quantile_color): (default: 4)
+- Channel (channel): (default: l)
+- Debug image background (background): (default: bw)
+- Select pseudo color map (color_map): (default: c_2)
+
+---
+
 ## Example
+
 ### Source
+
 ![Source image](images/arabido_sample_plant.jpg)
 
 ### Parameters/Code
+
 Default values are not needed when calling function
+
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 dictionary = call_ipt(ipt_id="IptAnalyzeColor",
                       source="arabido_sample_plant.jpg",
                       )
 ```
+
 ### Result image
+
 ![Result image](images/ipt_Analyze_color.jpg)
+
 ### Result data
+
 |                key                |        Value         |
 | :-------------------------------: | :------------------: |
 |             hist_bins             |         256          |

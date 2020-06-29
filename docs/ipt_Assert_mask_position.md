@@ -26,7 +26,7 @@ Check that the mask intersects with a named ROI
 Default values are not needed when calling function
 
 ```python
-from ip_base.ipt_functional import call_ipt
+from ipapi.base.ipt_functional import call_ipt
 
 None = call_ipt(
     ipt_id="IptAssertMaskPosition",

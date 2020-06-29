@@ -9,7 +9,7 @@ import pandas as pd
 import tools.db_wrapper as dbw
 from tools.common_functions import print_progress_bar, force_directories, format_time
 from tools.pipeline_processor import PipelineProcessor
-from ip_base.ipt_strict_pipeline import IptStrictPipeline, decode_ipt
+from ipapi.base.ipt_strict_pipeline import IptStrictPipeline, decode_ipt
 
 
 g_log_file = ""
@@ -47,7 +47,9 @@ def do_feed_back(status_msg: str, log_msg: str, obj: object, use_status_as_log: 
 def main():
     start = timer()
 
-    parser = argparse.ArgumentParser(description="Process a pipeline on images with stored state")
+    parser = argparse.ArgumentParser(
+        description="Process a pipeline on images with stored state"
+    )
     # parser.add_argument("-s", "--stored_state", required=True, help="Path to the stored state")
     parser.add_argument(
         "-p",
@@ -180,9 +182,11 @@ def main():
                 step_ += 1
                 do_pp_progress(step_, steps_)
             if build_mean_df:
-                df.groupby("series_id").mean().drop(["series_id"]).drop_duplicates().sort_values(
-                    by=["plant", "date_time"]
-                ).to_csv(os.path.join(pp.options.dst_path, f"{csv_sid_root_name}_mean.csv"))
+                df.groupby("series_id").mean().drop(
+                    ["series_id"]
+                ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
+                    os.path.join(pp.options.dst_path, f"{csv_sid_root_name}_mean.csv")
+                )
                 step_ += 1
                 do_pp_progress(step_, steps_)
         if group_by_hour:

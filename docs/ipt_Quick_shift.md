@@ -13,11 +13,11 @@ From scikit-image: Quick shift segments image using quickshift clustering in Col
 ## Parameters
 
 - Color space (color_space): no clue (default: HSV)
-- Width of Gaussian kernel (kernel_size):  (default: 3)
+- Width of Gaussian kernel (kernel_size): (default: 3)
 - Max distance (max_dist): Cut-off point for data distances.
-Higher means fewer clusters (default: 6)
-- Ratio (ratio): Balances color-space proximity and image-space proximity. 
-Higher values give more weight to color-space. (default: 50)
+  Higher means fewer clusters (default: 6)
+- Ratio (ratio): Balances color-space proximity and image-space proximity.
+  Higher values give more weight to color-space. (default: 50)
 
 ## Example
 
@@ -30,7 +30,7 @@ Higher values give more weight to color-space. (default: 50)
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 labels = call_ipt(
     ipt_id="IptQuickShift",

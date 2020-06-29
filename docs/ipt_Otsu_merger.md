@@ -7,9 +7,9 @@ Based on Otsu's binarization, create a new image from OTSU channel binarization.
 
 ## Usage
 
-- **Pre processing**: Transform the image to help segmentation, 
-    the image may not retain it's 
-    properties. Changes here will be ignored when extracting features
+- **Pre processing**: Transform the image to help segmentation,
+  the image may not retain it's
+  properties. Changes here will be ignored when extracting features
 
 ## Parameters
 
@@ -22,8 +22,8 @@ Based on Otsu's binarization, create a new image from OTSU channel binarization.
 - Channel red behaviour: (rd): Select channel rgb: red behaviour (default: active)
 - Channel green behaviour: (gr): Select channel rgb: green behaviour (default: active)
 - Channel blue behaviour: (bl): Select channel rgb: blue behaviour (default: active)
-- Select pseudo color map (color_map):  (default: c_2)
-- Normalize channel (normalize):  (default: 0)
+- Select pseudo color map (color_map): (default: c_2)
+- Normalize channel (normalize): (default: 0)
 - Build mosaic (build_mosaic): Choose mosaic type to display (default: no)
 
 ## Example
@@ -37,7 +37,7 @@ Based on Otsu's binarization, create a new image from OTSU channel binarization.
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 mask = call_ipt(
     ipt_id="IptOtsuOverthinked",

@@ -4,7 +4,7 @@
 
 Keeps contours related to the main object, removes the others.  
 Needs to be part of a pipeline where a mask has already been generated.  
-Contrary to [Keep biggest contours](ipt_Keep_Biggest_Contours.md) it can merge divided objects.  
+Contrary to [Keep biggest contours](ipt_Keep_Biggest_Contours.md) it can merge divided objects.
 
 **Real time**: False
 
@@ -14,13 +14,13 @@ Contrary to [Keep biggest contours](ipt_Keep_Biggest_Contours.md) it can merge d
 
 ## Parameters
 
-- Allowed distance to main contour (tolerance_distance):  (default: 100)
-- Min contour area size (tolerance_area):  (default: 5000)
-- Root contour position (root_position):  (default: BOTTOM_CENTER)
-- Erosion/dilation iterations (kernel size 3) (dilation_iter):  (default: 0)
-- Include all contours bigger than (area_override_size):  (default: 0)
+- Allowed distance to main contour (tolerance_distance): (default: 100)
+- Min contour area size (tolerance_area): (default: 5000)
+- Root contour position (root_position): (default: BOTTOM_CENTER)
+- Erosion/dilation iterations (kernel size 3) (dilation_iter): (default: 0)
+- Include all contours bigger than (area_override_size): (default: 0)
 - Delete all contours smaller than (delete_all_bellow): The more small contours are delete, the faster the algorithm (default: 0)
-- Pseudo color channel (channel):  (default: l)
+- Pseudo color channel (channel): (default: l)
 
 ## Example
 
@@ -29,7 +29,7 @@ Contrary to [Keep biggest contours](ipt_Keep_Biggest_Contours.md) it can merge d
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 mask = call_ipt(ipt_id="IptKeepLinkedContours",
                 source="arabido_sample_plant.jpg",

@@ -36,6 +36,6 @@ For advanced python users. Class pipelines can be automatically selected by the 
 
 Even if IPSO Phen comes with a large (and expanding) set of image processing tools, some users may want to add additional tools that they have created or from an existing toolkit like PlantCV [1]. To that end, we offer an easy way to create or add tools to the user interface (UI) where widgets are added in a descriptive way and all callbacks and notifications are handled by the program.
 
-### [File handlers](file_handlers.md)
+### [File handlers](ipapi.file_handlers.md)
 
 By default IPSO Phen extracts the information needed for image managing from the file name as seen on the [user interface section](user_interface.md).

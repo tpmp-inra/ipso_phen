@@ -13,9 +13,9 @@ Used with light barriers
 ## Parameters
 
 - Activate tool (enabled): Toggle whether or not tool is active (default: 1)
-- Minimal size for a line to be considered for removal (min_line_size):  (default: 11)
-- Maximum number of iterations to perform (max_iter):  (default: 100)
-- Remove blocks of lines (fully_isolated):  (default: 1)
+- Minimal size for a line to be considered for removal (min_line_size): (default: 11)
+- Maximum number of iterations to perform (max_iter): (default: 100)
+- Remove blocks of lines (fully_isolated): (default: 1)
 
 ## Example
 
@@ -28,7 +28,7 @@ Used with light barriers
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 mask = call_ipt(
     ipt_id="IptCleanHorizontalNoise",
@@ -40,4 +40,4 @@ mask = call_ipt(
 
 ### Result
 
-![Result image](images/ipt_Clean_horizontal_noise_(WIP).jpg)
+![Result image](<images/ipt_Clean_horizontal_noise_(WIP).jpg>)

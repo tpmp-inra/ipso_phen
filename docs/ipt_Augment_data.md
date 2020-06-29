@@ -3,7 +3,7 @@
 ## Description
 
 Copies image to target folder after modifying it  
-        Can have a ROI as a pre-processor
+ Can have a ROI as a pre-processor
 **Real time**: False
 
 ## Usage
@@ -13,16 +13,16 @@ Copies image to target folder after modifying it
 ## Parameters
 
 - Target folder (path): Can be overridden at process call (default: )
-- Put image in subfolder with experiment as its name (add_sub_folder):  (default: 0)
-- Image output format (output_format):  (default: source)
-- Test only, do not actually copy (test_only):  (default: 1)
-- Source image (original):  (default: 1)
-- Rotate 90 degres (r90):  (default: 0)
-- Rotate 180 degres (r180):  (default: 0)
-- Rotate 270 degres (r270):  (default: 0)
-- flip horizontally (flip_h):  (default: 0)
-- flip vertically (flip_v):  (default: 0)
-- Gamma values (same syntax as grid search) (gamma_values):  (default: 1)
+- Put image in subfolder with experiment as its name (add_sub_folder): (default: 0)
+- Image output format (output_format): (default: source)
+- Test only, do not actually copy (test_only): (default: 1)
+- Source image (original): (default: 1)
+- Rotate 90 degres (r90): (default: 0)
+- Rotate 180 degres (r180): (default: 0)
+- Rotate 270 degres (r270): (default: 0)
+- flip horizontally (flip_h): (default: 0)
+- flip vertically (flip_v): (default: 0)
+- Gamma values (same syntax as grid search) (gamma_values): (default: 1)
 
 ## Example
 
@@ -35,7 +35,7 @@ Copies image to target folder after modifying it
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 call_ipt(
     ipt_id="IptAugmentData",
@@ -50,7 +50,9 @@ call_ipt(
 ### Result image
 
 ![Result image](images/ipt_Augment_data.jpg)
+
 ### Result data
+
 |      key       |                                   Value                                   |
 | :------------: | :-----------------------------------------------------------------------: |
 | add_sub_folder |                                     0                                     |

@@ -12,14 +12,14 @@ Handles ROI edition via user input
 
 ## Parameters
 
-- ROI name (roi_name):  (default: unnamed_roi)
+- ROI name (roi_name): (default: unnamed_roi)
 - Select action linked to ROI (roi_type): no clue (default: keep)
 - Select ROI shape (roi_shape): no clue (default: rectangle)
 - Target IPT (tool_target): no clue (default: none)
-- Left (left):  (default: 0)
-- Width (Diameter for circles) (width):  (default: 0)
-- Top (top):  (default: 0)
-- Height (height):  (default: 0)
+- Left (left): (default: 0)
+- Width (Diameter for circles) (width): (default: 0)
+- Top (top): (default: 0)
+- Height (height): (default: 0)
 - Launch ROI draw form (draw_roi): Launch OpenCV window to select a ROI (default: 0)
 
 ## Example
@@ -33,7 +33,7 @@ Handles ROI edition via user input
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 call_ipt(
     ipt_id="IptRoiManager",
@@ -48,4 +48,4 @@ call_ipt(
 
 ### Result
 
-![Result image](images/ipt_ROI_manager_(deprecated).jpg)
+![Result image](<images/ipt_ROI_manager_(deprecated).jpg>)

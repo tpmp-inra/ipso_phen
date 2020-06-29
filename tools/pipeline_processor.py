@@ -10,8 +10,8 @@ from timeit import default_timer as timer
 import pandas as pd
 
 from class_pipelines.ip_factory import ipo_factory
-from file_handlers.fh_base import file_handler_factory
-from ip_base.image_wrapper import ImageWrapper
+from ipapi.file_handlers.fh_base import file_handler_factory
+from ipapi.base.image_wrapper import ImageWrapper
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import time_method, print_progress_bar, force_directories
 from tools.error_holder import ErrorHolder
@@ -22,7 +22,9 @@ WorkerResult = namedtuple("WorkerResult", "result, name, error")
 
 def _run_process(file_path, script, options, list_res, data_base):
     res = WorkerResult(False, "None", "")
-    ipo = ipo_factory(file_path, options, force_abstract=script is not None, data_base=data_base)
+    ipo = ipo_factory(
+        file_path, options, force_abstract=script is not None, data_base=data_base
+    )
     if ipo:
         if script is None:
             bool_res = ipo.process_image(threshold_only=options.threshold_only)
@@ -205,12 +207,21 @@ class PipelineProcessor:
         use_status_as_log: bool = False,
     ):
         if self.log_callback is not None:
-            return self.log_callback(status_message, log_message, error_holder, use_status_as_log)
+            return self.log_callback(
+                status_message, log_message, error_holder, use_status_as_log
+            )
         else:
             return True
 
     def update_progress(
-        self, iteration, total, prefix="", suffix="", bar_length=50, fill="#", forced_update=False
+        self,
+        iteration,
+        total,
+        prefix="",
+        suffix="",
+        bar_length=50,
+        fill="#",
+        forced_update=False,
     ):
         if self.progress_callback is None:
             time_now_ = timer()
@@ -338,7 +349,10 @@ class PipelineProcessor:
                     self.log_item(img_wrapper.luid, "refresh", "", False)
                 i += 1
             self.update_progress(
-                iteration=cpt, total=total, prefix="Checking completed tasks:", suffix="Complete"
+                iteration=cpt,
+                total=total,
+                prefix="Checking completed tasks:",
+                suffix="Complete",
             )
             cpt += 1
         # self.update_progress(1, total=1, prefix="Checking completed tasks:", suffix="Finished")
@@ -412,13 +426,17 @@ class PipelineProcessor:
             df = put_column_in_front(col_name="experiment", dataframe=df)
 
             sort_list = ["plant"] if "plant" in list(df.columns) else []
-            sort_list = sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+            sort_list = (
+                sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+            )
             if sort_list:
                 df.sort_values(by=sort_list, axis=0, inplace=True, na_position="first")
 
             df.reset_index(drop=True, inplace=True)
 
-            df.to_csv(path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False)
+            df.to_csv(
+                path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False
+            )
             self.update_progress(
                 iteration=total,
                 total=total,

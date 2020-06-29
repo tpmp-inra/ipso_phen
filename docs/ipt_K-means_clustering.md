@@ -3,7 +3,7 @@
 ## Description
 
 K-means clustering:  
-Performs k-means clustering, grouping object with a distance formula  
+Performs k-means clustering, grouping object with a distance formula
 
 **Real time**: False
 
@@ -35,7 +35,7 @@ Performs k-means clustering, grouping object with a distance formula
 Default values are not needed when calling function
 
 ```python
-from ip_tools import call_ipt
+from ipapi.ipt import call_ipt
 
 ret, label, center = call_ipt(ipt_id="IptKMeansClustering",
                               source="tomato_sample_plant.jpg",
