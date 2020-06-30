@@ -21,7 +21,9 @@ class TestIptHoughLines(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptHoughLines()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -41,16 +43,28 @@ class TestIptHoughLines(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("",))
         script = LoosePipeline.load(
             os.path.join(
-                os.path.dirname(__file__), "..", "sample_pipelines", "test_extractors.json",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "pipelines",
+                "test_extractors.json",
             )
         )
         script.add_module(operator=op, target_group="grp_test_extractors")
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
+            )
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertIsInstance(
-            op, IptBaseAnalyzer, "Hough lines detector must inherit from IptBaseAnalyzer",
+            op,
+            IptBaseAnalyzer,
+            "Hough lines detector must inherit from IptBaseAnalyzer",
         )
         self.assertTrue(res, "Failed to process Hough lines detector with test script")
         self.assertNotEqual(
@@ -66,7 +80,7 @@ class TestIptHoughLines(unittest.TestCase):
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "docs", f"{op_doc_name}")
+                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
             ),
             "Missing documentation file for Hough lines detector",
         )

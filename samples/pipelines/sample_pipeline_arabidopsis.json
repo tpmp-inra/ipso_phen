@@ -1,0 +1,621 @@
+{
+  "title": "IPSO Phen pipeline V2",
+  "name": "sample_pipeline_arabidopsis",
+  "description": "Demo pipeline, to be use with sample arabidopsis image",
+  "date": "2020_Mar_05_15-06-04",
+  "version": "0.2.0.0",
+  "settings": {
+    "debug_mode": 0,
+    "allow_step_mosaics": 1,
+    "stop_on": 3,
+    "mosaic_enabled": true,
+    "mosaic_images": [
+      ["Fix image", "Hough circles detector keep_roi", "Build mask"],
+      ["Clean mask", "Analyze color l", "Analyze object"]
+    ]
+  },
+  "Pipeline": {
+    "node_type": "group",
+    "merge_mode": "merge_mode_chain",
+    "name": "Pipeline",
+    "uuid": "34c7f1eb-df3e-4616-825f-d7e1290b3c59",
+    "source": "source",
+    "no_delete": false,
+    "nodes": [
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Fix image",
+        "uuid": "fix_image",
+        "source": "source",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Image transformations",
+              "package": "IPSO Phen",
+              "class__name__": "IptLinearTransformation",
+              "module__name__": "ip_tools.ipt_linear_transformation",
+              "params": {
+                "enabled": 1,
+                "method": "alpha_beta_target",
+                "apply_case": "always",
+                "alpha_gamma": 100,
+                "beta": 0,
+                "target_brightness": 100,
+                "max_delta_for_brightness": 255,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "show_over_under": 0,
+                "brg_calc": "std",
+                "text_overlay": 0
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "method": "alpha_beta",
+                "apply_case": "always",
+                "alpha_gamma": "100",
+                "beta": "0",
+                "target_brightness": "0",
+                "max_delta_for_brightness": "255",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "show_over_under": "0",
+                "brg_calc": "std",
+                "tb_output": "{}",
+                "text_overlay": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "32e19e2e-fde5-4855-97ea-d61e93418407"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Pre process image",
+        "uuid": "pre_process_image",
+        "source": "fix_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Check exposure",
+              "package": "IPSO Phen",
+              "class__name__": "IptExposureChecker",
+              "module__name__": "ip_tools.ipt_check_exposure",
+              "params": {
+                "enabled": 1,
+                "overexposed_limit": 100,
+                "over_color": "black",
+                "underexposed_limit": 60,
+                "under_color": "black",
+                "show_grey_zones": 0,
+                "grey_zone_limit": 0,
+                "grey_zone_color": "fuchsia",
+                "source_brightness": "source",
+                "brg_calc": "std",
+                "average_as": "none",
+                "avg_weight": 100,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "text_overlay": 0
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "overexposed_limit": "255",
+                "over_color": "red",
+                "underexposed_limit": "0",
+                "under_color": "orange",
+                "show_grey_zones": "0",
+                "grey_zone_limit": "0",
+                "grey_zone_color": "fuchsia",
+                "sep_1": "",
+                "source_brightness": "source",
+                "brg_calc": "std",
+                "src_brightness": "-",
+                "src_contrast": "-",
+                "average_as": "none",
+                "avg_weight": "100",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "text_overlay": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "78c8cad0-44e9-4209-a482-50af297e0fee"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_none",
+        "name": "ROIs from raw pre processed image",
+        "uuid": "roi_pre_processed",
+        "source": "pre_process_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Hough circles detector",
+              "package": "IPSO Phen",
+              "class__name__": "IptHoughCircles",
+              "module__name__": "ip_tools.ipt_hough_circles_detector",
+              "params": {
+                "enable_cache": 0,
+                "roi_name": "keep_roi",
+                "roi_type": "keep",
+                "roi_shape": "circle",
+                "tool_target": "none",
+                "crop_roi_name": "",
+                "channel": "l",
+                "normalize": 0,
+                "median_filter_size": 0,
+                "min_radius": 700,
+                "max_radius": 750,
+                "annulus_size": 0,
+                "step_radius": 10,
+                "max_peaks": 2,
+                "min_distance": 20,
+                "line_width": 4,
+                "keep_only_one": 1,
+                "target_position": "MIDDLE_CENTER",
+                "max_dist_to_root": 1000,
+                "draw_boundaries": 0,
+                "draw_candidates": 0,
+                "expand_circle": -10,
+                "edge_only": 0,
+                "operator": "sobel",
+                "canny_sigma": 2,
+                "canny_first": 0,
+                "canny_second": 255,
+                "kernel_size": 5,
+                "threshold": 170,
+                "apply_threshold": 1,
+                "text_overlay": 0,
+                "source_file": "source"
+              },
+              "grid_search_params": {
+                "enable_cache": "0",
+                "roi_name": "unnamed_roi",
+                "roi_type": "keep",
+                "roi_shape": "rectangle",
+                "tool_target": "none",
+                "s1": "",
+                "crop_roi_name": "",
+                "channel": "l",
+                "normalize": "0",
+                "median_filter_size": "0",
+                "min_radius": "400",
+                "max_radius": "1000",
+                "annulus_size": "0",
+                "step_radius": "10",
+                "max_peaks": "2",
+                "min_distance": "20",
+                "line_width": "4",
+                "keep_only_one": "0",
+                "target_position": "BOTTOM_CENTER",
+                "max_dist_to_root": "1000",
+                "draw_boundaries": "0",
+                "draw_candidates": "0",
+                "expand_circle": "0",
+                "edge_only": "0",
+                "operator": "canny_opcv",
+                "canny_sigma": "2",
+                "canny_first": "0",
+                "canny_second": "255",
+                "kernel_size": "5",
+                "threshold": "130",
+                "apply_threshold": "1",
+                "text_overlay": "0",
+                "source_file": "source"
+              }
+            },
+            "enabled": true,
+            "uuid": "89c51e47-28b3-4a77-b6d8-f9e68899924a"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_and",
+        "name": "Build mask",
+        "uuid": "build_mask",
+        "source": "pre_process_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Range threshold",
+              "package": "IPSO Phen",
+              "class__name__": "IptThreshold",
+              "module__name__": "ip_tools.ipt_threshold_binary",
+              "params": {
+                "enabled": 1,
+                "channel": "h",
+                "invert": 0,
+                "min_t": 15,
+                "max_t": 80,
+                "median_filter_size": 0,
+                "morph_op": "open",
+                "kernel_size": 5,
+                "kernel_shape": "ellipse",
+                "proc_times": 1,
+                "text_overlay": 0,
+                "build_mosaic": 0,
+                "background_color": "none"
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "channel": "h",
+                "invert": "0",
+                "min_t": "0",
+                "max_t": "255",
+                "median_filter_size": "0",
+                "morph_op": "none",
+                "kernel_size": "3",
+                "kernel_shape": "ellipse",
+                "proc_times": "1",
+                "text_overlay": "0",
+                "build_mosaic": "0",
+                "background_color": "none"
+              }
+            },
+            "enabled": true,
+            "uuid": "b4b69bb9-ac05-47b0-a446-94a74862ced5"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Otsu overthinked",
+              "package": "IPSO Phen",
+              "class__name__": "IptOtsuOverthinked",
+              "module__name__": "ip_tools.ipt_threshold_otsu_overthinked",
+              "params": {
+                "merge_method": "l_and",
+                "h": "disabled",
+                "s": "active",
+                "l": "active",
+                "a": "disabled",
+                "b": "active",
+                "rd": "active",
+                "gr": "active",
+                "bl": "active",
+                "normalize": 0,
+                "morph_op": "none",
+                "kernel_size": 3,
+                "kernel_shape": "ellipse",
+                "proc_times": 1,
+                "build_mosaic": "no",
+                "source_file": "source",
+                "color_map": "c_2",
+                "use_palette": 0
+              },
+              "grid_search_params": {
+                "merge_method": "l_and",
+                "lbl_channel": "Channels:",
+                "h": "active",
+                "s": "active",
+                "l": "active",
+                "a": "active",
+                "b": "active",
+                "rd": "active",
+                "gr": "active",
+                "bl": "active",
+                "normalize": "0",
+                "sep1": "",
+                "morph_op": "none",
+                "kernel_size": "3",
+                "kernel_shape": "ellipse",
+                "proc_times": "1",
+                "sep2": "",
+                "build_mosaic": "no",
+                "source_file": "source",
+                "color_map": "c_2",
+                "use_palette": "0"
+              }
+            },
+            "enabled": true,
+            "uuid": "e8c3e762-be86-4923-8a81-0617cc900cc2"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Apply ROIS",
+        "uuid": "apply_roi",
+        "source": "fix_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Apply ROI",
+              "package": "TPMP",
+              "class__name__": "IptApplyRoi",
+              "module__name__": "ip_tools.ipt_apply_roi",
+              "params": {
+                "enabled": 1,
+                "roi_names": "keep_roi",
+                "roi_selection_mode": "all_named",
+                "roi_type": "keep",
+                "erase_outside": 1,
+                "io_mode": "mask",
+                "input_source": "mask",
+                "output_mode": "mask"
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked",
+                "roi_type": "keep",
+                "erase_outside": "1",
+                "io_mode": "mask",
+                "input_source": "mask",
+                "output_mode": "mask"
+              }
+            },
+            "enabled": 1,
+            "uuid": "d62b5f7b-3a95-4f21-8342-ce62cc39e1b4"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Clean mask",
+        "uuid": "clean_mask",
+        "source": "pre_process_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Keep linked Contours",
+              "package": "IPSO Phen",
+              "class__name__": "IptKeepLinkedContours",
+              "module__name__": "ip_tools.ipt_keep_linked_contours",
+              "params": {
+                "tolerance_distance": 10,
+                "tolerance_area": 5000,
+                "root_position": "MIDDLE_CENTER",
+                "dilation_iter": 0,
+                "area_override_size": 0,
+                "delete_all_bellow": 0,
+                "channel": "l",
+                "use_existing_mask": 1
+              },
+              "grid_search_params": {
+                "tolerance_distance": "100",
+                "tolerance_area": "5000",
+                "root_position": "BOTTOM_CENTER",
+                "dilation_iter": "0",
+                "area_override_size": "0",
+                "delete_all_bellow": "0",
+                "channel": "l",
+                "use_existing_mask": "1"
+              }
+            },
+            "enabled": true,
+            "uuid": "4c5e1077-5fe2-4449-8913-891e2167a362"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Morphology",
+              "package": "IPSO Phen",
+              "class__name__": "IptMorphology",
+              "module__name__": "ip_tools.ipt_morphology",
+              "params": {
+                "morph_op": "close",
+                "kernel_size": 3,
+                "kernel_shape": "ellipse",
+                "proc_times": 1,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked"
+              },
+              "grid_search_params": {
+                "morph_op": "none",
+                "kernel_size": "3",
+                "kernel_shape": "ellipse",
+                "proc_times": "1",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked"
+              }
+            },
+            "enabled": true,
+            "uuid": "cafbec6a-82dc-4da3-a081-b7d8706abac9"
+          }
+        ]
+      },
+      {
+        "node_type": "group",
+        "merge_mode": "merge_mode_chain",
+        "name": "Extract features",
+        "uuid": "extract_features",
+        "source": "fix_image",
+        "no_delete": false,
+        "nodes": [
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Observation data",
+              "package": "IPSO Phen",
+              "class__name__": "IptAnalyseObservation",
+              "module__name__": "ip_tools.ipt_analyze_observation",
+              "params": {
+                "experiment": 1,
+                "plant": 1,
+                "date_time": 1,
+                "camera": 1,
+                "view_option": 1,
+                "luid": 0,
+                "source_path": 0,
+                "split_plant_name": 1,
+                "separator": "_",
+                "new_column_names": "species,id,genotype,treatment",
+                "add_columns": ""
+              },
+              "grid_search_params": {
+                "experiment": "1",
+                "plant": "1",
+                "date_time": "1",
+                "camera": "1",
+                "view_option": "1",
+                "luid": "0",
+                "source_path": "0",
+                "sep_1": "",
+                "split_plant_name": "0",
+                "separator": "_",
+                "new_column_names": "",
+                "add_columns": ""
+              }
+            },
+            "enabled": true,
+            "uuid": "8f844bbd-ac49-492f-a395-646f6d223c7b"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Analyze chlorophyll",
+              "package": "IPSO Phen",
+              "class__name__": "IptAnalyzeChlorophyll",
+              "module__name__": "ip_tools.ipt_analyse_chlorophyll",
+              "params": {
+                "chlorophyll_mean": 1,
+                "chlorophyll_std_dev": 1,
+                "color_map": "c_2",
+                "background": "bw"
+              },
+              "grid_search_params": {
+                "chlorophyll_mean": "1",
+                "chlorophyll_std_dev": "1",
+                "sep_1": "",
+                "color_map": "c_2",
+                "background": "bw"
+              }
+            },
+            "enabled": true,
+            "uuid": "36a94ea9-63ef-48d9-b3d9-d6ca673d8e8e"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Analyze color",
+              "package": "IPSO Phen",
+              "class__name__": "IptAnalyzeColor",
+              "module__name__": "ip_tools.ipt_analyze_color",
+              "params": {
+                "normalize": 0,
+                "remove_outliers": 0,
+                "color_mean": 1,
+                "color_std_dev": 1,
+                "include_chlorophyll": 0,
+                "hist_bins": 256,
+                "quantile_color": 4,
+                "draw_histograms": 0,
+                "save_histograms": 0,
+                "channel": "l",
+                "background": "bw",
+                "color_map": "c_2"
+              },
+              "grid_search_params": {
+                "normalize": "0",
+                "remove_outliers": "0",
+                "color_mean": "1",
+                "color_std_dev": "1",
+                "include_chlorophyll": "0",
+                "hist_bins": "256",
+                "quantile_color": "4",
+                "draw_histograms": "0",
+                "save_histograms": "0",
+                "sep_1": "",
+                "channel": "l",
+                "background": "bw",
+                "color_map": "c_2"
+              }
+            },
+            "enabled": true,
+            "uuid": "827a55e1-5a05-4203-9ee7-a630b4038527"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Analyze object",
+              "package": "IPSO Phen",
+              "class__name__": "IptAnalyzeObject",
+              "module__name__": "ip_tools.ipt_analyze_object",
+              "params": {
+                "area": 1,
+                "centroid_x": 1,
+                "centroid_y": 1,
+                "hull_area": 1,
+                "shape_solidity": 1,
+                "shape_extend": 1,
+                "straight_bounding_rectangle_left": 1,
+                "straight_bounding_rectangle_width": 1,
+                "straight_bounding_rectangle_top": 1,
+                "straight_bounding_rectangle_height": 1,
+                "rotated_bounding_rectangle_cx": 1,
+                "rotated_bounding_rectangle_cy": 1,
+                "rotated_bounding_rectangle_width": 1,
+                "rotated_bounding_rectangle_height": 1,
+                "rotated_bounding_rectangle_rotation": 1,
+                "minimum_enclosing_circle_cx": 1,
+                "minimum_enclosing_circle_cy": 1,
+                "minimum_enclosing_circle_radius": 1,
+                "shape_height": 1,
+                "shape_width": 1,
+                "shape_width_min": 1,
+                "shape_width_max": 1,
+                "shape_width_avg": 1,
+                "shape_width_std": 1,
+                "quantile_width": 4,
+                "line_width": 4,
+                "centroid_width": 10
+              },
+              "grid_search_params": {
+                "area": "1",
+                "centroid_x": "1",
+                "centroid_y": "1",
+                "hull_area": "1",
+                "shape_solidity": "1",
+                "shape_extend": "1",
+                "straight_bounding_rectangle_left": "1",
+                "straight_bounding_rectangle_width": "1",
+                "straight_bounding_rectangle_top": "1",
+                "straight_bounding_rectangle_height": "1",
+                "rotated_bounding_rectangle_cx": "1",
+                "rotated_bounding_rectangle_cy": "1",
+                "rotated_bounding_rectangle_width": "1",
+                "rotated_bounding_rectangle_height": "1",
+                "rotated_bounding_rectangle_rotation": "1",
+                "minimum_enclosing_circle_cx": "1",
+                "minimum_enclosing_circle_cy": "1",
+                "minimum_enclosing_circle_radius": "1",
+                "shape_height": "1",
+                "shape_width": "1",
+                "shape_width_min": "1",
+                "shape_width_max": "1",
+                "shape_width_avg": "1",
+                "shape_width_std": "1",
+                "s1": "",
+                "quantile_width": "4",
+                "line_width": "4",
+                "centroid_width": "10"
+              }
+            },
+            "enabled": true,
+            "uuid": "e7a166f8-7ebe-460a-8944-074c120c9d1a"
+          }
+        ]
+      }
+    ]
+  }
+}

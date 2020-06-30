@@ -21,7 +21,9 @@ class TestIptImageSplitter(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptImageSplitter()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""

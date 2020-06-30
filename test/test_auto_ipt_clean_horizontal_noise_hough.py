@@ -20,7 +20,9 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptCleanHorizontalNoiseHough()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -41,7 +43,11 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
             os.path.join(
-                os.path.dirname(__file__), "..", "sample_pipelines", "test_cleaners.json",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "pipelines",
+                "test_cleaners.json",
             )
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
@@ -49,18 +55,24 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
-                "sample_images",
+                "samples",
+                "images",
                 "18HP01U17-CAM11-20180712221558.bmp",
             )
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(
-            res, "Failed to process Clean horizontal noise (Hough method) with test script",
+            res,
+            "Failed to process Clean horizontal noise (Hough method) with test script",
         )
-        self.assertIsInstance(wrapper.mask, np.ndarray, "Empty result for Range threshold")
+        self.assertIsInstance(
+            wrapper.mask, np.ndarray, "Empty result for Range threshold"
+        )
         self.assertEqual(len(wrapper.mask.shape), 2, "Masks can only have one channel")
         self.assertEqual(
-            np.sum(wrapper.mask[wrapper.mask != 255]), 0, "Masks values can only be 0 or 255",
+            np.sum(wrapper.mask[wrapper.mask != 255]),
+            0,
+            "Masks values can only be 0 or 255",
         )
 
     def test_documentation(self):
@@ -70,7 +82,7 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "docs", f"{op_doc_name}")
+                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
             ),
             "Missing documentation file for Clean horizontal noise (Hough method)",
         )
