@@ -460,3 +460,6 @@ class IptHoughCircles(IptBase):
     @property
     def description(self):
         return "Hough circles detector: Perform a circular Hough transform.\nCan generate ROIs"
+
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        self.set_value_of("enable_cache", 0)

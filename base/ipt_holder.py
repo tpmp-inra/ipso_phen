@@ -2,6 +2,8 @@ from typing import Any
 import pkgutil
 import sys
 import subprocess
+import argparse
+from tqdm import tqdm
 
 if __name__ == "__main__":
     import os
@@ -30,7 +32,6 @@ else:
 
 DEFAULT_TEST_IMAGE = "arabido_small.jpg"
 HELIASEN_TEST_IMAGE = "18HP01U17-CAM11-20180712221558.bmp"
-_FORCE_OVERWRITE = True
 
 
 def add_tab(sc: str) -> str:
@@ -46,6 +47,7 @@ class IptHolder(object):
         self._ipt_list = []
         self._use_cases = []
         self._log_callback = None
+        self._log_data = []
 
     def _init_holders(self):
         """Build list containing a single instance of all available tools
@@ -79,7 +81,7 @@ class IptHolder(object):
         f.write(f"{spaces}os.path.join(\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.dirname(__file__), "..", "sample_pipelines", "{pipeline_name}",\n'
+            f'{spaces}os.path.dirname(__file__), "..", "samples", "pipelines", "{pipeline_name}",\n'
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -89,7 +91,7 @@ class IptHolder(object):
         f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "sample_images", "{test_image}",)\n'
+            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "samples", "images", "{test_image}",)\n'
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -111,7 +113,7 @@ class IptHolder(object):
         f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "sample_images", "{test_image}",)\n'
+            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "samples", "images", "{test_image}",)\n'
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -384,7 +386,7 @@ class IptHolder(object):
         f.write(f"{spaces}os.path.isfile(\n")
         spaces = add_tab(spaces)
         f.write(
-            f"{spaces}os.path.join(os.path.dirname(__file__), '..', 'docs', f'{{op_doc_name}}')\n"
+            f"{spaces}os.path.join(os.path.dirname(__file__), '..', 'help', f'{{op_doc_name}}')\n"
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces}),\n")
@@ -438,10 +440,10 @@ class IptHolder(object):
                 status_message, log_message, use_status_as_log, collect_garbage
             )
         else:
-            print(f"status: {status_message} - log: {log_message}")
+            self._log_data.append(f"status: {status_message} - log: {log_message}")
             return True
 
-    def build_test_files(self, log_callback=None):
+    def build_test_files(self, log_callback=None, overwrite=False):
 
         self._log_callback = log_callback
         try:
@@ -450,7 +452,8 @@ class IptHolder(object):
             self.log_state(
                 status_message=f"Building test scripts ...", use_status_as_log=True,
             )
-            for (_, name, _) in pkgutil.iter_modules(ipt.__path__):
+            module_names = [name for (_, name, _) in pkgutil.iter_modules(ipt.__path__)]
+            for name in tqdm(module_names, desc="Building test files"):
                 if "pcv" in name and not allow_pcv:
                     self.log_state(
                         status_message=f"Ignoring {name}...",
@@ -472,7 +475,7 @@ class IptHolder(object):
                     file_name = os.path.join(
                         os.path.dirname(__file__), "..", "test", f"test_auto_{name}.py",
                     )
-                    if not _FORCE_OVERWRITE and os.path.isfile(file_name):
+                    if not overwrite and os.path.isfile(file_name):
                         self.log_state(
                             log_message=f"Skipped test script for {op.name}, script already exists"
                         )
@@ -548,6 +551,10 @@ class IptHolder(object):
                 )
                 subprocess.run(args=("black", test_script))
 
+            if self._log_data:
+                for l in self._log_data:
+                    print(l)
+
         finally:
             self._log_callback = None
 
@@ -565,5 +572,15 @@ class IptHolder(object):
 
 
 if __name__ == "__main__":
-    ih = IptHolder()
-    ih.build_test_files()
+    parser = argparse.ArgumentParser(
+        description="Build test files for all image processing tools"
+    )
+    parser.add_argument(
+        "-o", "--overwrite", required=False, help="Overwrite existing files", default=False,
+    )
+    args = vars(parser.parse_args())
+
+    # print(args)
+    # print("overwrite" in args and args["overwrite"] == "True")
+
+    IptHolder().build_test_files(overwrite="overwrite" in args and args["overwrite"] == "True")

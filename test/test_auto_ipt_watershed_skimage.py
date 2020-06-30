@@ -22,12 +22,15 @@ class TestIptWatershedSkimage(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptWatershedSkimage()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptWatershedSkimage()
         if "(wip)" not in op.name.lower():
             self.assertIsNotNone(
-                op.process_wrapper.__doc__, "Missing docstring for Watershed Skimage (WIP)",
+                op.process_wrapper.__doc__,
+                "Missing docstring for Watershed Skimage (WIP)",
             )

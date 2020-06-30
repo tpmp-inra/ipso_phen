@@ -15,7 +15,9 @@ from base.ipt_loose_pipeline import LoosePipeline
 
 class TestIptKeepCountoursNearRois(unittest.TestCase):
 
-    pipeline_dir_path = os.path.join(os.path.dirname(__file__), "..", "sample_pipelines", "")
+    pipeline_dir_path = os.path.join(
+        os.path.dirname(__file__), "..", "samples", "pipelines", ""
+    )
 
     def test_load(self):
         """Try loading all test pipelines"""
@@ -36,7 +38,9 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             os.path.join(self.pipeline_dir_path, "test_cleaners.json",)
         )
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+            )
         )
         res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Keep countours near ROIs with test pipeline")
@@ -52,7 +56,9 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             os.path.join(self.pipeline_dir_path, "test_extractors.json",)
         )
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+            )
         )
         res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Keep countours near ROIs with test pipeline")
@@ -68,7 +74,9 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             os.path.join(self.pipeline_dir_path, "sample_pipeline_arabidopsis.json",)
         )
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+            )
         )
         res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Keep countours near ROIs with test pipeline")
