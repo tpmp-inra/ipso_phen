@@ -4,7 +4,7 @@ import pkgutil
 
 import class_pipelines
 from file_handlers.fh_base import file_handler_factory
-from ip_base.ip_abstract import AbstractImageProcessor
+from base.ip_abstract import AbstractImageProcessor
 from tools.common_functions import get_module_classes
 
 

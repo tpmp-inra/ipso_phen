@@ -29,9 +29,9 @@ from PyQt5.QtWidgets import (
     QGroupBox,
 )
 from PyQt5.QtCore import QSize
-from ip_base.ipt_loose_pipeline import GroupNode, ModuleNode, MosaicData, PipelineSettings
-from ip_base.ipt_abstract import IptBase, IptParam, IptParamHolder
-import ip_base.ip_common as ipc
+from base.ipt_loose_pipeline import GroupNode, ModuleNode, MosaicData, PipelineSettings
+from base.ipt_abstract import IptBase, IptParam, IptParamHolder
+import base.ip_common as ipc
 import numpy as np
 import pandas as pd
 from PyQt5.QtCore import QAbstractItemModel, QAbstractTableModel, QModelIndex, Qt, pyqtSignal
@@ -89,7 +89,9 @@ def build_widgets(
         param.gs_auto_fill = bt_af
         layout.addWidget(bt_af)
 
-        bt_update_from_param = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
+        bt_update_from_param = QPushButtonWthParam(
+            tool=tool, param=param, allow_real_time=False
+        )
         bt_update_from_param.setIcon(QIcon(":/common/resources/Down.png"))
         bt_update_from_param.setToolTip("Copy value from tool")
         param.gs_copy_from_param = bt_update_from_param
@@ -129,13 +131,17 @@ def build_widgets(
             widget = QLineEditWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
         elif param.allowed_values == "multi_line_text_input":
             label = QLabel(param.desc)
-            widget = QTextBrowserWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
+            widget = QTextBrowserWthParam(
+                tool=tool, param=param, allow_real_time=allow_real_time
+            )
             widget.setLineWrapMode(QTextEdit.NoWrap)
             widget.setReadOnly(False)
             widget.setMaximumHeight(72)
         elif param.allowed_values == "input_button":
             label = None
-            widget = QPushButtonWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
+            widget = QPushButtonWthParam(
+                tool=tool, param=param, allow_real_time=allow_real_time
+            )
         else:
             if do_feedback is not None:
                 do_feedback(
@@ -674,7 +680,9 @@ class QImageDrawerDelegate(QItemDelegate):
                     )
             elif text or auto_text:
                 session_.add(OrmAnnotation(idk=luid, kind=kind, text=text, auto_text=auto_text))
-                self.annotations[luid] = dict(luid=luid, kind=kind, text=text, auto_text=auto_text)
+                self.annotations[luid] = dict(
+                    luid=luid, kind=kind, text=text, auto_text=auto_text
+                )
 
     def reset_cache(self, luid: str = ""):
         if not luid:
@@ -925,7 +933,11 @@ class QPandasModel(QAbstractTableModel):
         return True
 
     def headerData(self, col, orientation, role):
-        if (self._df is not None) and (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
+        if (
+            (self._df is not None)
+            and (orientation == Qt.Horizontal)
+            and (role == Qt.DisplayRole)
+        ):
             return self._df.columns[col]
         return None
 
@@ -968,7 +980,11 @@ class QPandasColumnsModel(QAbstractTableModel):
         return None
 
     def headerData(self, col, orientation, role):
-        if (self._df is not None) and (orientation == Qt.Horizontal) and (role == Qt.DisplayRole):
+        if (
+            (self._df is not None)
+            and (orientation == Qt.Horizontal)
+            and (role == Qt.DisplayRole)
+        ):
             if col == 0:
                 return "Name"
             elif col == 1:
@@ -1095,7 +1111,9 @@ class TreeModel(QAbstractItemModel):
 
     def iter_items(self, root, allowed_classes: [None, tuple] = None):
         if root is None:
-            stack = [self.createIndex(0, 0, self.rootNodes[i]) for i in range(len(self.rootNodes))]
+            stack = [
+                self.createIndex(0, 0, self.rootNodes[i]) for i in range(len(self.rootNodes))
+            ]
         else:
             stack = [root]
 
@@ -1372,7 +1390,9 @@ class PipelineModel(TreeModel):
             return False
         root = selected_items[0]
         self.move_row(
-            selected_items=selected_items, target_index=root.row() + 1, target_parent=root.parent()
+            selected_items=selected_items,
+            target_index=root.row() + 1,
+            target_parent=root.parent(),
         )
 
     def move_up(self, selected_items):
@@ -1380,7 +1400,9 @@ class PipelineModel(TreeModel):
             return False
         root = selected_items[0]
         self.move_row(
-            selected_items=selected_items, target_index=root.row() - 1, target_parent=root.parent()
+            selected_items=selected_items,
+            target_index=root.row() - 1,
+            target_parent=root.parent(),
         )
 
     def headerData(self, section, orientation, role):

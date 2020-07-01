@@ -20,8 +20,8 @@ os.chdir(fld_name)
 from tools.common_functions import force_directories, make_safe_name
 
 import tools.db_wrapper as dbw
-from ip_base.ip_abstract import AbstractImageProcessor
-from ip_base.ipt_functional import call_ipt
+from base.ip_abstract import AbstractImageProcessor
+from base.ipt_functional import call_ipt
 from tools.common_functions import print_progress_bar
 
 # import ptvsd
@@ -102,9 +102,13 @@ def build_single_plant_video(arg):
                         image=secondary_angle_img, text=secondary_angle, force_store=True
                     )
                 except Exception as e:
-                    print(f'Exception "{repr(e)}" while handling {str(secondary_angle_wrapper)}')
+                    print(
+                        f'Exception "{repr(e)}" while handling {str(secondary_angle_wrapper)}'
+                    )
 
-        mosaic = main_angle_wrapper_side.build_mosaic((video_height, video_width, 3), view_options)
+        mosaic = main_angle_wrapper_side.build_mosaic(
+            (video_height, video_width, 3), view_options
+        )
         cv2.putText(
             mosaic,
             current_date_time.strftime("%d/%m/%Y - %H:%M:%S"),
@@ -232,7 +236,10 @@ def query_current_database(
 
 def get_query_items(column: str, **kwargs):
     items = query_current_database(
-        command="SELECT DISTINCT", columns=column, additional=f"ORDER BY {column} ASC", **kwargs,
+        command="SELECT DISTINCT",
+        columns=column,
+        additional=f"ORDER BY {column} ASC",
+        **kwargs,
     )
     return [item[0] for item in items]
 
@@ -292,7 +299,9 @@ if job_choice != "Please make your choice...":
         item.replace("-", "/") if isinstance(item, str) else item.strftime(_DATE_FORMAT)
         for item in get_query_items(column="Date", experiment=experiment)
     ]
-    plants = st.multiselect("Plants", plant_lst, plant_lst if job_choice == "Single plant" else [])
+    plants = st.multiselect(
+        "Plants", plant_lst, plant_lst if job_choice == "Single plant" else []
+    )
     dates = st.multiselect("Dates", date_list, date_list)
     if job_choice == "Single plant":
         view_options = st.multiselect("View options", view_option_lst, view_option_lst)
