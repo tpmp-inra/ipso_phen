@@ -95,4 +95,4 @@ nav:
   - Advanced features:
       - Creating custom tools: custom_tools.md
       - Class pipelines: class_pipelines.md
-      - File handlers: file_handlers.md
+      - File handlers: ipapi.file_handlers.md
