@@ -1,0 +1,235 @@
+{
+  "title": "IPSO Phen pipeline",
+  "name": "tutorial",
+  "date": "2020_Jan_17_11-14-42",
+  "version": "0.6.0.0",
+  "settings": {
+    "threshold_only": 0,
+    "merge_method": "multi_and",
+    "display_images": 1,
+    "build_mosaic": 0,
+    "bound_level": -1,
+    "pseudo_channel": "l",
+    "color_map": "c_2",
+    "pseudo_background_type": "bw",
+    "use_default_script": 0,
+    "mosaic_items": "source,exposure_fixed,pre_processed_image\ncoarse_mask,clean_mask, mask_on_exp_fixed_bw_with_morph",
+    "last_image": ""
+  },
+  "ip_modules": [
+    {
+      "module": {
+        "name": "Image transformations",
+        "package": "IPSO Phen",
+        "class__name__": "IptLinearTransformation",
+        "module__name__": "ip_tools.ipt_linear_transformation",
+        "params": {
+          "enabled": 1,
+          "method": "alpha_beta_target",
+          "apply_case": "always",
+          "alpha_gamma": 100,
+          "beta": 0,
+          "target_brightness": 90,
+          "max_delta_for_brightness": 255,
+          "show_over_under": 0,
+          "brg_calc": "std",
+          "text_overlay": 0
+        }
+      },
+      "enabled": true,
+      "kind": "Exposure fixing",
+      "uuid": "36639855-b0b5-4a49-9762-0333184e56d6"
+    },
+    {
+      "module": {
+        "name": "Hough circles detector",
+        "package": "IPSO Phen",
+        "class__name__": "IptHoughCircles",
+        "module__name__": "ip_tools.ipt_hough_circles_detector",
+        "params": {
+          "roi_name": "keep_roi",
+          "roi_type": "keep",
+          "roi_shape": "circle",
+          "tool_target": "none",
+          "source_file": "source",
+          "channel": "l",
+          "min_radius": 700,
+          "max_radius": 750,
+          "step_radius": 10,
+          "max_peaks": 2,
+          "min_distance": 20,
+          "line_width": 4,
+          "keep_only_one": 1,
+          "target_position": "MIDDLE_CENTER",
+          "max_dist_to_root": 1000,
+          "draw_boundaries": 0,
+          "draw_candidates": 0,
+          "expand_circle": -170,
+          "edge_only": 0,
+          "operator": "sobel",
+          "canny_sigma": 2,
+          "canny_first": 0,
+          "canny_second": 255,
+          "kernel_size": 5,
+          "threshold": 132,
+          "apply_threshold": 1
+        }
+      },
+      "enabled": true,
+      "kind": "ROI on pre processed image",
+      "uuid": "8779c601-cf07-4650-aca9-a3d5c3150efa"
+    },
+    {
+      "module": {
+        "name": "Check exposure",
+        "package": "IPSO Phen",
+        "class__name__": "IptExposureChecker",
+        "module__name__": "ip_tools.ipt_check_exposure",
+        "params": {
+          "enabled": 1,
+          "overexposed_limit": 200,
+          "over_color": "blue_cabin",
+          "underexposed_limit": 27,
+          "under_color": "blue_cabin",
+          "show_grey_zones": 0,
+          "grey_zone_limit": 0,
+          "grey_zone_color": "fuchsia",
+          "source_brightness": "source",
+          "brg_calc": "std",
+          "average_as": "none",
+          "avg_weight": 100,
+          "text_overlay": 0
+        }
+      },
+      "enabled": true,
+      "kind": "Pre processing",
+      "uuid": "bc52604d-334b-496f-8814-66a88b2578c3"
+    },
+    {
+      "module": {
+        "name": "Range threshold",
+        "package": "IPSO Phen",
+        "class__name__": "IptThreshold",
+        "module__name__": "ip_tools.ipt_threshold_binary",
+        "params": {
+          "enabled": 1,
+          "channel": "h",
+          "min_t": 10,
+          "max_t": 60,
+          "median_filter_size": 0,
+          "morph_op": "open",
+          "kernel_size": 3,
+          "kernel_shape": "ellipse",
+          "proc_times": 2,
+          "text_overlay": 0,
+          "build_mosaic": 0,
+          "background_color": "none"
+        }
+      },
+      "enabled": true,
+      "kind": "Threshold",
+      "uuid": "79bf4795-2c7e-401c-ba05-2e5258c56c34"
+    },
+    {
+      "module": {
+        "name": "Keep linked Contours",
+        "package": "IPSO Phen",
+        "class__name__": "IptKeepLinkedContours",
+        "module__name__": "ip_tools.ipt_keep_linked_contours",
+        "params": {
+          "tolerance_distance": 10,
+          "tolerance_area": 5000,
+          "root_position": "MIDDLE_CENTER",
+          "dilation_iter": 0,
+          "area_override_size": 0,
+          "delete_all_bellow": 100,
+          "channel": "l"
+        }
+      },
+      "enabled": true,
+      "kind": "Mask cleanup",
+      "uuid": "6c4e7030-8eaf-4bec-b87d-49041768feae"
+    },
+    {
+      "module": {
+        "name": "Observation data",
+        "package": "IPSO Phen",
+        "class__name__": "IptAnalyseObservation",
+        "module__name__": "ip_tools.ipt_analyze_observation",
+        "params": {
+          "experiment": 1,
+          "plant": 1,
+          "date_time": 1,
+          "camera": 1,
+          "view_option": 1,
+          "split_plant_name": 0,
+          "separator": "_",
+          "new_column_names": ""
+        }
+      },
+      "enabled": true,
+      "kind": "Feature extraction",
+      "uuid": "48685674-3cf2-4f9a-8a93-9321e5fad6ae"
+    },
+    {
+      "module": {
+        "name": "Analyze color",
+        "package": "IPSO Phen",
+        "class__name__": "IptAnalyzeColor",
+        "module__name__": "ip_tools.ipt_analyze_color",
+        "params": {
+          "color_mean": 1,
+          "color_std_dev": 1,
+          "hist_bins": 256,
+          "quantile_color": 4,
+          "channel": "l",
+          "background": "bw",
+          "color_map": "c_2"
+        }
+      },
+      "enabled": true,
+      "kind": "Feature extraction",
+      "uuid": "4461b124-9fdc-4d8c-8b06-9200050a0211"
+    },
+    {
+      "module": {
+        "name": "Analyze object",
+        "package": "IPSO Phen",
+        "class__name__": "IptAnalyzeObject",
+        "module__name__": "ip_tools.ipt_analyze_object",
+        "params": {
+          "area": 1,
+          "centroid_x": 1,
+          "centroid_y": 1,
+          "hull_area": 1,
+          "shape_solidity": 1,
+          "shape_extend": 1,
+          "straight_bounding_rectangle_left": 1,
+          "straight_bounding_rectangle_width": 1,
+          "straight_bounding_rectangle_top": 1,
+          "straight_bounding_rectangle_height": 1,
+          "rotated_bounding_rectangle_cx": 1,
+          "rotated_bounding_rectangle_cy": 1,
+          "rotated_bounding_rectangle_width": 1,
+          "rotated_bounding_rectangle_height": 1,
+          "rotated_bounding_rectangle_rotation": 1,
+          "minimum_enclosing_circle_cx": 1,
+          "minimum_enclosing_circle_cy": 1,
+          "minimum_enclosing_circle_radius": 1,
+          "shape_height": 1,
+          "shape_width": 1,
+          "shape_width_min": 1,
+          "shape_width_max": 1,
+          "shape_width_avg": 1,
+          "shape_width_std": 1,
+          "quantile_width": 4,
+          "line_width": 4,
+          "centroid_width": 10
+        }
+      },
+      "enabled": true,
+      "kind": "Feature extraction",
+      "uuid": "7f643a3d-55df-481b-8a0c-798ca501dfe9"
+    }
+  ]
+}
