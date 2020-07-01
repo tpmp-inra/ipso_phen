@@ -6,6 +6,8 @@ from timeit import default_timer as timer
 
 import pandas as pd
 
+sys.path.append("./ipapi")
+
 import tools.db_wrapper as dbw
 from tools.common_functions import print_progress_bar, force_directories, format_time
 from tools.pipeline_processor import PipelineProcessor

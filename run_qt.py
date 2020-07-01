@@ -1,7 +1,6 @@
 import sys
 
 sys.path.append("./ipapi")
-# sys.path.append("./ipapi/tools")
 
 import os
 from PyQt5.QtWidgets import QApplication
