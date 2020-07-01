@@ -295,7 +295,7 @@ class NewToolDialog(QDialog):
         def remove_tab(sc: str) -> str:
             return sc[4:]
 
-        file_path = os.path.join("./ipt", self.ui.le_file_name.text())
+        file_path = os.path.join("./ipapi/ipt", self.ui.le_file_name.text())
         with open(file_path, "w", encoding="utf8") as f:
             spaces = ""
 
