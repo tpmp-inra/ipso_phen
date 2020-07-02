@@ -1,17 +1,19 @@
 import sys
-import os
 import argparse
+import os
 import json
 from timeit import default_timer as timer
-
 import pandas as pd
+
+from PyQt5.QtWidgets import QApplication
 
 sys.path.append("./ipapi")
 
+from ui_qt.main_form import IpsoMainForm
 import tools.db_wrapper as dbw
 from tools.common_functions import print_progress_bar, force_directories, format_time
 from tools.pipeline_processor import PipelineProcessor
-from base.ipt_strict_pipeline import IptStrictPipeline, decode_ipt
+from base.ipt_strict_pipeline import IptStrictPipeline
 
 
 g_log_file = ""
@@ -46,29 +48,11 @@ def do_feed_back(status_msg: str, log_msg: str, obj: object, use_status_as_log: 
     return True
 
 
-def main():
+def run_no_ui(stored_data_path: str, process_count: int):
     start = timer()
 
-    parser = argparse.ArgumentParser(
-        description="Process a pipeline on images with stored state"
-    )
-    # parser.add_argument("-s", "--stored_state", required=True, help="Path to the stored state")
-    parser.add_argument(
-        "-p",
-        "--process_count",
-        required=False,
-        help="Override number of concurrent processes",
-        default=False,
-    )
-
-    args = vars(parser.parse_args())
-
-    # src = args["stored_state"]
-
-    src = "c:\\Users\\fmavianemac\\Documents\\ipso_phen_data\\pipeline_state\\mpo_ml_prep.json"
-
     with open(src, "r") as f:
-        res = json.load(f, object_hook=decode_ipt)
+        res = json.load(f)
 
     # Build database
     db = dbw.db_info_to_database(dbw.DbInfo(**res["database_data"]))
@@ -85,7 +69,15 @@ def main():
     g_log_file = os.path.join(output_folder_, "log.txt")
     force_directories(output_folder_)
     csv_file_name = res["csv_file_name"]
-    mpc = int(args.get("process_count", res["thread_count"])) if IS_USE_MULTI_THREAD else False
+    if not IS_USE_MULTI_THREAD:
+        mpc = False
+    elif process_count:
+        mpc = process_count
+    elif isinstance(res["thread_count"], int):
+        mpc = res["thread_count"]
+    else:
+        mpc = 1
+
     script = IptStrictPipeline.from_json(json_data=res["script"])
 
     log_event(
@@ -226,4 +218,37 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    parser = argparse.ArgumentParser(
+        description="Process a pipeline on images with stored state"
+    )
+    parser.add_argument(
+        "-u", "--ui", default="True", help="Use UI (Default True)",
+    )
+    parser.add_argument("-s", "--stored_state", default="", help="Path to the stored state")
+    parser.add_argument(
+        "-p",
+        "--process_count",
+        required=False,
+        help="Override number of concurrent processes",
+        default=None,
+    )
+
+    args = vars(parser.parse_args())
+
+    if args["ui"] == "True":
+        """Launch IPSO Phen with Qt UI"""
+        app = QApplication(sys.argv)
+        IpsoMainForm().show()
+        sys.exit(app.exec_())
+    else:
+        src = args["stored_state"]
+        if not src:
+            print("Missing stored pipeline data")
+            sys.exit(-1)
+
+        try:
+            process_count = int(args.get("process_count"))
+        except Exception as e:
+            process_count = None
+
+        sys.exit(run_no_ui(stored_data_path=src, process_count=process_count))
