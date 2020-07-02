@@ -1,1 +1,0 @@
-.\ipso_env\Scripts\activate.bat
