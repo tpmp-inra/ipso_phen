@@ -1,4 +1,4 @@
-call ..\env\Scripts\pip-licenses.exe --format=html > licenses.html
+call ..\env\Scripts\pip-licenses.exe --format=html > ..\extra\licenses.html
 call pip freeze > ..\requirements.txt
 
 if [%1]==[no_ver] (

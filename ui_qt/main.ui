@@ -20,7 +20,7 @@
    <string>&lt;b&gt;IPSO&lt;/b&gt;</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="main_form.qrc">
+   <iconset resource="main.qrc">
     <normaloff>:/icons/resources/leaf-24.ico</normaloff>:/icons/resources/leaf-24.ico</iconset>
   </property>
   <property name="toolTipDuration">
@@ -766,7 +766,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
                         </property>
                        </widget>
@@ -780,7 +780,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
                         </property>
                        </widget>
@@ -794,7 +794,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
                         </property>
                        </widget>
@@ -824,7 +824,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Up.png</normaloff>:/common/resources/Up.png</iconset>
                         </property>
                        </widget>
@@ -838,7 +838,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Down.png</normaloff>:/common/resources/Down.png</iconset>
                         </property>
                        </widget>
@@ -868,7 +868,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/annotation_level/resources/Delete.png</normaloff>:/annotation_level/resources/Delete.png</iconset>
                         </property>
                        </widget>
@@ -897,6 +897,9 @@
                           <height>16777215</height>
                          </size>
                         </property>
+                        <property name="contextMenuPolicy">
+                         <enum>Qt::CustomContextMenu</enum>
+                        </property>
                         <property name="toolTip">
                          <string>Add module/group</string>
                         </property>
@@ -904,7 +907,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Add.png</normaloff>:/common/resources/Add.png</iconset>
                         </property>
                         <property name="flat">
@@ -937,7 +940,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
                         </property>
                        </widget>
@@ -1041,7 +1044,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
                         </property>
                         <property name="iconSize">
@@ -1125,7 +1128,7 @@
                          <string/>
                         </property>
                         <property name="icon">
-                         <iconset resource="main_form.qrc">
+                         <iconset resource="main.qrc">
                           <normaloff>:/annotation_level/resources/Help.png</normaloff>:/annotation_level/resources/Help.png</iconset>
                         </property>
                        </widget>
@@ -1269,7 +1272,7 @@
                   <string>...</string>
                  </property>
                  <property name="icon">
-                  <iconset resource="main_form.qrc">
+                  <iconset resource="main.qrc">
                    <normaloff>:/common/resources/List.png</normaloff>:/common/resources/List.png</iconset>
                  </property>
                 </widget>
@@ -1398,7 +1401,7 @@
                   <string>...</string>
                  </property>
                  <property name="icon">
-                  <iconset resource="main_form.qrc">
+                  <iconset resource="main.qrc">
                    <normaloff>:/common/resources/folder_blue.png</normaloff>:/common/resources/folder_blue.png</iconset>
                  </property>
                 </widget>
@@ -1605,7 +1608,7 @@
                  <string>Reset</string>
                 </property>
                 <property name="icon">
-                 <iconset resource="main_form.qrc">
+                 <iconset resource="main.qrc">
                   <normaloff>:/common/resources/Refresh.png</normaloff>:/common/resources/Refresh.png</iconset>
                 </property>
                </widget>
@@ -1642,7 +1645,7 @@
                  <string>Start</string>
                 </property>
                 <property name="icon">
-                 <iconset resource="main_form.qrc">
+                 <iconset resource="main.qrc">
                   <normaloff>:/image_process/resources/Play.png</normaloff>:/image_process/resources/Play.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -2127,7 +2130,7 @@
   </action>
   <action name="action_new_script">
    <property name="icon">
-    <iconset resource="main_form.qrc">
+    <iconset resource="main.qrc">
      <normaloff>:/common/resources/New document.png</normaloff>:/common/resources/New document.png</iconset>
    </property>
    <property name="text">
@@ -2136,7 +2139,7 @@
   </action>
   <action name="action_load_script">
    <property name="icon">
-    <iconset resource="main_form.qrc">
+    <iconset resource="main.qrc">
      <normaloff>:/common/resources/Load.png</normaloff>:/common/resources/Load.png</iconset>
    </property>
    <property name="text">
@@ -2145,7 +2148,7 @@
   </action>
   <action name="action_save_script">
    <property name="icon">
-    <iconset resource="main_form.qrc">
+    <iconset resource="main.qrc">
      <normaloff>:/common/resources/Save.png</normaloff>:/common/resources/Save.png</iconset>
    </property>
    <property name="text">
@@ -2756,7 +2759,7 @@
   </action>
  </widget>
  <resources>
-  <include location="main_form.qrc"/>
+  <include location="main.qrc"/>
  </resources>
  <connections>
   <connection>
