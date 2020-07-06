@@ -533,6 +533,11 @@ class Ui_MainWindow(object):
         self.gridLayout_18.setSpacing(0)
         self.gridLayout_18.setObjectName(u"gridLayout_18")
         self.gridLayout_18.setContentsMargins(0, 4, 8, 4)
+        self.bt_add_random = QPushButton(self.frame_4)
+        self.bt_add_random.setObjectName(u"bt_add_random")
+
+        self.gridLayout_18.addWidget(self.bt_add_random, 0, 7, 1, 1)
+
         self.tv_image_browser = QTableView(self.frame_4)
         self.tv_image_browser.setObjectName(u"tv_image_browser")
         self.tv_image_browser.setAlternatingRowColors(False)
@@ -540,22 +545,12 @@ class Ui_MainWindow(object):
         self.tv_image_browser.setHorizontalScrollMode(QAbstractItemView.ScrollPerPixel)
         self.tv_image_browser.verticalHeader().setProperty("showSortIndicator", False)
 
-        self.gridLayout_18.addWidget(self.tv_image_browser, 1, 0, 1, 9)
-
-        self.bt_add_random = QPushButton(self.frame_4)
-        self.bt_add_random.setObjectName(u"bt_add_random")
-
-        self.gridLayout_18.addWidget(self.bt_add_random, 0, 6, 1, 1)
+        self.gridLayout_18.addWidget(self.tv_image_browser, 1, 0, 1, 10)
 
         self.bt_remove_from_selection = QPushButton(self.frame_4)
         self.bt_remove_from_selection.setObjectName(u"bt_remove_from_selection")
 
         self.gridLayout_18.addWidget(self.bt_remove_from_selection, 0, 2, 1, 1)
-
-        self.bt_add_to_selection = QPushButton(self.frame_4)
-        self.bt_add_to_selection.setObjectName(u"bt_add_to_selection")
-
-        self.gridLayout_18.addWidget(self.bt_add_to_selection, 0, 1, 1, 1)
 
         self.bt_keep_annotated = QPushButton(self.frame_4)
         self.bt_keep_annotated.setObjectName(u"bt_keep_annotated")
@@ -568,22 +563,32 @@ class Ui_MainWindow(object):
 
         self.gridLayout_18.addWidget(self.lbl_selection, 0, 0, 1, 1)
 
+        self.bt_add_to_selection = QPushButton(self.frame_4)
+        self.bt_add_to_selection.setObjectName(u"bt_add_to_selection")
+
+        self.gridLayout_18.addWidget(self.bt_add_to_selection, 0, 1, 1, 1)
+
         self.bt_clear_selection = QPushButton(self.frame_4)
         self.bt_clear_selection.setObjectName(u"bt_clear_selection")
 
-        self.gridLayout_18.addWidget(self.bt_clear_selection, 0, 4, 1, 1)
-
-        self.sp_add_random_count = QSpinBox(self.frame_4)
-        self.sp_add_random_count.setObjectName(u"sp_add_random_count")
-        self.sp_add_random_count.setMaximum(10000)
-
-        self.gridLayout_18.addWidget(self.sp_add_random_count, 0, 7, 1, 1)
+        self.gridLayout_18.addWidget(self.bt_clear_selection, 0, 5, 1, 1)
 
         self.horizontalSpacer_3 = QSpacerItem(
             190, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
         )
 
-        self.gridLayout_18.addItem(self.horizontalSpacer_3, 0, 5, 1, 1)
+        self.gridLayout_18.addItem(self.horizontalSpacer_3, 0, 6, 1, 1)
+
+        self.sp_add_random_count = QSpinBox(self.frame_4)
+        self.sp_add_random_count.setObjectName(u"sp_add_random_count")
+        self.sp_add_random_count.setMaximum(10000)
+
+        self.gridLayout_18.addWidget(self.sp_add_random_count, 0, 8, 1, 1)
+
+        self.pushButton = QPushButton(self.frame_4)
+        self.pushButton.setObjectName(u"pushButton")
+
+        self.gridLayout_18.addWidget(self.pushButton, 0, 4, 1, 1)
 
         self.spl_hor_pb_left.addWidget(self.frame_4)
         self.frame_3 = QFrame(self.spl_hor_pb_left)
@@ -837,7 +842,7 @@ class Ui_MainWindow(object):
         self.bt_pp_select_tool = QPushButton(self.tb_pipeline_v2)
         self.bt_pp_select_tool.setObjectName(u"bt_pp_select_tool")
         self.bt_pp_select_tool.setMaximumSize(QSize(28, 16777215))
-        self.bt_pp_select_tool.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.bt_pp_select_tool.setContextMenuPolicy(Qt.DefaultContextMenu)
         icon16 = QIcon()
         icon16.addFile(u":/common/resources/Add.png", QSize(), QIcon.Normal, QIcon.Off)
         self.bt_pp_select_tool.setIcon(icon16)
@@ -923,7 +928,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 98, 28))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 755, 78))
         self.gridLayout_17 = QGridLayout(self.scrollAreaWidgetContents_4)
         self.gridLayout_17.setObjectName(u"gridLayout_17")
         self.gl_tool_params = QGridLayout()
@@ -1466,7 +1471,7 @@ class Ui_MainWindow(object):
 
         self.tabWidget.setCurrentIndex(0)
         self.tw_tool_box.setCurrentIndex(1)
-        self.tb_tool_script.setCurrentIndex(0)
+        self.tb_tool_script.setCurrentIndex(1)
         self.bt_process_image.setDefault(True)
 
         QMetaObject.connectSlotsByName(MainWindow)
@@ -1826,14 +1831,6 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Remove", None)
         )
         # if QT_CONFIG(tooltip)
-        self.bt_add_to_selection.setToolTip(
-            QCoreApplication.translate(
-                "MainWindow", u"Add to image browser images matching the current query", None
-            )
-        )
-        # endif // QT_CONFIG(tooltip)
-        self.bt_add_to_selection.setText(QCoreApplication.translate("MainWindow", u"Add", None))
-        # if QT_CONFIG(tooltip)
         self.bt_keep_annotated.setToolTip(
             QCoreApplication.translate(
                 "MainWindow",
@@ -1848,9 +1845,18 @@ class Ui_MainWindow(object):
         self.lbl_selection.setText(
             QCoreApplication.translate("MainWindow", u"Selection:", None)
         )
+        # if QT_CONFIG(tooltip)
+        self.bt_add_to_selection.setToolTip(
+            QCoreApplication.translate(
+                "MainWindow", u"Add to image browser images matching the current query", None
+            )
+        )
+        # endif // QT_CONFIG(tooltip)
+        self.bt_add_to_selection.setText(QCoreApplication.translate("MainWindow", u"Add", None))
         self.bt_clear_selection.setText(
             QCoreApplication.translate("MainWindow", u"Clear", None)
         )
+        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"PushButton", None))
         self.label_3.setText(
             QCoreApplication.translate("MainWindow", u"Annotation level:", None)
         )
