@@ -5,7 +5,7 @@ import csv
 import numpy as np
 import pandas as pd
 
-from PyQt5.QtCore import pyqtSlot, Qt, pyqtSignal, QObject, QTimer, QRunnable, QThreadPool
+from PySide2.QtCore import Slot, Qt, Signal, QObject, QTimer, QRunnable, QThreadPool
 
 import tools.error_holder as err
 import base.ip_common as ipc
@@ -18,14 +18,14 @@ from ui_qt import ui_consts
 
 class IpsoRunnableSignals(QObject):
 
-    on_started = pyqtSignal(str, bool)
-    on_ending = pyqtSignal(bool, str, str, object)
-    on_ended = pyqtSignal()
-    on_update_images = pyqtSignal(bool, object)
-    on_update_data = pyqtSignal(dict)
-    on_feedback_log_object = pyqtSignal(str, object)
-    on_feedback_log_str = pyqtSignal(str, str, bool)
-    on_pipeline_progress = pyqtSignal(str, str, object, int, int)
+    on_started = Signal(str, bool)
+    on_ending = Signal(bool, str, str, object)
+    on_ended = Signal()
+    on_update_images = Signal(bool, object)
+    on_update_data = Signal(dict)
+    on_feedback_log_object = Signal(str, object)
+    on_feedback_log_str = Signal(str, str, bool)
+    on_pipeline_progress = Signal(str, str, object, int, int)
 
 
 class IpsoRunnable(QRunnable):
@@ -286,7 +286,7 @@ class IpsoRunnable(QRunnable):
                 self.signals_holder.on_ending.emit(res, status_message, log_message, log_object)
             return res
 
-    @pyqtSlot()
+    @Slot()
     def run(self):
         try:
             if self.exec_param is not None:
@@ -322,9 +322,9 @@ class IpsoRunnable(QRunnable):
 
 class IpsoGroupProcessorSignals(QObject):
 
-    on_ended = pyqtSignal()
-    on_log_event = pyqtSignal(str, str, str, bool)
-    on_image_ready = pyqtSignal(object)
+    on_ended = Signal()
+    on_log_event = Signal(str, str, str, bool)
+    on_image_ready = Signal(object)
 
 
 class IpsoGroupProcessor(QRunnable):
@@ -543,12 +543,12 @@ class IpsoGroupProcessor(QRunnable):
 
 class IpsoMassRunnerSignals(QObject):
 
-    on_starting = pyqtSignal()
-    on_launching = pyqtSignal(int)
-    on_started = pyqtSignal(str)
-    on_progress = pyqtSignal(int, int)
-    on_feedback_log_object = pyqtSignal(str, object)
-    on_feedback_log_str = pyqtSignal(str, str, bool)
+    on_starting = Signal()
+    on_launching = Signal(int)
+    on_started = Signal(str)
+    on_progress = Signal(int, int)
+    on_feedback_log_object = Signal(str, object)
+    on_feedback_log_str = Signal(str, str, bool)
 
 
 class IpsoMassRunner(QRunnable):
@@ -689,11 +689,11 @@ class IpsoMassRunner(QRunnable):
 
 class IpsoCsvBuilderSignals(QObject):
 
-    on_start = pyqtSignal()
-    on_progress = pyqtSignal(int, int)
-    on_feedback_log_object = pyqtSignal(str, object)
-    on_feedback_log_str = pyqtSignal(str, str, bool)
-    on_end = pyqtSignal()
+    on_start = Signal()
+    on_progress = Signal(int, int)
+    on_feedback_log_object = Signal(str, object)
+    on_feedback_log_str = Signal(str, str, bool)
+    on_end = Signal()
 
 
 class IpsoCsvBuilder(QRunnable):

@@ -19,7 +19,9 @@ class TestIptSimpleWhiteBalance(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptSimpleWhiteBalance()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -38,11 +40,19 @@ class TestIptSimpleWhiteBalance(unittest.TestCase):
         op = IptSimpleWhiteBalance()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
+            )
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Simple white balance")
-        self.assertIsInstance(op.result, np.ndarray, "Empty result for Simple white balance")
+        self.assertIsInstance(
+            op.result, np.ndarray, "Empty result for Simple white balance"
+        )
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""
@@ -51,7 +61,7 @@ class TestIptSimpleWhiteBalance(unittest.TestCase):
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "docs", f"{op_doc_name}")
+                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
             ),
             "Missing documentation file for Simple white balance",
         )

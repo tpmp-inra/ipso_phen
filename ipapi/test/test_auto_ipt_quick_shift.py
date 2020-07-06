@@ -19,7 +19,9 @@ class TestIptQuickShift(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptQuickShift()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -38,7 +40,13 @@ class TestIptQuickShift(unittest.TestCase):
         op = IptQuickShift()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
+            )
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Quick shift")
@@ -49,13 +57,21 @@ class TestIptQuickShift(unittest.TestCase):
         op = IptQuickShift()
         op.apply_test_values_overrides(use_cases=("Visualization",))
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
+            )
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Simple white balance")
-        self.assertGreater(len(wrapper.image_list), 0, "Visualizations must add images to list")
+        self.assertGreater(
+            len(wrapper.image_list), 0, "Visualizations must add images to list"
+        )
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""
@@ -64,7 +80,7 @@ class TestIptQuickShift(unittest.TestCase):
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "docs", f"{op_doc_name}")
+                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
             ),
             "Missing documentation file for Quick shift",
         )
