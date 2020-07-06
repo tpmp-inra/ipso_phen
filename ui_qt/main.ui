@@ -294,7 +294,17 @@
                 <property name="spacing">
                  <number>0</number>
                 </property>
-                <item row="1" column="0" colspan="9">
+                <item row="0" column="7">
+                 <widget class="QPushButton" name="bt_add_random">
+                  <property name="toolTip">
+                   <string>Add to image browser n random images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Add random</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0" colspan="10">
                  <widget class="QTableView" name="tv_image_browser">
                   <property name="alternatingRowColors">
                    <bool>false</bool>
@@ -310,16 +320,6 @@
                   </attribute>
                  </widget>
                 </item>
-                <item row="0" column="6">
-                 <widget class="QPushButton" name="bt_add_random">
-                  <property name="toolTip">
-                   <string>Add to image browser n random images matching the current query</string>
-                  </property>
-                  <property name="text">
-                   <string>Add random</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="2">
                  <widget class="QPushButton" name="bt_remove_from_selection">
                   <property name="toolTip">
@@ -327,16 +327,6 @@
                   </property>
                   <property name="text">
                    <string>Remove</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QPushButton" name="bt_add_to_selection">
-                  <property name="toolTip">
-                   <string>Add to image browser images matching the current query</string>
-                  </property>
-                  <property name="text">
-                   <string>Add</string>
                   </property>
                  </widget>
                 </item>
@@ -363,21 +353,24 @@
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="4">
+                <item row="0" column="1">
+                 <widget class="QPushButton" name="bt_add_to_selection">
+                  <property name="toolTip">
+                   <string>Add to image browser images matching the current query</string>
+                  </property>
+                  <property name="text">
+                   <string>Add</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="5">
                  <widget class="QPushButton" name="bt_clear_selection">
                   <property name="text">
                    <string>Clear</string>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="7">
-                 <widget class="QSpinBox" name="sp_add_random_count">
-                  <property name="maximum">
-                   <number>10000</number>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="5">
+                <item row="0" column="6">
                  <spacer name="horizontalSpacer_3">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
@@ -389,6 +382,20 @@
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item row="0" column="8">
+                 <widget class="QSpinBox" name="sp_add_random_count">
+                  <property name="maximum">
+                   <number>10000</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="4">
+                 <widget class="QPushButton" name="pushButton">
+                  <property name="text">
+                   <string>PushButton</string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </widget>
@@ -750,7 +757,7 @@
                   <item row="0" column="0" colspan="4">
                    <widget class="QTabWidget" name="tb_tool_script">
                     <property name="currentIndex">
-                     <number>0</number>
+                     <number>1</number>
                     </property>
                     <widget class="QWidget" name="tb_pipeline_v2">
                      <attribute name="title">
@@ -898,7 +905,7 @@
                          </size>
                         </property>
                         <property name="contextMenuPolicy">
-                         <enum>Qt::CustomContextMenu</enum>
+                         <enum>Qt::DefaultContextMenu</enum>
                         </property>
                         <property name="toolTip">
                          <string>Add module/group</string>
@@ -1097,8 +1104,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>98</width>
-                           <height>28</height>
+                           <width>755</width>
+                           <height>78</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">

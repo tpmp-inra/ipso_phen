@@ -824,8 +824,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         self._ip_tools_holder = IptHolder()
         try:
-            if hasattr(self, "bt_select_tool"):
-                tool_menu = QMenu()
+            if hasattr(self.ui, "bt_select_tool"):
+                tool_menu = QMenu(self.ui.bt_select_tool)                
                 if ui_consts.FLAT_TOOLS_MENU:
                     lst = self._ip_tools_holder.ipt_list
                     for op in lst:
@@ -851,8 +851,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 tool_menu.setToolTipsVisible(True)
                 self.ui.bt_select_tool.setMenu(tool_menu)
 
-            if hasattr(self, "bt_pp_select_tool"):
-                tool_menu = QMenu()
+            if hasattr(self.ui, "bt_pp_select_tool"):
+                tool_menu = QMenu(self)
                 # Image processing tools
                 for use_case in self._ip_tools_holder.use_cases:
                     if use_case == "none":
