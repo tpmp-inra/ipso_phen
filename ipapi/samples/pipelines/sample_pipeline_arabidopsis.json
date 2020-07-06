@@ -10,16 +10,8 @@
     "stop_on": 3,
     "mosaic_enabled": true,
     "mosaic_images": [
-      [
-        "Fix image",
-        "Hough circles detector keep_roi",
-        "Build mask"
-      ],
-      [
-        "Clean mask",
-        "Analyze color l",
-        "Analyze object"
-      ]
+      ["Fix image", "Hough circles detector keep_roi", "Build mask"],
+      ["Clean mask", "Analyze color l", "Analyze object"]
     ]
   },
   "Pipeline": {
@@ -154,7 +146,7 @@
               "class__name__": "IptHoughCircles",
               "module__name__": "ip_tools.ipt_hough_circles_detector",
               "params": {
-                "enable_cache": 1,
+                "enable_cache": 0,
                 "roi_name": "keep_roi",
                 "roi_type": "keep",
                 "roi_shape": "circle",
@@ -188,7 +180,7 @@
                 "source_file": "source"
               },
               "grid_search_params": {
-                "enable_cache": "1",
+                "enable_cache": "0",
                 "roi_name": "unnamed_roi",
                 "roi_type": "keep",
                 "roi_shape": "rectangle",

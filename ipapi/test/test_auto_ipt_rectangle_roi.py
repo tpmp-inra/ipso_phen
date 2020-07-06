@@ -19,7 +19,9 @@ class TestIptRectangleRoi(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptRectangleRoi()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -38,10 +40,18 @@ class TestIptRectangleRoi(unittest.TestCase):
         op = IptRectangleRoi()
         op.apply_test_values_overrides(use_cases=("Create an ROI",))
         wrapper = AbstractImageProcessor(
-            os.path.join(os.path.dirname(__file__), "..", "sample_images", "arabido_small.jpg",)
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
+            )
         )
         res = op.process_wrapper(wrapper=wrapper)
-        self.assertTrue(hasattr(op, "generate_roi"), "Class must have method generate_roi")
+        self.assertTrue(
+            hasattr(op, "generate_roi"), "Class must have method generate_roi"
+        )
         self.assertTrue(res, "Failed to process Rectangle ROI")
         r = op.generate_roi()
         self.assertIsInstance(r, regions.AbstractRegion, "ROI must be of type Region")
@@ -53,7 +63,7 @@ class TestIptRectangleRoi(unittest.TestCase):
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "docs", f"{op_doc_name}")
+                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
             ),
             "Missing documentation file for Rectangle ROI",
         )
