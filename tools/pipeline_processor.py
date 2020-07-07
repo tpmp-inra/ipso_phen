@@ -8,12 +8,13 @@ from collections import namedtuple
 from timeit import default_timer as timer
 
 import pandas as pd
+from tdqm import tqdm
 
 from class_pipelines.ip_factory import ipo_factory
 from file_handlers.fh_base import file_handler_factory
 from base.image_wrapper import ImageWrapper
 from tools.comand_line_wrapper import ArgWrapper
-from tools.common_functions import time_method, print_progress_bar, force_directories
+from tools.common_functions import time_method, force_directories
 from tools.error_holder import ErrorHolder
 from tools.image_list import ImageList
 
@@ -135,7 +136,9 @@ class PipelineProcessor:
         self.log_callback = None
         self.log_item = None
         self.script = None
-        self._last_update = timer()
+        self._tqdm = None
+        self._progress_total = 0
+        self._progress_step = 0
 
     def build_files_list(self, src_path: str, flatten_list=True, **kwargs):
         """Build a list containing all the files that will be parsed
@@ -189,13 +192,7 @@ class PipelineProcessor:
             if self.options.group_by_series:
                 res = self.log_state(log_message="____________________________________________")
 
-        if self._process_errors > 0:
-            suffix_ = f" {wrapper_index + 1}/{total} Complete, {self._process_errors} errors"
-        else:
-            suffix_ = f" {wrapper_index + 1}/{total} Complete"
-        self.update_progress(
-            wrapper_index + 1, total=total, prefix="Processing images:", suffix=suffix_
-        )
+        self.update_progress()
 
         return res
 
@@ -213,30 +210,24 @@ class PipelineProcessor:
         else:
             return True
 
-    def update_progress(
-        self,
-        iteration,
-        total,
-        prefix="",
-        suffix="",
-        bar_length=50,
-        fill="#",
-        forced_update=False,
-    ):
+    def init_progress(self, total: int, desc: str = "") -> None:
         if self.progress_callback is None:
-            time_now_ = timer()
-            if forced_update or (time_now_ - self._last_update > 0.5) or (iteration == total):
-                print_progress_bar(
-                    iteration=iteration,
-                    total=total,
-                    prefix=prefix,
-                    suffix=suffix,
-                    bar_length=bar_length,
-                    fill=fill,
-                )
-                self._last_update = timer()
+            self._tqdm = tqdm(total=total, desc=desc)
         else:
-            self.progress_callback(step=iteration, total=total)
+            self.progress_callback(step=0, total=total)
+        self._progress_total = total
+        self._progress_step = 0
+
+    def update_progress(self):
+        if self.progress_callback is None:
+            self._tqdm.update(1)
+        else:
+            self.progress_callback(step=self._progress_step, total=self._progress_total)
+            self._progress_step += 1
+
+    def close_progress(self):
+        if self._tqdm is not None:
+            self._tqdm.close()
 
     def group_by_series(self, time_delta: int):
         json_file = f"./saved_data/{self._last_signature}.json"
@@ -244,48 +235,29 @@ class PipelineProcessor:
             with open(json_file, "r") as f:
                 files_to_process = json.load(f)
         else:
-            self.update_progress(iteration=0, total=1)
             # Build dictionary
-            total = len(self.accepted_files)
+            self.init_progress(
+                total=len(self.accepted_files), desc="Building plants dictionaries:"
+            )
             plants_ = defaultdict(list)
-            for i, item in enumerate(self.accepted_files):
-                self.update_progress(
-                    iteration=i,
-                    total=total,
-                    prefix="Building plants dictionaries:",
-                    suffix="Complete",
-                )
+            for item in self.accepted_files:
+                self.update_progress()
                 fh = file_handler_factory(item)
                 plants_[fh.plant].append(fh)
-            self.update_progress(
-                iteration=total,
-                total=total,
-                prefix="Building plants dictionaries:",
-                suffix="Finished",
-                forced_update=True,
-            )
+            self.close_progress()
 
             # Sort all lists by timestamp
-            total = len(plants_)
-            for i, v in enumerate(plants_.values()):
-                self.update_progress(
-                    iteration=i, total=total, prefix="Sorting observations:", suffix="Complete"
-                )
+            self.init_progress(total=len(plants_), desc="Sorting observations:")
+            for v in plants_.values():
+                self.update_progress()
                 v.sort(key=lambda x: x.date_time)
-            self.update_progress(
-                iteration=total,
-                total=total,
-                prefix="Sorting observations:",
-                suffix="Finished",
-                forced_update=True,
-            )
+            self.close_progress()
 
             # Consume
             files_to_process = []
-            for i, v in enumerate(plants_.values()):
-                self.update_progress(
-                    iteration=i, total=total, prefix="Grouping by series:", suffix="Complete"
-                )
+            self.init_progress(total=len(plants_.values()), desc="Grouping by series:")
+            for v in plants_.values():
+                self.update_progress()
                 while len(v) > 0:
                     main = v.pop(0)
                     file_list_ = [main.file_path]
@@ -294,9 +266,7 @@ class PipelineProcessor:
                     ):
                         file_list_.append(v.pop(0).file_path)
                     files_to_process.append(file_list_)
-            self.update_progress(
-                1, total=1, prefix="Grouping by series:", suffix="Finished", forced_update=True
-            )
+            self.close_progress()
 
             if self.last_signature:
                 with open(json_file, "w") as f:
@@ -324,11 +294,10 @@ class PipelineProcessor:
             return None
         i = 0
         cpt = 1
-        total = len(files_to_process)
         print("")
         results_list_ = []
 
-        self.update_progress(iteration=0, total=1)
+        self.init_progress(total=len(files_to_process), desc="Checking completed tasks:")
         while i < len(files_to_process):
             if isinstance(files_to_process[i], list):
                 fl = files_to_process[i][0]
@@ -348,14 +317,9 @@ class PipelineProcessor:
                 if self.log_item is not None:
                     self.log_item(img_wrapper.luid, "refresh", "", False)
                 i += 1
-            self.update_progress(
-                iteration=cpt,
-                total=total,
-                prefix="Checking completed tasks:",
-                suffix="Complete",
-            )
+            self.update_progress()
             cpt += 1
-        # self.update_progress(1, total=1, prefix="Checking completed tasks:", suffix="Finished")
+        self.close_progress()
         if len(results_list_) > 0:
             res = self.log_state(
                 log_message="Already analyzed files: <ul>"
@@ -378,12 +342,11 @@ class PipelineProcessor:
             log_message=f"   --- Starting file merging ---",
         ):
             csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
-            total = len(csv_lst)
             start_idx = 0
-            self.update_progress(iteration=0, total=1)
+            self.init_progress(total=len(csv_lst), desc="Merging CSV files:")
 
             df = pd.DataFrame()
-            for i, csv_file in enumerate(csv_lst):
+            for csv_file in csv_lst:
                 try:
                     df = df.append(pd.read_csv(csv_file))
                 except Exception as e:
@@ -400,12 +363,7 @@ class PipelineProcessor:
                             ),
                         ),
                     )
-                self.update_progress(
-                    iteration=i + start_idx,
-                    total=total,
-                    prefix="Merging CSV files:",
-                    suffix="Complete",
-                )
+                self.update_progress()
 
             def put_column_in_front(col_name: str, dataframe):
                 df_cols = list(dataframe.columns)
@@ -437,13 +395,7 @@ class PipelineProcessor:
             df.to_csv(
                 path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False
             )
-            self.update_progress(
-                iteration=total,
-                total=total,
-                prefix="Merging CSV files:",
-                suffix="Finished",
-                forced_update=True,
-            )
+            self.close_progress()
             self.log_state(
                 status_message="Merged partial outputs",
                 log_message="   --- Merged partial outputs ---<br>",
@@ -474,7 +426,7 @@ class PipelineProcessor:
                 log_message=f"   --- Processing {len(groups_list)} {handled_class} ---",
             ):
                 return
-            self.update_progress(0, total=1, prefix="Processing images:")
+            self.init_progress(total=len(groups_list), desc="Processing images:")
 
             max_cores = min([10, mp.cpu_count()])
             if isinstance(self.multi_thread, int):
@@ -528,9 +480,7 @@ class PipelineProcessor:
                 suffix_ = f"Complete, {self._process_errors} errors"
             else:
                 suffix_ = "Complete"
-            self.update_progress(
-                1, total=1, prefix="Processing images:", suffix=suffix_, forced_update=True
-            )
+            self.close_progress()
             self.log_state(
                 status_message="Files processed", log_message=f"   --- Files processed ---<br>"
             )
