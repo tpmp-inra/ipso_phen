@@ -1499,7 +1499,7 @@ class QMouseGraphicsView(QGraphicsView):
 
 class QMosaicEditor(QGroupBox):
     def __init__(self, parent, data):
-        super(QGroupBox, self).__init__(parent)
+        super().__init__(parent)
 
         self.data = data
 

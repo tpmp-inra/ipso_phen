@@ -8,11 +8,34 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import (
+    QCoreApplication,
+    QDate,
+    QDateTime,
+    QMetaObject,
+    QObject,
+    QPoint,
+    QRect,
+    QSize,
+    QTime,
+    QUrl,
+    Qt,
+)
+from PySide2.QtGui import (
+    QBrush,
+    QColor,
+    QConicalGradient,
+    QCursor,
+    QFont,
+    QFontDatabase,
+    QIcon,
+    QKeySequence,
+    QLinearGradient,
+    QPalette,
+    QPainter,
+    QPixmap,
+    QRadialGradient,
+)
 from PySide2.QtWidgets import *
 
 
@@ -88,6 +111,7 @@ class Ui_about_dialog(object):
         self.buttonBox.rejected.connect(about_dialog.reject)
 
         QMetaObject.connectSlotsByName(about_dialog)
+
     # setupUi
 
     def retranslateUi(self, about_dialog):
@@ -95,9 +119,14 @@ class Ui_about_dialog(object):
         self.lb_version.setText(QCoreApplication.translate("about_dialog", u"version", None))
         self.lbl_authors.setText(QCoreApplication.translate("about_dialog", u"Authors", None))
         self.lbl_image.setText("")
-        self.lbl_copyright.setText(QCoreApplication.translate("about_dialog", u"Copyright", None))
+        self.lbl_copyright.setText(
+            QCoreApplication.translate("about_dialog", u"Copyright", None)
+        )
         self.lbl_title.setText(QCoreApplication.translate("about_dialog", u"IPSO Phen", None))
-        self.lbl_license_text.setText(QCoreApplication.translate("about_dialog", u"Used packages - Some packages may not be used, but are linked by used packages", None))
+        self.lbl_license_text.setText(
+            QCoreApplication.translate("about_dialog", u"Used packages", None)
+        )
         self.label.setText("")
+
     # retranslateUi
 

@@ -93,6 +93,7 @@ from base.ipt_holder import IptHolder
 from base.ipt_strict_pipeline import IptStrictPipeline
 from base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import base.ip_common as ipc
+from ipapi.base.ipt_pp_state import save_state
 
 from class_pipelines.ip_factory import ipo_factory
 
@@ -191,7 +192,7 @@ class AboutDialog(Ui_about_dialog):
         self.lb_version.setText(f"Version: {__version__}")
 
     def set_copyright(self):
-        self.lbl_copyright.setText("Unpublished work (c) 2018-2019 INRA.")
+        self.lbl_copyright.setText("Unpublished work (c) 2018-2020 INRA.")
 
     def set_authors(self):
         self.lbl_authors.setText("Authors: Felicià Antoni Maviane Macia")
@@ -203,7 +204,7 @@ class AboutDialog(Ui_about_dialog):
             self.txt_brw_used_packages.verticalScrollBar().setValue(
                 self.txt_brw_used_packages.verticalScrollBar().minimum()
             )
-        self.txt_brw_used_packages.moveCursor(QTextCursor.Start, 0)
+        self.txt_brw_used_packages.moveCursor(QTextCursor.Start)
 
 
 class NewToolDialog(QDialog):
@@ -825,7 +826,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._ip_tools_holder = IptHolder()
         try:
             if hasattr(self.ui, "bt_select_tool"):
-                tool_menu = QMenu(self.ui.bt_select_tool)                
+                tool_menu = QMenu(self.ui.bt_select_tool)
                 if ui_consts.FLAT_TOOLS_MENU:
                     lst = self._ip_tools_holder.ipt_list
                     for op in lst:
@@ -1647,7 +1648,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 continue
             if "cb_queue_auto_scroll" in widget.objectName():
                 continue
-            if "tv_pp_view" in widget.objectName():
+            if "ui.tv_pp_view" in widget.objectName():
                 continue
             if widget.objectName() in force_enabled:
                 widget.setEnabled(True)
@@ -2507,7 +2508,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         pass
 
     def on_tv_pp_view_selection_changed(self, selected, deselected):
-        model: PipelineModel = self.tv_pp_view.model()
+        model: PipelineModel = self.ui.tv_pp_view.model()
         if model is not None and len(selected.indexes()) > 0:
             for index in selected.indexes():
                 current_node = index
@@ -2599,10 +2600,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.process_events()
 
     def pp_set_spanning(self):
-        model: PipelineModel = self.tv_pp_view.model()
+        model: PipelineModel = self.ui.tv_pp_view.model()
         if model is not None:
             for index in model.iter_items(root=None):
-                self.tv_pp_view.setFirstColumnSpanned(
+                self.ui.tv_pp_view.setFirstColumnSpanned(
                     index.row(),
                     index.parent(),
                     not hasattr(index.internalPointer(), "run_button"),
@@ -2652,36 +2653,36 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
 
     def on_bt_pp_up(self):
-        model: PipelineModel = self.tv_pp_view.model()
+        model: PipelineModel = self.ui.tv_pp_view.model()
         if model is not None:
-            model.move_up(selected_items=self.tv_pp_view.selectedIndexes())
+            model.move_up(selected_items=self.ui.tv_pp_view.selectedIndexes())
 
     def on_bt_pp_down(self):
-        model: PipelineModel = self.tv_pp_view.model()
+        model: PipelineModel = self.ui.tv_pp_view.model()
         if model is not None:
-            model.move_down(selected_items=self.tv_pp_view.selectedIndexes())
+            model.move_down(selected_items=self.ui.tv_pp_view.selectedIndexes())
 
     def on_bt_pp_delete(self):
-        model: PipelineModel = self.tv_pp_view.model()
-        if model is not None and self.tv_pp_view.selectedIndexes():
-            selected_node = self.tv_pp_view.selectedIndexes()[0]
+        model: PipelineModel = self.ui.tv_pp_view.model()
+        if model is not None and self.ui.tv_pp_view.selectedIndexes():
+            selected_node = self.ui.tv_pp_view.selectedIndexes()[0]
             model.removeRow(selected_node.row(), selected_node.parent())
 
     def on_bt_pp_add_tool(self, q):
         # Get model
-        model: PipelineModel = self.tv_pp_view.model()
+        model: PipelineModel = self.ui.tv_pp_view.model()
         if model is None:
             self.pipeline = LoosePipeline(
                 name="None", description="Double click to edit description",
             )
-            model: PipelineModel = self.tv_pp_view.model()
+            model: PipelineModel = self.ui.tv_pp_view.model()
         # Get menu item text
         if hasattr(self.sender(), "text"):
             text = self.sender().text()
         else:
             text = q.text()
         # Get parent node
-        indexes = self.tv_pp_view.selectedIndexes()
+        indexes = self.ui.tv_pp_view.selectedIndexes()
         if indexes:
             index = indexes[0]
         else:
@@ -2694,12 +2695,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 index = index.parent()
                 while not isinstance(index.internalPointer().node_data, GroupNode):
                     index = index.parent()
-        self.tv_pp_view.selectionModel().selection().select(index, index)
-        self.tv_pp_view.expand(index)
+        self.ui.tv_pp_view.selectionModel().selection().select(index, index)
+        self.ui.tv_pp_view.expand(index)
 
         if text == "Default empty group":
             added_index = model.add_group(selected_items=index)
-            self.tv_pp_view.expand(added_index.parent())
+            self.ui.tv_pp_view.expand(added_index.parent())
         elif text == "Fix exposure":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
@@ -2718,7 +2719,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     module=tool.copy(copy_wrapper=False),
                     enabled=True,
                 )
-            self.tv_pp_view.expand(added_index)
+            self.ui.tv_pp_view.expand(added_index)
         elif text == "Pre process image":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
@@ -2737,7 +2738,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     module=tool.copy(copy_wrapper=False),
                     enabled=True,
                 )
-            self.tv_pp_view.expand(added_index)
+            self.ui.tv_pp_view.expand(added_index)
         elif text == "Threshold":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_AND, name=text,
@@ -2749,7 +2750,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     module=tool.copy(copy_wrapper=False),
                     enabled=True,
                 )
-            self.tv_pp_view.expand(added_index)
+            self.ui.tv_pp_view.expand(added_index)
         elif text == "Mask cleanup":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
@@ -2761,7 +2762,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     module=tool.copy(copy_wrapper=False),
                     enabled=True,
                 )
-            self.tv_pp_view.expand(added_index)
+            self.ui.tv_pp_view.expand(added_index)
         elif text == "Feature extraction":
             added_index = model.add_group(
                 selected_items=index, merge_mode=ipc.MERGE_MODE_NONE, name=text,
@@ -2801,7 +2802,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     module=tool.copy(copy_wrapper=False),
                     enabled=True,
                 )
-            self.tv_pp_view.expand(added_index)
+            self.ui.tv_pp_view.expand(added_index)
         else:
             tool = self.find_tool_by_name(text)
             if tool is None:
@@ -2813,7 +2814,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 added_index = model.add_module(
                     selected_items=index, module=tool.copy(copy_wrapper=False), enabled=True,
                 )
-            self.tv_pp_view.expand(added_index.parent())
+            self.ui.tv_pp_view.expand(added_index.parent())
 
     def on_bt_pp_run(self):
         self.run_process(wrapper=self._src_image_wrapper)
@@ -3812,9 +3813,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.tb_ge_dataframe.setSortingEnabled(True)
         if dataframe is not None:
             selectionModel = self.ui.tb_ge_dataframe.selectionModel()
-            selectionModel.selectionChanged.connect(
-                self.on_ui.tb_ge_dataframe_selection_changed
-            )
+            selectionModel.selectionChanged.connect(self.ui.tb_ge_dataframe_selection_changed)
             self.de_fill_description(dataframe.describe(include="all"))
             self.de_fill_columns_info(dataframe)
         else:
@@ -4765,7 +4764,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
             with open(file_name_, "w") as jw:
                 json.dump(
-                    dict(
+                    save_state(
                         output_folder=self.ui.le_pp_output_folder.text(),
                         csv_file_name=self.ui.edt_csv_file_name.text(),
                         overwrite_existing=self.ui.cb_pp_overwrite.isChecked(),
@@ -5007,7 +5006,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     @property
     def pipeline(self) -> LoosePipeline:
-        model = self.tv_pp_view.model()
+        model = self.ui.tv_pp_view.model()
         if model is not None:
             return model.pipeline
         else:
@@ -5040,23 +5039,23 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             do_feedback=self.update_feedback,
         )
         model.dataChanged.connect(self.on_pp_data_changed)
-        self.tv_pp_view.setModel(model)
-        self.tb_pp_desc.clear()
+        self.ui.tv_pp_view.setModel(model)
+        self.ui.tb_pp_desc.clear()
         if value is not None and model is not None:
-            selectionModel = self.tv_pp_view.selectionModel()
+            selectionModel = self.ui.tv_pp_view.selectionModel()
             selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
-            self.tv_pp_view.setItemDelegate(PipelineDelegate(parent=self.tv_pp_view))
-            self.tv_pp_view.header().setStretchLastSection(False)
-            self.tv_pp_view.header().setSectionResizeMode(0, QHeaderView.Stretch)
-            self.tv_pp_view.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.tv_pp_view.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
-            self.tv_pp_view.setColumnWidth(1, 12)
-            self.tv_pp_view.setColumnWidth(2, 12)
+            self.ui.tv_pp_view.setItemDelegate(PipelineDelegate(parent=self.ui.tv_pp_view))
+            self.ui.tv_pp_view.header().setStretchLastSection(False)
+            self.ui.tv_pp_view.header().setSectionResizeMode(0, QHeaderView.Stretch)
+            self.ui.tv_pp_view.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+            self.ui.tv_pp_view.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            self.ui.tv_pp_view.setColumnWidth(1, 12)
+            self.ui.tv_pp_view.setColumnWidth(2, 12)
 
             index = model.createIndex(2, 0, model.rootNodes[2])
-            self.tv_pp_view.selectionModel().selection().select(index, index)
-            self.tv_pp_view.expand(index)
-            self.tb_pp_desc.insertPlainText(value.description)
+            self.ui.tv_pp_view.selectionModel().selection().select(index, index)
+            self.ui.tv_pp_view.expand(index)
+            self.ui.tb_pp_desc.insertPlainText(value.description)
             self._update_pp_pipeline_state(default_process=False, pipeline=True)
             self.pp_set_spanning()
         else:
