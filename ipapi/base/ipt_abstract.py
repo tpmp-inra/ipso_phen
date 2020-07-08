@@ -1977,7 +1977,6 @@ class IptBase(IptParamHolder, ABC):
                     ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
                     ipc.TOOL_GROUP_PRE_PROCESSING_STR,
                     ipc.TOOL_GROUP_WHITE_BALANCE_STR,
-                    ipc.TOOL_GROUP_VISUALIZATION_STR,
                 )
             )
         ):
@@ -1992,5 +1991,7 @@ class IptBase(IptParamHolder, ABC):
             set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR))
         ):
             return ipc.IO_DATA
+        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_VISUALIZATION_STR,))):
+            return ipc.IO_IMAGE
         else:
             return ipc.IO_NONE

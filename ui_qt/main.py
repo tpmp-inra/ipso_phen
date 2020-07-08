@@ -928,7 +928,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 755, 78))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 771, 78))
         self.gridLayout_17 = QGridLayout(self.scrollAreaWidgetContents_4)
         self.gridLayout_17.setObjectName(u"gridLayout_17")
         self.gl_tool_params = QGridLayout()
@@ -1471,7 +1471,7 @@ class Ui_MainWindow(object):
 
         self.tabWidget.setCurrentIndex(0)
         self.tw_tool_box.setCurrentIndex(1)
-        self.tb_tool_script.setCurrentIndex(1)
+        self.tb_tool_script.setCurrentIndex(0)
         self.bt_process_image.setDefault(True)
 
         QMetaObject.connectSlotsByName(MainWindow)

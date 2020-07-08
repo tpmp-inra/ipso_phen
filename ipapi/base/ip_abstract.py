@@ -3626,7 +3626,7 @@ class AbstractImageProcessor(ImageWrapper):
     def current_image(self):
         if self._current_image is None:
             self._current_image = self.source_image
-        return self._current_image.copy()
+        return None if self._current_image is None else self._current_image.copy()
 
     @current_image.setter
     def current_image(self, value):
