@@ -138,13 +138,20 @@ class ErrorHolder(object):
                 )
             )
 
-    def last_error(self, prefix_with_owner: bool = True):
+    def last_error(self, prefix_with_owner: bool = True, prepend_timestamp: bool = True):
         """Returns last error with prefix or not
 
         :param prefix_with_owner:
         :return:
         """
-        error_str = str(self.error_list[-1]) if self.error_list else ""
+        if self.error_list:
+            err_: SingleError = self.error_list[-1]
+            if prepend_timestamp:
+                error_str = str(err_)
+            else:
+                error_str = f"[{error_level_to_str(err_.level)}|{err_.kind}]-{err_.text}"
+        else:
+            error_str = ""
         if self.error_count > 1:
             error_str = f"{error_str}, ({self.error_count - 1} more)"
         if error_str and prefix_with_owner:

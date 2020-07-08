@@ -93,7 +93,7 @@ from base.ipt_holder import IptHolder
 from base.ipt_strict_pipeline import IptStrictPipeline
 from base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import base.ip_common as ipc
-from ipapi.base.ipt_pp_state import save_state
+from base.pipeline_launcher import save_state
 
 from class_pipelines.ip_factory import ipo_factory
 
@@ -110,7 +110,7 @@ from tools.common_functions import (
 )
 import tools.db_wrapper as dbw
 from tools.error_holder import ErrorHolder
-from tools.pipeline_processor import PipelineProcessor
+from base.pipeline_processor import PipelineProcessor
 
 from ui_qt import ui_consts
 from ui_qt.about import Ui_about_dialog
@@ -673,6 +673,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         force_directories(self.static_folders["stored_data"])
         force_directories(self.static_folders["script"])
         force_directories(self.static_folders["sql_db"])
+        self.last_pipeline_path = ""
 
         self._options = ArgWrapper(
             dst_path=self.static_folders["image_output"],
@@ -2063,6 +2064,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             # Fill selected plant
             self.select_image_from_luid(settings_.value("selected_plant_luid", ""))
 
+            # Load last pipeline
+            self.last_pipeline_path = settings_.value("last_pipeline_path", "")
+            if os.path.isfile(self.last_pipeline_path):
+                try:
+                    self.pipeline = LoosePipeline.load(file_name=self.last_pipeline_path)
+                except Exception as e:
+                    self.log_exception(f'Unable to load pipeline: "{repr(e)}"')
+                    self.last_pipeline_path = ""
+
         except Exception as e:
             self.log_exception(f"Failed to load settings because: {repr(e)}")
             res = False
@@ -2190,6 +2200,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     save_lst_ = True
             else:
                 save_lst_ = False
+
+            if os.path.isfile(self.last_pipeline_path):
+                settings_.setValue("last_pipeline_path", self.last_pipeline_path)
+            else:
+                settings_.setValue("last_pipeline_path", "")
 
             if save_lst_ is True:
                 model.images.to_csv("./saved_data/last_image_browser_state.csv", index=False)
@@ -2629,6 +2644,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.pipeline = LoosePipeline.load(file_name=file_name_)
             except Exception as e:
                 self.log_exception(f'Unable to load pipeline: "{repr(e)}"')
+            else:
+                self.last_pipeline_path = file_name_
 
     def on_bt_pp_save(self):
         file_name_ = QFileDialog.getSaveFileName(
@@ -2646,6 +2663,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(
                     status_message=f'Saved pipeline to: "{file_name_}"', use_status_as_log=True
                 )
+                self.last_pipeline_path = file_name_
             else:
                 self.update_feedback(
                     status_message="Failed to save pipline, cf. log for more details",
@@ -2985,7 +3003,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.process_events()
 
     def do_pp_item_image_ready(self, image):
-        if self.chk_pp_show_last_item.isChecked():
+        if self.ui.chk_pp_show_last_item.isChecked():
             self.gv_last_processed_item.main_image = image
             if not self.multithread:
                 self.process_events()
@@ -4221,7 +4239,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.file_name = self.current_selected_image_path()
 
     def on_chk_pp_show_last_item(self):
-        if not self.chk_pp_show_last_item.isChecked():
+        if not self.ui.chk_pp_show_last_item.isChecked():
             self.gv_last_processed_item.main_image = None
 
     def build_param_overrides(self, wrapper, tool):
@@ -4738,7 +4756,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no images",
             )
             return
-        if self.pipeline() is not None:
+        df = self.get_image_dataframe()
+        if df is None:
+            self.update_feedback(
+                status_message="Pipeline state save: no images",
+                log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no images",
+            )
+            return
+        if self.pipeline is not None:
             script_ = self.pipeline.copy()
         else:
             self.update_feedback(
@@ -4760,7 +4785,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 else ""
             )
             database_data = (
-                None if self.current_database is None else self.current_database.db_info
+                None
+                if self.current_database is None
+                else self.current_database.db_info.to_json()
             )
             with open(file_name_, "w") as jw:
                 json.dump(
@@ -4768,14 +4795,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         output_folder=self.ui.le_pp_output_folder.text(),
                         csv_file_name=self.ui.edt_csv_file_name.text(),
                         overwrite_existing=self.ui.cb_pp_overwrite.isChecked(),
-                        append_experience_name=append_experience_name,
+                        sub_folder_name=append_experience_name,
                         append_time_stamp=self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
                         script=script_.to_json(),
                         generate_series_id=self.ui.cb_pp_generate_series_id.isChecked(),
                         series_id_time_delta=self.ui.sp_pp_time_delta.value(),
-                        data_frame=model.images.to_dict(orient="list"),
-                        database_data=database_data,
+                        images=list(df["FilePath"]),
                         thread_count=self.ui.sl_pp_thread_count.value(),
+                        database_data=database_data,
                     ),
                     jw,
                     indent=2,
@@ -4820,30 +4847,43 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     @file_name.setter
     def file_name(self, value):
         if value != self._file_name:
-            try:
-                # Backup annotation
-                if self._src_image_wrapper is not None:
-                    id = self.get_image_delegate()
-                    if id is not None:
-                        id.set_annotation(
-                            luid=self._src_image_wrapper.luid,
-                            experiment=self._src_image_wrapper.experiment,
-                            kind=self.ui.cb_annotation_level.currentText(),
-                            text=self.ui.te_annotations.toPlainText(),
-                            auto_text="",
-                        )
-
-                if os.path.isfile(value):
-                    self._src_image_wrapper = ipo_factory(
-                        file_path=value,
-                        options=self._options,
-                        force_abstract=False,
-                        data_base=self.current_database,
+            # Backup annotation
+            if self._src_image_wrapper is not None:
+                id = self.get_image_delegate()
+                if id is not None:
+                    id.set_annotation(
+                        luid=self._src_image_wrapper.luid,
+                        experiment=self._src_image_wrapper.experiment,
+                        kind=self.ui.cb_annotation_level.currentText(),
+                        text=self.ui.te_annotations.toPlainText(),
+                        auto_text="",
                     )
-                    self.ui.gv_source_image.main_image = self._src_image_wrapper.current_image
-                else:
-                    self._src_image_wrapper = None
 
+            if os.path.isfile(value):
+                self._src_image_wrapper = ipo_factory(
+                    file_path=value,
+                    options=self._options,
+                    force_abstract=False,
+                    data_base=self.current_database,
+                )
+                try:
+                    ci = self._src_image_wrapper.current_image
+                    if ci is None:
+                        self.update_feedback(
+                            status_message="Failed to load image",
+                            log_message=self._src_image_wrapper.error_holder.last_error(
+                                prepend_timestamp=False
+                            ),
+                        )
+                        self._src_image_wrapper = None
+                    else:
+                        self.ui.gv_source_image.main_image = ci
+                except Exception as e:
+                    self._src_image_wrapper = None
+                    self.log_exception(f"Failed to load image: {repr(e)}")
+            else:
+                self._src_image_wrapper = None
+            try:
                 # Restore annotation
                 self.ui.te_annotations.clear()
                 if self.ui.actionEnable_annotations.isChecked() and (

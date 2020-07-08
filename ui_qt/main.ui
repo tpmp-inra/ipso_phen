@@ -757,7 +757,7 @@
                   <item row="0" column="0" colspan="4">
                    <widget class="QTabWidget" name="tb_tool_script">
                     <property name="currentIndex">
-                     <number>1</number>
+                     <number>0</number>
                     </property>
                     <widget class="QWidget" name="tb_pipeline_v2">
                      <attribute name="title">
@@ -1104,7 +1104,7 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>755</width>
+                           <width>771</width>
                            <height>78</height>
                           </rect>
                          </property>
