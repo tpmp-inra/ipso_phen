@@ -8,7 +8,7 @@ from collections import namedtuple
 from timeit import default_timer as timer
 
 import pandas as pd
-from tdqm import tqdm
+from tqdm import tqdm
 
 from class_pipelines.ip_factory import ipo_factory
 from file_handlers.fh_base import file_handler_factory
