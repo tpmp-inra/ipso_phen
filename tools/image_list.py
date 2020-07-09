@@ -140,7 +140,6 @@ class ImageList:
             for name in files
             if name.lower().endswith(file_end)
         ]
-        print(f"Match end filtering file count: {len(file_list)}")
         return file_list
 
     @time_method

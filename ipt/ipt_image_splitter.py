@@ -2,6 +2,10 @@ import os
 
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from tools.common_functions import make_safe_name
 from base.ip_common import TOOL_GROUP_IMAGE_GENERATOR_STR
@@ -91,7 +95,9 @@ class IptImageSplitter(IptBase):
 
             dst_path = self.get_value_of("path")
             if not dst_path:
-                wrapper.error_holder.add_error(f"Failed : Missing folder parameter")
+                wrapper.error_holder.add_error(
+                    f"Failed : Missing folder parameter", target_logger=logger
+                )
             else:
                 for i in range(0, line_count):
                     for j in range(0, column_count):
@@ -109,7 +115,9 @@ class IptImageSplitter(IptBase):
                 res = True
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

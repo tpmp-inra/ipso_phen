@@ -1,6 +1,7 @@
 import os
 import json
 from typing import Union
+import logging
 
 
 from timeit import default_timer as timer
@@ -11,10 +12,10 @@ from tqdm import tqdm
 import ipapi.tools.db_wrapper as dbw
 from ipapi.tools.common_functions import force_directories, format_time
 from ipapi.base.pipeline_processor import PipelineProcessor
-from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
+from ipapi.base.ipt_loose_pipeline import LoosePipeline
 
 
-g_log_file = ""
+logger = logging.getLogger(__name__)
 
 IS_LOG_DATA = True
 IS_USE_MULTI_THREAD = False
@@ -84,32 +85,10 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         script=_get_key("script", res, overrides),
         generate_series_id=_get_key("generate_series_id", res, overrides, False),
         series_id_time_delta=_get_key("series_id_time_delta", res, overrides, 0),
-        data_frame=_get_key("data_frame", res, overrides),
+        images=_get_key("images", res, overrides),
         database_data=_get_key("database_data", res, overrides),
         thread_count=_get_key("thread_count", res, overrides, 1),
     )
-
-
-def log_event(event: Union[list, str], print_to_console: bool = False):
-    global IS_LOG_DATA
-    if IS_LOG_DATA is True:
-        with open(g_log_file, "a+") as lf:
-            if isinstance(event, str):
-                lf.write("event\n")
-            elif isinstance(event, object):
-                lf.write(f"{str(event)}\n")
-            else:
-                lf.write("\n".join(event))
-    if print_to_console:
-        print(event)
-
-
-def do_feed_back(status_msg: str, log_msg: str, obj: object, use_status_as_log: bool) -> bool:
-    if obj is None:
-        log_event(event=log_msg)
-    else:
-        log_event(event=obj)
-    return True
 
 
 def launch(**kwargs):
@@ -137,10 +116,14 @@ def launch(**kwargs):
 
     res = restore_state(blob=stored_state, overrides=kwargs)
 
+    def exit_error_message(msg: str) -> None:
+        logger.error(msg)
+        print(msg + ", see logs for more details")
+
     # Retrieve images
     image_list_ = res.get("images", None)
     if image_list_ is None or not isinstance(image_list_, list) or len(image_list_) < 1:
-        print("No images to precess")
+        exit_error_message("No images to process")
         return 1
 
     # Build database
@@ -150,7 +133,7 @@ def launch(**kwargs):
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
     if not output_folder_:
-        print("Missing output folder")
+        exit_error_message("Missing output folder")
         return 1
     elif res.get("sub_folder_name", ""):
         output_folder_ = os.path.join(output_folder_, res["sub_folder_name"], "")
@@ -161,7 +144,7 @@ def launch(**kwargs):
     force_directories(output_folder_)
     csv_file_name = res.get("csv_file_name", None)
     if not csv_file_name:
-        print("Missing output file name")
+        exit_error_message("Missing output file name")
         return 1
     if IS_USE_MULTI_THREAD and "thread_count" in res:
         try:
@@ -172,31 +155,24 @@ def launch(**kwargs):
         mpc = False
 
     try:
-        script = IptStrictPipeline.from_json(json_data=res["script"])
+        script = LoosePipeline.from_json(json_data=res["script"])
     except Exception as e:
-        print("Failed to load script: {repr(e)}")
+        exit_error_message(f"Failed to load script: {repr(e)}")
         return 1
 
-    log_event(
-        event=[
-            "Process summary",
-            "_______________",
-            f'database: {res.get("database_data", None)}',
-            f'Output folder: {res["output_folder"]}',
-            f'CSV file name: {res["csv_file_name"]}',
-            f'Overwrite data: {res["overwrite_existing"]}',
-            f'Subfolder name: {res["sub_folder_name"]}',
-            f'Append timestamp to root folder: {res["append_time_stamp"]}',
-            f'Generate series ID: {res["generate_series_id"]}',
-            f'Series ID time delta allowed: {res["series_id_time_delta"]}',
-            f"Dataframe rows: {len(image_list_)}",
-            f"Concurrent processes count: {mpc}",
-            f"Script summary: {str(script)}",
-            "_______________",
-            "",
-        ],
-        print_to_console=False,
-    )
+    logger.info("Process summary")
+    logger.info("_______________")
+    logger.info(f'database: {res.get("database_data", None)}')
+    logger.info(f'Output folder: {res["output_folder"]}')
+    logger.info(f'CSV file name: {res["csv_file_name"]}')
+    logger.info(f'Overwrite data: {res["overwrite_existing"]}')
+    logger.info(f'Subfolder name: {res["sub_folder_name"]}')
+    logger.info(f'Append timestamp to root folder: {res["append_time_stamp"]}')
+    logger.info(f'Generate series ID: {res["generate_series_id"]}')
+    logger.info(f'Series ID time delta allowed: {res["series_id_time_delta"]}')
+    logger.info(f"Images: {len(image_list_)}")
+    logger.info(f"Concurrent processes count: {mpc}")
+    logger.info(f"Script summary: {str(script)}")
 
     # Build pipeline processor
     pp = PipelineProcessor(
@@ -207,7 +183,6 @@ def launch(**kwargs):
         store_images=False,
     )
     pp.ensure_root_output_folder()
-    pp.log_callback = do_feed_back
     pp.accepted_files = image_list_
     pp.script = script
     if not pp.accepted_files:
@@ -219,9 +194,6 @@ def launch(**kwargs):
     groups_to_process = pp.handle_existing_data(groups_to_process)
     groups_to_process_count = len(groups_to_process)
     if groups_to_process_count > 0:
-        log_event(
-            f"Starting {groups_to_process_count} groups processing", print_to_console=True
-        )
         pp.multi_thread = mpc
         pp.process_groups(groups_list=groups_to_process, target_database=db)
 
@@ -251,7 +223,7 @@ def launch(**kwargs):
         if build_mean_df:
             steps_ += 1
     if steps_ > 0:
-        log_event(" --- Building additional CSV files ---", print_to_console=True)
+        logger.info(" --- Building additional CSV files ---")
         pb = tqdm(total=steps_, desc="Building additional CSV files:")
         if "_raw_data" in csv_file_name:
             csv_file_name = csv_file_name.replace("_raw_data", "")
@@ -295,11 +267,12 @@ def launch(**kwargs):
                 ).to_csv(os.path.join(pp.options.dst_path, f"{csv_day_root_name}_mean.csv"))
                 pb.update(1)
         pb.close()
-        log_event(" --- Built additional CSV files ---", print_to_console=True)
+        logger.info(" --- Built additional CSV files ---")
 
-    log_event(
-        event=f"Processed {groups_to_process_count} groups/images in {format_time(timer() - start)}",
-        print_to_console=True,
+    last_word = (
+        f"Processed {groups_to_process_count} groups/images in {format_time(timer() - start)}"
     )
+    logger.info(last_word)
+    print(last_word + ". See logs for more details")
 
     return 0

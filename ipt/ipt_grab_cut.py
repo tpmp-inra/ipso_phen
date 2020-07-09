@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
-from distutils.version import LooseVersion
+
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR, C_BLACK, ensure_odd
@@ -70,7 +74,9 @@ class IptGrabCut(IptBase):
             # Get starting mask
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                wrapper.error_holder.add_error(
+                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                )
                 return
 
             # Get ROI
@@ -163,7 +169,9 @@ class IptGrabCut(IptBase):
 
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

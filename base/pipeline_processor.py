@@ -6,6 +6,8 @@ import os
 from collections import Counter, defaultdict
 from collections import namedtuple
 from timeit import default_timer as timer
+import logging
+from typing import Union
 
 import pandas as pd
 from tqdm import tqdm
@@ -17,6 +19,8 @@ from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import time_method, force_directories
 from tools.error_holder import ErrorHolder
 from tools.image_list import ImageList
+
+logger = logging.getLogger(__name__)
 
 WorkerResult = namedtuple("WorkerResult", "result, name, error")
 
@@ -32,7 +36,12 @@ def _run_process(file_path, script, options, list_res, data_base):
             res = WorkerResult(bool_res, str(ipo), ipo.error_holder)
         else:
             script.image_output_path = ipo.dst_path
-            bool_res = script.process_image(progress_callback=None, wrapper=ipo)
+            if hasattr(script, "process_image"):
+                bool_res = script.process_image(progress_callback=None, wrapper=ipo)
+            elif hasattr(script, "execute"):
+                bool_res = bool(script.execute(src_image=ipo))
+            else:
+                bool_res = False
             res = WorkerResult(bool_res, str(ipo), script.last_error)
         list_res.append(res)
 
@@ -175,9 +184,10 @@ class PipelineProcessor:
             res = self.log_state(
                 status_message="Process error",
                 error_holder=ErrorHolder(
-                    self, (dict(text="UNKNOWN ERROR", type="unknown_error"),)
+                    self, (dict(text="UNKNOWN ERROR", type="unknown_error", logger=logger),)
                 ),
             )
+            logger.error("UNKNOWN ERROR")
             self._process_errors += 1
         else:
             spaces_ = len(str(total))
@@ -186,11 +196,15 @@ class PipelineProcessor:
                     res = self.log_state(
                         log_message=f'{(wrapper_index + 1):{spaces_}d}/{total} OK - "{wrapper_res.name}"'
                     )
+                    logger.info(
+                        f'{(wrapper_index + 1):{spaces_}d}/{total} OK - "{wrapper_res.name}"'
+                    )
                 else:
                     res = self.log_state(error_holder=wrapper_res.error)
                     self._process_errors += 1
             if self.options.group_by_series:
                 res = self.log_state(log_message="____________________________________________")
+                logger.info("____________________________________________")
 
         self.update_progress()
 
@@ -336,7 +350,7 @@ class PipelineProcessor:
         else:
             return None
 
-    def merge_result_files(self, csv_file_name: str) -> [None, pd.DataFrame]:
+    def merge_result_files(self, csv_file_name: str) -> Union[None, pd.DataFrame]:
         if self.log_state(
             status_message="Merging partial outputs",
             log_message=f"   --- Starting file merging ---",
@@ -494,7 +508,7 @@ class PipelineProcessor:
         """
         if self.accepted_files:
             # build series
-            files_to_process = self.prepare_groups()
+            files_to_process = self.prepare_groups(time_delta=20)
 
             # If overwrite is disabled remove all files already analysed
             files_to_process = self.handle_existing_data(files_to_process)

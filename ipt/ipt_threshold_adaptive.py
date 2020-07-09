@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_THRESHOLD_STR, ensure_odd
 
@@ -121,7 +125,9 @@ class IptThresholdAdaptive(IptBase):
                 elif method == "mean":
                     method = cv2.ADAPTIVE_THRESH_MEAN_C
                 else:
-                    self._wrapper.error_holder.add_error(f"Unknown method {method}")
+                    self._wrapper.error_holder.add_error(
+                        f"Unknown method {method}", target_logger=logger
+                    )
                     return False
                 block_size = self.get_value_of("block_size")
                 if block_size % 2 == 0:
@@ -174,7 +180,9 @@ class IptThresholdAdaptive(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass

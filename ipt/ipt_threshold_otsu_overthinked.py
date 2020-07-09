@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
 from base.ipt_abstract import IptBase
 from base.ip_common import (
@@ -106,7 +110,7 @@ class IptOtsuOverthinked(IptBase):
                 elif merge_method == "l_or":
                     mask = wrapper.multi_or(masks)
                 else:
-                    wrapper.error_holder.add_error("Unknown merge method")
+                    wrapper.error_holder.add_error("Unknown merge method", target_logger=logger)
                     return
 
                 self.result = self.apply_morphology_from_params(mask)
@@ -141,7 +145,9 @@ class IptOtsuOverthinked(IptBase):
 
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

@@ -5,6 +5,10 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import get_hr_channel_name, channel_color
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR, enclose_image, C_BLACK
@@ -100,7 +104,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                wrapper.error_holder.add_error(
+                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                )
                 return
 
             hist_bins = self.get_value_of("hist_bins")
@@ -233,7 +239,8 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 for c, v in channel_data.items():
                     if v["data"] is None:
                         wrapper.error_holder.add_error(
-                            f'Missing channel {v["color_space"], v["channel_name"]}'
+                            f'Missing channel {v["color_space"]}, {v["channel_name"]}',
+                            target_logger=logger,
                         )
                         continue
                     seed_ = f'{v["color_space"]}_{c}'
@@ -249,7 +256,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             res = True
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

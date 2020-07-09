@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import all_colors_dict
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
@@ -171,7 +175,9 @@ class IptExposureChecker(IptBaseAnalyzer):
                         + 0.068 * np.power(bs.astype(np.float), 2)
                     )
                 else:
-                    wrapper.error_list.add_error("Unknown brightness mode")
+                    wrapper.error_list.add_error(
+                        "Unknown brightness mode", target_logger=logger
+                    )
                     return
                 wrapper.store_image(
                     self.to_uint8(s), f'brightness_{self.get_value_of("source_brightness")}'
@@ -254,7 +260,9 @@ class IptExposureChecker(IptBaseAnalyzer):
 
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:
