@@ -3,6 +3,7 @@ import pkgutil
 import sys
 import subprocess
 import argparse
+import logging
 from tqdm import tqdm
 
 if __name__ == "__main__":
@@ -434,10 +435,11 @@ class IptHolder(object):
         log_message: Any = None,
         use_status_as_log: bool = False,
         collect_garbage: bool = True,
+        log_level: int = 20,
     ):
         if self._log_callback is not None:
             return self._log_callback(
-                status_message, log_message, use_status_as_log, collect_garbage
+                status_message, log_message, use_status_as_log, collect_garbage, log_level
             )
         else:
             self._log_data.append(f"status: {status_message} - log: {log_message}")
@@ -450,7 +452,9 @@ class IptHolder(object):
             i = 1
             files_to_format = []
             self.log_state(
-                status_message=f"Building test scripts ...", use_status_as_log=True,
+                status_message="Building test scripts ...",
+                use_status_as_log=True,
+                log_level=logging.INFO,
             )
             module_names = [name for (_, name, _) in pkgutil.iter_modules(ipt.__path__)]
             for name in tqdm(module_names, desc="Building test files"):
@@ -458,6 +462,7 @@ class IptHolder(object):
                     self.log_state(
                         status_message=f"Ignoring {name}...",
                         log_message=f"Ignoring {name}, PlantCV not found",
+                        log_level=logging.INFO,
                     )
                     continue
 
@@ -477,12 +482,14 @@ class IptHolder(object):
                     )
                     if not overwrite and os.path.isfile(file_name):
                         self.log_state(
-                            log_message=f"Skipped test script for {op.name}, script already exists"
+                            log_message=f"Skipped test script for {op.name}, script already exists",
+                            log_level=logging.INFO,
                         )
                         continue
                     self.log_state(
                         status_message=f"Building test script for {op.name}",
                         use_status_as_log=True,
+                        log_level=logging.INFO,
                     )
                     files_to_format.append(file_name)
                     with open(file_name, "w", encoding="utf8") as f:
@@ -500,7 +507,8 @@ class IptHolder(object):
 
                         if op.short_test_script is True:
                             self.log_state(
-                                log_message=f"Create short test script for {op.name}, as per class definition"
+                                log_message=f"Create short test script for {op.name}, as per class definition",
+                                log_level=logging.INFO,
                             )
                             continue
 
@@ -543,7 +551,9 @@ class IptHolder(object):
                         f.write(f"{spaces}unittest.main()\n")
 
             self.log_state(
-                status_message=f"Formatting test scripts ...", use_status_as_log=True,
+                status_message="Formatting test scripts ...",
+                use_status_as_log=True,
+                log_level=logging.INFO,
             )
             for test_script in files_to_format:
                 self.log_state(
@@ -552,8 +562,8 @@ class IptHolder(object):
                 subprocess.run(args=("black", test_script))
 
             if self._log_data:
-                for l in self._log_data:
-                    print(l)
+                for ld in self._log_data:
+                    print(ld)
 
         finally:
             self._log_callback = None
