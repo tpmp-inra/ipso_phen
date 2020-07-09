@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
 
@@ -35,7 +39,9 @@ class IptCalculateChlorophyll(IptBase):
         try:
             src_img = self.extract_source_from_args()
             if src_img is None:
-                wrapper.error_holder.add_error("Unable to fetch source target image")
+                wrapper.error_holder.add_error(
+                    "Unable to fetch source target image", target_logger=logger
+                )
                 res = False
 
             mask = self.get_mask()
@@ -73,7 +79,9 @@ class IptCalculateChlorophyll(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True

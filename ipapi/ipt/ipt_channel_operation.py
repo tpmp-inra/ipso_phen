@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
@@ -130,7 +134,9 @@ class IptChannelOperation(IptBase):
                     elif op1 == "power":
                         c12 = np.power(c1, c2)
                     else:
-                        wrapper.error_holder.add_error(f"Unknown operator {op1}")
+                        wrapper.error_holder.add_error(
+                            f"Unknown operator {op1}", target_logger=logger
+                        )
                 else:
                     c12 = c1
             elif c2 is not None:
@@ -156,7 +162,9 @@ class IptChannelOperation(IptBase):
                         tmp = np.power(c12, c3)
                     else:
                         tmp = None
-                        wrapper.error_holder.add_error(f"Unknown operator {op2}")
+                        wrapper.error_holder.add_error(
+                            f"Unknown operator {op2}", target_logger=logger
+                        )
                 else:
                     tmp = c12
             elif c3 is not None:
@@ -225,7 +233,9 @@ class IptChannelOperation(IptBase):
             res = False
             self.result = None
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             if not res:

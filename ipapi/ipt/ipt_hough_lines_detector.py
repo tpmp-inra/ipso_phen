@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 import math
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from ipt.ipt_edge_detector import IptEdgeDetector
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
@@ -264,7 +268,9 @@ class IptHoughLines(IptBaseAnalyzer):
             res = True
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

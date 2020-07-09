@@ -3,6 +3,10 @@ import numpy as np
 from skimage.segmentation import felzenszwalb
 from skimage.util import img_as_float
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
 from base.ipt_abstract_merger import IptBaseMerger
 
@@ -74,7 +78,9 @@ class IptFelzenswalb(IptBaseMerger):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True

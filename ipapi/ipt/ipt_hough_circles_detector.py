@@ -1,6 +1,10 @@
 import os
 import pickle
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 import cv2
 import numpy as np
 from skimage.transform import hough_circle, hough_circle_peaks
@@ -359,7 +363,9 @@ class IptHoughCircles(IptBase):
             res = True
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:
@@ -431,7 +437,7 @@ class IptHoughCircles(IptBase):
                 res = wrapper.apply_rois(wrapper.mask)
             else:
                 res = None
-                wrapper.error_holder.add_error("Unknown ROI target")
+                wrapper.error_holder.add_error("Unknown ROI target", target_logger=logger)
             wrapper.store_image(res, roi_name, text_overlay=False)
             return res
         else:

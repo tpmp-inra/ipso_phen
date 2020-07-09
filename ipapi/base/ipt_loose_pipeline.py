@@ -3,6 +3,8 @@ import json
 from datetime import datetime as dt
 from timeit import default_timer as timer
 import itertools
+from typing import Union
+import logging
 
 import numpy as np
 
@@ -22,6 +24,8 @@ import tools.error_holder as eh
 from tools.common_functions import format_time
 from tools.regions import RectangleRegion
 
+
+logger = logging.getLogger(__name__)
 last_script_version = "0.2.0.0"
 
 
@@ -181,6 +185,7 @@ class Node(object):
                 new_error_text=msg,
                 new_error_kind="pipeline_process_error",
                 new_error_level=res,
+                target_logger=logger,
             )
         md = np.array(self.root.parent.settings.mosaic.images)
         if isinstance(data, (GroupNode, ModuleNode)):
@@ -447,6 +452,7 @@ class ModuleNode(Node):
             parent.root.parent.last_error.add_error(
                 new_error_text=f"Failed to load module: {repr(tool)}",
                 new_error_kind="pipeline_load_error",
+                target_logger=logger,
             )
         elif isinstance(tool, IptBase):
             return ModuleNode(
@@ -783,6 +789,7 @@ class GroupNode(Node):
                 parent.root.parent.last_error.add_error(
                     new_error_text=f"Unknown node type: {node['node_type']}",
                     new_error_kind="pipeline_load_error",
+                    target_logger=logger,
                 )
         return res
 
@@ -1103,7 +1110,7 @@ class LoosePipeline(object):
         return True
 
     def execute(
-        self, src_image: [str, AbstractImageProcessor], silent_mode: bool = False, **kwargs
+        self, src_image: Union[str, AbstractImageProcessor], silent_mode: bool = False, **kwargs
     ):
         self.stop_processing = False
         self.last_error.clear()
@@ -1113,8 +1120,13 @@ class LoosePipeline(object):
             wrapper = src_image
         else:
             self.last_error.add_error(
-                new_error_text="Unknown source", new_error_kind="pipeline_process_error"
+                new_error_text="Unknown source",
+                new_error_kind="pipeline_process_error",
+                target_logger=logger,
             )
+            return False
+        src_img = wrapper.current_image
+        if src_img is None or wrapper.good_image is False:
             return False
         if self.last_wrapper_luid != wrapper.luid:
             self.invalidate()
@@ -1154,6 +1166,7 @@ class LoosePipeline(object):
             self.last_error.add_error(
                 new_error_text=f'Failed to save pipeline "{repr(e)}"',
                 new_error_kind="pipeline_save_error",
+                target_logger=logger,
             )
             return False
         else:

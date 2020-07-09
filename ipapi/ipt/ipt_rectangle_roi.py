@@ -1,5 +1,9 @@
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import resize_image
 from base.ipt_abstract import IptBase
 from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
@@ -69,7 +73,9 @@ class IptRectangleRoi(IptBase):
             else:
                 res = False
         except Exception as e:
-            wrapper.error_holder.add_error(f'Failed to execute: "{repr(e)}"')
+            wrapper.error_holder.add_error(
+                f'Failed to execute: "{repr(e)}"', target_logger=logger
+            )
             res = False
         else:
             pass
@@ -113,7 +119,9 @@ class IptRectangleRoi(IptBase):
             res = True
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

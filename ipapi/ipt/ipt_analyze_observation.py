@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
 
@@ -95,7 +99,9 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             res = True
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

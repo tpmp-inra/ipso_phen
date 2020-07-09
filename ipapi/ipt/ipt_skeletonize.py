@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 from skimage.morphology import skeletonize, skeletonize_3d, medial_axis, thin
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
 
@@ -58,7 +62,9 @@ class IptSkeletonize(IptBase):
             # Build mask
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                wrapper.error_holder.add_error(
+                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                )
                 return
 
             res = True
@@ -90,7 +96,9 @@ class IptSkeletonize(IptBase):
                     text_overlay=text_overlay,
                 )
             else:
-                wrapper.error_holder.add_error(f"Unknown skeletonize mode {mode}")
+                wrapper.error_holder.add_error(
+                    f"Unknown skeletonize mode {mode}", target_logger=logger
+                )
 
             self.result = skeleton
 
@@ -104,7 +112,9 @@ class IptSkeletonize(IptBase):
                 wrapper.store_image(canvas, "mosaic")
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             return False
         else:

@@ -2,6 +2,10 @@ from base.ipt_abstract import IptBase
 import os
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class IptCleanMaskBackward(IptBase):
     def build_params(self):
@@ -26,7 +30,7 @@ class IptCleanMaskBackward(IptBase):
                 mask = self.get_mask()
                 if mask is None:
                     wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized"
+                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
                     )
                     return
 
@@ -34,7 +38,9 @@ class IptCleanMaskBackward(IptBase):
                 last_mask = None
                 msk_path = os.path.join(self.get_value_of("path"), "masks", "")
                 if not os.path.isdir(msk_path):
-                    wrapper.error_holder.add_error(f"Warning {self.name}: no previous mask")
+                    wrapper.error_holder.add_error(
+                        f"Warning {self.name}: no previous mask", target_logger=logger
+                    )
                     self.result = mask
                     res = True
                     return
@@ -60,15 +66,20 @@ class IptCleanMaskBackward(IptBase):
                             last_mask = cv2.imread(last_mask_path)
                         except Exception as e:
                             wrapper.error_holder.add_error(
-                                f"{self.name}, unable to read previous mask, exception: {repr(e)}"
+                                f"{self.name}, unable to read previous mask, exception: {repr(e)}",
+                                target_logger=logger,
                             )
                             return
                 elif i == 0:
-                    wrapper.error_holder.add_error(f"Info {self.name}: first image in series")
+                    wrapper.error_holder.add_error(
+                        f"Info {self.name}: first image in series", target_logger=logger
+                    )
                     res = True
                     return
                 elif i >= len(ret):
-                    wrapper.error_holder.add_error(f"FAIL {self.name}: unknown image")
+                    wrapper.error_holder.add_error(
+                        f"FAIL {self.name}: unknown image", target_logger=logger
+                    )
                     return
 
                 wrapper.store_image(image=last_mask, text="previous_mask")
@@ -82,7 +93,9 @@ class IptCleanMaskBackward(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass
