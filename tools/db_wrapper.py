@@ -2,7 +2,8 @@ import datetime as dt
 import os
 import sqlite3
 from abc import ABC, abstractmethod, abstractproperty
-from collections import namedtuple
+from typing import Union
+
 
 import pandas as pd
 from sqlalchemy import create_engine, exc
@@ -805,10 +806,13 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
 
     @property
     def type(self) -> list:
-        return [DB_TYPE_MEMORY, DB_TYPE_SQLITE, DB_TYPE_RW]
+        if self.db_file_name == ":memory:":
+            return [DB_TYPE_MEMORY, DB_TYPE_SQLITE, DB_TYPE_RW]
+        else:
+            return [DB_TYPE_SQLITE, DB_TYPE_RW]
 
 
-def db_info_to_database(info: DbInfo, **kwargs) -> [DbWrapper, str]:
+def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
     """Builds a database from information
 
     Arguments:
