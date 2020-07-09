@@ -1,5 +1,8 @@
-import cv2
 import numpy as np
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from base.ipt_abstract import IptBase
 import base.ip_common as ipc
@@ -40,7 +43,7 @@ class IptAssertMaskPosition(IptBase):
                     )
                 elif mask is None:
                     wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized"
+                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
                     )
                     return
 
@@ -65,6 +68,7 @@ class IptAssertMaskPosition(IptBase):
                         wrapper.error_holder.add_error(
                             new_error_text=f'{self. name}: check failed for ROI "{enforcer.name}""',
                             new_error_level=2,
+                            target_logger=logger,
                         )
                 self.demo_image = img
                 wrapper.store_image(image=img, text=f"enforcers")
@@ -76,7 +80,9 @@ class IptAssertMaskPosition(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass

@@ -1,6 +1,11 @@
 from base.ipt_abstract import IptBase
 import numpy as np
 import cv2
+
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base import ip_common as ipc
 
 
@@ -30,7 +35,7 @@ class IptFilterContourBySize(IptBase):
                 mask = self.get_mask()
                 if mask is None:
                     wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized"
+                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
                     )
                     return
 
@@ -99,7 +104,7 @@ class IptFilterContourBySize(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                f"Filter contour by size FAILED, exception: {repr(e)}"
+                f"Filter contour by size FAILED, exception: {repr(e)}", target_logger=logger
             )
         else:
             pass

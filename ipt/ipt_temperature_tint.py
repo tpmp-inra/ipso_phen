@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import (
     TOOL_GROUP_EXPOSURE_FIXING_STR,
@@ -91,7 +95,7 @@ class IptTemperatureTint(IptBase):
                     self.result = self.to_uint8(cv2.merge([b, g, r]))
                 else:
                     wrapper.error_holder.add_error(
-                        f'Failed : unknown clip_method "{clip_method}"'
+                        f'Failed : unknown clip_method "{clip_method}"', target_logger=logger
                     )
                     return
 
@@ -111,7 +115,9 @@ class IptTemperatureTint(IptBase):
 
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

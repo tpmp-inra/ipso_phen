@@ -2,6 +2,10 @@ import cv2
 import numpy as np
 from scipy import ndimage
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import (
     DEFAULT_COLOR_MAP,
     TOOL_GROUP_CLUSTERING_STR,
@@ -77,7 +81,9 @@ class IptWatershedOpenCv(IptBaseMerger):
                 wrapper.process_image(threshold_only=True)
                 thresh = wrapper.mask
                 if thresh is None:
-                    wrapper.error_holder.add_error("Watershed needs a calculated mask to start")
+                    wrapper.error_holder.add_error(
+                        "Watershed needs a calculated mask to start", target_logger=logger
+                    )
                     return False
 
             if source_type == "cropped_source":
@@ -147,7 +153,9 @@ class IptWatershedOpenCv(IptBaseMerger):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True

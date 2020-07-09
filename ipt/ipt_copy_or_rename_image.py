@@ -1,5 +1,9 @@
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 import cv2
 
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
@@ -113,12 +117,14 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 else:
                     img = None
                     wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, unknown source: {source}"
+                        f"Copy or rename image FAILED, unknown source: {source}",
+                        target_logger=logger,
                     )
                     return
                 if img is None:
                     wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, missing source: {source}"
+                        f"Copy or rename image FAILED, missing source: {source}",
+                        target_logger=logger,
                     )
                     return
 
@@ -145,7 +151,8 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                     dst_name = var_name + "_" + wrapper.file_handler.file_name_no_ext
                 else:
                     wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, unknown naming convention: {output_name_mode}"
+                        f"Copy or rename image FAILED, unknown naming convention: {output_name_mode}",
+                        target_logger=logger,
                     )
                     return
                 dst_path = self.get_value_of("path")
@@ -195,7 +202,9 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass

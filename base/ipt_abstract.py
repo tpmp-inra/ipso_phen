@@ -6,6 +6,7 @@ from abc import ABC, abstractproperty
 from distutils.version import LooseVersion
 import base64
 import hashlib
+import logging
 
 import cv2
 import numpy as np
@@ -45,6 +46,8 @@ CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
 PARAMS_NAME_KEY = "params"
 GRID_SEARCH_PARAMS_NAME_KEY = "grid_search_params"
+
+logger = logging.getLogger(__name__)
 
 
 class IptParam(object):
@@ -1367,7 +1370,7 @@ class IptBase(IptParamHolder, ABC):
             self.wrapper.current_image, f"Missing {channel} channel", text_overlay=True
         )
         self.wrapper.error_holder.add_error(
-            f"Missing {channel} channel", new_error_kind="source_issue"
+            f"Missing {channel} channel", new_error_kind="source_issue", target_logger=logger
         )
 
     def _get_wrapper(self):
@@ -1413,7 +1416,9 @@ class IptBase(IptParamHolder, ABC):
             else:
                 return img.copy()
         else:
-            self.wrapper.error_holder.add_error(f"Unknown source format {str(img.type)}")
+            self.wrapper.error_holder.add_error(
+                f"Unknown source format {str(img.type)}", target_logger=logger
+            )
 
     def to_fuzzy(self, img):
         """
@@ -1431,7 +1436,9 @@ class IptBase(IptParamHolder, ABC):
         ):
             return ((img - img.min()) / (img.max() - img.min()) * 1).astype(np.float)
         else:
-            self.wrapper.error_holder.add_error(f"Unknown source format {str(img.type)}")
+            self.wrapper.error_holder.add_error(
+                f"Unknown source format {str(img.type)}", target_logger=logger
+            )
 
     def to_bit(self, img, threshold=255):
         """
@@ -1450,7 +1457,9 @@ class IptBase(IptParamHolder, ABC):
         elif (str(img.dtype) == "float64") or (str(img.dtype) == "int32"):
             return ((img - img.min()) / (img.max() - img.min()) * 1).astype(np.uint8)
         else:
-            self.wrapper.error_holder.add_error(f"Unknown source format {str(img.type)}")
+            self.wrapper.error_holder.add_error(
+                f"Unknown source format {str(img.type)}", target_logger=logger
+            )
 
     @staticmethod
     def apply_mask(image, mask):
@@ -1541,7 +1550,9 @@ class IptBase(IptParamHolder, ABC):
             if mask is None:
                 mask = self.wrapper.process_image(threshold_only=True)
                 if mask is None:
-                    self.wrapper.error_holder.add_error("Failed to build mask")
+                    self.wrapper.error_holder.add_error(
+                        "Failed to build mask", target_logger=logger
+                    )
                     return None
                 else:
                     src_img = self.wrapper.mask
@@ -1574,11 +1585,15 @@ class IptBase(IptParamHolder, ABC):
                     )
                     src_img = masked_whole
             else:
-                self.wrapper.error_holder.add_error("Failed to build masked source")
+                self.wrapper.error_holder.add_error(
+                    "Failed to build masked source", target_logger=logger
+                )
                 return None
 
         else:
-            self.wrapper.error_holder.add_error(f"Unknown source mode: {source_type}")
+            self.wrapper.error_holder.add_error(
+                f"Unknown source mode: {source_type}", target_logger=logger
+            )
             return None
 
         if color_space == "HSV":
@@ -1618,7 +1633,9 @@ class IptBase(IptParamHolder, ABC):
         kernel_shape = self.get_value_of("kernel_shape", None)
 
         if not (len(mask.shape) == 2 or (len(mask.shape) == 3 and mask.shape[2] == 1)):
-            self._wrapper.error_holder.add_error("Morphology works only on mask images")
+            self._wrapper.error_holder.add_error(
+                "Morphology works only on mask images", target_logger=logger
+            )
             return None
 
         if kernel_shape == "rectangle":

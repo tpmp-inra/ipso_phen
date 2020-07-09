@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, Union
 from datetime import datetime as dt
+
 
 ERR_LVL_UNK = -1
 ERR_LVL_OK = 0
@@ -8,6 +9,10 @@ ERR_LVL_WARNING = 2
 ERR_LVL_EXCEPTION = 3
 ERR_LVL_ERROR = 4
 ERR_LVL_CRITICAL = 5
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def error_level_to_str(error_level: int) -> str:
@@ -44,6 +49,23 @@ def error_level_from_str(error_level: str) -> int:
         return -1
 
 
+def error_level_to_logger(error_level: int, target_logger):
+    if error_level == ERR_LVL_OK:
+        return target_logger.info
+    elif error_level == ERR_LVL_HINT:
+        return target_logger.info
+    elif error_level == ERR_LVL_WARNING:
+        return target_logger.warning
+    elif error_level == ERR_LVL_EXCEPTION:
+        return target_logger.exception
+    elif error_level == ERR_LVL_ERROR:
+        return target_logger.error
+    elif error_level == ERR_LVL_CRITICAL:
+        return target_logger.critical
+    else:
+        return target_logger.info
+
+
 class SingleError(object):
     __slots__ = ["text", "timestamp", "level", "kind", "repeat_count"]
 
@@ -53,6 +75,9 @@ class SingleError(object):
         self.level = kwargs.get("level", -1)
         self.kind = kwargs.get("kind", "")
         self.repeat_count = kwargs.get("repeat_count", 0)
+        error_level_to_logger(
+            error_level=self.level, target_logger=kwargs.get("logger", logger)
+        )(self.text)
 
     def __str__(self):
         level_str = error_level_to_str(self.level)
@@ -76,6 +101,7 @@ class ErrorHolder(object):
                 new_error_text=err_dict.get("text", ""),
                 new_error_level=err_dict.get("level", -1),
                 new_error_kind=err_dict.get("kind", ""),
+                target_logger=err_dict.get("logger", logger),
             )
 
     def __str__(self):
@@ -118,12 +144,17 @@ class ErrorHolder(object):
             self.error_list.sort(key=lambda x: x.timestamp)
 
     def add_error(
-        self, new_error_text: str, new_error_level: [int, str] = -1, new_error_kind: str = ""
+        self,
+        new_error_text: str,
+        new_error_level: Union[int, str] = -1,
+        new_error_kind: str = "",
+        target_logger=logger,
     ):
         """Add error with optional level & kind
         :param new_error_text:
         :param new_error_level:
         :param new_error_kind:
+        :param target_logger:
         """
         if (self.error_count > 0) and (self.error_list[-1].text == new_error_text):
             self.error_list[-1].repeat_count += 1
@@ -135,6 +166,7 @@ class ErrorHolder(object):
                     if isinstance(new_error_level, int)
                     else error_level_from_str(new_error_level),
                     kind=new_error_kind,
+                    logger=target_logger,
                 )
             )
 

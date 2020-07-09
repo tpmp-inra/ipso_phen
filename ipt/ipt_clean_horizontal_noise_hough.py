@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base import ip_common as ipc
 
@@ -40,7 +44,7 @@ class IptCleanHorizontalNoiseHough(IptBase):
                 mask = self.get_mask()
                 if mask is None:
                     wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized"
+                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
                     )
                     return
                 votes_threshold = self.get_value_of("votes_threshold", 100)
@@ -127,7 +131,9 @@ class IptCleanHorizontalNoiseHough(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass

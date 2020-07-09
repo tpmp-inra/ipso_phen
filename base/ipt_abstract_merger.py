@@ -1,11 +1,14 @@
 import numpy as np
 import cv2
 from abc import ABC, abstractproperty
+import logging
 
 from skimage.future import graph
 
 from base.ipt_abstract import IptBase
 from base.ip_common import DEFAULT_COLOR_MAP
+
+logger = logging.getLogger(__name__)
 
 
 class IptBaseMerger(IptBase, ABC):
@@ -83,7 +86,9 @@ class IptBaseMerger(IptBase, ABC):
             )
 
         except Exception as e:
-            self._wrapper.error_holder.add_error(f'FAIL label merging, exception: "{repr(e)}"')
+            self._wrapper.error_holder.add_error(
+                f'FAIL label merging, exception: "{repr(e)}"', target_logger=logger
+            )
         finally:
             return res
 

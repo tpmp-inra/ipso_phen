@@ -1,5 +1,9 @@
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_abstract import AbstractImageProcessor
 from base.ip_common import DefaultCsvWriter
 
@@ -75,7 +79,9 @@ class IpStub(AbstractImageProcessor):
         try:
             pass
         except Exception as e:
-            self.error_holder.add_error(f'Failed to build channel mask because "{repr(e)}"')
+            self.error_holder.add_error(
+                f'Failed to build channel mask because "{repr(e)}"', target_logger=logger
+            )
             return False
         else:
             self.mask = None
@@ -100,7 +106,9 @@ class IpStub(AbstractImageProcessor):
             mask = self.mask
             self.store_image(mask, "mask")
         except Exception as e:
-            self.error_holder.add_error(f'Failed to clean mask because "{repr(e)}"')
+            self.error_holder.add_error(
+                f'Failed to clean mask because "{repr(e)}"', target_logger=logger
+            )
             return False
         else:
             self.store_image(mask, "mask")

@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from tools.regions import CompositeRegion, EmptyRegion
 
@@ -37,7 +41,9 @@ class IptRoiComposition(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f"ROI composition FAILED, exception: {repr(e)}")
+            wrapper.error_holder.add_error(
+                f"ROI composition FAILED, exception: {repr(e)}", target_logger=logger
+            )
         else:
             pass
         finally:

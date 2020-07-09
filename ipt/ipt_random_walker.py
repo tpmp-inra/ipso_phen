@@ -4,6 +4,10 @@ from scipy import ndimage
 from skimage.feature import peak_local_max
 from skimage.segmentation import random_walker
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
 from base.ipt_abstract_merger import IptBaseMerger
 
@@ -54,7 +58,7 @@ class IptRandomWalker(IptBaseMerger):
             mask = self.get_mask()
             if mask is None:
                 wrapper.error_holder.add_error(
-                    f"Random walker needs a calculated mask to start"
+                    f"Random walker needs a calculated mask to start", target_logger=logger
                 )
                 res = False
 
@@ -92,7 +96,9 @@ class IptRandomWalker(IptBaseMerger):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True

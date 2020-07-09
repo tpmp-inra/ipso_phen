@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base import ip_common as ipc
 from base.ipt_abstract import IptBase
 
@@ -133,7 +137,9 @@ class IptPrintColorSpaces(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass

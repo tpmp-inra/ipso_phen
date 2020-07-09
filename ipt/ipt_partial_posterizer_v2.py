@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 import base.ip_common as ipc
 
@@ -97,7 +101,9 @@ class IptPartialPosterizerV2(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                f"Partial posterizer v2 FAILED, exception: {repr(e)}"
+                f"Partial posterizer v2 FAILED, exception: {repr(e)}",
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             pass
