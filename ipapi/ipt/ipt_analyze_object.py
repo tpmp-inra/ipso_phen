@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import MaskData
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
@@ -153,7 +157,9 @@ class IptAnalyzeObject(IptBaseAnalyzer):
             img = self.extract_source_from_args()
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                wrapper.error_holder.add_error(
+                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                )
                 return
 
             obj, mask = wrapper.prepare_analysis(
@@ -322,7 +328,9 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                 res = False
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

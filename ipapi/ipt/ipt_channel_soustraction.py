@@ -1,5 +1,9 @@
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR, ensure_odd
 
@@ -110,7 +114,7 @@ class IptChannelSubtraction(IptBase):
                 tmp = (tmp - tmp.min()).astype(np.uint8)
             else:
                 self._wrapper.error_holder.add_error(
-                    f"Unknown postprocessing {post_processing}"
+                    f"Unknown postprocessing {post_processing}", target_logger=logger
                 )
                 res = False
                 return
@@ -138,7 +142,9 @@ class IptChannelSubtraction(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True

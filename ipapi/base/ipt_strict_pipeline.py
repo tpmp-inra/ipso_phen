@@ -1,15 +1,16 @@
-import inspect
 import json
 import os
 import pickle
-import sys
 from copy import copy
 from uuid import uuid4
-from importlib import import_module
 from datetime import datetime as dt
 
 import cv2
 import numpy as np
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 from base.ip_abstract import AbstractImageProcessor
 from base.ip_common import (
@@ -186,6 +187,7 @@ class IptStrictPipeline(object):
                 res.last_error.add_error(
                     new_error_text=f"Failed to load {module['name']}: {repr(tool)}",
                     new_error_kind="pipeline_load_error",
+                    target_logger=logger,
                 )
             elif isinstance(tool, IptBase):
                 res.ip_operators.append(
@@ -264,11 +266,12 @@ class IptStrictPipeline(object):
 
         except Exception as e:
             if res is None:
-                print(f'Failed to load script generator "{repr(e)}"')
+                logger.error(f'Failed to load script generator "{repr(e)}"')
             else:
                 res.last_error.add_error(
                     new_error_text=f'Failed to load script generator "{repr(e)}"',
                     new_error_kind="pipeline_load_error",
+                    target_logger=logger,
                 )
             res = e
         finally:
@@ -302,6 +305,7 @@ class IptStrictPipeline(object):
             self.last_error.add_error(
                 new_error_text=f'Failed to save script generator "{repr(e)}"',
                 new_error_kind="pipeline_save_error",
+                target_logger=logger,
             )
             return e
         else:
@@ -316,6 +320,7 @@ class IptStrictPipeline(object):
             self.last_error.add_error(
                 new_error_text=f'Failed to save script generator "{repr(e)}"',
                 new_error_kind="pipeline_save_error",
+                target_logger=logger,
             )
             return e
         else:
@@ -570,7 +575,9 @@ class IptStrictPipeline(object):
                         wrapper.add_roi(new_roi=roi)
                         tool["last_result"] = roi
                 else:
-                    wrapper.error_list.add_error(f'Unable to extract ROI from "{tool.name}"')
+                    wrapper.error_list.add_error(
+                        f'Unable to extract ROI from "{tool.name}"', target_logger=logger
+                    )
             if progress_callback is not None and total_steps > 0:
                 current_step = self.add_progress(
                     progress_callback, current_step, total_steps, "Building ROIs", None
@@ -596,7 +603,7 @@ class IptStrictPipeline(object):
                     )
                 except Exception as e:
                     wrapper.error_list.add_error(
-                        f"Unable to store cached image because: {repr(e)}"
+                        f"Unable to store cached image because: {repr(e)}", target_logger=logger
                     )
             ret = tool_dict["last_result"]
         else:
@@ -693,7 +700,7 @@ class IptStrictPipeline(object):
                 if not file_path:
                     # Leave if no source
                     res = False
-                    wrapper.error_holder.add_error("Missing source image")
+                    wrapper.error_holder.add_error("Missing source image", target_logger=logger)
                     return False
                 wrapper = AbstractImageProcessor(file_path)
             wrapper.lock = True
@@ -732,6 +739,7 @@ class IptStrictPipeline(object):
                         self.last_error.add_error(
                             new_error_text=f'Failed to process {tool["tool"].name}',
                             new_error_kind="pipeline_process_error",
+                            target_logger=logger,
                         )
                         masks_failed_cpt += 1
                     current_step = self.add_progress(
@@ -756,6 +764,7 @@ class IptStrictPipeline(object):
                     self.last_error.add_error(
                         new_error_text="Unable to merge coarse masks",
                         new_error_kind="pipeline_process_error",
+                        target_logger=logger,
                     )
                     res = False
                     return
@@ -796,6 +805,7 @@ class IptStrictPipeline(object):
                             self.last_error.add_error(
                                 new_error_text=f'Failed to process {tool["tool"].name}',
                                 new_error_kind="pipeline_process_error",
+                                target_logger=logger,
                             )
                         else:
                             wrapper.mask = tmp_mask
@@ -916,6 +926,7 @@ class IptStrictPipeline(object):
                         self.last_error.add_error(
                             new_error_text=f'{tool["tool"].name} failed to extract features',
                             new_error_kind="pipeline_process_error",
+                            target_logger=logger,
                         )
                     current_step = self.add_progress(
                         progress_callback,
@@ -938,6 +949,7 @@ class IptStrictPipeline(object):
                         self.last_error.add_error(
                             new_error_text=f'{tool["tool"].name} failed to generate images',
                             new_error_kind="pipeline_process_error",
+                            target_logger=logger,
                         )
                     current_step = self.add_progress(
                         progress_callback, current_step, total_steps, "Copying images", wrapper,
@@ -976,6 +988,7 @@ class IptStrictPipeline(object):
             self.last_error.add_error(
                 new_error_text=f'Unexpected failure: "{repr(e)}"',
                 new_error_kind="pipeline_process_error",
+                target_logger=logger,
             )
             res = False
         else:
@@ -1185,7 +1198,10 @@ class IptStrictPipeline(object):
             ws_ct = remove_tab(ws_ct)
             code_ += ws_ct + "else:\n"
             ws_ct = add_tab(ws_ct)
-            code_ += ws_ct + 'wrapper.error_holder.add_error("Unable to merge coarse masks")\n'
+            code_ += (
+                ws_ct
+                + 'wrapper.error_holder.add_error("Unable to merge coarse masks", target_logger=logger)\n'
+            )
             code_ += ws_ct + "return\n"
             ws_ct = remove_tab(ws_ct)
             code_ += "\n"
@@ -1331,7 +1347,8 @@ class IptStrictPipeline(object):
                 code_ += ws_ct + "else:\n"
                 ws_ct = add_tab(ws_ct)
                 code_ += (
-                    ws_ct + 'wrapper.error_holder.add_error("Failed to add extracted data")\n'
+                    ws_ct
+                    + 'wrapper.error_holder.add_error("Failed to add extracted data", target_logger=logger)\n'
                 )
                 ws_ct = remove_tab(ws_ct)
                 code_ += "\n"
@@ -1381,7 +1398,8 @@ class IptStrictPipeline(object):
                 code_ += ws_ct + "else:\n"
                 ws_ct = add_tab(ws_ct)
                 code_ += (
-                    ws_ct + 'wrapper.error_holder.add_error("Failed to add generate image")\n'
+                    ws_ct
+                    + 'wrapper.error_holder.add_error("Failed to add generate image", target_logger=logger)\n'
                 )
                 ws_ct = remove_tab(ws_ct)
                 code_ += "\n"

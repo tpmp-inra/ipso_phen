@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
 
@@ -143,7 +147,8 @@ class IptKMeansClustering(IptBase):
                 )
             else:
                 wrapper.error_holder.add_error(
-                    f"K-means clustering FAILED, unknown criteria '{stop_criteria}''"
+                    f"K-means clustering FAILED, unknown criteria '{stop_criteria}''",
+                    target_logger=logger,
                 )
                 return
 
@@ -176,7 +181,9 @@ class IptKMeansClustering(IptBase):
             wrapper.store_image(self.result, "k_means_cluster")
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True

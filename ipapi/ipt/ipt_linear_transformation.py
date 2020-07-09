@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
 from base.ipt_abstract_analyzer import IptBaseAnalyzer
 from base.ip_common import (
@@ -143,7 +147,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
                         avg_src, _ = wrapper.avg_brightness_contrast(img=img, mode=brg_calc)
                     else:
                         self.wrapper.error_holder.add_error(
-                            "Please select brightness calculation method"
+                            "Please select brightness calculation method", target_logger=logger
                         )
                         res = False
                         return
@@ -263,7 +267,9 @@ class IptLinearTransformation(IptBaseAnalyzer):
 
         except Exception as e:
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
             res = False
         else:

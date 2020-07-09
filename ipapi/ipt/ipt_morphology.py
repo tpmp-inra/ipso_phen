@@ -1,6 +1,10 @@
 from base.ipt_abstract import IptBase
 from base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class IptMorphology(IptBase):
     def build_params(self):
@@ -32,7 +36,7 @@ class IptMorphology(IptBase):
                 mask = self.get_mask()
                 if mask is None:
                     wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized"
+                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
                     )
                     return
             self.result = self.apply_morphology_from_params(mask.copy())
@@ -52,7 +56,9 @@ class IptMorphology(IptBase):
         except Exception as e:
             res = False
             wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"', new_error_level=3
+                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
+                new_error_level=3,
+                target_logger=logger,
             )
         else:
             res = True
