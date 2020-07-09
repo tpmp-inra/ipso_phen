@@ -1,0 +1,22 @@
+[2020-07-09 15:23:45,257 - __main__ - INFO] - Starting IPSO Phen
+[2020-07-09 15:23:49,100 - ui_qt.app - INFO] - Changed theme to: Fusion (dark)
+[2020-07-09 15:23:49,283 - ui_qt.app - INFO] - Connected to ipso_local_db_local_samples
+[2020-07-09 15:23:50,213 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,213 - ui_qt.app - INFO] - Widget initialization: unknown param mosaic_enabled, allowed values None
+[2020-07-09 15:23:50,224 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,224 - ui_qt.app - INFO] - Widget initialization: unknown param mosaic_images, allowed values None
+[2020-07-09 15:23:50,299 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,299 - ui_qt.app - INFO] - Widget initialization: unknown param input_source, allowed values None
+[2020-07-09 15:23:50,299 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,299 - ui_qt.app - INFO] - Widget initialization: unknown param output_mode, allowed values None
+[2020-07-09 15:23:50,312 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,312 - ui_qt.app - INFO] - Widget initialization: unknown param input_source, allowed values None
+[2020-07-09 15:23:50,313 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,313 - ui_qt.app - INFO] - Widget initialization: unknown param output_mode, allowed values None
+[2020-07-09 15:23:50,329 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,329 - ui_qt.app - INFO] - Widget initialization: unknown param input_source, allowed values None
+[2020-07-09 15:23:50,330 - ui_qt.app - INFO] - Widget initialization: unknown param
+[2020-07-09 15:23:50,330 - ui_qt.app - INFO] - Widget initialization: unknown param output_mode, allowed values None
+[2020-07-09 15:23:50,547 - ui_qt.app - INFO] - Settings loaded, ready to play
+[2020-07-09 15:23:50,552 - ui_qt.app - INFO] - Method load_settings took 00:00:1.465
+[2020-07-09 15:23:50,553 - ui_qt.app - INFO] - Method __init__ took 00:00:3.440

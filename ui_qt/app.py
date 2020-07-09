@@ -3,6 +3,7 @@ import gc
 import glob
 import itertools
 import json
+from logging import CRITICAL
 import multiprocessing as mp
 import os
 import random
@@ -16,6 +17,7 @@ from timeit import default_timer as timer
 from typing import Any
 import shutil
 import subprocess
+import logging
 
 import cv2
 import numpy as np
@@ -94,6 +96,7 @@ from base.ipt_strict_pipeline import IptStrictPipeline
 from base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import base.ip_common as ipc
 from base.pipeline_launcher import save_state
+from tools import error_holder as eh
 
 from class_pipelines.ip_factory import ipo_factory
 
@@ -131,6 +134,8 @@ from ui_qt.qt_mvc import (
 )
 from ui_qt.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 from ui_qt.main import Ui_MainWindow
+
+logger = logging.getLogger(__name__)
 
 
 _DATE_FORMAT = "%Y/%m/%d"
@@ -180,7 +185,8 @@ def log_method_execution_time(f):
         after = timer()
         args[0].update_feedback(
             status_message="",
-            log_message=f"{ui_consts.LOG_TIMING_STR} Method {f.__name__} took {format_time(after - before)}",
+            log_message=f"Method {f.__name__} took {format_time(after - before)}",
+            log_level=logging.INFO,
         )
         return x
 
@@ -1074,14 +1080,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def _reset_log_counts(self):
         self._log_count_critical = 0
+        self._log_count_error = 0
         self._log_count_exception = 0
         self._log_count_warning = 0
-        self._log_count_timming = 0
-        self._log_count_error = 0
         self._log_count_info = 0
-        self._log_count_important = 0
-        self._log_count_mass_process = 0
-        self._log_count_unknown = 0
+        self._log_count_debugt = 0
 
     def get_image_model(self) -> QImageDatabaseModel:
         ret = self.ui.tv_image_browser.model()
@@ -1189,6 +1192,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(
                     status_message=f"Added {new_row_count - old_row_count} items to image browser",
                     use_status_as_log=True,
+                    log_level=logging.INFO,
                 )
         elif mode == "remove":
             if not self.has_image_dataframe():
@@ -1203,6 +1207,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(
                     status_message=f"Removed {old_row_count - new_row_count} items to image browser",
                     use_status_as_log=True,
+                    log_level=logging.INFO,
                 )
         elif mode == "keep":
             if not self.has_image_dataframe():
@@ -1217,6 +1222,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(
                     status_message=f"Removed {old_row_count - new_row_count} items to image browser",
                     use_status_as_log=True,
+                    log_level=logging.INFO,
                 )
         elif mode == "clear":
             self.init_image_browser(None)
@@ -1345,10 +1351,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     if ldb.src_files_path == dlg.folder_path:
                         self.update_feedback(
                             status_message="Database already exists",
-                            log_message=f"""{ui_consts.LOG_WARNING_STR}
+                            log_message=f"""
                             There's already a database named {ldb.display_name}
                             pointing to {ldb.src_files_path} using {ldb.dbms}.<br>
                             Existing database will be used.""",
+                            log_level=logging.WARNING,
                         )
                         self.current_database = dbw.db_info_to_database(ldb)
                         return
@@ -1402,6 +1409,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.update_feedback(
             status_message="Building image database",
             log_message=f"Building image database for {repr(db_wrapper)}",
+            log_level=logging.INFO,
         )
         self.global_progress_start(add_stop_button=True)
         db_wrapper.progress_call_back = self.global_progress_update
@@ -1582,6 +1590,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.update_feedback(
                 status_message="Failed to retrieve annotation data",
                 log_message=f"unable to retrieve annotation data for {str(tag)}",
+                log_level=logging.ERROR,
             )
             self.ui.bt_delete_annotation.setEnabled(False)
             return
@@ -1727,7 +1736,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             else:
                 self.update_feedback(
                     status_message="Unknown theme",
-                    log_message=f'{ui_consts.LOG_ERROR_STR} Unknown theme "{theme}" ignored',
+                    log_message=f'Unknown theme "{theme}" ignored',
+                    log_level=logging.ERROR,
                 )
                 return
 
@@ -1750,7 +1760,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.log_exception(f"Failed to load set theme: {repr(e)}")
         else:
             self.update_feedback(
-                status_message=f"Changed theme to: {style} ({theme})", use_status_as_log=True
+                status_message=f"Changed theme to: {style} ({theme})",
+                use_status_as_log=True,
+                log_level=logging.INFO,
             )
 
     def on_color_theme_changed(self):
@@ -2078,7 +2090,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             res = False
         else:
             self.update_feedback(
-                status_message="Settings loaded, ready to play", use_status_as_log=True
+                status_message="Settings loaded, ready to play",
+                use_status_as_log=True,
+                log_level=logging.INFO,
             )
         finally:
             self.unlock_settings()
@@ -2244,6 +2258,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         log_message: Any = None,
         use_status_as_log: bool = False,
         collect_garbage: bool = True,
+        log_level: int = 20,
     ):
         process = psutil.Process(os.getpid())
         mem_data = f"""[Memory: Used/Free%{process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
@@ -2255,6 +2270,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         # Update status bar
         if status_message:
             self._status_label.setText(status_message)
+            if log_message is None:
+                eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
+                    f"(Status) {status_message}"
+                )
         else:
             self._status_label.setText("")
 
@@ -2264,14 +2283,20 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if log_message is not None:
                 if isinstance(log_message, str):
                     log_msg = f"{prefix_} -- {log_message}<br>"
-                elif isinstance(log_message, ErrorHolder):
-                    log_msg = (
-                        f"{prefix_} -- {ui_consts.LOG_ERROR_STR}: {log_message.to_html()}<br>"
+                    eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
+                        log_message
                     )
+                elif isinstance(log_message, ErrorHolder):
+                    log_msg = f"{prefix_} -- {eh.log_level_to_html(log_level)}: {log_message.to_html()}<br>"
                 else:
-                    log_msg = f"{prefix_} -- {ui_consts.LOG_UNK_STR}: {str(log_message)}<br>"
+                    log_msg = f"{prefix_} -- {eh.log_level_to_html(log_level)}: {str(log_message)}<br>"
+                    eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
+                        str(log_message)
+                    )
             elif use_status_as_log and status_message:
-                log_msg = f"{prefix_} -- {ui_consts.LOG_INFO_STR}: {status_message}<br>"
+                log_msg = (
+                    f"{prefix_} -- {eh.log_level_to_html(log_level)}: {status_message}<br>"
+                )
             else:
                 log_msg = ""
             if log_msg:
@@ -2281,22 +2306,16 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
                 log_title = "IPSO Phen - Log: "
                 # Add to proper category
-                if ui_consts.LOG_CRITICAL_STR in log_msg:
+                if log_level == logging.CRITICAL:
                     self._log_count_critical += 1
-                elif ui_consts.LOG_ERROR_STR in log_msg:
+                elif log_level == logging.ERROR:
                     self._log_count_error += 1
-                elif ui_consts.LOG_EXCEPTION_STR in log_msg:
+                elif log_level == eh.ERR_LVL_EXCEPTION:
                     self._log_count_exception += 1
-                elif ui_consts.LOG_WARNING_STR in log_msg:
+                elif log_level == logging.WARNING:
                     self._log_count_warning += 1
-                elif ui_consts.LOG_IMPORTANT_STR in log_msg:
-                    self._log_count_important += 1
-                elif ui_consts.LOG_PIPELINE_PROCESSOR_STR in log_msg:
-                    self._log_count_mass_process += 1
-                elif ui_consts.LOG_INFO_STR in log_msg:
+                elif log_level == logging.INFO:
                     self._log_count_info += 1
-                elif ui_consts.LOG_TIMING_STR in log_msg:
-                    self._log_count_timming += 1
                 else:
                     self._log_count_unknown += 1
                 # Update tab title
@@ -2308,16 +2327,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     log_title += f" [Exception:{self._log_count_exception}]"
                 if self._log_count_warning > 0:
                     log_title += f" [Warning:{self._log_count_warning}]"
-                if self._log_count_important > 0:
-                    log_title += f" [Imp:{self._log_count_important}]"
-                if self._log_count_mass_process > 0:
-                    log_title += f" [MP:{self._log_count_mass_process}]"
                 if self._log_count_info > 0:
                     log_title += f" [Info:{self._log_count_info}]"
-                if self._log_count_timming > 0:
-                    log_title += f" [Timming:{self._log_count_timming}]"
-                if self._log_count_unknown > 0:
-                    log_title += f" [Other:{self._log_count_unknown}]"
                 if len(log_title) < 7:
                     log_title += " No log messages"
                 self.ui.dk_log.setWindowTitle(log_title)
@@ -2335,13 +2346,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             try:
                 old_mm_percent = process.memory_percent()
                 self.update_feedback(
-                    status_message="Collecting garbage...", collect_garbage=False
+                    status_message="Collecting garbage...",
+                    collect_garbage=False,
+                    log_level=logging.INFO,
                 )
                 gc.collect()
                 self.update_feedback(
                     status_message="Garbage collected",
-                    log_message=f"""{ui_consts.LOG_IMPORTANT_STR}:
-                    Garbage collection freed {old_mm_percent - process.memory_percent():02.2f}% memory""",
+                    log_message=f"""Garbage collection freed {old_mm_percent - process.memory_percent():02.2f}% memory""",
+                    log_level=logging.INFO,
                     collect_garbage=False,
                 )
             except Exception as e:
@@ -2353,7 +2366,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def log_exception(self, err_str: str):
         st_msg, *_ = err_str.split(": ")
         self.update_feedback(
-            status_message=st_msg, log_message=f"{ui_consts.LOG_EXCEPTION_STR}: {err_str}"
+            status_message=st_msg, log_message=err_str, log_level=eh.ERR_LVL_EXCEPTION
         )
 
     def on_action_about_form(self):
@@ -2446,13 +2459,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         tmp_ip_holder = IptHolder()
         self.update_feedback(
             status_message="Building test scripts",
-            log_message=f"""{ui_consts.LOG_IMPORTANT_STR}:
-            Building test scripts""",
+            log_message="Building test scripts",
+            log_level=logging.INFO,
         )
         tmp_ip_holder.build_test_files(log_callback=self.update_feedback)
         self.update_feedback(
             status_message="Test scripts built",
-            log_message=f"{ui_consts.LOG_IMPORTANT_STR}: Test scripts built",
+            log_message="Test scripts built",
+            log_level=logging.INFO,
         )
 
     def on_action_show_log(self):
@@ -2546,9 +2560,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.bt_pp_delete.setEnabled(False)
 
     def pp_callback(self, result, msg, data, current_step, total_steps):
-        if result == "OK":
+        if result == "INFO":
             if msg:
-                self.update_feedback(status_message=msg, log_message=msg)
+                self.update_feedback(
+                    status_message=msg, log_message=msg, log_level=logging.INFO
+                )
             if isinstance(data, (GroupNode, ModuleNode)):
                 self.ui.cb_available_outputs.addItem(
                     data.name,
@@ -2578,13 +2594,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self.ui.cb_available_outputs.count() - 1
                 )
         elif result == "ERROR":
-            self.update_feedback(
-                status_message=msg, log_message=f"{ui_consts.LOG_ERROR_STR}: {msg}"
-            )
+            self.update_feedback(status_message=msg, log_message=msg, log_level=logging.ERROR)
         elif result == "WARNING":
-            self.update_feedback(
-                status_message=msg, log_message=f"{ui_consts.LOG_WARNING_STR}: {msg}"
-            )
+            self.update_feedback(status_message=msg, log_message=msg, log_level=logging.WARNING)
         elif result == "GRID_SEARCH_START":
             self.update_feedback(
                 status_message=f"Starting grid search with {total_steps} configurations",
@@ -2608,7 +2620,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     thread_step=current_step, thread_total=total_steps, thread_waiting=0
                 )
             else:
-                self.pb_pp_progress.setValue(
+                self.ui.pb_pp_progress.setValue(
                     round((min(current_step, total_steps)) / total_steps * 100)
                 )
         if not self.multithread:
@@ -2899,7 +2911,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def do_fp_start(self):
         self.update_feedback(
-            status_message="Building CSV files", log_message=" --- Building CSV files ---"
+            status_message="Building CSV files",
+            log_message=" --- Building CSV files ---",
+            log_level=logging.INFO,
         )
 
     def do_fp_progress(self, step: int, total: int):
@@ -2911,8 +2925,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.global_progress_stop()
         self.update_feedback(
             status_message="Pipeline mass processing ended",
-            log_message=f"""{ui_consts.LOG_IMPORTANT_STR} {ui_consts.LOG_PIPELINE_PROCESSOR_STR}:
-            Pipeline mass processing ended""",
+            log_message="Pipeline mass processing ended",
+            log_level=logging.INFO,
         )
 
     def finalize_pipeline(self):
@@ -2941,8 +2955,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if self._batch_stop_current:
             self.update_feedback(
                 status_message="Stopping mass pipeline, please wait...",
-                log_message=f"""{ui_consts.LOG_IMPORTANT_STR} {ui_consts.LOG_PIPELINE_PROCESSOR_STR}:
-                Stopping mass pipeline (user request), please wait...""",
+                log_message="Stopping mass pipeline (user request), please wait...",
+                log_level=logging.INFO,
             )
             self.pp_thread_pool.clear()
             self.pp_thread_pool.waitForDone(-1)
@@ -2950,8 +2964,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.global_progress_stop()
             self.update_feedback(
                 status_message="Mass pipeline stopped",
-                log_message=f"""{ui_consts.LOG_IMPORTANT_STR} {ui_consts.LOG_PIPELINE_PROCESSOR_STR}:
-                Mass pipeline stopped""",
+                log_message="Mass pipeline stopped",
+                log_level=logging.INFO,
             )
         else:
             self.pp_threads_step += 1
@@ -2964,15 +2978,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 else:
                     self.update_feedback(
                         status_message="Failed to finalize mass processing",
-                        log_message=f"""{ui_consts.LOG_CRITICAL_STR} {ui_consts.LOG_UNK_STR}
-                        {ui_consts.LOG_PIPELINE_PROCESSOR_STR}: Failed to finalize mass processing""",
+                        log_message="Failed to finalize mass processing",
+                        log_level=logging.CRITICAL,
                     )
                     self.set_global_enabled_state(new_state=True)
                     self.global_progress_stop()
                     self.update_feedback(
                         status_message="Pipeline mass processing ended",
-                        log_message=f"""{ui_consts.LOG_IMPORTANT_STR} {ui_consts.LOG_PIPELINE_PROCESSOR_STR}:
-                        Pipeline mass processing ended""",
+                        log_message="Pipeline mass processing ended",
+                        log_level=logging.INFO,
                     )
 
     def do_pp_log_item_event(
@@ -3016,7 +3030,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.pp_threads_step = 0
             self.update_feedback(
                 status_message="Launching threads",
-                log_message=f"{ui_consts.LOG_PIPELINE_PROCESSOR_STR}   --- Launching threads ---",
+                log_message="--- Launching threads ---",
+                log_level=logging.INFO,
             )
         else:
             self.finalize_pipeline()
@@ -3026,7 +3041,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             print(": NOT MAIN THREAD")
         self.update_feedback(
             status_message="Starting mass processor",
-            log_message=f"{ui_consts.LOG_PIPELINE_PROCESSOR_STR}   --- Starting mass processor ---",
+            log_message="   --- Starting mass processor ---",
+            log_level=logging.INFO,
         )
         self.set_global_enabled_state(new_state=False)
         self.global_progress_start(add_stop_button=True)
@@ -3037,25 +3053,28 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if launch_state == "ok":
             self.update_feedback(
                 status_message="",
-                log_message=f"""{ui_consts.LOG_PIPELINE_PROCESSOR_STR}   ---
-                 All threads launched, terminating launcher thread ---<br>""",
+                log_message="   --- All threads launched, terminating launcher thread ---<br>"
+                "",
+                log_level=logging.INFO,
             )
             self.update_feedback(
                 status_message="Processing images",
-                log_message=f"{ui_consts.LOG_PIPELINE_PROCESSOR_STR}   --- Processing images ---<br>",
+                log_message="   --- Processing images ---<br>",
+                log_level=logging.INFO,
             )
         elif launch_state == "abort":
             self.update_feedback(
                 status_message="User stopped mass pipeline processing",
-                log_message=f"{ui_consts.LOG_PIPELINE_PROCESSOR_STR} User stopped mass pipeline processing",
+                log_message="User stopped mass pipeline processing",
+                log_level=logging.INFO,
             )
             self.global_progress_stop()
             self.set_global_enabled_state(new_state=True)
         elif launch_state == "exception":
             self.update_feedback(
                 status_message="Exception while launching mass processing",
-                log_message=f"""{ui_consts.LOG_EXCEPTION_STR} {ui_consts.LOG_PIPELINE_PROCESSOR_STR}
-                 Exception while launching mass processing""",
+                log_message="Exception while launching mass processing",
+                log_level=eh.ERR_LVL_EXCEPTION,
             )
             self.global_progress_stop()
             self.set_global_enabled_state(new_state=True)
@@ -3066,13 +3085,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if (model is None) or (model.rowCount() == 0):
             self.update_feedback(
                 status_message="Pipeline start: nothing to process",
-                log_message=f"{ui_consts.LOG_WARNING_STR}: Pipeline start - nothing to process",
+                log_message="Pipeline start - nothing to process",
+                log_level=logging.WARNING,
             )
             return
         self.update_feedback(
             status_message="Starting pipeline mass processing",
-            log_message=f"""{ui_consts.LOG_IMPORTANT_STR} {ui_consts.LOG_PIPELINE_PROCESSOR_STR}:
-             Starting pipeline mass processing""",
+            log_message="Starting pipeline mass processing",
+            log_level=logging.INFO,
         )
         try:
             self.thread_pool.clear()
@@ -3287,11 +3307,16 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif mode == "pipeline":
             if not is_batch_process:
                 self.on_bt_clear_result()
-            self.update_feedback(status_message="Executing current pipeline, please wait...")
+            self.update_feedback(
+                status_message="Executing current pipeline, please wait...",
+                use_status_as_log=True,
+                log_level=logging.INFO,
+            )
         else:
             self.update_feedback(
                 status_message=f"Unknown runnable mode {mode}",
-                log_message=f"{ui_consts.LOG_ERROR_STR}: Unknown runnable mode {mode}",
+                use_status_as_log=True,
+                log_level=logging.ERROR,
             )
 
     def do_thread_ending(self, success: bool, status_msg: str, log_msg: str, sender: object):
@@ -3886,7 +3911,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.init_data_editor(None)
         self.update_feedback(
             status_message="Cleared dataframe",
-            log_message=f"{ui_consts.LOG_INFO_STR} Cleared dataframe",
+            log_message="Cleared dataframe",
+            log_level=logging.INFO,
         )
 
     def on_action_de_load_csv(self):
@@ -3901,7 +3927,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.init_data_editor(pd.read_csv(file_name_))
             self.update_feedback(
                 status_message="Dataframe loaded",
-                log_message=f"{ui_consts.LOG_INFO_STR} Loaded dataframe from {file_name_}",
+                log_message=f"Loaded dataframe from {file_name_}",
+                log_level=logging.INFO,
             )
 
     def on_action_de_create_sheet_from_selection(self):
@@ -3929,12 +3956,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 df.to_csv(file_name_, index=False)
                 self.update_feedback(
                     status_message="Dataframe saved",
-                    log_message=f"{ui_consts.LOG_INFO_STR} Saved dataframe to {file_name_}",
+                    log_message=f"Saved dataframe to {file_name_}",
+                    log_level=logging.INFO,
                 )
         else:
             self.update_feedback(
                 status_message="No dataframe to save",
-                log_message=f"{ui_consts.LOG_WARNING_STR} No dataframe to save",
+                log_message="No dataframe to save",
+                log_level=logging.WARNING,
             )
 
     def on_action_build_video_from_images(self):
@@ -4723,6 +4752,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.fill_view_option_combo_box()
                 self.fill_time_combo_box()
                 self.file_name = self.current_selected_image_path()
+            except Exception as e:
+                self.log_exception(f"Failed to add annotation data: {repr(e)}")
             finally:
                 self._updating_combo_boxes = False
             return True
@@ -4753,14 +4784,16 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if (model is None) or (model.rowCount() == 0):
             self.update_feedback(
                 status_message="Pipeline state save: no images",
-                log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no images",
+                log_message="Pipeline state save: no images",
+                log_level=logging.ERROR,
             )
             return
         df = self.get_image_dataframe()
         if df is None:
             self.update_feedback(
                 status_message="Pipeline state save: no images",
-                log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no images",
+                log_message="Pipeline state save: no images",
+                log_level=logging.ERROR,
             )
             return
         if self.pipeline is not None:
@@ -4768,7 +4801,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             self.update_feedback(
                 status_message="Pipeline state save: no script",
-                log_message=f"{ui_consts.LOG_ERROR_STR}: Pipeline state save: no script",
+                log_message="Pipeline state save: no script",
+                log_level=logging.ERROR,
             )
             return
         file_name_ = QFileDialog.getSaveFileName(

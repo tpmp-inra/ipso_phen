@@ -102,7 +102,7 @@ class IptPartialPosterizerV2(IptBase):
             res = False
             wrapper.error_holder.add_error(
                 f"Partial posterizer v2 FAILED, exception: {repr(e)}",
-                new_error_level=3,
+                new_error_level=35,
                 target_logger=logger,
             )
         else:

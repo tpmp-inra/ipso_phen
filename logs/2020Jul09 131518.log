@@ -1,0 +1,1387 @@
+[2020-07-09 13:15:18,926 - __main__ - INFO] - Starting IPSO Phen
+[2020-07-09 13:15:29,852 - ui_qt.app - INFO] - Widget initialization: unknown param mosaic_enabled, allowed values None
+[2020-07-09 13:15:29,867 - ui_qt.app - INFO] - Widget initialization: unknown param mosaic_images, allowed values None
+[2020-07-09 13:15:30,061 - ui_qt.app - INFO] - Widget initialization: unknown param input_source, allowed values None
+[2020-07-09 13:15:30,065 - ui_qt.app - INFO] - Widget initialization: unknown param output_mode, allowed values None
+[2020-07-09 13:15:30,094 - ui_qt.app - INFO] - Widget initialization: unknown param input_source, allowed values None
+[2020-07-09 13:15:30,141 - ui_qt.app - INFO] - Widget initialization: unknown param output_mode, allowed values None
+[2020-07-09 13:15:30,164 - ui_qt.app - INFO] - Widget initialization: unknown param input_source, allowed values None
+[2020-07-09 13:15:30,164 - ui_qt.app - INFO] - Widget initialization: unknown param output_mode, allowed values None
+[2020-07-09 13:15:30,620 - ui_qt.app - INFO] - <font color="green"><b>TIMING</b></font> Method load_settings took 00:00:2.586
+[2020-07-09 13:15:30,620 - ui_qt.app - INFO] - <font color="green"><b>TIMING</b></font> Method __init__ took 00:00:8.343
+[2020-07-09 13:16:13,492 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:16:18,267 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:16:18,287 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.006
+[2020-07-09 13:16:18,306 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:16:18,319 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.003
+[2020-07-09 13:16:18,334 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:4.843
+[2020-07-09 13:16:18,489 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.151
+[2020-07-09 13:16:18,528 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.189
+[2020-07-09 13:16:18,536 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:16:18,548 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.002
+[2020-07-09 13:16:18,559 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.002
+[2020-07-09 13:16:18,568 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.035
+[2020-07-09 13:16:18,593 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:16:19,735 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.137
+[2020-07-09 13:16:19,832 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.083
+[2020-07-09 13:16:19,866 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.023
+[2020-07-09 13:16:19,876 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.299
+[2020-07-09 13:16:19,886 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:16:19,899 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:16:19,915 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:16:19,931 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:16:20,092 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.144
+[2020-07-09 13:16:20,103 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.200
+[2020-07-09 13:16:20,116 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:16:20,134 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.022
+[2020-07-09 13:16:20,160 - ui_qt.app - INFO] - Pipeline processed in 00:00:6.670
+[2020-07-09 13:21:05,597 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180802110418.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:21:05,598 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-02 11:04:18][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180802110418.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:21:07,572 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:07,579 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:07,579 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:07,595 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:07,614 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.005
+[2020-07-09 13:21:07,614 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.047
+[2020-07-09 13:21:07,614 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:07,629 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:21:07,629 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:07,648 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.003
+[2020-07-09 13:21:07,656 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:07,668 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.032
+[2020-07-09 13:21:07,687 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.015
+[2020-07-09 13:21:08,453 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.756
+[2020-07-09 13:21:08,539 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.078
+[2020-07-09 13:21:08,556 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.011
+[2020-07-09 13:21:08,563 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.890
+[2020-07-09 13:21:08,571 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:21:08,579 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:21:08,594 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.010
+[2020-07-09 13:21:08,603 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:08,734 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.125
+[2020-07-09 13:21:08,741 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.159
+[2020-07-09 13:21:08,756 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.011
+[2020-07-09 13:21:08,763 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.018
+[2020-07-09 13:21:08,770 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.198
+[2020-07-09 13:21:08,780 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:08,795 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:21:08,795 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:08,813 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:08,829 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.004
+[2020-07-09 13:21:08,829 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.052
+[2020-07-09 13:21:08,847 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.004
+[2020-07-09 13:21:08,854 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.012
+[2020-07-09 13:21:08,862 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.002
+[2020-07-09 13:21:08,870 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:08,880 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:08,887 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.028
+[2020-07-09 13:21:08,913 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.022
+[2020-07-09 13:21:09,811 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.890
+[2020-07-09 13:21:09,899 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.075
+[2020-07-09 13:21:09,927 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.020
+[2020-07-09 13:21:09,935 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.043
+[2020-07-09 13:21:09,944 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:21:09,951 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:21:09,967 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:21:09,980 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.004
+[2020-07-09 13:21:10,124 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.133
+[2020-07-09 13:21:10,137 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.181
+[2020-07-09 13:21:10,145 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:21:10,154 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.011
+[2020-07-09 13:21:10,164 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.379
+[2020-07-09 13:21:10,191 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:10,201 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:10,215 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.005
+[2020-07-09 13:21:10,224 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:10,238 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:21:10,251 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.060
+[2020-07-09 13:21:10,258 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:10,274 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.017
+[2020-07-09 13:21:10,286 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:10,299 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:10,312 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.002
+[2020-07-09 13:21:10,320 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.035
+[2020-07-09 13:21:10,340 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.013
+[2020-07-09 13:21:11,475 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.116
+[2020-07-09 13:21:11,560 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.073
+[2020-07-09 13:21:11,579 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.011
+[2020-07-09 13:21:11,587 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.261
+[2020-07-09 13:21:11,600 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:21:11,611 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.015
+[2020-07-09 13:21:11,627 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.009
+[2020-07-09 13:21:11,638 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:11,799 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.149
+[2020-07-09 13:21:11,819 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.202
+[2020-07-09 13:21:11,829 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:21:11,838 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.013
+[2020-07-09 13:21:11,853 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.662
+[2020-07-09 13:21:11,876 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:11,886 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:11,896 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:11,907 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:21:11,921 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:21:11,932 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.058
+[2020-07-09 13:21:11,940 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:11,953 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.014
+[2020-07-09 13:21:11,963 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:11,972 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:11,984 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:11,996 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.034
+[2020-07-09 13:21:12,018 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.015
+[2020-07-09 13:21:12,764 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.723
+[2020-07-09 13:21:12,855 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.077
+[2020-07-09 13:21:12,879 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.012
+[2020-07-09 13:21:12,888 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.885
+[2020-07-09 13:21:12,903 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:21:12,910 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.016
+[2020-07-09 13:21:12,925 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:21:12,941 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:21:13,088 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.134
+[2020-07-09 13:21:13,094 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.178
+[2020-07-09 13:21:13,109 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:21:13,120 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.014
+[2020-07-09 13:21:13,133 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.259
+[2020-07-09 13:21:13,159 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:13,175 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:21:13,175 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:13,190 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:13,212 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:21:13,227 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.068
+[2020-07-09 13:21:13,227 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:13,254 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.014
+[2020-07-09 13:21:13,267 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:13,280 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:13,294 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.002
+[2020-07-09 13:21:13,314 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.050
+[2020-07-09 13:21:13,329 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.018
+[2020-07-09 13:21:14,215 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.855
+[2020-07-09 13:21:14,307 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.075
+[2020-07-09 13:21:14,337 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.017
+[2020-07-09 13:21:14,350 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.025
+[2020-07-09 13:21:14,365 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.007
+[2020-07-09 13:21:14,376 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:21:14,397 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.013
+[2020-07-09 13:21:14,412 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:14,584 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.153
+[2020-07-09 13:21:14,598 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.213
+[2020-07-09 13:21:14,613 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.006
+[2020-07-09 13:21:14,628 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.020
+[2020-07-09 13:21:14,648 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.483
+[2020-07-09 13:21:14,686 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:14,706 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:14,725 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:14,745 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:21:14,764 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.003
+[2020-07-09 13:21:14,778 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.093
+[2020-07-09 13:21:14,781 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:14,797 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.015
+[2020-07-09 13:21:14,812 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:14,812 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:14,847 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.003
+[2020-07-09 13:21:14,865 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.052
+[2020-07-09 13:21:14,891 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:21:17,218 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.315
+[2020-07-09 13:21:17,293 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.072
+[2020-07-09 13:21:17,334 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.016
+[2020-07-09 13:21:17,346 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.470
+[2020-07-09 13:21:17,362 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.007
+[2020-07-09 13:21:17,376 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.020
+[2020-07-09 13:21:17,391 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:21:17,407 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:17,557 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.142
+[2020-07-09 13:21:17,580 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.197
+[2020-07-09 13:21:17,596 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.005
+[2020-07-09 13:21:17,612 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.017
+[2020-07-09 13:21:17,612 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.939
+[2020-07-09 13:21:17,646 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180705151248.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:21:17,646 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:21:17,668 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:17,673 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:17,681 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:17,686 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:17,694 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:21:17,694 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.034
+[2020-07-09 13:21:17,694 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:17,694 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.006
+[2020-07-09 13:21:17,711 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:17,713 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:17,713 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:17,729 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.022
+[2020-07-09 13:21:17,745 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:21:23,157 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:5.417
+[2020-07-09 13:21:23,264 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.074
+[2020-07-09 13:21:23,282 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:21:23,286 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:5.553
+[2020-07-09 13:21:23,293 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:21:23,294 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:21:23,320 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.021
+[2020-07-09 13:21:23,325 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:23,485 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.151
+[2020-07-09 13:21:23,494 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.195
+[2020-07-09 13:21:23,494 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:21:23,494 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.009
+[2020-07-09 13:21:23,515 - ui_qt.app - INFO] - Pipeline processed in 00:00:5.849
+[2020-07-09 13:21:23,539 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.002
+[2020-07-09 13:21:23,539 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:23,555 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:23,555 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:21:23,580 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.004
+[2020-07-09 13:21:23,580 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.045
+[2020-07-09 13:21:23,580 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:23,596 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.010
+[2020-07-09 13:21:23,596 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:23,612 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.004
+[2020-07-09 13:21:23,612 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:23,627 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.027
+[2020-07-09 13:21:23,647 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.014
+[2020-07-09 13:21:24,034 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.382
+[2020-07-09 13:21:24,115 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.067
+[2020-07-09 13:21:24,135 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:21:24,140 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.507
+[2020-07-09 13:21:24,148 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:21:24,154 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.011
+[2020-07-09 13:21:24,172 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.013
+[2020-07-09 13:21:24,179 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:24,325 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.138
+[2020-07-09 13:21:24,331 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.174
+[2020-07-09 13:21:24,337 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:21:24,347 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:21:24,355 - ui_qt.app - INFO] - Pipeline processed in 00:00:0.813
+[2020-07-09 13:21:24,370 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180706131032.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:21:24,370 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:21:24,394 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:24,399 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:24,404 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:24,412 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:21:24,419 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:21:24,425 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.032
+[2020-07-09 13:21:24,431 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.004
+[2020-07-09 13:21:24,435 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.008
+[2020-07-09 13:21:24,437 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:24,442 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:24,451 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:24,455 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.019
+[2020-07-09 13:21:24,474 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:21:26,606 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.127
+[2020-07-09 13:21:26,727 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.104
+[2020-07-09 13:21:26,747 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.015
+[2020-07-09 13:21:26,751 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.294
+[2020-07-09 13:21:26,760 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:21:26,765 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:21:26,781 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.013
+[2020-07-09 13:21:26,781 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:26,996 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.211
+[2020-07-09 13:21:26,996 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.242
+[2020-07-09 13:21:27,015 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:21:27,021 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.008
+[2020-07-09 13:21:27,033 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.634
+[2020-07-09 13:21:27,055 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:27,064 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:27,070 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:27,081 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.004
+[2020-07-09 13:21:27,089 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:21:27,097 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.043
+[2020-07-09 13:21:27,100 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:27,106 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.006
+[2020-07-09 13:21:27,110 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:27,114 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:27,114 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:27,129 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.027
+[2020-07-09 13:21:27,146 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.013
+[2020-07-09 13:21:29,678 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.520
+[2020-07-09 13:21:29,780 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.095
+[2020-07-09 13:21:29,809 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:21:29,817 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.678
+[2020-07-09 13:21:29,826 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:21:29,834 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:21:29,849 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:21:29,859 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:21:30,048 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.181
+[2020-07-09 13:21:30,057 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.219
+[2020-07-09 13:21:30,066 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.006
+[2020-07-09 13:21:30,074 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.013
+[2020-07-09 13:21:30,082 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.030
+[2020-07-09 13:21:30,109 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:30,110 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:30,110 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:30,125 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:30,125 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:21:30,147 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.041
+[2020-07-09 13:21:30,147 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:30,147 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.007
+[2020-07-09 13:21:30,162 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:30,162 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:30,178 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:30,178 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.025
+[2020-07-09 13:21:30,194 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.010
+[2020-07-09 13:21:32,565 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.348
+[2020-07-09 13:21:32,675 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.089
+[2020-07-09 13:21:32,693 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:21:32,701 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.504
+[2020-07-09 13:21:32,712 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:21:32,718 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:21:32,736 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:21:32,744 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:32,925 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.181
+[2020-07-09 13:21:32,925 - ui_qt.app - INFO] - User stopped process, waiting for last thread
+[2020-07-09 13:21:32,940 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.228
+[2020-07-09 13:21:32,956 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:21:32,956 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:21:32,980 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.872
+[2020-07-09 13:21:36,339 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:36,355 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:21:36,355 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:36,371 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:36,380 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:21:36,396 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.057
+[2020-07-09 13:21:36,396 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:36,411 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.010
+[2020-07-09 13:21:36,411 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:36,427 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:36,427 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:36,443 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.032
+[2020-07-09 13:21:36,461 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:21:37,293 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.818
+[2020-07-09 13:21:37,387 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.079
+[2020-07-09 13:21:37,403 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:21:37,412 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.960
+[2020-07-09 13:21:37,428 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:21:37,438 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.015
+[2020-07-09 13:21:37,442 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.010
+[2020-07-09 13:21:37,466 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:37,604 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.130
+[2020-07-09 13:21:37,604 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.169
+[2020-07-09 13:21:37,620 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:21:37,620 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:21:37,635 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.299
+[2020-07-09 13:21:37,645 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:37,665 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:37,674 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:37,688 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:37,699 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:21:37,709 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.054
+[2020-07-09 13:21:37,710 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:21:37,726 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.012
+[2020-07-09 13:21:37,726 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:37,747 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:37,747 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:37,763 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.032
+[2020-07-09 13:21:37,778 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.015
+[2020-07-09 13:21:38,690 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.892
+[2020-07-09 13:21:38,778 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.073
+[2020-07-09 13:21:38,797 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.023
+[2020-07-09 13:21:38,812 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.045
+[2020-07-09 13:21:38,828 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:21:38,828 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.015
+[2020-07-09 13:21:38,856 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.008
+[2020-07-09 13:21:38,867 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:39,004 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.127
+[2020-07-09 13:21:39,015 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.174
+[2020-07-09 13:21:39,031 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:21:39,055 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.018
+[2020-07-09 13:21:39,068 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.413
+[2020-07-09 13:21:39,083 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:39,093 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:21:39,093 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:21:39,113 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:21:39,129 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:21:39,147 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.069
+[2020-07-09 13:21:39,163 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.003
+[2020-07-09 13:21:39,163 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.013
+[2020-07-09 13:21:39,178 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:39,178 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:39,194 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:39,225 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.048
+[2020-07-09 13:21:39,241 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.019
+[2020-07-09 13:21:40,379 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.112
+[2020-07-09 13:21:40,478 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.087
+[2020-07-09 13:21:40,499 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.011
+[2020-07-09 13:21:40,511 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.273
+[2020-07-09 13:21:40,525 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:21:40,537 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.016
+[2020-07-09 13:21:40,555 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.010
+[2020-07-09 13:21:40,569 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:40,724 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.141
+[2020-07-09 13:21:40,740 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.194
+[2020-07-09 13:21:40,749 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:21:40,762 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.014
+[2020-07-09 13:21:40,775 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.693
+[2020-07-09 13:21:40,796 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:21:40,796 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:21:40,815 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:21:40,832 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:21:40,855 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:21:40,867 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.071
+[2020-07-09 13:21:40,879 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.003
+[2020-07-09 13:21:40,891 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.015
+[2020-07-09 13:21:40,893 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:21:40,914 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:21:40,927 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:21:40,940 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.051
+[2020-07-09 13:21:40,971 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.017
+[2020-07-09 13:21:41,740 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.757
+[2020-07-09 13:21:41,841 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.076
+[2020-07-09 13:21:41,870 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:21:41,883 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.923
+[2020-07-09 13:21:41,897 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:21:41,909 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:21:41,928 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:21:41,942 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:21:42,092 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.137
+[2020-07-09 13:21:42,104 - ui_qt.app - INFO] - User stopped process, waiting for last thread
+[2020-07-09 13:21:42,125 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.206
+[2020-07-09 13:21:42,139 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:21:42,157 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.019
+[2020-07-09 13:21:42,171 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.376
+[2020-07-09 13:22:11,338 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:11,355 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:11,369 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:11,384 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:22:11,403 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:22:11,420 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.082
+[2020-07-09 13:22:11,436 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:22:11,451 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.016
+[2020-07-09 13:22:11,463 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:11,481 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.002
+[2020-07-09 13:22:11,496 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:11,509 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.046
+[2020-07-09 13:22:11,535 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.012
+[2020-07-09 13:22:12,373 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.824
+[2020-07-09 13:22:12,471 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.081
+[2020-07-09 13:22:12,495 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.011
+[2020-07-09 13:22:12,509 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.985
+[2020-07-09 13:22:12,531 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:22:12,544 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.018
+[2020-07-09 13:22:12,567 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:22:12,583 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:12,720 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.120
+[2020-07-09 13:22:12,734 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.179
+[2020-07-09 13:22:12,746 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:22:12,761 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.016
+[2020-07-09 13:22:12,777 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.440
+[2020-07-09 13:22:12,797 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:12,818 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:12,835 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:12,854 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:22:12,871 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:22:12,886 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.090
+[2020-07-09 13:22:12,899 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:12,914 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.015
+[2020-07-09 13:22:12,926 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:12,941 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:12,957 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:12,973 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.047
+[2020-07-09 13:22:12,998 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.013
+[2020-07-09 13:22:13,969 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.954
+[2020-07-09 13:22:14,057 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.073
+[2020-07-09 13:22:14,091 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.018
+[2020-07-09 13:22:14,108 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.122
+[2020-07-09 13:22:14,123 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:22:14,139 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.019
+[2020-07-09 13:22:14,159 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.008
+[2020-07-09 13:22:14,177 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:14,340 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.139
+[2020-07-09 13:22:14,357 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.204
+[2020-07-09 13:22:14,370 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:22:14,388 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.019
+[2020-07-09 13:22:14,408 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.612
+[2020-07-09 13:22:14,435 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:14,452 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:14,473 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:14,492 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:22:14,513 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:22:14,532 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.098
+[2020-07-09 13:22:14,546 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:14,564 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.016
+[2020-07-09 13:22:14,581 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.003
+[2020-07-09 13:22:14,598 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:14,625 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:14,642 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.064
+[2020-07-09 13:22:14,672 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.012
+[2020-07-09 13:22:15,709 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.020
+[2020-07-09 13:22:15,808 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.080
+[2020-07-09 13:22:15,835 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.011
+[2020-07-09 13:22:15,855 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.195
+[2020-07-09 13:22:15,874 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:22:15,894 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.023
+[2020-07-09 13:22:15,919 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:22:15,940 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:16,095 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.138
+[2020-07-09 13:22:16,112 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.205
+[2020-07-09 13:22:16,130 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:22:16,155 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.027
+[2020-07-09 13:22:16,175 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.741
+[2020-07-09 13:22:16,201 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.002
+[2020-07-09 13:22:16,218 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:16,238 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:16,266 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.004
+[2020-07-09 13:22:16,287 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:22:16,304 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.104
+[2020-07-09 13:22:16,322 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:16,341 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.019
+[2020-07-09 13:22:16,368 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:16,391 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:16,418 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:16,438 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.071
+[2020-07-09 13:22:16,472 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.018
+[2020-07-09 13:22:17,301 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.812
+[2020-07-09 13:22:17,388 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.069
+[2020-07-09 13:22:17,417 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.012
+[2020-07-09 13:22:17,435 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.981
+[2020-07-09 13:22:17,453 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:22:17,477 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.023
+[2020-07-09 13:22:17,502 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:22:17,520 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:17,677 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.139
+[2020-07-09 13:22:17,694 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.202
+[2020-07-09 13:22:17,714 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:22:17,737 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.025
+[2020-07-09 13:22:17,761 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.562
+[2020-07-09 13:22:17,788 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:17,807 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:17,830 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:17,850 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:22:17,871 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:22:17,901 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.111
+[2020-07-09 13:22:17,921 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:17,950 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.029
+[2020-07-09 13:22:17,971 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:17,992 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:18,013 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:18,035 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.064
+[2020-07-09 13:22:18,071 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.018
+[2020-07-09 13:22:18,931 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.840
+[2020-07-09 13:22:19,047 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.092
+[2020-07-09 13:22:19,085 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.015
+[2020-07-09 13:22:19,111 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.056
+[2020-07-09 13:22:19,138 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.009
+[2020-07-09 13:22:19,166 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.036
+[2020-07-09 13:22:19,194 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.008
+[2020-07-09 13:22:19,217 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:19,378 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.141
+[2020-07-09 13:22:19,402 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.216
+[2020-07-09 13:22:19,420 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:22:19,441 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.022
+[2020-07-09 13:22:19,464 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.677
+[2020-07-09 13:22:19,490 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:19,512 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:19,535 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:19,644 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.008
+[2020-07-09 13:22:19,729 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:22:19,756 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.265
+[2020-07-09 13:22:19,781 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:19,797 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.024
+[2020-07-09 13:22:19,825 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:19,855 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:19,885 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:19,927 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.106
+[2020-07-09 13:22:19,963 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.012
+[2020-07-09 13:22:22,362 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.377
+[2020-07-09 13:22:22,455 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.071
+[2020-07-09 13:22:22,489 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.013
+[2020-07-09 13:22:22,514 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.558
+[2020-07-09 13:22:22,534 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:22:22,556 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.024
+[2020-07-09 13:22:22,589 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.014
+[2020-07-09 13:22:22,618 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:22,790 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.150
+[2020-07-09 13:22:22,813 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.237
+[2020-07-09 13:22:22,832 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:22:22,855 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.023
+[2020-07-09 13:22:22,876 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.387
+[2020-07-09 13:22:22,901 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180705151248.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:22:22,901 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:22:22,921 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:22,926 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:22,931 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:22,936 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:22:22,941 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:22:22,947 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.025
+[2020-07-09 13:22:22,953 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:22:22,956 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.006
+[2020-07-09 13:22:22,958 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:22,965 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:22,969 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:22,973 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.016
+[2020-07-09 13:22:22,991 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:22:28,684 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:5.689
+[2020-07-09 13:22:28,772 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.081
+[2020-07-09 13:22:28,801 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:22:28,807 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:5.832
+[2020-07-09 13:22:28,818 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.009
+[2020-07-09 13:22:28,825 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.016
+[2020-07-09 13:22:28,859 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.031
+[2020-07-09 13:22:28,870 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:29,040 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.165
+[2020-07-09 13:22:29,048 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.221
+[2020-07-09 13:22:29,052 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:22:29,057 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.008
+[2020-07-09 13:22:29,071 - ui_qt.app - INFO] - Pipeline processed in 00:00:6.151
+[2020-07-09 13:22:29,092 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:29,102 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:29,108 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:22:29,122 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:22:29,136 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.005
+[2020-07-09 13:22:29,142 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.050
+[2020-07-09 13:22:29,154 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.006
+[2020-07-09 13:22:29,159 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.013
+[2020-07-09 13:22:29,171 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.004
+[2020-07-09 13:22:29,178 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:29,192 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:29,205 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.039
+[2020-07-09 13:22:29,238 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.030
+[2020-07-09 13:22:29,726 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.474
+[2020-07-09 13:22:29,802 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.066
+[2020-07-09 13:22:29,821 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:22:29,826 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.618
+[2020-07-09 13:22:29,840 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:22:29,851 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.018
+[2020-07-09 13:22:29,869 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.013
+[2020-07-09 13:22:29,879 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:30,127 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.238
+[2020-07-09 13:22:30,142 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.287
+[2020-07-09 13:22:30,156 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:22:30,169 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.018
+[2020-07-09 13:22:30,188 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.097
+[2020-07-09 13:22:30,224 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180706131032.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:22:30,224 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:22:30,237 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:30,253 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:22:30,265 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.006
+[2020-07-09 13:22:30,272 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:22:30,286 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.005
+[2020-07-09 13:22:30,290 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.054
+[2020-07-09 13:22:30,293 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:30,304 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.012
+[2020-07-09 13:22:30,306 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:30,317 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.002
+[2020-07-09 13:22:30,326 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:30,349 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.043
+[2020-07-09 13:22:30,368 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.017
+[2020-07-09 13:22:33,130 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.757
+[2020-07-09 13:22:33,245 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.107
+[2020-07-09 13:22:33,260 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:22:33,267 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.915
+[2020-07-09 13:22:33,273 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:22:33,281 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:22:33,292 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.008
+[2020-07-09 13:22:33,300 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:33,516 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.210
+[2020-07-09 13:22:33,522 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.239
+[2020-07-09 13:22:33,526 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:22:33,531 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.008
+[2020-07-09 13:22:33,537 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.301
+[2020-07-09 13:22:33,551 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:33,558 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:33,567 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:22:33,573 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:22:33,583 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.003
+[2020-07-09 13:22:33,589 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.039
+[2020-07-09 13:22:33,594 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:22:33,601 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:22:33,605 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:22:33,615 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.003
+[2020-07-09 13:22:33,621 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:33,626 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.021
+[2020-07-09 13:22:33,641 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.011
+[2020-07-09 13:22:36,504 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.853
+[2020-07-09 13:22:36,636 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.113
+[2020-07-09 13:22:36,657 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.015
+[2020-07-09 13:22:36,665 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:3.034
+[2020-07-09 13:22:36,674 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:22:36,683 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.015
+[2020-07-09 13:22:36,701 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.014
+[2020-07-09 13:22:36,710 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:22:36,973 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.248
+[2020-07-09 13:22:36,984 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.297
+[2020-07-09 13:22:36,991 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:22:37,002 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.014
+[2020-07-09 13:22:37,014 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.464
+[2020-07-09 13:22:37,037 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.003
+[2020-07-09 13:22:37,051 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:22:37,069 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.008
+[2020-07-09 13:22:37,081 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:22:37,092 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:22:37,106 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.076
+[2020-07-09 13:22:37,117 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.006
+[2020-07-09 13:22:37,123 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.014
+[2020-07-09 13:22:37,134 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.002
+[2020-07-09 13:22:37,143 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:37,156 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:37,170 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.039
+[2020-07-09 13:22:37,193 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.018
+[2020-07-09 13:22:40,305 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:3.088
+[2020-07-09 13:22:40,416 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.098
+[2020-07-09 13:22:40,438 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.015
+[2020-07-09 13:22:40,445 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:3.271
+[2020-07-09 13:22:40,454 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:22:40,465 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.015
+[2020-07-09 13:22:40,484 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.014
+[2020-07-09 13:22:40,494 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:22:40,695 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.191
+[2020-07-09 13:22:40,703 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.232
+[2020-07-09 13:22:40,710 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:22:40,719 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:22:40,730 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.700
+[2020-07-09 13:22:40,743 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180708005524.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:22:40,743 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:22:40,766 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:22:40,771 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:22:40,782 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.006
+[2020-07-09 13:22:40,787 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:22:40,796 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:22:40,801 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.037
+[2020-07-09 13:22:40,805 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:22:40,813 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.010
+[2020-07-09 13:22:40,821 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.002
+[2020-07-09 13:22:40,826 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:22:40,836 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:22:40,841 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.022
+[2020-07-09 13:22:40,860 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:23:16,725 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:35.859
+[2020-07-09 13:23:16,854 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.111
+[2020-07-09 13:23:16,875 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.017
+[2020-07-09 13:23:16,882 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:36.038
+[2020-07-09 13:23:16,889 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:23:16,895 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.010
+[2020-07-09 13:23:16,910 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:23:16,917 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:17,067 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.144
+[2020-07-09 13:23:17,077 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.178
+[2020-07-09 13:23:17,083 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:17,089 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.009
+[2020-07-09 13:23:17,097 - ui_qt.app - INFO] - Pipeline processed in 00:00:36.332
+[2020-07-09 13:23:17,127 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:17,134 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:17,140 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:17,149 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.004
+[2020-07-09 13:23:17,156 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:23:17,163 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.036
+[2020-07-09 13:23:17,168 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:17,173 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.007
+[2020-07-09 13:23:17,177 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:17,186 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:17,192 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:17,201 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.024
+[2020-07-09 13:23:17,218 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.014
+[2020-07-09 13:23:19,287 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.063
+[2020-07-09 13:23:19,403 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.100
+[2020-07-09 13:23:19,422 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:23:19,428 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.224
+[2020-07-09 13:23:19,440 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:23:19,450 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.016
+[2020-07-09 13:23:19,466 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:23:19,473 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:19,656 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.176
+[2020-07-09 13:23:19,665 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.211
+[2020-07-09 13:23:19,672 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:19,678 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.009
+[2020-07-09 13:23:19,688 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.563
+[2020-07-09 13:23:19,711 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:19,720 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:23:19,727 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:23:19,737 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:23:19,747 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.003
+[2020-07-09 13:23:19,754 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.045
+[2020-07-09 13:23:19,759 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:19,767 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:23:19,773 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:19,781 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:19,783 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:19,798 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.029
+[2020-07-09 13:23:19,819 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.012
+[2020-07-09 13:23:22,258 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.432
+[2020-07-09 13:23:22,463 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.178
+[2020-07-09 13:23:22,491 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.017
+[2020-07-09 13:23:22,501 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.693
+[2020-07-09 13:23:22,514 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:23:22,526 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.020
+[2020-07-09 13:23:22,553 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.017
+[2020-07-09 13:23:22,565 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:22,842 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.260
+[2020-07-09 13:23:22,858 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.322
+[2020-07-09 13:23:22,871 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.007
+[2020-07-09 13:23:22,884 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.018
+[2020-07-09 13:23:22,894 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.185
+[2020-07-09 13:23:22,916 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:22,927 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:22,938 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:22,951 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:23:22,964 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:22,973 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.057
+[2020-07-09 13:23:22,983 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:23:22,993 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.012
+[2020-07-09 13:23:23,002 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:23,010 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:23,022 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:23,032 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.032
+[2020-07-09 13:23:23,056 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.017
+[2020-07-09 13:23:26,056 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.979
+[2020-07-09 13:23:26,161 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.091
+[2020-07-09 13:23:26,179 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.011
+[2020-07-09 13:23:26,187 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:3.149
+[2020-07-09 13:23:26,199 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:23:26,207 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:23:26,224 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.010
+[2020-07-09 13:23:26,237 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:23:26,427 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.179
+[2020-07-09 13:23:26,435 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.220
+[2020-07-09 13:23:26,443 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:26,453 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:23:26,466 - ui_qt.app - INFO] - Pipeline processed in 00:00:3.550
+[2020-07-09 13:23:26,500 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:26,510 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:26,521 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:26,534 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:23:26,547 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:26,557 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.059
+[2020-07-09 13:23:26,568 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:23:26,577 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.011
+[2020-07-09 13:23:26,588 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:26,605 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.004
+[2020-07-09 13:23:26,618 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:26,629 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.040
+[2020-07-09 13:23:26,673 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.020
+[2020-07-09 13:23:27,279 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.594
+[2020-07-09 13:23:27,380 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.086
+[2020-07-09 13:23:27,405 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.015
+[2020-07-09 13:23:27,418 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.765
+[2020-07-09 13:23:27,432 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.007
+[2020-07-09 13:23:27,442 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:23:27,473 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.016
+[2020-07-09 13:23:27,486 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:27,641 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.142
+[2020-07-09 13:23:27,654 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.196
+[2020-07-09 13:23:27,668 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:23:27,686 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.021
+[2020-07-09 13:23:27,727 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.226
+[2020-07-09 13:23:27,767 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180710001144.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:27,768 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:27,793 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180710080214.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:27,793 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:27,824 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:27,835 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.006
+[2020-07-09 13:23:27,839 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:27,844 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:27,853 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:27,857 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.034
+[2020-07-09 13:23:27,860 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:27,867 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:23:27,871 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:27,877 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:27,887 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:27,897 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.027
+[2020-07-09 13:23:27,970 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.055
+[2020-07-09 13:23:29,727 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.752
+[2020-07-09 13:23:29,829 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.084
+[2020-07-09 13:23:29,867 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.032
+[2020-07-09 13:23:29,872 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.957
+[2020-07-09 13:23:29,881 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:23:29,886 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:23:29,900 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:23:29,906 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:30,057 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.146
+[2020-07-09 13:23:30,063 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.176
+[2020-07-09 13:23:30,069 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:30,074 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.008
+[2020-07-09 13:23:30,081 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.259
+[2020-07-09 13:23:30,111 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:30,119 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:30,125 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:30,134 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.004
+[2020-07-09 13:23:30,140 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:23:30,148 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.036
+[2020-07-09 13:23:30,153 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:30,158 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.006
+[2020-07-09 13:23:30,161 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:30,169 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:30,175 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:30,185 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.024
+[2020-07-09 13:23:30,203 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.015
+[2020-07-09 13:23:31,171 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.963
+[2020-07-09 13:23:31,273 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.086
+[2020-07-09 13:23:31,293 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.013
+[2020-07-09 13:23:31,301 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.113
+[2020-07-09 13:23:31,309 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:23:31,319 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:23:31,334 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:23:31,342 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:31,497 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.147
+[2020-07-09 13:23:31,509 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.186
+[2020-07-09 13:23:31,517 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:23:31,526 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:23:31,537 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.428
+[2020-07-09 13:23:31,569 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:31,578 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:31,589 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:23:31,604 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:23:31,619 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:31,628 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.061
+[2020-07-09 13:23:31,639 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:31,648 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:23:31,654 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:31,664 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.002
+[2020-07-09 13:23:31,673 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:31,684 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.030
+[2020-07-09 13:23:31,705 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:23:32,847 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.123
+[2020-07-09 13:23:32,924 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.070
+[2020-07-09 13:23:32,948 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.016
+[2020-07-09 13:23:32,949 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.266
+[2020-07-09 13:23:32,949 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:23:32,970 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.012
+[2020-07-09 13:23:32,986 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:23:32,992 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:33,144 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.153
+[2020-07-09 13:23:33,159 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.194
+[2020-07-09 13:23:33,175 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:23:33,175 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:23:33,191 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.625
+[2020-07-09 13:23:33,215 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:33,215 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:33,230 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:33,255 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.003
+[2020-07-09 13:23:33,267 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.004
+[2020-07-09 13:23:33,274 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.054
+[2020-07-09 13:23:33,283 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:23:33,290 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:23:33,296 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.002
+[2020-07-09 13:23:33,296 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:33,311 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.002
+[2020-07-09 13:23:33,327 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.032
+[2020-07-09 13:23:33,349 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.014
+[2020-07-09 13:23:35,378 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:2.021
+[2020-07-09 13:23:35,472 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.075
+[2020-07-09 13:23:35,495 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:23:35,504 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.170
+[2020-07-09 13:23:35,514 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:23:35,523 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.013
+[2020-07-09 13:23:35,541 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.010
+[2020-07-09 13:23:35,552 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:35,713 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.151
+[2020-07-09 13:23:35,725 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.195
+[2020-07-09 13:23:35,735 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:35,744 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:23:35,756 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.536
+[2020-07-09 13:23:35,783 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:35,783 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:35,798 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:35,814 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:35,830 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:23:35,830 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.057
+[2020-07-09 13:23:35,853 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:35,861 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:23:35,870 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:35,880 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:35,890 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:35,896 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.032
+[2020-07-09 13:23:35,911 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.017
+[2020-07-09 13:23:37,817 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.870
+[2020-07-09 13:23:37,907 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.080
+[2020-07-09 13:23:37,928 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:23:37,928 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.034
+[2020-07-09 13:23:37,949 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:23:37,970 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.018
+[2020-07-09 13:23:38,001 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.021
+[2020-07-09 13:23:38,023 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:38,272 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.215
+[2020-07-09 13:23:38,289 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.309
+[2020-07-09 13:23:38,296 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:23:38,318 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.020
+[2020-07-09 13:23:38,333 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.547
+[2020-07-09 13:23:38,350 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180712145950.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:38,350 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:38,362 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180712220535.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:38,362 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:38,379 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:38,379 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:38,394 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:23:38,394 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:38,415 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.003
+[2020-07-09 13:23:38,416 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.034
+[2020-07-09 13:23:38,416 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:38,416 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.006
+[2020-07-09 13:23:38,431 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.002
+[2020-07-09 13:23:38,431 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:38,431 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:38,450 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.023
+[2020-07-09 13:23:38,473 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.020
+[2020-07-09 13:23:39,163 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.685
+[2020-07-09 13:23:39,257 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.079
+[2020-07-09 13:23:39,276 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.015
+[2020-07-09 13:23:39,283 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.831
+[2020-07-09 13:23:39,290 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:23:39,295 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.010
+[2020-07-09 13:23:39,317 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.017
+[2020-07-09 13:23:39,323 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:39,488 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.158
+[2020-07-09 13:23:39,495 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.195
+[2020-07-09 13:23:39,502 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:39,508 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.009
+[2020-07-09 13:23:39,519 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.133
+[2020-07-09 13:23:39,541 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:39,549 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:39,555 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:39,564 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:23:39,572 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:39,578 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.037
+[2020-07-09 13:23:39,586 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:39,591 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.007
+[2020-07-09 13:23:39,596 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:39,603 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:39,611 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:39,638 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.044
+[2020-07-09 13:23:39,661 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.019
+[2020-07-09 13:23:40,453 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.779
+[2020-07-09 13:23:40,567 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.095
+[2020-07-09 13:23:40,594 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.022
+[2020-07-09 13:23:40,603 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.962
+[2020-07-09 13:23:40,613 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:23:40,620 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.013
+[2020-07-09 13:23:40,640 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.015
+[2020-07-09 13:23:40,650 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:40,890 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.224
+[2020-07-09 13:23:40,909 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.284
+[2020-07-09 13:23:40,937 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.008
+[2020-07-09 13:23:40,946 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.020
+[2020-07-09 13:23:40,958 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.418
+[2020-07-09 13:23:40,986 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:40,996 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:41,005 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:41,017 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.005
+[2020-07-09 13:23:41,025 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:41,037 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.052
+[2020-07-09 13:23:41,044 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:23:41,054 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.012
+[2020-07-09 13:23:41,060 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:41,074 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:41,090 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:41,115 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.054
+[2020-07-09 13:23:41,135 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.014
+[2020-07-09 13:23:41,875 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.733
+[2020-07-09 13:23:41,979 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.092
+[2020-07-09 13:23:41,999 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.013
+[2020-07-09 13:23:42,006 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.887
+[2020-07-09 13:23:42,018 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.007
+[2020-07-09 13:23:42,025 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:23:42,044 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.011
+[2020-07-09 13:23:42,057 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:42,221 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.154
+[2020-07-09 13:23:42,232 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.200
+[2020-07-09 13:23:42,240 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:23:42,249 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.012
+[2020-07-09 13:23:42,260 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.274
+[2020-07-09 13:23:42,277 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180714070253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:42,277 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:42,287 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180714110412.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:42,288 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:42,293 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180714220514.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:23:42,293 - tools.error_holder - ERROR] - Failed to process pipeline
+[2020-07-09 13:23:42,302 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:42,307 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:42,314 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:23:42,320 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:42,325 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:23:42,333 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.031
+[2020-07-09 13:23:42,336 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:42,339 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.006
+[2020-07-09 13:23:42,342 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:42,353 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.004
+[2020-07-09 13:23:42,358 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:42,366 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.024
+[2020-07-09 13:23:42,399 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.031
+[2020-07-09 13:23:43,724 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.322
+[2020-07-09 13:23:43,909 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.164
+[2020-07-09 13:23:44,011 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.091
+[2020-07-09 13:23:44,029 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.661
+[2020-07-09 13:23:44,042 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.010
+[2020-07-09 13:23:44,056 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.024
+[2020-07-09 13:23:44,097 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.039
+[2020-07-09 13:23:44,106 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:23:44,425 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.306
+[2020-07-09 13:23:44,439 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.381
+[2020-07-09 13:23:44,446 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:44,456 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.014
+[2020-07-09 13:23:44,472 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.171
+[2020-07-09 13:23:44,509 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.002
+[2020-07-09 13:23:44,525 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.002
+[2020-07-09 13:23:44,540 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.003
+[2020-07-09 13:23:44,559 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:23:44,577 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.004
+[2020-07-09 13:23:44,586 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.079
+[2020-07-09 13:23:44,592 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:44,606 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.015
+[2020-07-09 13:23:44,611 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:44,625 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:44,652 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:44,660 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.051
+[2020-07-09 13:23:44,688 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.023
+[2020-07-09 13:23:45,671 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.975
+[2020-07-09 13:23:45,812 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.131
+[2020-07-09 13:23:45,844 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:23:45,849 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.188
+[2020-07-09 13:23:45,849 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:23:45,870 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:23:45,887 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.013
+[2020-07-09 13:23:45,897 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:23:46,070 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.165
+[2020-07-09 13:23:46,077 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.203
+[2020-07-09 13:23:46,086 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:23:46,096 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.019
+[2020-07-09 13:23:46,096 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.603
+[2020-07-09 13:23:46,126 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:46,138 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:46,148 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:23:46,156 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:23:46,166 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.004
+[2020-07-09 13:23:46,182 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.057
+[2020-07-09 13:23:46,182 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:23:46,198 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.009
+[2020-07-09 13:23:46,199 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:46,199 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:46,215 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:46,232 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.031
+[2020-07-09 13:23:46,256 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.018
+[2020-07-09 13:23:47,078 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.809
+[2020-07-09 13:23:47,193 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.093
+[2020-07-09 13:23:47,210 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:23:47,218 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.980
+[2020-07-09 13:23:47,226 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:23:47,235 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.014
+[2020-07-09 13:23:47,253 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.013
+[2020-07-09 13:23:47,262 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:47,427 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.155
+[2020-07-09 13:23:47,437 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.196
+[2020-07-09 13:23:47,444 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:47,454 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.013
+[2020-07-09 13:23:47,463 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.337
+[2020-07-09 13:23:47,483 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:47,492 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:47,501 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:47,510 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:47,522 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:23:47,533 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.052
+[2020-07-09 13:23:47,539 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:47,549 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.011
+[2020-07-09 13:23:47,555 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:47,566 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.002
+[2020-07-09 13:23:47,574 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:47,584 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.030
+[2020-07-09 13:23:47,605 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.015
+[2020-07-09 13:23:48,377 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.760
+[2020-07-09 13:23:48,505 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.102
+[2020-07-09 13:23:48,530 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.014
+[2020-07-09 13:23:48,538 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.949
+[2020-07-09 13:23:48,553 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.008
+[2020-07-09 13:23:48,562 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:23:48,586 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.014
+[2020-07-09 13:23:48,599 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.002
+[2020-07-09 13:23:48,907 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.298
+[2020-07-09 13:23:48,924 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.352
+[2020-07-09 13:23:48,938 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.004
+[2020-07-09 13:23:48,953 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.019
+[2020-07-09 13:23:48,974 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.494
+[2020-07-09 13:23:49,023 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:49,054 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.003
+[2020-07-09 13:23:49,076 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:49,094 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:49,116 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.004
+[2020-07-09 13:23:49,138 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.117
+[2020-07-09 13:23:49,149 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.003
+[2020-07-09 13:23:49,160 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.014
+[2020-07-09 13:23:49,171 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:49,184 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:49,198 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:49,208 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.038
+[2020-07-09 13:23:49,232 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.014
+[2020-07-09 13:23:51,107 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.864
+[2020-07-09 13:23:51,238 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.112
+[2020-07-09 13:23:51,264 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.012
+[2020-07-09 13:23:51,275 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:2.057
+[2020-07-09 13:23:51,291 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:23:51,303 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.016
+[2020-07-09 13:23:51,320 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.010
+[2020-07-09 13:23:51,350 - ui_qt.app - INFO] - User stopped process, waiting for last thread
+[2020-07-09 13:23:51,369 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:51,782 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.414
+[2020-07-09 13:23:51,810 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.500
+[2020-07-09 13:23:51,822 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:23:51,834 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.015
+[2020-07-09 13:23:51,845 - ui_qt.app - INFO] - Pipeline processed in 00:00:2.824
+[2020-07-09 13:23:53,829 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:53,841 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:53,857 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:53,870 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:53,885 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:23:53,897 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.068
+[2020-07-09 13:23:53,906 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:23:53,918 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.012
+[2020-07-09 13:23:53,926 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:53,937 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:23:53,949 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:53,959 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.033
+[2020-07-09 13:23:53,982 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.013
+[2020-07-09 13:23:54,778 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.780
+[2020-07-09 13:23:54,883 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.091
+[2020-07-09 13:23:54,906 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.012
+[2020-07-09 13:23:54,919 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.951
+[2020-07-09 13:23:54,934 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:23:54,947 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:23:54,967 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:23:54,982 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:55,136 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.142
+[2020-07-09 13:23:55,148 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.192
+[2020-07-09 13:23:55,158 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:23:55,170 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.014
+[2020-07-09 13:23:55,186 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.359
+[2020-07-09 13:23:55,214 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:23:55,226 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:23:55,241 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:23:55,259 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:23:55,276 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:23:55,292 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.079
+[2020-07-09 13:23:55,306 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:23:55,322 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.016
+[2020-07-09 13:23:55,334 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:23:55,349 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.003
+[2020-07-09 13:23:55,361 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:23:55,376 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.043
+[2020-07-09 13:23:55,405 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.016
+[2020-07-09 13:23:56,376 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.948
+[2020-07-09 13:23:56,464 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.074
+[2020-07-09 13:23:56,493 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.018
+[2020-07-09 13:23:56,506 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.115
+[2020-07-09 13:23:56,518 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:23:56,531 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.017
+[2020-07-09 13:23:56,548 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.009
+[2020-07-09 13:23:56,561 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:23:56,700 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.123
+[2020-07-09 13:23:56,710 - ui_qt.app - INFO] - User stopped process, waiting for last thread
+[2020-07-09 13:23:56,732 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.192
+[2020-07-09 13:23:56,744 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:23:56,759 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.016
+[2020-07-09 13:23:56,773 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.560
+[2020-07-09 13:24:22,697 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180802050337.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:24:22,697 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-02 05:03:37][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180802050337.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:24:27,487 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180801200504.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:24:27,488 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-01 20:05:04][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180801200504.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:24:31,744 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:24:31,760 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:24:31,775 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:24:31,806 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:24:31,824 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:24:31,842 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.092
+[2020-07-09 13:24:31,853 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.001
+[2020-07-09 13:24:31,871 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.019
+[2020-07-09 13:24:31,888 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:24:31,905 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:24:31,924 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:24:31,946 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.057
+[2020-07-09 13:24:31,979 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.017
+[2020-07-09 13:24:32,992 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.999
+[2020-07-09 13:24:33,091 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.074
+[2020-07-09 13:24:33,135 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.024
+[2020-07-09 13:24:33,152 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.190
+[2020-07-09 13:24:33,174 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:24:33,194 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.024
+[2020-07-09 13:24:33,235 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:24:33,253 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:24:33,416 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.141
+[2020-07-09 13:24:33,440 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.220
+[2020-07-09 13:24:33,466 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.003
+[2020-07-09 13:24:33,485 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.022
+[2020-07-09 13:24:33,506 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.756
+[2020-07-09 13:24:40,518 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:24:40,520 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 14:30:05][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:24:42,127 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:24:42,143 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:24:42,164 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:24:42,182 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:24:42,200 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:24:42,222 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.096
+[2020-07-09 13:24:42,236 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:24:42,251 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.016
+[2020-07-09 13:24:42,270 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:24:42,287 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:24:42,306 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:24:42,324 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.055
+[2020-07-09 13:24:42,350 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.013
+[2020-07-09 13:24:43,103 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.737
+[2020-07-09 13:24:43,193 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.076
+[2020-07-09 13:24:43,217 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:24:43,233 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:0.894
+[2020-07-09 13:24:43,251 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.006
+[2020-07-09 13:24:43,268 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.022
+[2020-07-09 13:24:43,291 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.009
+[2020-07-09 13:24:43,309 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:24:43,470 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.142
+[2020-07-09 13:24:43,485 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.203
+[2020-07-09 13:24:43,502 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:24:43,518 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.017
+[2020-07-09 13:24:43,538 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.412
+[2020-07-09 13:24:43,561 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:24:43,581 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:24:43,601 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.002
+[2020-07-09 13:24:43,621 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.001
+[2020-07-09 13:24:43,639 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.001
+[2020-07-09 13:24:43,657 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.094
+[2020-07-09 13:24:43,673 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:24:43,690 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.018
+[2020-07-09 13:24:43,704 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:24:43,723 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:24:43,751 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:24:43,771 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.068
+[2020-07-09 13:24:43,785 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.013
+[2020-07-09 13:24:44,717 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:0.899
+[2020-07-09 13:24:44,817 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.079
+[2020-07-09 13:24:44,853 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.019
+[2020-07-09 13:24:44,872 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.085
+[2020-07-09 13:24:44,891 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.005
+[2020-07-09 13:24:44,914 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.026
+[2020-07-09 13:24:44,940 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:24:44,966 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:24:45,131 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.144
+[2020-07-09 13:24:45,150 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.222
+[2020-07-09 13:24:45,175 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:24:45,194 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.020
+[2020-07-09 13:24:45,220 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.660
+[2020-07-09 13:24:45,248 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) carter in 00:00:0.001
+[2020-07-09 13:24:45,271 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) safe_zone in 00:00:0.001
+[2020-07-09 13:24:45,296 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) pot in 00:00:0.001
+[2020-07-09 13:24:45,319 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) hose in 00:00:0.002
+[2020-07-09 13:24:45,340 - ui_qt.app - INFO] - Successfully processed ROI manager (deprecated) enforcer in 00:00:0.002
+[2020-07-09 13:24:45,359 - ui_qt.app - INFO] - Successfully processed ROIs from raw pre processed image, merge mode: merge_mode_none in 00:00:0.111
+[2020-07-09 13:24:45,388 - ui_qt.app - INFO] - Successfully processed Dummy threshold (WIP) in 00:00:0.002
+[2020-07-09 13:24:45,420 - ui_qt.app - INFO] - Successfully processed Build mask, merge mode: merge_mode_and in 00:00:0.029
+[2020-07-09 13:24:45,440 - ui_qt.app - INFO] - Successfully processed Apply ROI carter in 00:00:0.001
+[2020-07-09 13:24:45,460 - ui_qt.app - INFO] - Successfully processed Apply ROI pot in 00:00:0.001
+[2020-07-09 13:24:45,481 - ui_qt.app - INFO] - Successfully processed Apply ROI hose in 00:00:0.001
+[2020-07-09 13:24:45,503 - ui_qt.app - INFO] - Successfully processed Apply ROIS, merge mode: merge_mode_chain in 00:00:0.063
+[2020-07-09 13:24:45,528 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l in 00:00:0.010
+[2020-07-09 13:24:46,574 - ui_qt.app - INFO] - Successfully processed Clean horizontal noise in 00:00:1.028
+[2020-07-09 13:24:46,677 - ui_qt.app - INFO] - Successfully processed Remove plant guide in 00:00:0.079
+[2020-07-09 13:24:46,705 - ui_qt.app - INFO] - Successfully processed Keep linked Contours l (1) in 00:00:0.010
+[2020-07-09 13:24:46,724 - ui_qt.app - INFO] - Successfully processed Clean mask, merge mode: merge_mode_chain in 00:00:1.205
+[2020-07-09 13:24:46,742 - ui_qt.app - INFO] - Successfully processed Assert mask position enforcer in 00:00:0.004
+[2020-07-09 13:24:46,763 - ui_qt.app - INFO] - Successfully processed Assert mask position, merge mode: merge_mode_none in 00:00:0.023
+[2020-07-09 13:24:46,783 - ui_qt.app - INFO] - Successfully processed Heliasen Quality Control (WIP) in 00:00:0.012
+[2020-07-09 13:24:46,808 - ui_qt.app - INFO] - User stopped process, waiting for last thread
+[2020-07-09 13:24:46,845 - ui_qt.app - INFO] - Successfully processed Observation data in 00:00:0.001
+[2020-07-09 13:24:47,002 - ui_qt.app - INFO] - Successfully processed Analyze object in 00:00:0.135
+[2020-07-09 13:24:47,024 - ui_qt.app - INFO] - Successfully processed Extract features, merge mode: merge_mode_chain in 00:00:0.245
+[2020-07-09 13:24:47,041 - ui_qt.app - INFO] - Successfully processed Copy or rename image in 00:00:0.002
+[2020-07-09 13:24:47,064 - ui_qt.app - INFO] - Successfully processed Build images, merge mode: merge_mode_chain in 00:00:0.024
+[2020-07-09 13:24:47,085 - ui_qt.app - INFO] - Pipeline processed in 00:00:1.838
+[2020-07-09 13:25:24,974 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803060253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:24,974 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 06:02:53][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803060253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:26,534 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:26,537 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 14:30:05][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:30,828 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803060253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:30,831 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 06:02:53][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803060253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:36,743 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:36,745 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 14:30:05][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:47,875 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803060253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:47,878 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 06:02:53][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803060253.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:49,386 - base.ip_abstract - ERROR] - Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:49,388 - ui_qt.app - INFO] - [exp:18hp01][plant:u02][date:2018-08-03 14:30:05][camera:cam11][view_option:default]: [ERROR|]-Failed to load C:\Users\fmavianemac\Pictures\ipso_phen_cache\heliasen\18hp01\18HP01U02-CAM11-20180803143005.bmp because error("OpenCV(4.2.0) C:\\projects\\opencv-python\\opencv\\modules\\imgcodecs\\src\\loadsave.cpp:730: error: (-215:Assertion failed) !buf.empty() in function 'cv::imdecode_'\n")
+[2020-07-09 13:25:51,368 - __main__ - INFO] - Closing IPSO Phen
