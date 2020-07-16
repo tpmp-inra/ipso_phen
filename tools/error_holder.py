@@ -1,52 +1,60 @@
 from typing import Any, Union
 from datetime import datetime as dt
-
-
-ERR_LVL_UNK = -1
-ERR_LVL_OK = 0
-ERR_LVL_HINT = 1
-ERR_LVL_WARNING = 2
-ERR_LVL_EXCEPTION = 3
-ERR_LVL_ERROR = 4
-ERR_LVL_CRITICAL = 5
-
 import logging
+
+
+ERR_LVL_EXCEPTION = 35
 
 logger = logging.getLogger(__name__)
 
 
+def log_level_to_html(error_level: int) -> str:
+    if error_level == logging.INFO:
+        return '<font color="blue"><b>INFO</b></font>'
+    elif error_level == logging.WARNING:
+        return '<font color="Yellow"><b>WARNING</b></font>'
+    elif error_level == ERR_LVL_EXCEPTION:
+        return '<font color="orange"><b>EXCEPTION</b></font>'
+    elif error_level == logging.ERROR:
+        return '<font color="OrangeRed"><b>ERROR</b></font>'
+    elif error_level == logging.CRITICAL:
+        return '<font color="DarkRed"><b>CRITICAL</b></font>'
+    elif error_level == logging.DEBUG:
+        return '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>'
+    else:
+        return "UNKNOWN"
+
+
 def error_level_to_str(error_level: int) -> str:
-    if error_level == ERR_LVL_OK:
-        return "OK"
-    elif error_level == ERR_LVL_HINT:
-        return "HINT"
-    elif error_level == ERR_LVL_WARNING:
+    if error_level == logging.INFO:
+        return "INFO"
+    elif error_level == logging.WARNING:
         return "WARNING"
     elif error_level == ERR_LVL_EXCEPTION:
         return "EXCEPTION"
-    elif error_level == ERR_LVL_ERROR:
+    elif error_level == logging.ERROR:
         return "ERROR"
-    elif error_level == ERR_LVL_CRITICAL:
+    elif error_level == logging.CRITICAL:
         return "CRITICAL"
     else:
         return "UNKNOWN"
 
 
-def error_level_from_str(error_level: str) -> int:
-    if error_level == "OK":
-        return ERR_LVL_OK
-    elif error_level == "HINT":
-        return ERR_LVL_HINT
-    elif error_level == "WARNING":
-        return ERR_LVL_WARNING
-    elif error_level == "EXCEPTION":
-        return ERR_LVL_EXCEPTION
-    elif error_level == "ERROR":
-        return ERR_LVL_ERROR
-    elif error_level == "CRITICAL":
-        return ERR_LVL_CRITICAL
+def error_level_to_logger(error_level: int, target_logger):
+    if error_level == logging.INFO:
+        return target_logger.info
+    elif error_level == logging.INFO:
+        return target_logger.info
+    elif error_level == logging.WARNING:
+        return target_logger.warning
+    elif error_level == ERR_LVL_EXCEPTION:
+        return target_logger.exception
+    elif error_level == logging.ERROR:
+        return target_logger.error
+    elif error_level == logging.CRITICAL:
+        return target_logger.critical
     else:
-        return -1
+        return target_logger.info
 
 
 def error_level_to_logger(error_level: int, target_logger):
@@ -162,9 +170,7 @@ class ErrorHolder(object):
             self.error_list.append(
                 SingleError(
                     text=new_error_text,
-                    level=new_error_level
-                    if isinstance(new_error_level, int)
-                    else error_level_from_str(new_error_level),
+                    level=new_error_level,
                     kind=new_error_kind,
                     logger=target_logger,
                 )

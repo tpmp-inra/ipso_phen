@@ -157,7 +157,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f"Failed to load {repr(self)} because {repr(e)}",
                 target_logger=logger,
-                new_error_level=4,
+                new_error_level=logging.ERROR,
             )
             self.good_image = False
             return None
@@ -182,7 +182,8 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 new_error_text="Unable to load source image",
                 new_error_kind="source_issue",
-                new_error_level=4,
+                new_error_level=logging.ERROR,
+                target_logger=logger,
                 target_logger=logger,
             )
 
@@ -340,7 +341,9 @@ class AbstractImageProcessor(ImageWrapper):
             foreground_img = np.dstack((foreground_img, foreground_img, foreground_img))
         else:
             self.error_holder.add_error(
-                f"Unknown foreground {background}", target_logger=logger, new_error_level=4
+                f"Unknown foreground {background}",
+                target_logger=logger,
+                new_error_level=logging.ERROR,
             )
             return np.full(src.shape, ipc.C_FUCHSIA, np.uint8)
 
@@ -368,12 +371,16 @@ class AbstractImageProcessor(ImageWrapper):
                     )
                 else:
                     self.error_holder.add_error(
-                        f"Unknown color: {background}", target_logger=logger, new_error_level=4
+                        f"Unknown color: {background}",
+                        target_logger=logger,
+                        new_error_level=logging.ERROR,
                     )
                     return np.full(foreground_img.shape, ipc.C_FUCHSIA, np.uint8)
             else:
                 self.error_holder.add_error(
-                    f"Unknown background {background}", target_logger=logger, new_error_level=4
+                    f"Unknown background {background}",
+                    target_logger=logger,
+                    new_error_level=logging.ERROR,
                 )
                 return np.full(foreground_img.shape, ipc.C_FUCHSIA, np.uint8)
             if bck_grd_luma != 100:
@@ -632,7 +639,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f'Unable to plot {img_dict["name"]}: "{repr(e)}"',
                 target_logger=logger,
-                new_error_level=3,
+                new_error_level=35,
             )
             res = False
         else:
@@ -759,7 +766,9 @@ class AbstractImageProcessor(ImageWrapper):
             )
         else:
             self.error_holder.add_error(
-                "Unknown average calculation mode", target_logger=logger, new_error_level=4
+                "Unknown average calculation mode",
+                target_logger=logger,
+                new_error_level=logging.ERROR,
             )
             return 0, 0
         if mask is None:
@@ -1189,7 +1198,7 @@ class AbstractImageProcessor(ImageWrapper):
                 self.error_holder.add_error(
                     f'Failed to analyse bounds "{repr(e)}"',
                     target_logger=logger,
-                    new_error_level=3,
+                    new_error_level=35,
                 )
                 return False
             else:
@@ -1609,7 +1618,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f'Source & mask are mandatory for keep linked contours "{str(self)}',
                 target_logger=logger,
-                new_error_level=4,
+                new_error_level=logging.ERROR,
             )
             return None
         dilation_iter = kwargs.get("dilation_iter", 0)
@@ -1741,7 +1750,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f'Source & mask are mandatory for keep linked contours "{str(self)}',
                 target_logger=logger,
-                new_error_level=4,
+                new_error_level=logging.ERROR,
             )
             return None
         dilation_iter = kwargs.get("dilation_iter", 0)
@@ -1955,7 +1964,7 @@ class AbstractImageProcessor(ImageWrapper):
                     self.error_holder.add_error(
                         f"Unknown check_hull res {str(res)}",
                         target_logger=logger,
-                        new_error_level=4,
+                        new_error_level=logging.ERROR,
                     )
             self.store_image(hull_img, f"src_img_with_cnt_after_agg_iter_{iter_count}")
             iter_count += 1
@@ -2082,7 +2091,7 @@ class AbstractImageProcessor(ImageWrapper):
                 f'No contour detected "{repr(e)}", '
                 f'skipping analyze_object & analyze_bound for "{self.file_name}"',
                 target_logger=logger,
-                new_error_level=3,
+                new_error_level=35,
             )
             print(self.error_holder.last_error())
             return False
@@ -2157,7 +2166,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f'Failed to extract image data: "{str(self)}", because "{repr(e)}"',
                 target_logger=logger,
-                new_error_level=3,
+                new_error_level=35,
             )
             print(self.error_holder.last_error())
             res = False
@@ -3062,7 +3071,7 @@ class AbstractImageProcessor(ImageWrapper):
                 self.error_holder.add_error(
                     "If no channel is selected source must be grayscale image",
                     target_logger=logger,
-                    new_error_level=4,
+                    new_error_level=logging.ERROR,
                 )
                 return None, ""
 
@@ -3351,7 +3360,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f'Failed default process {mode}, exception: "{repr(e)}"',
                 target_logger=logger,
-                new_error_level=3,
+                new_error_level=35,
             )
         finally:
             self.print_images()
@@ -3360,7 +3369,9 @@ class AbstractImageProcessor(ImageWrapper):
     def check_source(self):
         if self.is_color_checker:
             self.error_holder.add_error(
-                "HANDLED FAILURE color checker", target_logger=logger, new_error_level=4
+                "HANDLED FAILURE color checker",
+                target_logger=logger,
+                new_error_level=logging.ERROR,
             )
             return False
 
@@ -3377,7 +3388,7 @@ class AbstractImageProcessor(ImageWrapper):
                 "Image has been tagged as corrupted",
                 new_error_kind="source_issue",
                 target_logger=logger,
-                new_error_level=4,
+                new_error_level=logging.ERROR,
             )
             return False
 
@@ -3455,7 +3466,7 @@ class AbstractImageProcessor(ImageWrapper):
                     "Image failed to load",
                     new_error_kind="source_issue",
                     target_logger=logger,
-                    new_error_level=4,
+                    new_error_level=logging.ERROR,
                 )
                 return
 
@@ -3471,28 +3482,34 @@ class AbstractImageProcessor(ImageWrapper):
             res = self.build_channel_mask(img, **kwargs)
             if not res:
                 self.error_holder.add_error(
-                    "Failed to build channel mask", target_logger=logger, new_error_level=4
+                    "Failed to build channel mask",
+                    target_logger=logger,
+                    new_error_level=logging.ERROR,
                 )
                 return
 
             res = self.crop_mask()
             if not res:
                 self.error_holder.add_error(
-                    "Failed to crop mask for", target_logger=logger, new_error_level=4
+                    "Failed to crop mask for",
+                    target_logger=logger,
+                    new_error_level=logging.ERROR,
                 )
                 return
 
             res = self.clean_mask(source_image=img.copy())
             if not res:
                 self.error_holder.add_error(
-                    "Failed to clean mask", target_logger=logger, new_error_level=4
+                    "Failed to clean mask", target_logger=logger, new_error_level=logging.ERROR
                 )
                 return
 
             res = self.ensure_mask_zone()
             if not res:
                 self.error_holder.add_error(
-                    "Mask not where expected to b", target_logger=logger, new_error_level=4
+                    "Mask not where expected to b",
+                    target_logger=logger,
+                    new_error_level=logging.ERROR,
                 )
                 return
 
@@ -3529,7 +3546,7 @@ class AbstractImageProcessor(ImageWrapper):
             self.error_holder.add_error(
                 f'Failed to process image, because "{repr(e)}"',
                 target_logger=logger,
-                new_error_level=3,
+                new_error_level=35,
             )
             print(self.error_holder.last_error())
             res = False

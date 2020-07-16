@@ -80,7 +80,7 @@ class PipelineSettings(IptParamHolder):
             name="stop_on",
             desc="Stop processing on error level",
             default_value=eh.ERR_LVL_EXCEPTION,
-            values={i: eh.error_level_to_str(i) for i in range(1, 6)},
+            values={i: eh.error_level_to_str(i) for i in [0, 10, 20, 30, 35, 40, 50]},
             hint="If any error of the selected level or higher happens the process will halt",
         )
 
@@ -180,13 +180,14 @@ class Node(object):
                 self.absolute_index + 1 if is_progress else -1,
                 self.absolute_count if is_progress else -1,
             )
-        if res > 0:
-            self.root.parent.last_error.add_error(
-                new_error_text=msg,
-                new_error_kind="pipeline_process_error",
-                new_error_level=res,
-                target_logger=logger,
-            )
+        else:
+            if isinstance(res, int) and (res > 0):
+                self.root.parent.last_error.add_error(
+                    new_error_text=msg,
+                    new_error_kind="pipeline_process_error",
+                    new_error_level=res,
+                    target_logger=logger,
+                )
         md = np.array(self.root.parent.settings.mosaic.images)
         if isinstance(data, (GroupNode, ModuleNode)):
             dn = data.name
@@ -263,7 +264,7 @@ class ModuleNode(Node):
             ):
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_OK,
+                    res=logging.INFO,
                     msg="",
                     data={
                         "plant_name": wrapper.plant,
@@ -279,7 +280,7 @@ class ModuleNode(Node):
             ):
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_OK,
+                    res=logging.INFO,
                     msg="",
                     data={
                         "plant_name": wrapper.plant,
@@ -308,7 +309,7 @@ class ModuleNode(Node):
                 else:
                     self.do_call_back(
                         call_back=call_back,
-                        res=eh.ERR_LVL_ERROR,
+                        res=logging.ERROR,
                         msg=f"Failed to generate ROI from  {self.name}",
                         data=wrapper if self.root.parent.debug_mode else self,
                     )
@@ -321,7 +322,7 @@ class ModuleNode(Node):
                 if tool.result is None:
                     self.do_call_back(
                         call_back=call_back,
-                        res=eh.ERR_LVL_WARNING,
+                        res=logging.WARNING,
                         msg=f"Failed to generate mask from  {self.name}",
                         data=None,
                     )
@@ -371,7 +372,7 @@ class ModuleNode(Node):
             )
             inner_call_back(
                 res="GRID_SEARCH_OK" if res else "GRID_SEARCH_NOK",
-                msg=f"Failed to process element",
+                msg="Failed to process element",
                 data={
                     "plant_name": wrapper.plant,
                     "name": wrapper.short_name,
@@ -408,14 +409,14 @@ class ModuleNode(Node):
                 if self.last_result:
                     self.do_call_back(
                         call_back=call_back,
-                        res=eh.ERR_LVL_OK,
+                        res=logging.INFO,
                         msg=f"Successfully processed {self.name} in {format_time(timer() - before)}",
                         data=wrapper if self.root.parent.debug_mode else self,
                     )
                 else:
                     self.do_call_back(
                         call_back=call_back,
-                        res=eh.ERR_LVL_ERROR,
+                        res=logging.ERROR,
                         msg=f"Failed to processed {self.name} in {format_time(timer() - before)}",
                         data=wrapper
                         if self.root.parent.debug_mode or self.uuid == target_module
@@ -544,7 +545,7 @@ class GroupNode(Node):
         self.nodes.append(new_node)
         return new_node
 
-    def remove_node(self, node: [int, object]):
+    def remove_node(self, node: Union[int, object]):
         if isinstance(node, int):
             node = self.nodes[node]
         if not isinstance(node, GroupNode) or not node.no_delete:
@@ -576,7 +577,7 @@ class GroupNode(Node):
                 self.last_result = {}
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_WARNING,
+                    res=logging.WARNING,
                     msg=f"{self.name} - Failed to retrieve source {source}, selecting last output instead",
                     data=None,
                     is_progress=False,
@@ -676,7 +677,7 @@ class GroupNode(Node):
             else:
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_ERROR,
+                    res=logging.ERROR,
                     msg=f'Invalid output type "{self.output_type}" for merge mode "{self.merge_mode}" in {self.name}',
                     data=None,
                     is_progress=False,
@@ -705,7 +706,7 @@ class GroupNode(Node):
                 )
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_OK,
+                    res=logging.INFO,
                     msg=f"Pipeline processed in {format_time(timer() - before)}",
                     data={
                         "name": f"{wrapper.luid}_final_mosaic",
@@ -719,7 +720,7 @@ class GroupNode(Node):
             else:
                 self.do_call_back(
                     call_back=call_back,
-                    res=eh.ERR_LVL_OK,
+                    res=logging.INFO,
                     msg=f"Processed {wrapper.luid} in {format_time(timer() - before)}",
                     data=self,
                     force_call_back=True,
@@ -728,7 +729,7 @@ class GroupNode(Node):
         elif not target_module:
             self.do_call_back(
                 call_back=call_back,
-                res=eh.ERR_LVL_OK,
+                res=logging.INFO,
                 msg=f"Successfully processed {self.name}, merge mode: {self.merge_mode} in {format_time(timer() - before)}",
                 data=self,
                 is_progress=False,
@@ -1136,7 +1137,7 @@ class LoosePipeline(object):
         wrapper.store_images = self.root.parent.debug_mode or kwargs.get("target_module", "")
         self.silent = silent_mode
         self.root.execute(wrapper=wrapper, **kwargs)
-        return self.last_error.is_error_under_or(eh.ERR_LVL_WARNING)
+        return self.last_error.is_error_under_or(logging.WARNING)
 
     def targeted_callback(self, param: IptParam):
         if param.name == "debug_mode":
@@ -1180,10 +1181,10 @@ class LoosePipeline(object):
     def copy(self):
         return self.__class__.from_json(self.to_json())
 
-    def get_parent(self, item: [GroupNode, ModuleNode]) -> GroupNode:
+    def get_parent(self, item: Union[GroupNode, ModuleNode]) -> GroupNode:
         return self.root.get_parent(item=item)
 
-    def remove_item(self, item: [GroupNode, ModuleNode]):
+    def remove_item(self, item: Union[GroupNode, ModuleNode]):
         self.root.remove_node(item)
 
     def to_code(self):
