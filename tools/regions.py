@@ -757,14 +757,10 @@ class AnnulusRegion(CircleRegion):
             color = self.color
         if line_width > 0:
             img_ = cv2.circle(
-                dst_img.copy(),
-                (self.center.x, self.center.y),
-                self.radius,
-                self.color,
-                line_width,
+                dst_img.copy(), (self.center.x, self.center.y), self.radius, color, line_width,
             )
             return cv2.circle(
-                img_, (self.center.x, self.center.y), self.in_radius, self.color, line_width,
+                img_, (self.center.x, self.center.y), self.in_radius, color, line_width,
             )
         else:
             return self.fill(dst_img=dst_img, color=color)
