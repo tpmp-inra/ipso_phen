@@ -15,7 +15,10 @@ fld_name = os.path.dirname(abspath)
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
-os.chdir(fld_name)
+
+from ipapi import __init__
+
+# os.chdir(fld_name)
 
 from tools.common_functions import force_directories, make_safe_name
 
