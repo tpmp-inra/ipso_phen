@@ -268,7 +268,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
         except Exception as e:
             wrapper.error_holder.add_error(
                 new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=3,
+                new_error_level=35,
                 target_logger=logger,
             )
             res = False
