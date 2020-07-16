@@ -39,7 +39,7 @@ def _run_process(file_path, script, options, list_res, data_base):
             if hasattr(script, "process_image"):
                 bool_res = script.process_image(progress_callback=None, wrapper=ipo)
             elif hasattr(script, "execute"):
-                bool_res = bool(script.execute(src_image=ipo))
+                bool_res = bool(script.execute(src_image=ipo, target_data_base=data_base))
             else:
                 bool_res = False
             res = WorkerResult(bool_res, str(ipo), script.last_error)

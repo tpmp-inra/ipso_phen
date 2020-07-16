@@ -88,6 +88,9 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         images=_get_key("images", res, overrides),
         database_data=_get_key("database_data", res, overrides),
         thread_count=_get_key("thread_count", res, overrides, 1),
+        included=_get_key("included", res, overrides, []),
+        excluded=_get_key("excluded", res, overrides, []),
+        overwrite=_get_key("overwrite", res, overrides, False),
     )
 
 
@@ -155,7 +158,13 @@ def launch(**kwargs):
         mpc = False
 
     try:
-        script = LoosePipeline.from_json(json_data=res["script"])
+        if isinstance(res["script"], str) and os.path.isfile(res["script"]):
+            script = LoosePipeline.load(res["script"])
+        elif isinstance(res["script"], dict):
+            script = LoosePipeline.from_json(json_data=res["script"])
+        else:
+            exit_error_message(f"Failed to load script: Unknown error")
+            return 1
     except Exception as e:
         exit_error_message(f"Failed to load script: {repr(e)}")
         return 1
