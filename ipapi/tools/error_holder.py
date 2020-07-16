@@ -57,6 +57,23 @@ def error_level_to_logger(error_level: int, target_logger):
         return target_logger.info
 
 
+def error_level_to_logger(error_level: int, target_logger):
+    if error_level == logging.INFO:
+        return target_logger.info
+    elif error_level == logging.INFO:
+        return target_logger.info
+    elif error_level == logging.WARNING:
+        return target_logger.warning
+    elif error_level == ERR_LVL_EXCEPTION:
+        return target_logger.exception
+    elif error_level == logging.ERROR:
+        return target_logger.error
+    elif error_level == logging.CRITICAL:
+        return target_logger.critical
+    else:
+        return target_logger.info
+
+
 class SingleError(object):
     __slots__ = ["text", "timestamp", "level", "kind", "repeat_count"]
 
