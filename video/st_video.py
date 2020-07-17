@@ -73,6 +73,8 @@ def build_single_plant_video(arg):
         main_angle_wrapper_side = AbstractImageProcessor(main_angle_image_)
         try:
             img_main_angle = build_image(main_angle_wrapper_side)
+            if img_main_angle is None:
+                continue
             main_angle_wrapper_side.store_image(
                 image=img_main_angle, text=view_options[0], force_store=True
             )

@@ -162,10 +162,12 @@ def excepthook(excType, excValue, tracebackobj):
     @param excValue exception value
     @param tracebackobj traceback object
     """
-    print(f"{excType} - {excValue}")
-    print("_________________")
-    traceback.print_exception(excType, excValue, sys.last_traceback)
-    print("_________________")
+    logger.error(
+        "".join(
+            ["Exception caught outside try block\n"]
+            + traceback.format_exception(excType, excValue, sys.last_traceback)
+        )
+    )
 
 
 sys.excepthook = excepthook
@@ -545,9 +547,7 @@ class FrmSelectFolder(QDialog):
     def on_folder_selected(self):
         self.folder_path = str(
             QFileDialog.getExistingDirectory(
-                parent=self,
-                caption="Select folder containing images",
-                directory=self.folder_path,
+                parent=self, caption="Select folder containing images", dir=self.folder_path,
             )
         )
 
@@ -948,6 +948,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.bt_remove_from_selection.clicked.connect(self.on_bt_remove_from_selection)
         self.ui.bt_keep_annotated.clicked.connect(self.on_bt_keep_annotated)
 
+        self.ui.pushButton.setText("Push the button!!!")
+        self.ui.pushButton.clicked.connect(self.do_exception)
+
         # Toolbox
         self.ui.bt_process_image.clicked.connect(self.on_bt_process_image)
         self.ui.bt_reset_op.clicked.connect(self.on_bt_reset_op)
@@ -1135,6 +1138,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         model = self.get_image_model()
         if model is not None:
+            self.update_feedback(
+                status_message=f"Added {model.rowCount()} items to image browser",
+                use_status_as_log=True,
+                log_level=logging.INFO,
+            )
             hh: QHeaderView = self.ui.tv_image_browser.horizontalHeader()
             hh.setMaximumSectionSize(150)
             hh.setMinimumSectionSize(70)
@@ -1187,7 +1195,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 old_row_count = model.rowCount()
                 model.images = model.images.append(dataframe)
                 new_row_count = model.rowCount()
-                model.rowsInserted.emit(old_row_count, new_row_count)
                 self.update_images_queue()
                 self.update_feedback(
                     status_message=f"Added {new_row_count - old_row_count} items to image browser",
@@ -1233,7 +1240,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save image list as CSV",
-            directory=self.dynamic_folders["image_list"],
+            dir=self.dynamic_folders["image_list"],
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
@@ -1246,7 +1253,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load image list from CSV",
-            directory=self.dynamic_folders["image_list"],
+            dir=self.dynamic_folders["image_list"],
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
@@ -2282,7 +2289,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.lv_log.moveCursor(QTextCursor.End)
             if log_message is not None:
                 if isinstance(log_message, str):
-                    log_msg = f"{prefix_} -- {log_message}<br>"
+                    log_msg = (
+                        f"{prefix_} -- {eh.log_level_to_html(log_level)}: {log_message}<br>"
+                    )
                     eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
                         log_message
                     )
@@ -2584,7 +2593,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.add_images_to_viewer(
                     wrapper=data,
                     data_dict=data.csv_data_holder.data_list,
-                    avoid_duplicates=True,
+                    avoid_duplicates=False,
                 )
             elif isinstance(data, dict):
                 if "plant_name" not in data:
@@ -2647,7 +2656,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load pipeline",
-            directory=self.dynamic_folders["pipeline"],
+            dir=self.dynamic_folders["pipeline"],
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
@@ -2663,7 +2672,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save pipeline",
-            directory=self.dynamic_folders["pipeline"],
+            dir=self.dynamic_folders["pipeline"],
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
@@ -2893,7 +2902,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             QFileDialog.getExistingDirectory(
                 parent=self,
                 caption="Select output folder",
-                directory=self.ui.le_pp_output_folder.text(),
+                dir=self.ui.le_pp_output_folder.text(),
             )
         )
         if os.path.isdir(sel_folder):
@@ -3266,8 +3275,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             for dic in wrapper.image_list:
                 if avoid_duplicates and self.ui.cb_available_outputs.findText(dic["name"]) >= 0:
                     continue
+                if dic["written"] is True:
+                    continue
                 if data_dict is not None:
                     dic["data"] = dict(**{"image_name": dic["name"]}, **data_dict)
+                dic["written"] = True
                 dic["plant_name"] = wrapper.plant
                 self.ui.cb_available_outputs.addItem(dic["name"], dic)
         except Exception as e:
@@ -3919,7 +3931,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load dataframe as CSV",
-            directory=self.dynamic_folders["csv"],
+            dir=self.dynamic_folders["csv"],
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
@@ -3948,7 +3960,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             file_name_ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="Save dataframe as CSV",
-                directory=self.dynamic_folders["csv"],
+                dir=self.dynamic_folders["csv"],
                 filter="CSV(*.csv)",
             )[0]
             if file_name_:
@@ -4150,6 +4162,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         finally:
             self.end_edit_image_browser()
 
+    def do_exception(self):
+        print(1 / 0)
+
     def on_bt_keep_annotated(self):
         self.begin_edit_image_browser()
         try:
@@ -4181,11 +4196,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     @log_method_execution_time
     def inner_add_to_selection(self, cull: bool):
         self.begin_edit_image_browser()
-        self.update_feedback(
-            status_message="Adding observations to selection", use_status_as_log=True
-        )
         self._batch_stop_current = False
-        self.global_progress_start(add_stop_button=False)
         try:
             dataframe = self.execute_current_query()
             if cull:
@@ -4194,7 +4205,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         except Exception as e:
             self.log_exception(f"Add to selection failed: {repr(e)}")
         finally:
-            self.global_progress_stop()
             self.end_edit_image_browser()
 
     def on_bt_add_random(self):
@@ -4615,8 +4625,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             date=self._current_date,
             camera=self._current_camera,
         )
+        opt_lst.sort(key=lambda x: natural_keys(x))
+        if "sw755" in opt_lst:
+            opt_lst.remove("sw755")
+            opt_lst.insert(0, "sw755")
         self.ui.chk_view_option.setText(f"View option ({len(opt_lst)}): ")
-        self.ui.cb_view_option.addItems(sorted(opt_lst, key=lambda x: natural_keys(x)))
+        self.ui.cb_view_option.addItems(opt_lst)
         self.ui.cb_view_option.setEnabled(self.ui.cb_view_option.count() > 1)
         if self._updating_combo_boxes:
             target_index = self.ui.cb_view_option.findText(self._current_view_option)
@@ -4808,7 +4822,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save pipeline processor state",
-            directory=self.dynamic_folders["pp_state"],
+            dir=self.dynamic_folders["pp_state"],
             filter="JSON(*.json)",
         )[0]
         if file_name_:

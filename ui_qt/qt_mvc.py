@@ -1,4 +1,5 @@
 from datetime import datetime as dt
+from typing import Union
 from PySide2.QtGui import QBrush, QColor, QIcon, QImage, QPalette, QPen, QPixmap
 from PySide2.QtWidgets import (
     QApplication,
@@ -116,7 +117,7 @@ class PipelineNode(TreeNode):
         )
 
     def _getChildren(self):
-        if isinstance(self.node_data, str):
+        if isinstance(self.node_data, (str, tuple)):
             return []
         elif isinstance(self.node_data, dict) and "grid_search" in self.node_data:
             return [
@@ -556,7 +557,7 @@ class QImageDrawerDelegate(QItemDelegate):
 class PipelineDelegate(QStyledItemDelegate):
     def __init__(self, parent=None, *args, **kwargs):
         QStyledItemDelegate.__init__(self, parent, *args)
-        self.widget = None
+        # self.widget = None
 
     def paint(self, painter, option, index):
         try:
@@ -598,11 +599,11 @@ class PipelineDelegate(QStyledItemDelegate):
             widget = QWidget(parent)
             widget.setAutoFillBackground(True)
 
-            txt_group_name = QLineEdit(self.widget)
+            txt_group_name = QLineEdit(widget)
             txt_group_name.setEnabled(isinstance(nd.parent, GroupNode))
             txt_group_name.setObjectName("txt_group_name")
 
-            cb_source = QComboBox(self.widget)
+            cb_source = QComboBox(widget)
             cb_source.setObjectName("cb_source")
             cb_source.addItem("last_output", "last_output")
             cb_source.addItem("source", "source")
@@ -614,7 +615,7 @@ class PipelineDelegate(QStyledItemDelegate):
                     nd = group.internalPointer().node_data
                     cb_source.addItem(nd.name, nd.uuid)
 
-            cb_merge_mode = QComboBox(self.widget)
+            cb_merge_mode = QComboBox(widget)
             cb_merge_mode.setObjectName("cb_merge_mode")
             for merge_mode in [
                 ipc.MERGE_MODE_AND,
@@ -634,6 +635,10 @@ class PipelineDelegate(QStyledItemDelegate):
             hl.addWidget(cb_merge_mode)
 
             return widget
+        elif isinstance(nd, tuple) and index.column() == 0:
+            txt_pipeline_description = QLineEdit(parent)
+            txt_pipeline_description.setObjectName("txt_pipeline_description")
+            return txt_pipeline_description
         else:
             return QStyledItemDelegate.createEditor(self, parent, option, index)
 
@@ -651,6 +656,9 @@ class PipelineDelegate(QStyledItemDelegate):
             cb_source: QComboBox = editor.findChild(QComboBox, "cb_source")
             if cb_source is not None:
                 cb_source.setCurrentIndex(cb_source.findData(nd.source))
+        elif isinstance(nd, tuple) and index.column() == 0:
+            if editor is not None:
+                editor.setText(nd[1])
         else:
             return QStyledItemDelegate.setEditorData(self, editor, index)
 
@@ -952,7 +960,7 @@ class TreeModel(QAbstractItemModel):
         self.rootNodes = self._getRootNodes()
         super().reset(self)
 
-    def iter_items(self, root, allowed_classes: [None, tuple] = None):
+    def iter_items(self, root, allowed_classes: Union[None, tuple] = None):
         if root is None:
             stack = [
                 self.createIndex(0, 0, self.rootNodes[i]) for i in range(len(self.rootNodes))
@@ -1014,7 +1022,7 @@ class PipelineModel(TreeModel):
     def _getRootNodes(self):
         return [
             PipelineNode(
-                node_data=f"Description:\n{self.pipeline.description}",
+                node_data=("Description:", self.pipeline.description),
                 parent=None,
                 row=0,
                 call_backs=self.call_backs,
@@ -1050,6 +1058,8 @@ class PipelineModel(TreeModel):
                 nd = node.node_data
                 if isinstance(nd, str):
                     return nd
+                elif isinstance(nd, tuple):
+                    return "\n".join(nd)
                 elif isinstance(nd, PipelineSettings):
                     return "Settings"
                 elif isinstance(nd, IptBase):
@@ -1074,6 +1084,8 @@ class PipelineModel(TreeModel):
             elif role == Qt.ToolTipRole:
                 nd = node.node_data
                 if isinstance(nd, str):
+                    return f"{nd}\n\nDouble click to edit."
+                elif isinstance(nd, tuple):
                     return f"{nd}\n\nDouble click to edit."
                 elif isinstance(nd, PipelineSettings):
                     return "Settings: Set pipeline behavior"
@@ -1127,10 +1139,10 @@ class PipelineModel(TreeModel):
                         item.node_data.name = value
                     elif isinstance(value, GroupNode):
                         item.set_node_data(value)
-                elif isinstance(item.node_data, str):
+                elif isinstance(item.node_data, tuple):
                     if isinstance(value, str):
                         self.pipeline.description = value
-                        item.set_node_data(f"Description:\n{self.pipeline.description}")
+                        item.set_node_data(("Description:", value))
                 self.layoutChanged.emit()
                 return True
             elif role == Qt.UserRole:
@@ -1263,7 +1275,7 @@ class PipelineModel(TreeModel):
         flags |= Qt.ItemIsUserCheckable
         if index.column() == 0:
             nd = self.get_item(index).node_data
-            if isinstance(nd, (GroupNode, str)):
+            if isinstance(nd, (GroupNode, str, tuple)):
                 flags |= Qt.ItemIsEditable
             if isinstance(nd, (ModuleNode, GroupNode)):
                 flags |= Qt.ItemIsUserCheckable
