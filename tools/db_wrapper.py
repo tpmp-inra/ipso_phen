@@ -3,6 +3,7 @@ import os
 import sqlite3
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
+import logging
 
 
 import pandas as pd
@@ -13,6 +14,8 @@ from sqlalchemy_utils import database_exists
 from tools.image_list import ImageList
 from file_handlers.fh_base import file_handler_factory
 from tools.common_functions import print_progress_bar, force_directories, make_safe_name
+
+logger = logging.getLogger(__name__)
 
 DB_USER = "fmavianemac"
 DB_PREFIX = "ipso_local_db_"
@@ -215,7 +218,7 @@ class QueryHandlerPostgres(QueryHandler):
                     self.connexion.execute(s, param_dict).fetchall(), columns=cols
                 )
             except Exception as e:
-                self.last_error = f"Query failed because: {repr(e)}"
+                logger.exception(f"Query failed because: {repr(e)}")
                 df = None
             finally:
                 self.close_connexion()
@@ -242,7 +245,7 @@ class QueryHandlerPostgres(QueryHandler):
             try:
                 ret = self.connexion.execute(s, param_dict).fetchall()
             except Exception as e:
-                self.last_error = f"Query failed because: {repr(e)}"
+                logger.exception(f"Query failed because: {repr(e)}")
                 ret = None
             finally:
                 self.close_connexion()
@@ -382,7 +385,6 @@ class DbWrapper(ABC):
         self.engine = None
         self.progress_call_back = kwargs.get("progress_call_back", None)
         self.connexion = None
-        self._last_error = ""
         self.db_info = kwargs.get("db_info", None)
 
     def __del__(self):
@@ -449,16 +451,6 @@ class DbWrapper(ABC):
     @property
     def db_url(self):
         return f"{self.url}/{self.db_file_name.lower()}"
-
-    @property
-    def last_error(self):
-        return self._last_error
-
-    @last_error.setter
-    def last_error(self, value):
-        if value:
-            print(value)
-        self._last_error = value
 
     @abstractproperty
     def type(self) -> list:
@@ -548,7 +540,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 missing_data = True
             except Exception as e:
                 self.close_connexion()
-                self.last_error = f"Failed to create table because {repr(e)}"
+                logger.exception(f"Failed to create table because {repr(e)}")
                 return False
 
         if missing_data and auto_update and self.db_file_name:
@@ -573,7 +565,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             conn_.close()
         except Exception as e:
             trans_.rollback()
-            self.last_error = f'Something went wrong: "{repr(e)}"'
+            logger.exception(f'Something went wrong: "{repr(e)}"')
             return False
         else:
             return True
@@ -617,7 +609,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                     except exc.IntegrityError:
                         pass
                     except Exception as e:
-                        self.last_error = f'Cannot add "{file}" because "{e}"'
+                        logger.exception(f'Cannot add "{file}" because "{e}"')
                     else:
                         files_added += 1
                     self._callback(
@@ -639,12 +631,12 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                     finally:
                         self.close_connexion()
             except Exception as e:
-                self.last_error = f"Failed to create table because {repr(e)}"
+                logger.exception(f"Failed to create table because {repr(e)}")
                 files_added = -1
             else:
                 files_added = df["luid"].count()
         else:
-            self.last_error = f"I don't know what to do with {self.src_files_path}"
+            logger.error(f"I don't know what to do with {self.src_files_path}")
             files_added = -1
 
         return files_added
@@ -773,7 +765,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                     except exc.IntegrityError:
                         pass
                     except Exception as e:
-                        self.last_error = f'Cannot add "{file}" because "{e}"'
+                        logger.exception(f'Cannot add "{file}" because "{e}"')
                     else:
                         files_added += 1
                     self._callback(
@@ -794,12 +786,12 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                 finally:
                     self.close_connexion()
             except Exception as e:
-                self.last_error = f"Failed to create table because {repr(e)}"
+                logger.exception(f"Failed to create table because {repr(e)}")
                 files_added = -1
             else:
                 files_added = df["luid"].count()
         else:
-            self.last_error = f"I don't know what to do with {self.src_files_path}"
+            logger.error(f"I don't know what to do with {self.src_files_path}")
             files_added = -1
 
         return files_added
