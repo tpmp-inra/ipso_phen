@@ -184,7 +184,6 @@ class AbstractImageProcessor(ImageWrapper):
                 new_error_kind="source_issue",
                 new_error_level=logging.ERROR,
                 target_logger=logger,
-                target_logger=logger,
             )
 
         return src_img
