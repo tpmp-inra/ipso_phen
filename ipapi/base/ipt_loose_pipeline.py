@@ -696,8 +696,6 @@ class GroupNode(Node):
         self.last_result["mask"] = wrapper.mask
         self.last_result["data"] = wrapper.csv_data_holder.data_list
 
-        status_message = f"Pipeline processed in {format_time(timer() - before)}"
-
         if self.is_root:
             if self.parent.settings.mosaic.enabled:
                 self.root.parent.mosaic = wrapper.build_mosaic(
