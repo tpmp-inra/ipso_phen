@@ -189,3 +189,5 @@ IPSO_Phen.egg-info/
 /ui/pyqt_model.py
 /ui/pyqt_table.py
 /ui_qt/main_form.py
+logs/
+saved_data/

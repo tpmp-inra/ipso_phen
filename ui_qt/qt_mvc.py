@@ -557,7 +557,6 @@ class QImageDrawerDelegate(QItemDelegate):
 class PipelineDelegate(QStyledItemDelegate):
     def __init__(self, parent=None, *args, **kwargs):
         QStyledItemDelegate.__init__(self, parent, *args)
-        # self.widget = None
 
     def paint(self, painter, option, index):
         try:
