@@ -139,9 +139,7 @@ class IptAugmentData(IptBaseAnalyzer):
             if not dst_path:
                 wrapper.error_holder.add_error(f"Failed : Missing folder parameter")
             elif gsl:
-                self.add_value(
-                    key="source_name", value=wrapper.name, force_add=True, target_logger=logger
-                )
+                self.add_value(key="source_name", value=wrapper.name, force_add=True)
                 for gamma_value in gsl:
                     self.save_image(image=src_img, gamma=float(gamma_value), path=dst_path)
                 res = True
