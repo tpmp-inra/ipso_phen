@@ -1311,7 +1311,12 @@ class LoosePipeline(object):
                         enabled=tool_dict["enabled"],
                         uuid=tool_dict["uuid"],
                     )
+        else:
+            res = cls()
+            res.name = f'Failed to load unknown pipeline type "{json_data["title"].lower()}"'
 
+        if res.stop_on < 10:
+            res.stop_on = 35
         res.set_callbacks()
         return res
 
