@@ -40,7 +40,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="tab_pipeline_builder">
        <attribute name="title">
@@ -1104,8 +1104,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>771</width>
-                           <height>78</height>
+                           <width>98</width>
+                           <height>28</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">
@@ -1170,6 +1170,19 @@
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_6">
               <item>
+               <widget class="QPushButton" name="bt_clear_result">
+                <property name="maximumSize">
+                 <size>
+                  <width>100</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string>Clear</string>
+                </property>
+               </widget>
+              </item>
+              <item>
                <widget class="QComboBox" name="cb_available_outputs">
                 <property name="maxVisibleItems">
                  <number>30</number>
@@ -1180,15 +1193,15 @@
                </widget>
               </item>
               <item>
-               <widget class="QPushButton" name="bt_clear_result">
+               <widget class="QPushButton" name="bt_set_as_selected">
                 <property name="maximumSize">
                  <size>
-                  <width>100</width>
+                  <width>140</width>
                   <height>16777215</height>
                  </size>
                 </property>
                 <property name="text">
-                 <string>Clear</string>
+                 <string>Set as selected</string>
                 </property>
                </widget>
               </item>
@@ -1957,11 +1970,7 @@
     <number>8</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
-    <layout class="QHBoxLayout" name="horizontalLayout_12">
-     <item>
-      <widget class="QTextBrowser" name="lv_log"/>
-     </item>
-    </layout>
+    <layout class="QHBoxLayout" name="horizontalLayout_12"/>
    </widget>
   </widget>
   <action name="actionTPMP">
@@ -2665,7 +2674,7 @@
   </action>
   <action name="action_de_delete_column">
    <property name="text">
-    <string>Delete colomn</string>
+    <string>Delete column</string>
    </property>
   </action>
   <action name="action_de_save_csv">

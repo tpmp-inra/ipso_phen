@@ -1,42 +1,49 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'main.ui'
-##
-## Created by: Qt User Interface Compiler version 5.15.0
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
+# Form generated from reading UI file 'main.ui'
+#
+# Created by: Qt User Interface Compiler version 5.15.0
+#
+# WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (
-    QCoreApplication,
-    QDate,
-    QDateTime,
-    QMetaObject,
-    QObject,
-    QPoint,
-    QRect,
-    QSize,
-    QTime,
-    QUrl,
-    Qt,
+from PySide2.QtCore import QCoreApplication, QMetaObject, QRect, QSize, Qt
+from PySide2.QtGui import QFont, QIcon
+from PySide2.QtWidgets import (
+    QAction,
+    QWidget,
+    QVBoxLayout,
+    QTabWidget,
+    QHBoxLayout,
+    QCheckBox,
+    QComboBox,
+    QSpacerItem,
+    QGridLayout,
+    QFrame,
+    QSplitter,
+    QPushButton,
+    QTableView,
+    QSizePolicy,
+    QAbstractItemView,
+    QLabel,
+    QSpinBox,
+    QTextEdit,
+    QToolButton,
+    QListWidget,
+    QProgressBar,
+    QTreeView,
+    QScrollArea,
+    QGroupBox,
+    QTextBrowser,
+    QSlider,
+    QRadioButton,
+    QLineEdit,
+    QMenuBar,
+    QMenu,
+    QDockWidget,
+    QStatusBar,
 )
-from PySide2.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QCursor,
-    QFont,
-    QFontDatabase,
-    QIcon,
-    QKeySequence,
-    QLinearGradient,
-    QPalette,
-    QPainter,
-    QPixmap,
-    QRadialGradient,
-)
-from PySide2.QtWidgets import *
 
 import ui_qt.main_rc
 
@@ -928,7 +935,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 771, 78))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 80, 26))
         self.gridLayout_17 = QGridLayout(self.scrollAreaWidgetContents_4)
         self.gridLayout_17.setObjectName(u"gridLayout_17")
         self.gl_tool_params = QGridLayout()
@@ -978,6 +985,12 @@ class Ui_MainWindow(object):
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout_6 = QHBoxLayout()
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
+        self.bt_clear_result = QPushButton(self.frame)
+        self.bt_clear_result.setObjectName(u"bt_clear_result")
+        self.bt_clear_result.setMaximumSize(QSize(100, 16777215))
+
+        self.horizontalLayout_6.addWidget(self.bt_clear_result)
+
         self.cb_available_outputs = QComboBox(self.frame)
         self.cb_available_outputs.setObjectName(u"cb_available_outputs")
         self.cb_available_outputs.setMaxVisibleItems(30)
@@ -985,11 +998,11 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_6.addWidget(self.cb_available_outputs)
 
-        self.bt_clear_result = QPushButton(self.frame)
-        self.bt_clear_result.setObjectName(u"bt_clear_result")
-        self.bt_clear_result.setMaximumSize(QSize(100, 16777215))
+        self.bt_set_as_selected = QPushButton(self.frame)
+        self.bt_set_as_selected.setObjectName(u"bt_set_as_selected")
+        self.bt_set_as_selected.setMaximumSize(QSize(140, 16777215))
 
-        self.horizontalLayout_6.addWidget(self.bt_clear_result)
+        self.horizontalLayout_6.addWidget(self.bt_set_as_selected)
 
         self.verticalLayout.addLayout(self.horizontalLayout_6)
 
@@ -1369,10 +1382,6 @@ class Ui_MainWindow(object):
         self.dockWidgetContents.setObjectName(u"dockWidgetContents")
         self.horizontalLayout_12 = QHBoxLayout(self.dockWidgetContents)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
-        self.lv_log = QTextBrowser(self.dockWidgetContents)
-        self.lv_log.setObjectName(u"lv_log")
-
-        self.horizontalLayout_12.addWidget(self.lv_log)
 
         self.dk_log.setWidget(self.dockWidgetContents)
         MainWindow.addDockWidget(Qt.BottomDockWidgetArea, self.dk_log)
@@ -1759,7 +1768,7 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Add column", None)
         )
         self.action_de_delete_column.setText(
-            QCoreApplication.translate("MainWindow", u"Delete colomn", None)
+            QCoreApplication.translate("MainWindow", u"Delete column", None)
         )
         self.action_de_save_csv.setText(
             QCoreApplication.translate("MainWindow", u"Save CSV...", None)
@@ -1991,6 +2000,9 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Standalone tools", None),
         )
         self.bt_clear_result.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
+        self.bt_set_as_selected.setText(
+            QCoreApplication.translate("MainWindow", u"Set as selected", None)
+        )
         self.tabWidget.setTabText(
             self.tabWidget.indexOf(self.tab_pipeline_builder),
             QCoreApplication.translate("MainWindow", u"Pipeline builder", None),
@@ -2103,4 +2115,3 @@ class Ui_MainWindow(object):
         )
 
     # retranslateUi
-

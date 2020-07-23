@@ -38,6 +38,7 @@ from PySide2.QtCore import (
     QTimer,
     QItemSelectionModel,
     Slot,
+    Signal,
 )
 from PySide2.QtGui import (
     QColor,
@@ -134,9 +135,8 @@ from ui_qt.qt_mvc import (
 )
 from ui_qt.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 from ui_qt.main import Ui_MainWindow
-
-logger = logging.getLogger(__name__)
-
+from ui_qt.qt_log_streamer import XStream
+from ui_qt.qt_custom_widgets import QLogger
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
@@ -152,6 +152,8 @@ _PRAGMA_NAME = "IPSO Phen"
 _PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json)
 ;;JSON compatible pipeline (*.json)"""
 __version__ = "0.6.547b"
+
+logger = logging.getLogger(__name__)
 
 
 def excepthook(excType, excValue, tracebackobj):
@@ -185,11 +187,7 @@ def log_method_execution_time(f):
         before = timer()
         x = f(*args, **kwargs)
         after = timer()
-        args[0].update_feedback(
-            status_message="",
-            log_message=f"Method {f.__name__} took {format_time(after - before)}",
-            log_level=logging.INFO,
-        )
+        logger.debug(f"Method {f.__name__} took {format_time(after - before)}")
         return x
 
     return time_wrapper
@@ -312,11 +310,14 @@ class NewToolDialog(QDialog):
             else:
                 f.write(f"{spaces}from base.ipt_abstract import IptBase\n")
                 inh_class_name_ = "IptBase"
-            f.write(f"\n\n")
+            f.write("\n\n")
+
+            f.write("import logging")
+            f.write("logger = logging.getLogger(__name__)")
 
             # Class
             f.write(f"{spaces}class {self.ui.le_class_name.text()}({inh_class_name_}):\n")
-            f.write(f"\n")
+            f.write("\n")
 
             # Build params
             spaces = add_tab("")
@@ -363,7 +364,7 @@ class NewToolDialog(QDialog):
                 f.write(f"{spaces}mask = wrapper.mask\n")
                 f.write(f"{spaces}if mask is None:\n")
                 f.write(
-                    f"""{spaces}    wrapper.error_holder.add_error(
+                    f"""{spaces}    logger.error(
                         'Failure {self.ui.le_tool_name.text()}: mask must be initialized')\n"""
                 )
                 f.write(f"{spaces}    return\n")
@@ -382,7 +383,7 @@ class NewToolDialog(QDialog):
             f.write(f"{spaces}    res = False\n")
             f.write(
                 f"{spaces}"
-                + "    wrapper.error_holder.add_error("
+                + "    logger.error("
                 + "f"
                 + f'"{self.ui.le_tool_name.text()} FAILED'
                 + ', exception: {repr(e)}")\n'
@@ -396,15 +397,15 @@ class NewToolDialog(QDialog):
 
             # Properties
             spaces = add_tab("")
-            f.write(f"{spaces}@property\n")
+            f.write("{spaces}@property\n")
             f.write(f"{spaces}def name(self):\n")
             f.write(f"{spaces}    return '{self.ui.le_tool_name.text()} (WIP)'\n")
-            f.write(f"\n")
+            f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def package(self):\n")
             f.write(f"{spaces}    return '{self.ui.le_package_name.text()}'\n")
-            f.write(f"\n")
+            f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def real_time(self):\n")
@@ -620,6 +621,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         self._reset_log_counts()
 
+        self.lv_log = QLogger(self.ui.dockWidgetContents)
+        self.lv_log.setObjectName("lv_log")
+        self.lv_log.log_received.connect(self.on_log_received)
+        self.ui.horizontalLayout_12.addWidget(self.lv_log)
+
+        XStream.stdout().messageWritten.connect(self.lv_log.append_text)
+        XStream.stderr().messageWritten.connect(self.lv_log.append_text)
+
         self._initializing = True
         self._working = False
         self._updating_saved_image_lists = False
@@ -629,6 +638,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._file_name = ""
         self.multithread = True
         self.use_pipeline_cache = True
+        self._selected_output_image_luid = None
 
         root_ipso_folder = "ipso_phen_data"
         self.dynamic_folders = {
@@ -916,7 +926,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 tool_menu.setToolTipsVisible(True)
                 self.ui.bt_pp_select_tool.setMenu(tool_menu)
         except Exception as e:
-            self.log_exception(f"Failed to load tools: {repr(e)}")
+            logger.exception(f"Failed to load tools: {repr(e)}")
 
         # Build database selectors
         self.current_database = None
@@ -958,6 +968,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.bt_tool_show_code.clicked.connect(self.on_bt_tool_show_code)
 
         self.ui.bt_clear_result.clicked.connect(self.on_bt_clear_result)
+        self.ui.bt_set_as_selected.clicked.connect(self.on_bt_set_as_selected)
+        self.ui.bt_set_as_selected.setEnabled(False)
 
         # Batches
         self.ui.bt_launch_batch.clicked.connect(self.on_bt_launch_batch)
@@ -1071,6 +1083,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.bt_pp_delete.clicked.connect(self.on_bt_pp_delete)
         self.ui.bt_pp_run.clicked.connect(self.on_bt_pp_run)
         self.ui.bt_pp_invalidate.clicked.connect(self.on_bt_pp_invalidate)
+
+        self.ui.dk_log.visibilityChanged.connect(self.on_log_visibility_changed)
 
         self.ui.sl_pp_thread_count.setMaximum(mp.cpu_count())
         self.ui.sl_pp_thread_count.setMinimum(1)
@@ -1234,7 +1248,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif mode == "clear":
             self.init_image_browser(None)
         else:
-            self.log_exception(f'Failed to update image browser, unknown mode "{mode}"')
+            logger.exception(f'Failed to update image browser, unknown mode "{mode}"')
 
     def on_action_save_image_list(self):
         file_name_ = QFileDialog.getSaveFileName(
@@ -1398,7 +1412,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if ldb.display_name == self.sender().text():
                 db = dbw.db_info_to_database(ldb)
                 if isinstance(db, str):
-                    self.log_exception(f"Unknown DBMS: {db}")
+                    logger.exception(f"Unknown DBMS: {db}")
                 else:
                     self.current_database = db
                 break
@@ -1418,22 +1432,26 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             log_message=f"Building image database for {repr(db_wrapper)}",
             log_level=logging.INFO,
         )
-        self.global_progress_start(add_stop_button=True)
-        db_wrapper.progress_call_back = self.global_progress_update
-        self.set_global_enabled_state(new_state=False, force_enabled=("global_stop_button",))
-        self.process_events()
+        if not self._initializing:
+            self.global_progress_start(add_stop_button=True)
+            db_wrapper.progress_call_back = self.global_progress_update
+            self.set_global_enabled_state(
+                new_state=False, force_enabled=("global_stop_button",)
+            )
+            self.process_events()
         try:
             db_wrapper.update()
         except Exception as e:
-            self.log_exception(f"Failed query database because: {repr(e)}")
+            logger.exception(f"Failed query database because: {repr(e)}")
             ret = False
         else:
             ret = True
         finally:
-            self.global_progress_stop()
-            db_wrapper.progress_call_back = None
-            self.set_global_enabled_state(True)
-            self.process_events()
+            if not self._initializing:
+                self.global_progress_stop()
+                db_wrapper.progress_call_back = None
+                self.set_global_enabled_state(True)
+                self.process_events()
         return ret
 
     def query_current_database(
@@ -1534,7 +1552,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self._global_stop_button.clicked.connect(self.on_bt_stop_batch)
                 self.statusBar().addPermanentWidget(self._global_stop_button)
         except Exception as e:
-            self.log_exception(f"Failed to init global progress bar: {repr(e)}")
+            logger.exception(f"Failed to init global progress bar: {repr(e)}")
 
     def global_progress_update(self, step, total, process_events: bool = False):
         if timer() - self._last_progress_update > 0.2:
@@ -1764,7 +1782,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.on_action_enable_annotations_checked()
 
         except Exception as e:
-            self.log_exception(f"Failed to load set theme: {repr(e)}")
+            logger.exception(f"Failed to load set theme: {repr(e)}")
         else:
             self.update_feedback(
                 status_message=f"Changed theme to: {style} ({theme})",
@@ -1982,7 +2000,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if last_db is not None:
                 ldb = dbw.db_info_to_database(last_db)
                 if isinstance(ldb, str):
-                    self.log_exception(f"Unable to restore database: {ldb}")
+                    logger.exception(f"Unable to restore database: {ldb}")
                 else:
                     self.current_database = ldb
 
@@ -2089,11 +2107,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 try:
                     self.pipeline = LoosePipeline.load(file_name=self.last_pipeline_path)
                 except Exception as e:
-                    self.log_exception(f'Unable to load pipeline: "{repr(e)}"')
+                    logger.exception(f'Unable to load pipeline: "{repr(e)}"')
                     self.last_pipeline_path = ""
 
         except Exception as e:
-            self.log_exception(f"Failed to load settings because: {repr(e)}")
+            logger.exception(f"Failed to load settings because: {repr(e)}")
             res = False
         else:
             self.update_feedback(
@@ -2236,7 +2254,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 settings_.setValue("last_image_browser_state", "")
 
         except Exception as e:
-            self.log_exception(f"Failed to save settings because: {repr(e)}")
+            logger.exception(f"Failed to save settings because: {repr(e)}")
             res = False
         else:
             res = True
@@ -2272,79 +2290,28 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         self.setWindowTitle(f"{_PRAGMA_NAME} -- {mem_data}")
 
-        prefix_ = f'[{dt.now().strftime("%Y_%B_%d %H-%M-%S")}]-{mem_data}'
-
         # Update status bar
         if status_message:
             self._status_label.setText(status_message)
             if log_message is None:
-                eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
-                    f"(Status) {status_message}"
+                eh.log_data(
+                    log_msg=f"(Status) {status_message}",
+                    log_level=log_level,
+                    target_logger=logger,
                 )
         else:
             self._status_label.setText("")
 
         # Update log
         if self.ui.actionEnable_log.isChecked():
-            self.ui.lv_log.moveCursor(QTextCursor.End)
-            if log_message is not None:
-                if isinstance(log_message, str):
-                    log_msg = (
-                        f"{prefix_} -- {eh.log_level_to_html(log_level)}: {log_message}<br>"
-                    )
-                    eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
-                        log_message
-                    )
-                elif isinstance(log_message, ErrorHolder):
-                    log_msg = f"{prefix_} -- {eh.log_level_to_html(log_level)}: {log_message.to_html()}<br>"
-                else:
-                    log_msg = f"{prefix_} -- {eh.log_level_to_html(log_level)}: {str(log_message)}<br>"
-                    eh.error_level_to_logger(error_level=log_level, target_logger=logger)(
-                        str(log_message)
-                    )
+            if log_message is not None and isinstance(log_message, str):
+                eh.log_data(
+                    log_msg=log_message, log_level=log_level, target_logger=logger,
+                )
             elif use_status_as_log and status_message:
-                log_msg = (
-                    f"{prefix_} -- {eh.log_level_to_html(log_level)}: {status_message}<br>"
+                eh.log_data(
+                    log_msg=status_message, log_level=log_level, target_logger=logger,
                 )
-            else:
-                log_msg = ""
-            if log_msg:
-                self.ui.lv_log.insertHtml(log_msg)
-                self.ui.lv_log.verticalScrollBar().setValue(
-                    self.ui.lv_log.verticalScrollBar().maximum()
-                )
-                log_title = "IPSO Phen - Log: "
-                # Add to proper category
-                if log_level == logging.CRITICAL:
-                    self._log_count_critical += 1
-                elif log_level == logging.ERROR:
-                    self._log_count_error += 1
-                elif log_level == eh.ERR_LVL_EXCEPTION:
-                    self._log_count_exception += 1
-                elif log_level == logging.WARNING:
-                    self._log_count_warning += 1
-                elif log_level == logging.INFO:
-                    self._log_count_info += 1
-                else:
-                    self._log_count_unknown += 1
-                # Update tab title
-                if self._log_count_critical > 0:
-                    log_title += f" [Critical:{self._log_count_critical}]"
-                if self._log_count_error > 0:
-                    log_title += f" [Error:{self._log_count_error}]"
-                if self._log_count_exception > 0:
-                    log_title += f" [Exception:{self._log_count_exception}]"
-                if self._log_count_warning > 0:
-                    log_title += f" [Warning:{self._log_count_warning}]"
-                if self._log_count_info > 0:
-                    log_title += f" [Info:{self._log_count_info}]"
-                if len(log_title) < 7:
-                    log_title += " No log messages"
-                self.ui.dk_log.setWindowTitle(log_title)
-
-        if not self.multithread:
-            self.process_events()
-
         if (
             not self._collecting_garbage
             and (timer() - self._last_garbage_collected > 60)
@@ -2367,16 +2334,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     collect_garbage=False,
                 )
             except Exception as e:
-                self.log_exception(f"Unable to collect garbage: {repr(e)}")
+                logger.exception(f"Unable to collect garbage: {repr(e)}")
             finally:
                 self._collecting_garbage = False
                 self._last_garbage_collected = timer()
-
-    def log_exception(self, err_str: str):
-        st_msg, *_ = err_str.split(": ")
-        self.update_feedback(
-            status_message=st_msg, log_message=err_str, log_level=eh.ERR_LVL_EXCEPTION
-        )
 
     def on_action_about_form(self):
         about_frm = QDialog(self)
@@ -2480,7 +2441,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def on_action_show_log(self):
         self.ui.dk_log.setVisible(not self.ui.dk_log.isVisible())
-        self.ui.action_show_log.setChecked(self.ui.dk_log.isVisible())
+
+    def on_log_visibility_changed(self, visible):
+        self.ui.action_show_log.setChecked(visible)
+
+    def on_log_received(self, line: str):
+        if "ERROR" in line or "WARNING" in line or "CRITICAL" in line:
+            if not self.ui.dk_log.isVisible():
+                self.ui.dk_log.setVisible(True)
+            self.ui.dk_log.setWindowTitle("Log: last error - " + line)
 
     def on_action_build_ipso_phen_documentation(self):
         # Build tools overview
@@ -2575,15 +2544,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     status_message=msg, log_message=msg, log_level=logging.INFO
                 )
             if isinstance(data, (GroupNode, ModuleNode)):
+                display_name = (
+                    f"Pipeline output for {data.root.parent.wrapper.luid}"
+                    if data.is_root
+                    else data.name
+                )
                 self.ui.cb_available_outputs.addItem(
-                    data.name,
+                    display_name,
                     {
-                        "plant_name": self._src_image_wrapper.plant,
-                        "name": data.name
-                        if not data.is_root
-                        else f"Pipeline {self._src_image_wrapper.luid}",
+                        "plant_name": data.root.parent.wrapper.plant,
+                        "name": display_name,
                         "image": data.get_feedback_image(data.last_result),
                         "data": data.last_result.get("data", {}),
+                        "luid": data.root.parent.wrapper.luid,
                     },
                 )
                 self.ui.cb_available_outputs.setCurrentIndex(
@@ -2596,8 +2569,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     avoid_duplicates=False,
                 )
             elif isinstance(data, dict):
-                if "plant_name" not in data:
-                    data["plant_name"] = self._src_image_wrapper.plant
                 self.ui.cb_available_outputs.addItem(data["name"], data)
                 self.ui.cb_available_outputs.setCurrentIndex(
                     self.ui.cb_available_outputs.count() - 1
@@ -2621,7 +2592,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif result == "GRID_SEARCH_END":
             self.update_feedback(status_message=f"Ending grid search", use_status_as_log=True)
         else:
-            self.log_exception(f'Unknown result: "Unknown pipeline result {result}"')
+            logger.exception(f'Unknown result: "Unknown pipeline result {result}"')
 
         if current_step >= 0 and total_steps >= 0:
             if "GRID_SEARCH" in result:
@@ -2664,7 +2635,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             try:
                 self.pipeline = LoosePipeline.load(file_name=file_name_)
             except Exception as e:
-                self.log_exception(f'Unable to load pipeline: "{repr(e)}"')
+                logger.exception(f'Unable to load pipeline: "{repr(e)}"')
             else:
                 self.last_pipeline_path = file_name_
 
@@ -2914,8 +2885,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.global_progress_update(step=step, total=total, process_events=not self.multithread)
 
     def do_pp_check_abort(self):
-        # if threading.current_thread() is not threading.main_thread():
-        #     print('do_pp_check_abort: NOT MAIN THREAD')
         return self._batch_stop_current
 
     def do_fp_start(self):
@@ -3001,18 +2970,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def do_pp_log_item_event(
         self, item_luid: str, event_kind: str, log_data: str, auto_scroll: bool = True
     ):
-        if log_data:
-            self.update_feedback(log_message=log_data)
         items = self.ui.lw_images_queue.findItems(item_luid, Qt.MatchExactly)
         for item in items:
-            item.setToolTip(item.toolTip() + "\n\n" + str(log_data))
-            if event_kind == "success":
+            tooltip = item.toolTip()
+            if log_data:
+                tooltip += "\n\n" + str(log_data)
+            item.setToolTip(tooltip)
+            if event_kind == logging.INFO:
                 item.setIcon(QIcon(":/annotation_level/resources/OK.png"))
-            elif event_kind == "warning":
+            elif event_kind == logging.WARNING:
                 item.setIcon(QIcon(":/annotation_level/resources/Warning.png"))
-            elif event_kind == "exception":
+            elif event_kind == eh.ERR_LVL_EXCEPTION:
                 item.setIcon(QIcon(":/annotation_level/resources/Problem.png"))
-            elif event_kind == "failure":
+            elif event_kind in ["failure", logging.ERROR, logging.CRITICAL]:
                 item.setIcon(QIcon(":/annotation_level/resources/Danger.png"))
             elif event_kind == "refresh":
                 item.setIcon(QIcon(":/common/resources/Refresh.png"))
@@ -3175,7 +3145,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             else:
                 rpp.run()
         except Exception as e:
-            self.log_exception(f'Unable to process pipeline: "{repr(e)}"')
+            logger.exception(f'Unable to process pipeline: "{repr(e)}"')
 
     def on_sl_pp_thread_count_index_changed(self, value):
         self.pp_thread_pool.setMaxThreadCount(value)
@@ -3235,7 +3205,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     "________________________________________________\n"
                 )
         except Exception as e:
-            self.log_exception(f"Failed to update statistics: {repr(e)}")
+            logger.exception(f"Failed to update statistics: {repr(e)}")
         finally:
             self.global_progress_stop()
 
@@ -3259,14 +3229,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         try:
             selected_mode.reset()
         except Exception as e:
-            self.log_exception(f"Failed to reset tool: {repr(e)}")
+            logger.exception(f"Failed to reset tool: {repr(e)}")
         finally:
             self._updating_process_modes = False
         if not self._initializing and selected_mode.real_time:
             self.run_process(wrapper=self._src_image_wrapper, ipt=selected_mode)
 
     def add_images_to_viewer(
-        self, wrapper, avoid_duplicates: bool = False, data_dict: dict = None
+        self,
+        wrapper: AbstractImageProcessor,
+        avoid_duplicates: bool = False,
+        data_dict: dict = None,
     ):
         if wrapper is None:
             return
@@ -3281,9 +3254,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     dic["data"] = dict(**{"image_name": dic["name"]}, **data_dict)
                 dic["written"] = True
                 dic["plant_name"] = wrapper.plant
+                dic["luid"] = wrapper.luid
                 self.ui.cb_available_outputs.addItem(dic["name"], dic)
         except Exception as e:
-            self.log_exception(f"Unable to update available images because: {repr(e)}")
+            logger.exception(f"Unable to update available images because: {repr(e)}")
         finally:
             self._updating_available_images = False
 
@@ -3291,6 +3265,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.cb_available_outputs.setCurrentIndex(
                 self.ui.cb_available_outputs.count() - 1
             )
+
+    def on_bt_set_as_selected(self):
+        self.select_image_from_luid(luid=self._selected_output_image_luid)
 
     def update_output_tab(self, data_dict):
         while self.ui.tw_script_sim_output.rowCount() > 0:
@@ -3331,15 +3308,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 log_level=logging.ERROR,
             )
 
-    def do_thread_ending(self, success: bool, status_msg: str, log_msg: str, sender: object):
+    def do_thread_ending(self, success: bool, status_msg: str, log_msg: str):
         if self.threads_total > 1 and self.threads_step < self.threads_total and status_msg:
             status_msg += f" ({self.threads_step + 1}/{self.threads_total})"
-        if len(sender.error_list) > 0:
-            self.update_feedback(
-                status_message=status_msg, log_message=sender, use_status_as_log=False
-            )
-        else:
-            self.update_feedback(status_message=status_msg, log_message=log_msg)
+        self.update_feedback(status_message=status_msg, log_message=log_msg)
 
     def do_thread_ended(self):
         self.update_thread_counts(
@@ -3354,12 +3326,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif isinstance(sender, IptParamHolder):
             wrapper = sender.wrapper
             if wrapper is None:
-                self.log_exception(
+                logger.exception(
                     "Unable to update available images because: there's no wrapper inside the tool"
                 )
                 return
         else:
-            self.log_exception("Unable to update available images because: unknown argument")
+            logger.exception("Unable to update available images because: unknown argument")
             return
 
         if isinstance(sender, IptParamHolder):
@@ -3403,9 +3375,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             dic = img_lst_[len(img_lst_) - 1]
                     dic["data"] = info_dict
                     dic["plant_name"] = wrapper.plant
+                    dic["luid"] = wrapper.luid
                     self.ui.cb_available_outputs.addItem(wrapper.short_name, dic)
             except Exception as e:
-                self.log_exception(f"Unable to update available images because: {repr(e)}")
+                logger.exception(f"Unable to update available images because: {repr(e)}")
             self.ui.cb_available_outputs.setCurrentIndex(
                 self.ui.cb_available_outputs.count() - 1
             )
@@ -3552,7 +3525,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             pipeline_ = self.pipeline
             ipt_ = ipt
         else:
-            self.log_exception(err_str=f"Unknown active tab {self.selected_run_tab}")
+            logger.exception(err_str=f"Unknown active tab {self.selected_run_tab}")
             return
 
         try:
@@ -3595,7 +3568,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
 
         except Exception as e:
-            self.log_exception(f'Failed to initiate thread: "{repr(e)}"')
+            logger.exception(f'Failed to initiate thread: "{repr(e)}"')
 
     def on_itemSelectionChanged(self):
         for item in self.ui.lw_last_batch.selectedItems():
@@ -3673,6 +3646,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.update_feedback(
             status_message=f"Cleared {img_count} images", use_status_as_log=True
         )
+        self.ui.bt_set_as_selected.setEnabled(False)
+        self._selected_output_image_luid = None
 
     def save_image(
         self,
@@ -3706,7 +3681,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             cv2.imwrite(image_path, image_data["image"])
             image_data["written"] = True
         except Exception as e:
-            self.log_exception(f'Failed to save image: "{repr(e)}"')
+            logger.exception(f'Failed to save image: "{repr(e)}"')
             return False
         else:
             return True
@@ -4092,7 +4067,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
                 self.process_events()
         except Exception as e:
-            self.log_exception(f'Failed to generate video: "{repr(e)}"')
+            logger.exception(f'Failed to generate video: "{repr(e)}"')
         else:
             self.update_feedback(
                 status_message=f'Generated video "{vid_name}"', use_status_as_log=True
@@ -4163,6 +4138,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.end_edit_image_browser()
 
     def do_exception(self):
+        logger.info("Info")
+        logger.warning("warning")
+        logger.exception("exception")
+        logger.error("error")
+        logger.critical("Critical")
+        # try:
+        #     print(1 / 0)
+        # except Exception as e:
+        #     logger.exception(f"Add to selection failed: {repr(e)}")
         print(1 / 0)
 
     def on_bt_keep_annotated(self):
@@ -4203,7 +4187,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 dataframe = dataframe.sample(n=self.ui.sp_add_random_count.value())
             self.update_image_browser(dataframe=dataframe, mode="add")
         except Exception as e:
-            self.log_exception(f"Add to selection failed: {repr(e)}")
+            logger.exception(f"Add to selection failed: {repr(e)}")
         finally:
             self.end_edit_image_browser()
 
@@ -4223,6 +4207,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_output_tab(self._image_dict["data"])
             else:
                 self.update_output_tab({})
+            if "luid" in self._image_dict:
+                self.ui.bt_set_as_selected.setEnabled(True)
+                self._selected_output_image_luid = self._image_dict["luid"]
+            else:
+                self.ui.bt_set_as_selected.setEnabled(False)
+                self._selected_output_image_luid = None
 
     def cb_experiment_current_index_changed(self, _):
         if self._updating_combo_boxes or self._initializing:
@@ -4270,7 +4260,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.fill_time_combo_box()
             self.ui.chk_view_option.setEnabled(self.ui.cb_view_option.count() > 0)
         except Exception as e:
-            self.log_exception(f"Selection failed: {repr(e)}")
+            logger.exception(f"Selection failed: {repr(e)}")
 
     def cb_time_current_index_changed(self, _):
         if self.ui.cb_time.count() > 0 and not self._updating_combo_boxes:
@@ -4668,7 +4658,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         ).time()
                     self.ui.cb_time.setCurrentIndex(target_index)
         except Exception as e:
-            self.log_exception(f"Failed to fill time combobox: {repr(e)}")
+            logger.exception(f"Failed to fill time combobox: {repr(e)}")
 
     def clear_exp_combo_box(self):
         self.ui.cb_experiment.clear()
@@ -4767,7 +4757,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.fill_time_combo_box()
                 self.file_name = self.current_selected_image_path()
             except Exception as e:
-                self.log_exception(f"Failed to add annotation data: {repr(e)}")
+                logger.exception(f"Failed to add annotation data: {repr(e)}")
             finally:
                 self._updating_combo_boxes = False
             return True
@@ -4788,7 +4778,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return
             id.use_annotations = self.ui.actionEnable_annotations.isChecked()
         except Exception as e:
-            self.log_exception(f"Failed to add annotation data: {repr(e)}")
+            logger.exception(f"Failed to add annotation data: {repr(e)}")
 
     def on_action_use_multithreading(self):
         self.multithread = self.ui.action_use_multithreading.isChecked()
@@ -4928,7 +4918,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         self.ui.gv_source_image.main_image = ci
                 except Exception as e:
                     self._src_image_wrapper = None
-                    self.log_exception(f"Failed to load image: {repr(e)}")
+                    logger.exception(f"Failed to load image: {repr(e)}")
             else:
                 self._src_image_wrapper = None
             try:
@@ -4942,7 +4932,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     )
             except Exception as e:
                 self._src_image_wrapper = None
-                self.log_exception(f"Failed to load/save annotation: {repr(e)}")
+                logger.exception(f"Failed to load/save annotation: {repr(e)}")
 
             if self._src_image_wrapper is not None:
                 self._updating_process_modes = True
@@ -4973,7 +4963,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 except Exception as e:
                     self._file_name = ""
                     self.setWindowTitle(f"{_PRAGMA_NAME} -- Select input file")
-                    self.log_exception(f"Failed to load/save annotation: {repr(e)}")
+                    logger.exception(f"Failed to load/save annotation: {repr(e)}")
                 finally:
                     self._updating_process_modes = False
             else:
@@ -5050,7 +5040,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
 
             except Exception as e:
-                self.log_exception(f"Failed to initialize tool: {repr(e)}")
+                logger.exception(f"Failed to initialize tool: {repr(e)}")
             finally:
                 self._updating_process_modes = False
             if (
@@ -5069,10 +5059,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         try:
             self.tabWidget.setCurrentWidget(self.tabWidget.findChild(QWidget, value))
         except TypeError as e:
-            self.log_exception(f'Unable to select tab "{value}": {repr(e)}')
+            logger.exception(f'Unable to select tab "{value}": {repr(e)}')
             self.tabWidget.setCurrentIndex(0)
         except AttributeError as e:
-            self.log_exception(f'Unable to select tab "{value}": {repr(e)}')
+            logger.exception(f'Unable to select tab "{value}": {repr(e)}')
             self.tabWidget.setCurrentIndex(0)
 
     @property
@@ -5086,10 +5076,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.tb_tool_script.findChild(QWidget, value)
             )
         except TypeError as e:
-            self.log_exception(f'Unable to select tab "{value}": {repr(e)}')
+            logger.exception(f'Unable to select tab "{value}": {repr(e)}')
             self.ui.tb_tool_script.setCurrentIndex(0)
         except AttributeError as e:
-            self.log_exception(f'Unable to select tab "{value}": {repr(e)}')
+            logger.exception(f'Unable to select tab "{value}": {repr(e)}')
             self.ui.tb_tool_script.setCurrentIndex(0)
 
     @property
@@ -5127,6 +5117,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             do_feedback=self.update_feedback,
         )
         model.dataChanged.connect(self.on_pp_data_changed)
+        self.ui.tv_pp_view.setUniformRowHeights(False)
         self.ui.tv_pp_view.setModel(model)
         self.ui.tb_pp_desc.clear()
         if value is not None and model is not None:
@@ -5200,7 +5191,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self.fill_time_combo_box()
                     self.file_name = self.current_selected_image_path()
                 except Exception as e:
-                    self.log_exception(f"Failed to select plant because: {repr(e)}")
+                    logger.exception(f"Failed to select plant because: {repr(e)}")
                 else:
                     pass
                 finally:
