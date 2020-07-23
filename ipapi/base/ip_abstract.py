@@ -2039,7 +2039,6 @@ class AbstractImageProcessor(ImageWrapper):
                 f'No contour detected "{repr(e)}", '
                 + f'skipping analyze_object & analyze_bound for "{self.file_name}"'
             )
-            print(self.error_holder.last_error())
             return False
         else:
             res = True
@@ -2112,7 +2111,6 @@ class AbstractImageProcessor(ImageWrapper):
             logger.exception(
                 f'Failed to extract image data: "{str(self)}", because "{repr(e)}"'
             )
-            print(self.error_holder.last_error())
             res = False
         finally:
             return res
@@ -3445,7 +3443,6 @@ class AbstractImageProcessor(ImageWrapper):
             self.finalize_process(**kwargs)
         except Exception as e:
             logger.exception(f'Failed to process image, because "{repr(e)}"')
-            print(self.error_holder.last_error())
             res = False
         finally:
             self.print_images()
