@@ -182,12 +182,7 @@ class Node(object):
             )
         else:
             if isinstance(res, int) and (res > 0):
-                self.root.parent.last_error.add_error(
-                    new_error_text=msg,
-                    new_error_kind="pipeline_process_error",
-                    new_error_level=res,
-                    target_logger=logger,
-                )
+                eh.log_data(log_msg=msg, log_level=res, target_logger=logger)
         md = np.array(self.root.parent.settings.mosaic.images)
         if isinstance(data, (GroupNode, ModuleNode)):
             dn = data.name
@@ -197,6 +192,8 @@ class Node(object):
             for d in data.image_list:
                 if d["name"] in md:
                     self.root.parent.stored_mosaic_images[d["name"]] = d["image"]
+
+        self.root.parent.update_error_level(res)
 
     @property
     def root(self):
@@ -254,30 +251,25 @@ class ModuleNode(Node):
         self.tool = kwargs.get("tool")
         self.tool.owner = self
 
-    def _execute_standard(self, wrapper, tool, call_back=None, target_module: str = ""):
+    def _execute_standard(self, tool, call_back=None, target_module: str = ""):
         res = {}
+        wrapper = self.root.parent.wrapper
         if self.root.parent.show_source_image:
             if (
                 self.input_type == ipc.IO_IMAGE
                 and wrapper is not None
                 and wrapper.current_image is not None
             ):
-                self.do_call_back(
-                    call_back=call_back,
-                    res=logging.INFO,
-                    msg="",
-                    data={
-                        "plant_name": wrapper.plant,
-                        "name": f"{self.name} (source)",
-                        "image": wrapper.current_image,
-                        "data": {},
-                    },
-                )
+                img_callback = wrapper.current_image
             if (
                 self.input_type == ipc.IO_MASK
                 and wrapper is not None
                 and wrapper.mask is not None
             ):
+                img_callback = wrapper.mask
+            else:
+                img_callback = None
+            if img_callback is not None:
                 self.do_call_back(
                     call_back=call_back,
                     res=logging.INFO,
@@ -285,7 +277,8 @@ class ModuleNode(Node):
                     data={
                         "plant_name": wrapper.plant,
                         "name": f"{self.name} (source)",
-                        "image": wrapper.mask,
+                        "image": img_callback,
+                        "luid": wrapper.luid,
                         "data": {},
                     },
                 )
@@ -344,7 +337,7 @@ class ModuleNode(Node):
 
         return res
 
-    def _execute_grid_search(self, wrapper, call_back):
+    def _execute_grid_search(self, call_back):
         def inner_call_back(res, msg, data, step, total):
             if call_back is not None:
                 call_back(
@@ -362,10 +355,10 @@ class ModuleNode(Node):
 
         procs = list(itertools.product(*param_settings_list))
         keys = [p.name for p in self.tool.gizmos]
+        wrapper = self.root.parent.wrapper
 
         for i, p in enumerate(procs):
             res = self._execute_standard(
-                wrapper=wrapper,
                 tool=self.tool.__class__(
                     **{k: (int(v) if str.isdigit(v) else v) for k, v in zip(keys, p)}
                 ),
@@ -378,6 +371,7 @@ class ModuleNode(Node):
                     "name": wrapper.short_name,
                     "image": self.get_feedback_image(res),
                     "data": res.get("data", {}),
+                    "luid": wrapper.luid,
                 },
                 step=i + 1,
                 total=size,
@@ -387,24 +381,22 @@ class ModuleNode(Node):
             res="GRID_SEARCH_END", msg="", data=None, step=size, total=size,
         )
 
-    def execute(self, wrapper: AbstractImageProcessor, **kwargs):
+    def execute(self, **kwargs):
         call_back = kwargs.get("call_back", None)
         target_module = kwargs.get("target_module", "")
         grid_search_mode = kwargs.get("grid_search_mode", "")
-        wrapper.error_holder.clear()
+        wrapper = self.root.parent.wrapper
+
         if not self.last_result:
             if self.tool.has_param("path") and self.root.parent.image_output_path:
                 self.tool.set_value_of(key="path", value=self.root.parent.image_output_path)
             if target_module == self.uuid and grid_search_mode:
-                self._execute_grid_search(wrapper=wrapper, call_back=call_back)
+                self._execute_grid_search(call_back=call_back)
                 self.last_result = {}
             else:
                 before = timer()
                 self.last_result = self._execute_standard(
-                    wrapper=wrapper,
-                    tool=self.tool,
-                    call_back=call_back,
-                    target_module=target_module,
+                    tool=self.tool, call_back=call_back, target_module=target_module,
                 )
                 if self.last_result:
                     self.do_call_back(
@@ -422,8 +414,6 @@ class ModuleNode(Node):
                         if self.root.parent.debug_mode or self.uuid == target_module
                         else self,
                     )
-            if wrapper.error_holder.error_count > 0:
-                self.root.parent.last_error.append(wrapper.error_holder)
 
         return self.last_result
 
@@ -450,9 +440,9 @@ class ModuleNode(Node):
             return None
         tool = IptBase.from_json(json_data["tool"])
         if isinstance(tool, Exception):
-            parent.root.parent.last_error.add_error(
-                new_error_text=f"Failed to load module: {repr(tool)}",
-                new_error_kind="pipeline_load_error",
+            eh.log_data(
+                log_msg=f"Failed to load module: {repr(tool)}",
+                log_level=eh.ERR_LVL_EXCEPTION,
                 target_logger=logger,
             )
         elif isinstance(tool, IptBase):
@@ -498,6 +488,11 @@ class ModuleNode(Node):
 
 
 class GroupNode(Node):
+
+    default_execution_filters = {
+        k: "" for k in ["experiment", "plant", "date", "time", "camera", "view_option"]
+    }
+
     def __init__(self, **kwargs):
         Node.__init__(self, **kwargs)
         self.merge_mode = kwargs.get("merge_mode")
@@ -505,6 +500,7 @@ class GroupNode(Node):
         self.nodes = kwargs.get("nodes", [])
         self.source = kwargs.get("source", "source")
         self.no_delete = kwargs.get("no_delete", False)
+        self.execute_filters = kwargs.get("execute_filters", self.default_execution_filters,)
         self.last_result = {}
 
     def add_module(self, tool, enabled=1, uuid: str = "") -> ModuleNode:
@@ -556,7 +552,8 @@ class GroupNode(Node):
         if isinstance(node, GroupNode) or isinstance(node, ModuleNode):
             self.nodes.insert(min(0, max(index, len(self.nodes))), node)
 
-    def get_source_image(self, source: str, wrapper: AbstractImageProcessor, call_back):
+    def get_source_image(self, source: str, call_back):
+        wrapper = self.root.parent.wrapper
         if source == "source":
             return wrapper.source_image
         elif source == "last_output":
@@ -582,19 +579,17 @@ class GroupNode(Node):
                     data=None,
                     is_progress=False,
                 )
-                return self.get_source_image(
-                    source="last_output", wrapper=wrapper, call_back=call_back
-                )
+                return self.get_source_image(source="last_output", call_back=call_back)
             else:
                 return node.last_result.get("image")
 
-    def execute(self, wrapper: AbstractImageProcessor, **kwargs):
+    def execute(self, **kwargs):
         before = timer()
         call_back = kwargs.get("call_back", None)
         target_module = kwargs.get("target_module", "")
-        wrapper.current_image = self.get_source_image(
-            source=self.source, wrapper=wrapper, call_back=call_back
-        )
+        wrapper = self.root.parent.wrapper
+
+        wrapper.current_image = self.get_source_image(source=self.source, call_back=call_back)
 
         rois = []
         for node in self.nodes:
@@ -611,7 +606,10 @@ class GroupNode(Node):
             for node in self.nodes:
                 if not node.enabled:
                     continue
-                res = node.execute(wrapper=wrapper, **kwargs)
+                if node.is_group and not node.matches_filters:
+                    logger.info(f"Group {node.name} did not match filters, skipped")
+                    continue
+                res = node.execute(**kwargs)
                 if self.stop_processing:
                     return res
                 if res:
@@ -629,7 +627,10 @@ class GroupNode(Node):
             for node in self.nodes:
                 if not node.enabled:
                     continue
-                res = node.execute(wrapper=wrapper, **kwargs)
+                if node.is_group and not node.matches_filters:
+                    logger.info(f"Group {node.name} did not match filters, skipped")
+                    continue
+                res = node.execute(**kwargs)
                 if self.stop_processing:
                     return res
                 if res:
@@ -652,7 +653,10 @@ class GroupNode(Node):
             for node in self.nodes:
                 if not node.enabled:
                     continue
-                res = node.execute(wrapper=wrapper, **kwargs)
+                if node.is_group and not node.matches_filters:
+                    logger.info(f"Group {node.name} did not match filters, skipped")
+                    continue
+                res = node.execute(**kwargs)
                 if self.stop_processing:
                     return res
                 if res:
@@ -696,8 +700,6 @@ class GroupNode(Node):
         self.last_result["mask"] = wrapper.mask
         self.last_result["data"] = wrapper.csv_data_holder.data_list
 
-        status_message = f"Pipeline processed in {format_time(timer() - before)}"
-
         if self.is_root:
             if self.parent.settings.mosaic.enabled:
                 self.root.parent.mosaic = wrapper.build_mosaic(
@@ -713,6 +715,7 @@ class GroupNode(Node):
                         "image": self.root.parent.mosaic,
                         "data": self.last_result["data"],
                         "plant_name": "unknown" if wrapper is None else wrapper.plant,
+                        "luid": wrapper.luid,
                     },
                     force_call_back=True,
                     is_progress=False,
@@ -744,6 +747,7 @@ class GroupNode(Node):
             name=self.name,
             source=self.source,
             nodes=[node.copy(parent=self) for node in self.nodes],
+            execute_filters=self.execute_filters,
         )
 
     def to_code(self, indent: int):
@@ -769,17 +773,19 @@ class GroupNode(Node):
             source=self.source,
             no_delete=self.no_delete,
             nodes=[node.to_json() for node in self.nodes],
+            execute_filters=self.execute_filters,
         )
 
     @classmethod
     def from_json(cls, parent, json_data: dict):
-        res = GroupNode(
+        res = cls(
             parent=parent,
             merge_mode=json_data["merge_mode"],
             name=json_data["name"],
             uuid=json_data["uuid"],
             no_delete=json_data["no_delete"],
             source=json_data["source"],
+            execute_filters=json_data.get("execute_filters", cls.default_execution_filters),
         )
         for node in json_data["nodes"]:
             if node["node_type"] == "module":
@@ -787,9 +793,9 @@ class GroupNode(Node):
             elif node["node_type"] == "group":
                 res.nodes.append(GroupNode.from_json(parent=res, json_data=node))
             else:
-                parent.root.parent.last_error.add_error(
-                    new_error_text=f"Unknown node type: {node['node_type']}",
-                    new_error_kind="pipeline_load_error",
+                eh.log_data(
+                    log_msg=f"Unknown node type: {node['node_type']}",
+                    log_level=logging.ERROR,
                     target_logger=logger,
                 )
         return res
@@ -977,6 +983,17 @@ class GroupNode(Node):
         for node in self.nodes:
             node.enabled = value
 
+    @property
+    def matches_filters(self):
+        wrapper = self.root.parent.wrapper
+        for k, v in self.execute_filters.items():
+            current_filter = [filter_ for filter_ in IptParam.decode_string(v) if filter_]
+            if not current_filter:
+                continue
+            if not hasattr(wrapper, k) or getattr(wrapper, k) not in current_filter:
+                return False
+        return True
+
 
 class LoosePipeline(object):
     def __init__(self, **kwargs):
@@ -984,7 +1001,7 @@ class LoosePipeline(object):
             merge_mode=ipc.MERGE_MODE_CHAIN, name="Pipeline", parent=self
         )
         self.target_data_base = None
-        self.settings = PipelineSettings(pipeline=self)
+        self.settings: PipelineSettings = PipelineSettings(pipeline=self)
         self.last_wrapper_luid = ""
         self.use_cache = True
         self.image_output_path = ""
@@ -994,8 +1011,9 @@ class LoosePipeline(object):
         self._stop_processing = False
         self.set_template(kwargs.get("template", None))
         self.silent = False
-        self.last_error = eh.ErrorHolder("Loose pipeline")
         self.mosaic = None
+        self.wrapper: AbstractImageProcessor = None
+        self.error_level = logging.INFO
 
         self.set_callbacks()
 
@@ -1113,31 +1131,30 @@ class LoosePipeline(object):
     def execute(
         self, src_image: Union[str, AbstractImageProcessor], silent_mode: bool = False, **kwargs
     ):
+        self.error_level = logging.INFO
         self.stop_processing = False
-        self.last_error.clear()
         if isinstance(src_image, str):
-            wrapper = AbstractImageProcessor(src_image)
+            self.wrapper = AbstractImageProcessor(src_image)
         elif isinstance(src_image, AbstractImageProcessor):
-            wrapper = src_image
+            self.wrapper = src_image
         else:
-            self.last_error.add_error(
-                new_error_text="Unknown source",
-                new_error_kind="pipeline_process_error",
-                target_logger=logger,
-            )
+            logger.error(f"Unknown source {str(src_image)}")
+            self.error_level = logging.ERROR
             return False
-        src_img = wrapper.current_image
-        if src_img is None or wrapper.good_image is False:
+        src_img = self.wrapper.current_image
+        if src_img is None or self.wrapper.good_image is False:
             return False
-        if self.last_wrapper_luid != wrapper.luid:
+        if self.last_wrapper_luid != self.wrapper.luid:
             self.invalidate()
-            self.last_wrapper_luid = wrapper.luid
-        wrapper.lock = True
-        wrapper.target_database = kwargs.get("target_data_base", None)
-        wrapper.store_images = self.root.parent.debug_mode or kwargs.get("target_module", "")
+            self.last_wrapper_luid = self.wrapper.luid
+        self.wrapper.lock = True
+        self.wrapper.target_database = kwargs.get("target_data_base", None)
+        self.wrapper.store_images = self.root.parent.debug_mode or kwargs.get(
+            "target_module", ""
+        )
         self.silent = silent_mode
-        self.root.execute(wrapper=wrapper, **kwargs)
-        return self.last_error.is_error_under_or(logging.WARNING)
+        self.root.execute(**kwargs)
+        return self.error_level < self.stop_on
 
     def targeted_callback(self, param: IptParam):
         if param.name == "debug_mode":
@@ -1159,16 +1176,11 @@ class LoosePipeline(object):
                 node.last_result = {}
 
     def save(self, file_name: str) -> bool:
-        self.last_error.clear()
         try:
             with open(file_name, "w") as f:
                 json.dump(self.to_json(), f, indent=2)
         except Exception as e:
-            self.last_error.add_error(
-                new_error_text=f'Failed to save pipeline "{repr(e)}"',
-                new_error_kind="pipeline_save_error",
-                target_logger=logger,
-            )
+            logger.exception(f'Failed to save pipeline "{repr(e)}"',)
             return False
         else:
             return True
@@ -1313,9 +1325,17 @@ class LoosePipeline(object):
                         enabled=tool_dict["enabled"],
                         uuid=tool_dict["uuid"],
                     )
+        else:
+            res = cls()
+            res.name = f'Failed to load unknown pipeline type "{json_data["title"].lower()}"'
 
+        if res.stop_on < 10:
+            res.stop_on = 35
         res.set_callbacks()
         return res
+
+    def update_error_level(self, error_level):
+        self.error_level = max(self.error_level, error_level)
 
     @property
     def node_count(self):
@@ -1383,7 +1403,7 @@ class LoosePipeline(object):
 
     @property
     def stop_processing(self):
-        return self._stop_processing or self.last_error.is_error_over_or(self.stop_on)
+        return self._stop_processing or self.error_level >= self.stop_on
 
     @stop_processing.setter
     def stop_processing(self, value):
