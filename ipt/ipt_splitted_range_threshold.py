@@ -1,4 +1,5 @@
 import numpy as np
+import cv2
 
 import logging
 
@@ -6,7 +7,6 @@ logger = logging.getLogger(__name__)
 
 from base.ipt_abstract import IptBase
 import base.ip_common as ipc
-import tools.error_holder as eh
 
 
 class IptSplittedRangeThreshold(IptBase):
@@ -122,7 +122,9 @@ class IptSplittedRangeThreshold(IptBase):
                     median_filter_size=self.get_value_of("median_filter_size"),
                 )
                 inside_mask = wrapper.keep_rois(src_mask=inside_mask, tags=rois)
-                wrapper.store_image(image=inside_mask, text="inside_mask")
+                wrapper.store_image(
+                    image=inside_mask, text=f"inside_mask_{self.get_value_of('channel')}"
+                )
 
                 # Build outside mask
                 outside_mask, _ = wrapper.get_mask(
@@ -133,7 +135,9 @@ class IptSplittedRangeThreshold(IptBase):
                     median_filter_size=self.get_value_of("median_filter_size"),
                 )
                 outside_mask = wrapper.delete_rois(src_mask=outside_mask, tags=rois)
-                wrapper.store_image(image=outside_mask, text="outside_mask")
+                wrapper.store_image(
+                    image=outside_mask, text=f"outside_mask{self.get_value_of('channel')}"
+                )
 
                 # Merge masks
                 self.result = wrapper.multi_or(image_list=(inside_mask, outside_mask))
@@ -157,6 +161,19 @@ class IptSplittedRangeThreshold(IptBase):
 
                 if self.get_value_of("invert") == 1:
                     main_image = 255 - main_image
+                    inside_mask = 255 - inside_mask
+                    outside_mask = 255 - outside_mask
+
+                dmo_img = np.dstack(
+                    (
+                        main_image,
+                        wrapper.keep_rois(src_mask=main_image, tags=rois),
+                        wrapper.delete_rois(src_mask=main_image, tags=rois),
+                    )
+                )
+                for roi in rois:
+                    dmo_img = roi.draw_to(dmo_img, line_width=2, color=ipc.C_LIME)
+                self.demo_image = dmo_img
 
                 text_overlay = self.get_value_of("text_overlay") == 1
                 if text_overlay:
@@ -169,7 +186,6 @@ class IptSplittedRangeThreshold(IptBase):
                     )
                 else:
                     wrapper.store_image(main_image, main_result_name, text_overlay=text_overlay)
-                self.demo_image = main_image
 
                 if self.get_value_of("build_mosaic") == 1:
                     canvas = wrapper.build_mosaic(

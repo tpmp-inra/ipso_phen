@@ -33,7 +33,7 @@ def _run_process(file_path, script, options, list_res, data_base):
     if ipo:
         if script is None:
             bool_res = ipo.process_image(threshold_only=options.threshold_only)
-            res = WorkerResult(bool_res, str(ipo), ipo.error_holder)
+            res = WorkerResult(bool_res, str(ipo), "")
         else:
             script.image_output_path = ipo.dst_path
             if hasattr(script, "process_image"):
@@ -42,7 +42,7 @@ def _run_process(file_path, script, options, list_res, data_base):
                 bool_res = bool(script.execute(src_image=ipo, target_data_base=data_base))
             else:
                 bool_res = False
-            res = WorkerResult(bool_res, str(ipo), script.last_error)
+            res = WorkerResult(bool_res, str(ipo), "")
         list_res.append(res)
 
     return dict(wrapper=ipo, res=res)
@@ -181,12 +181,8 @@ class PipelineProcessor:
     def handle_result(self, process_result, wrapper_index, total):
         res = False
         if not process_result:
-            res = self.log_state(
-                status_message="Process error",
-                error_holder=ErrorHolder(
-                    self, (dict(text="UNKNOWN ERROR", type="unknown_error", logger=logger),)
-                ),
-            )
+            logger.error("Process error - UNKNOWN ERROR")
+            res = self.log_state(status_message="Process error")
             logger.error("UNKNOWN ERROR")
             self._process_errors += 1
         else:
@@ -211,16 +207,10 @@ class PipelineProcessor:
         return res
 
     def log_state(
-        self,
-        status_message: str = "",
-        log_message: str = "",
-        error_holder: ErrorHolder = None,
-        use_status_as_log: bool = False,
+        self, status_message: str = "", log_message: str = "", use_status_as_log: bool = False,
     ):
         if self.log_callback is not None:
-            return self.log_callback(
-                status_message, log_message, error_holder, use_status_as_log
-            )
+            return self.log_callback(status_message, log_message, use_status_as_log)
         else:
             return True
 
@@ -303,7 +293,7 @@ class PipelineProcessor:
     def remove_already_processed_images(self, files_to_process):
         if not self.log_state(
             status_message="Checking completed files",
-            log_message=f"   --- Checking completed files ---",
+            log_message="   --- Checking completed files ---",
         ):
             return None
         i = 0
@@ -353,7 +343,7 @@ class PipelineProcessor:
     def merge_result_files(self, csv_file_name: str) -> Union[None, pd.DataFrame]:
         if self.log_state(
             status_message="Merging partial outputs",
-            log_message=f"   --- Starting file merging ---",
+            log_message="   --- Starting file merging ---",
         ):
             csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
             start_idx = 0
@@ -364,19 +354,8 @@ class PipelineProcessor:
                 try:
                     df = df.append(pd.read_csv(csv_file))
                 except Exception as e:
-                    self.log_state(status_message="", log_message=f"")
-                    self.log_state(
-                        status_message="Merge error",
-                        error_holder=ErrorHolder(
-                            self,
-                            (
-                                dict(
-                                    text=f'Failed to merge text for : "{csv_file}" because {repr(e)}',
-                                    type="merge_error",
-                                ),
-                            ),
-                        ),
-                    )
+                    logger.exception("Merge error")
+                    self.log_state(status_message="Merge error")
                 self.update_progress()
 
             def put_column_in_front(col_name: str, dataframe):

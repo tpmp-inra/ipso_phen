@@ -8,23 +8,6 @@ ERR_LVL_EXCEPTION = 35
 logger = logging.getLogger(__name__)
 
 
-def log_level_to_html(error_level: int) -> str:
-    if error_level == logging.INFO:
-        return '<font color="blue"><b>INFO</b></font>'
-    elif error_level == logging.WARNING:
-        return '<font color="Yellow"><b>WARNING</b></font>'
-    elif error_level == ERR_LVL_EXCEPTION:
-        return '<font color="orange"><b>EXCEPTION</b></font>'
-    elif error_level == logging.ERROR:
-        return '<font color="OrangeRed"><b>ERROR</b></font>'
-    elif error_level == logging.CRITICAL:
-        return '<font color="DarkRed"><b>CRITICAL</b></font>'
-    elif error_level == logging.DEBUG:
-        return '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>'
-    else:
-        return "UNKNOWN"
-
-
 def error_level_to_str(error_level: int) -> str:
     if error_level == logging.INFO:
         return "INFO"
@@ -57,212 +40,87 @@ def error_level_to_logger(error_level: int, target_logger):
         return target_logger.info
 
 
-def error_level_to_logger(error_level: int, target_logger):
-    if error_level == ERR_LVL_OK:
-        return target_logger.info
-    elif error_level == ERR_LVL_HINT:
-        return target_logger.info
-    elif error_level == ERR_LVL_WARNING:
-        return target_logger.warning
-    elif error_level == ERR_LVL_EXCEPTION:
-        return target_logger.exception
-    elif error_level == ERR_LVL_ERROR:
-        return target_logger.error
-    elif error_level == ERR_LVL_CRITICAL:
-        return target_logger.critical
-    else:
-        return target_logger.info
+def log_data(log_msg: str, log_level: int, target_logger) -> int:
+    """Logs msg at desired level with target logger and retruns level
 
+    Args:
+        log_msg (str): Message to be logged
+        log_level (Union[int, str]): log level
+        target_logger (function): logger to be used
 
-class SingleError(object):
-    __slots__ = ["text", "timestamp", "level", "kind", "repeat_count"]
-
-    def __init__(self, **kwargs):
-        self.text = kwargs.get("text")
-        self.timestamp = kwargs.get("time_stamp", dt.now())
-        self.level = kwargs.get("level", -1)
-        self.kind = kwargs.get("kind", "")
-        self.repeat_count = kwargs.get("repeat_count", 0)
-        error_level_to_logger(
-            error_level=self.level, target_logger=kwargs.get("logger", logger)
-        )(self.text)
-
-    def __str__(self):
-        level_str = error_level_to_str(self.level)
-        if self.kind:
-            kind_str = self.kind
-        else:
-            kind_str = "unk"
-        if self.repeat_count > 0:
-            repeat_str = f" (repeated {self.repeat_count} times)"
-        else:
-            repeat_str = ""
-        return f'[{self.timestamp.strftime("%Y/%b/%d - %H:%M:%S")}] {level_str}-|-{kind_str}: {self.text}{repeat_str}'
+    Returns:
+        int: Log level as understood by logging unit
+    """
+    error_level_to_logger(error_level=log_level, target_logger=target_logger)(log_msg)
+    return log_level
 
 
 class ErrorHolder(object):
     def __init__(self, owner: Any, errors: tuple = (), **kwargs):
-        self.error_list = []
-        self.owner = owner
         for err_dict in errors:
-            self.add_error(
-                new_error_text=err_dict.get("text", ""),
-                new_error_level=err_dict.get("level", -1),
-                new_error_kind=err_dict.get("kind", ""),
-                target_logger=err_dict.get("logger", logger),
-            )
+            new_error_text = err_dict.get("text", "")
+            if new_error_text:
+                error_level_to_logger(
+                    error_level=err_dict.get("level", logging.INFO),
+                    target_logger=err_dict.get("logger", logger),
+                )(new_error_text)
 
     def __str__(self):
-        if self.error_count == 0:
-            return f"{str(self.owner)}: No error detected"
-        else:
-            return f"{str(self.owner)}:\n\t" + "\n\t".join(
-                str(error_item) for error_item in self.error_list
-            )
+        logger.warning("ErrorHolder - Deprecated class - called method: __str__")
+        return "This class is now an empty shell, please use logger instead"
 
     def __repr__(self):
-        return f"{repr(self.owner)} {repr(self.error_list)}"
-
-    def to_html(self):
-        owner_str = str(self.owner).replace("\n", "<br>")
-        if self.error_count == 0:
-            return f"{owner_str}: No error detected"
-        else:
-            return (
-                f"{owner_str}:<ul>"
-                + "".join(f"<li>{str(error_item)}</li>" for error_item in self.error_list)
-                + "</ul>"
-            )
-
-    def list_errors(self):
-        return [str(error_item) for error_item in self.error_list]
-
-    def append(self, error_holder):
-        if isinstance(error_holder, ErrorHolder) and error_holder.error_count > 0:
-            for error in error_holder.error_list:
-                self.error_list.append(
-                    SingleError(
-                        text=error.text,
-                        timestamp=error.timestamp,
-                        level=error.level,
-                        kind=error.kind,
-                        repeat_count=error.repeat_count,
-                    )
-                )
-            self.error_list.sort(key=lambda x: x.timestamp)
+        logger.warning("ErrorHolder - Deprecated class - called method: __repr__")
+        return "This class is now an empty shell, please use logger instead"
 
     def add_error(
         self,
         new_error_text: str,
-        new_error_level: Union[int, str] = -1,
+        new_error_level: int = logging.INFO,
         new_error_kind: str = "",
         target_logger=logger,
     ):
-        """Add error with optional level & kind
+        """Log error with optional level & kind
         :param new_error_text:
         :param new_error_level:
         :param new_error_kind:
         :param target_logger:
         """
-        if (self.error_count > 0) and (self.error_list[-1].text == new_error_text):
-            self.error_list[-1].repeat_count += 1
-        else:
-            self.error_list.append(
-                SingleError(
-                    text=new_error_text,
-                    level=new_error_level,
-                    kind=new_error_kind,
-                    logger=target_logger,
-                )
+        if new_error_text:
+            error_level_to_logger(error_level=new_error_level, target_logger=target_logger,)(
+                new_error_text
             )
 
-    def last_error(self, prefix_with_owner: bool = True, prepend_timestamp: bool = True):
-        """Returns last error with prefix or not
-
-        :param prefix_with_owner:
-        :return:
-        """
-        if self.error_list:
-            err_: SingleError = self.error_list[-1]
-            if prepend_timestamp:
-                error_str = str(err_)
-            else:
-                error_str = f"[{error_level_to_str(err_.level)}|{err_.kind}]-{err_.text}"
-        else:
-            error_str = ""
-        if self.error_count > 1:
-            error_str = f"{error_str}, ({self.error_count - 1} more)"
-        if error_str and prefix_with_owner:
-            return f"{str(self.owner)}: {error_str}"
-        else:
-            return error_str
-
     def clear(self):
-        self.error_list = []
+        logger.warning("ErrorHolder - Deprecated class - called method: clear")
 
     def is_kind_present(self, kind: str):
-        for error in self.error_list:
-            if error.kind == kind:
-                return True
+        logger.warning("ErrorHolder - Deprecated class - called method: is_kind_present")
         return False
 
     def get_count_by_level(self, level: int) -> int:
-        ret = 0
-        for error in self.error_list:
-            if error.level == level:
-                ret += 1
-        return ret
+        logger.warning("ErrorHolder - Deprecated class - called method: get_count_by_level")
+        return 0
 
     def is_error_over_or(self, level):
-        if self.error_count == 0:
-            return False
-        else:
-            for error in self.error_list:
-                if error.level >= level:
-                    return True
-            else:
-                return False
+        logger.warning("ErrorHolder - Deprecated class - called method: is_error_over_or")
+        return False
 
     def is_error_under_or(self, level):
-        if self.error_count == 0:
-            return True
-        else:
-            for error in self.error_list:
-                if error.level > level:
-                    return False
-            else:
-                return True
+        logger.warning("ErrorHolder - Deprecated class - called method: is_error_under_or")
+        return False
 
     @property
     def error_level(self) -> str:
-        lvl = -1
-        for error in self.error_list:
-            if error.level > lvl:
-                lvl = error.level
-        return lvl
+        logger.warning("ErrorHolder - Deprecated class - called method: error_level")
+        return -1
 
     @property
     def error_count(self):
-        return len(self.error_list)
+        logger.warning("ErrorHolder - Deprecated class - called method: error_count")
+        return 0
 
     @property
     def has_errors(self):
-        return self.error_count > 0
-
-
-# a_list = [i for i in range(10)]
-# err_hld = ErrorHolder(a_list)
-# print(err_hld.last_error())
-# print(err_hld)
-#
-# err_hld.add_error('this is the first error')
-# print(err_hld.last_error(False))
-# print(err_hld)
-#
-# err_hld.add_error('this is the first error')
-# print(err_hld.last_error(False))
-# print(err_hld)
-#
-# err_hld.add_error('this is the second error')
-# print(err_hld.last_error())
-# print(err_hld)
+        logger.warning("ErrorHolder - Deprecated class - called method: has_errors")
+        return False

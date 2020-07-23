@@ -3,6 +3,8 @@ import os
 import sqlite3
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
+import logging
+from tqdm import tqdm
 
 
 import pandas as pd
@@ -12,7 +14,9 @@ from sqlalchemy_utils import database_exists
 
 from tools.image_list import ImageList
 from file_handlers.fh_base import file_handler_factory
-from tools.common_functions import print_progress_bar, force_directories, make_safe_name
+from tools.common_functions import force_directories, make_safe_name
+
+logger = logging.getLogger(__name__)
 
 DB_USER = "fmavianemac"
 DB_PREFIX = "ipso_local_db_"
@@ -67,7 +71,7 @@ DB_INFO_LOCAL_SAMPLES = DbInfo(
 )
 
 DB_INFO_EXT_HD = DbInfo(
-    display_name="external_hard_drive", src_files_path="d:/input", dbms="psql",
+    display_name="external_hard_drive", src_files_path="f:/input", dbms="psql",
 )
 
 
@@ -215,7 +219,7 @@ class QueryHandlerPostgres(QueryHandler):
                     self.connexion.execute(s, param_dict).fetchall(), columns=cols
                 )
             except Exception as e:
-                self.last_error = f"Query failed because: {repr(e)}"
+                logger.exception(f"Query failed because: {repr(e)}")
                 df = None
             finally:
                 self.close_connexion()
@@ -242,7 +246,7 @@ class QueryHandlerPostgres(QueryHandler):
             try:
                 ret = self.connexion.execute(s, param_dict).fetchall()
             except Exception as e:
-                self.last_error = f"Query failed because: {repr(e)}"
+                logger.exception(f"Query failed because: {repr(e)}")
                 ret = None
             finally:
                 self.close_connexion()
@@ -382,7 +386,7 @@ class DbWrapper(ABC):
         self.engine = None
         self.progress_call_back = kwargs.get("progress_call_back", None)
         self.connexion = None
-        self._last_error = ""
+        self._tqdm = None
         self.db_info = kwargs.get("db_info", None)
 
     def __del__(self):
@@ -419,14 +423,22 @@ class DbWrapper(ABC):
     def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
         pass
 
+    def _init_progress(self, total: int, desc: str = "") -> None:
+        if self.progress_call_back is None:
+            logger.info(f'Starting "{desc}"')
+            self._tqdm = tqdm(total=total, desc=desc)
+
     def _callback(self, step, total, msg):
         if self.progress_call_back is not None:
             return self.progress_call_back(step, total, True)
         else:
-            print_progress_bar(
-                iteration=step, total=total, prefix=msg, suffix=f"Complete {step}/{total}"
-            )
+            self._tqdm.update(1)
             return True
+
+    def _close_progress(self, desc: str = ""):
+        if self._tqdm is not None:
+            logger.info(f'Ended "{desc}"')
+            self._tqdm.close()
 
     def print_table_names(self):
         if not self.connect():
@@ -449,16 +461,6 @@ class DbWrapper(ABC):
     @property
     def db_url(self):
         return f"{self.url}/{self.db_file_name.lower()}"
-
-    @property
-    def last_error(self):
-        return self._last_error
-
-    @last_error.setter
-    def last_error(self, value):
-        if value:
-            print(value)
-        self._last_error = value
 
     @abstractproperty
     def type(self) -> list:
@@ -548,7 +550,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 missing_data = True
             except Exception as e:
                 self.close_connexion()
-                self.last_error = f"Failed to create table because {repr(e)}"
+                logger.exception(f"Failed to create table because {repr(e)}")
                 return False
 
         if missing_data and auto_update and self.db_file_name:
@@ -573,7 +575,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             conn_.close()
         except Exception as e:
             trans_.rollback()
-            self.last_error = f'Something went wrong: "{repr(e)}"'
+            logger.exception(f'Something went wrong: "{repr(e)}"')
             return False
         else:
             return True
@@ -593,6 +595,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             # Fill database
             if self.open_connexion():
                 total_ = len(file_list)
+                self._init_progress(total=total_, desc="Updating database")
                 for i, file in enumerate(file_list):
                     try:
                         fh = file_handler_factory(file)
@@ -617,7 +620,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                     except exc.IntegrityError:
                         pass
                     except Exception as e:
-                        self.last_error = f'Cannot add "{file}" because "{e}"'
+                        logger.exception(f'Cannot add "{file}" because "{e}"')
                     else:
                         files_added += 1
                     self._callback(
@@ -627,6 +630,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 self._callback(
                     step=total_, total=total_, msg=f'Updated database "{self.db_file_name}"'
                 )
+                self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
             df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
@@ -639,12 +643,12 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                     finally:
                         self.close_connexion()
             except Exception as e:
-                self.last_error = f"Failed to create table because {repr(e)}"
+                logger.exception(f"Failed to create table because {repr(e)}")
                 files_added = -1
             else:
                 files_added = df["luid"].count()
         else:
-            self.last_error = f"I don't know what to do with {self.src_files_path}"
+            logger.error(f"I don't know what to do with {self.src_files_path}")
             files_added = -1
 
         return files_added
@@ -750,6 +754,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             # Fill database
             self.close_connexion()
             total_ = len(file_list)
+            self._init_progress(total=total_, desc="Updating database")
             with self.engine as conn_:
                 for i, file in enumerate(file_list):
                     try:
@@ -773,7 +778,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                     except exc.IntegrityError:
                         pass
                     except Exception as e:
-                        self.last_error = f'Cannot add "{file}" because "{e}"'
+                        logger.exception(f'Cannot add "{file}" because "{e}"')
                     else:
                         files_added += 1
                     self._callback(
@@ -782,6 +787,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                 self._callback(
                     step=total_, total=total_, msg=f'Updated database "{self.src_files_path}"'
                 )
+                self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
             df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
@@ -794,12 +800,12 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                 finally:
                     self.close_connexion()
             except Exception as e:
-                self.last_error = f"Failed to create table because {repr(e)}"
+                logger.exception(f"Failed to create table because {repr(e)}")
                 files_added = -1
             else:
                 files_added = df["luid"].count()
         else:
-            self.last_error = f"I don't know what to do with {self.src_files_path}"
+            logger.error(f"I don't know what to do with {self.src_files_path}")
             files_added = -1
 
         return files_added
