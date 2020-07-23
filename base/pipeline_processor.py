@@ -33,7 +33,7 @@ def _run_process(file_path, script, options, list_res, data_base):
     if ipo:
         if script is None:
             bool_res = ipo.process_image(threshold_only=options.threshold_only)
-            res = WorkerResult(bool_res, str(ipo), ipo.error_holder)
+            res = WorkerResult(bool_res, str(ipo), "")
         else:
             script.image_output_path = ipo.dst_path
             if hasattr(script, "process_image"):
@@ -42,7 +42,7 @@ def _run_process(file_path, script, options, list_res, data_base):
                 bool_res = bool(script.execute(src_image=ipo, target_data_base=data_base))
             else:
                 bool_res = False
-            res = WorkerResult(bool_res, str(ipo), script.last_error)
+            res = WorkerResult(bool_res, str(ipo), "")
         list_res.append(res)
 
     return dict(wrapper=ipo, res=res)
@@ -293,7 +293,7 @@ class PipelineProcessor:
     def remove_already_processed_images(self, files_to_process):
         if not self.log_state(
             status_message="Checking completed files",
-            log_message=f"   --- Checking completed files ---",
+            log_message="   --- Checking completed files ---",
         ):
             return None
         i = 0

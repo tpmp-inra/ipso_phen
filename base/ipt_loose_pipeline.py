@@ -182,12 +182,7 @@ class Node(object):
             )
         else:
             if isinstance(res, int) and (res > 0):
-                self.root.parent.last_error.add_error(
-                    new_error_text=msg,
-                    new_error_kind="pipeline_process_error",
-                    new_error_level=res,
-                    target_logger=logger,
-                )
+                eh.log_data(log_msg=msg, log_level=res, target_logger=logger)
         md = np.array(self.root.parent.settings.mosaic.images)
         if isinstance(data, (GroupNode, ModuleNode)):
             dn = data.name
@@ -197,6 +192,8 @@ class Node(object):
             for d in data.image_list:
                 if d["name"] in md:
                     self.root.parent.stored_mosaic_images[d["name"]] = d["image"]
+
+        self.root.parent.update_error_level(res)
 
     @property
     def root(self):
@@ -390,7 +387,6 @@ class ModuleNode(Node):
         grid_search_mode = kwargs.get("grid_search_mode", "")
         wrapper = self.root.parent.wrapper
 
-        wrapper.error_holder.clear()
         if not self.last_result:
             if self.tool.has_param("path") and self.root.parent.image_output_path:
                 self.tool.set_value_of(key="path", value=self.root.parent.image_output_path)
@@ -418,8 +414,6 @@ class ModuleNode(Node):
                         if self.root.parent.debug_mode or self.uuid == target_module
                         else self,
                     )
-            if wrapper.error_holder.error_count > 0:
-                self.root.parent.last_error.append(wrapper.error_holder)
 
         return self.last_result
 
@@ -446,9 +440,9 @@ class ModuleNode(Node):
             return None
         tool = IptBase.from_json(json_data["tool"])
         if isinstance(tool, Exception):
-            parent.root.parent.last_error.add_error(
-                new_error_text=f"Failed to load module: {repr(tool)}",
-                new_error_kind="pipeline_load_error",
+            eh.log_data(
+                log_msg=f"Failed to load module: {repr(tool)}",
+                log_level=eh.ERR_LVL_EXCEPTION,
                 target_logger=logger,
             )
         elif isinstance(tool, IptBase):
@@ -799,9 +793,9 @@ class GroupNode(Node):
             elif node["node_type"] == "group":
                 res.nodes.append(GroupNode.from_json(parent=res, json_data=node))
             else:
-                parent.root.parent.last_error.add_error(
-                    new_error_text=f"Unknown node type: {node['node_type']}",
-                    new_error_kind="pipeline_load_error",
+                eh.log_data(
+                    log_msg=f"Unknown node type: {node['node_type']}",
+                    log_level=logging.ERROR,
                     target_logger=logger,
                 )
         return res
@@ -1017,9 +1011,9 @@ class LoosePipeline(object):
         self._stop_processing = False
         self.set_template(kwargs.get("template", None))
         self.silent = False
-        self.last_error = eh.ErrorHolder("Loose pipeline")
         self.mosaic = None
         self.wrapper: AbstractImageProcessor = None
+        self.error_level = logging.INFO
 
         self.set_callbacks()
 
@@ -1137,18 +1131,15 @@ class LoosePipeline(object):
     def execute(
         self, src_image: Union[str, AbstractImageProcessor], silent_mode: bool = False, **kwargs
     ):
+        self.error_level = logging.INFO
         self.stop_processing = False
-        self.last_error.clear()
         if isinstance(src_image, str):
             self.wrapper = AbstractImageProcessor(src_image)
         elif isinstance(src_image, AbstractImageProcessor):
             self.wrapper = src_image
         else:
-            self.last_error.add_error(
-                new_error_text="Unknown source",
-                new_error_kind="pipeline_process_error",
-                target_logger=logger,
-            )
+            logger.error(f"Unknown source {str(src_image)}")
+            self.error_level = logging.ERROR
             return False
         src_img = self.wrapper.current_image
         if src_img is None or self.wrapper.good_image is False:
@@ -1163,7 +1154,7 @@ class LoosePipeline(object):
         )
         self.silent = silent_mode
         self.root.execute(**kwargs)
-        return self.last_error.is_error_under_or(logging.WARNING)
+        return self.error_level < self.stop_on
 
     def targeted_callback(self, param: IptParam):
         if param.name == "debug_mode":
@@ -1185,16 +1176,11 @@ class LoosePipeline(object):
                 node.last_result = {}
 
     def save(self, file_name: str) -> bool:
-        self.last_error.clear()
         try:
             with open(file_name, "w") as f:
                 json.dump(self.to_json(), f, indent=2)
         except Exception as e:
-            self.last_error.add_error(
-                new_error_text=f'Failed to save pipeline "{repr(e)}"',
-                new_error_kind="pipeline_save_error",
-                target_logger=logger,
-            )
+            logger.exception(f'Failed to save pipeline "{repr(e)}"',)
             return False
         else:
             return True
@@ -1348,6 +1334,9 @@ class LoosePipeline(object):
         res.set_callbacks()
         return res
 
+    def update_error_level(self, error_level):
+        self.error_level = max(self.error_level, error_level)
+
     @property
     def node_count(self):
         return len(self.root.nodes)
@@ -1414,7 +1403,7 @@ class LoosePipeline(object):
 
     @property
     def stop_processing(self):
-        return self._stop_processing or self.last_error.is_error_over_or(self.stop_on)
+        return self._stop_processing or self.error_level >= self.stop_on
 
     @stop_processing.setter
     def stop_processing(self, value):
