@@ -8,23 +8,6 @@ ERR_LVL_EXCEPTION = 35
 logger = logging.getLogger(__name__)
 
 
-def log_level_to_html(error_level: int) -> str:
-    if error_level == logging.INFO:
-        return '<font color="blue"><b>INFO</b></font>'
-    elif error_level == logging.WARNING:
-        return '<font color="Yellow"><b>WARNING</b></font>'
-    elif error_level == ERR_LVL_EXCEPTION:
-        return '<font color="orange"><b>EXCEPTION</b></font>'
-    elif error_level == logging.ERROR:
-        return '<font color="OrangeRed"><b>ERROR</b></font>'
-    elif error_level == logging.CRITICAL:
-        return '<font color="DarkRed"><b>CRITICAL</b></font>'
-    elif error_level == logging.DEBUG:
-        return '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>'
-    else:
-        return "UNKNOWN"
-
-
 def error_level_to_str(error_level: int) -> str:
     if error_level == logging.INFO:
         return "INFO"
