@@ -86,9 +86,7 @@ class IptBaseMerger(IptBase, ABC):
             )
 
         except Exception as e:
-            self._wrapper.error_holder.add_error(
-                f'FAIL label merging, exception: "{repr(e)}"', target_logger=logger
-            )
+            logger.exception(f'FAIL label merging, exception: "{repr(e)}"')
         finally:
             return res
 
