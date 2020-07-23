@@ -9,25 +9,22 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-from PySide2.QtCore import Slot, Qt, Signal, QObject, QTimer, QRunnable, QThreadPool
+from PySide2.QtCore import Slot, Signal, QObject, QRunnable
 
-import tools.error_holder as err
 import base.ip_common as ipc
 from class_pipelines.ip_factory import ipo_factory
 from tools.comand_line_wrapper import ArgWrapper
 from tools.common_functions import format_time, force_directories
 from file_handlers.fh_base import file_handler_factory
-from ui_qt import ui_consts
 
 
 class IpsoRunnableSignals(QObject):
 
     on_started = Signal(str, bool)
-    on_ending = Signal(bool, str, str, object)
+    on_ending = Signal(bool, str, str)
     on_ended = Signal()
     on_update_images = Signal(bool, object)
     on_update_data = Signal(dict)
-    on_feedback_log_object = Signal(str, object)
     on_feedback_log_str = Signal(str, str, bool)
     on_pipeline_progress = Signal(str, str, object, int, int)
 
@@ -42,9 +39,6 @@ class IpsoRunnable(QRunnable):
         self.signals_holder.on_ended.connect(kwargs.get("on_ended", None))
         self.signals_holder.on_update_images.connect(kwargs.get("on_update_images", None))
         self.signals_holder.on_update_data.connect(kwargs.get("on_update_data", None))
-        self.signals_holder.on_feedback_log_object.connect(
-            kwargs.get("on_feedback_log_object", None)
-        )
         self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
         self.signals_holder.on_pipeline_progress.connect(
             kwargs.get("on_pipeline_progress", None)
@@ -60,9 +54,6 @@ class IpsoRunnable(QRunnable):
         self.ipt = kwargs.get("ipt", None)
         self.exec_param = kwargs.get("exec_param", None)
         self.pipeline = kwargs.get("pipeline", None)
-
-        # Error holder
-        self.error_list = err.ErrorHolder(self)
 
     def _pipeline_progress_callback(
         self, result: bool, msg: str, sender: object, current_step: int, total_step: int
@@ -99,13 +90,7 @@ class IpsoRunnable(QRunnable):
             wrapper.lock = True
 
             if wrapper is None:
-                self.error_list.add_error(
-                    new_error_text="No image selected: Missing wrapper",
-                    new_error_kind="wrapper_error",
-                    new_error_level=logging.CRITICAL,
-                    target_logger=logger,
-                )
-                self.on_log_error("No image selected: Missing wrapper", self.error_list)
+                logger.critical("No image selected: Missing wrapper")
 
             return wrapper
         else:
@@ -116,15 +101,7 @@ class IpsoRunnable(QRunnable):
         if wrapper is None:
             return False
         if self.ipt is None:
-            self.error_list.add_error(
-                new_error_text="No ipt selected: Missing IPT",
-                new_error_kind="ipt_error",
-                new_error_level=logging.ERROR,
-                target_logger=logger,
-            )
-            self.signals_holder.on_feedback_log_object.emit(
-                "No ipt selected: Missing IPT", self.error_list
-            )
+            logger.error("No ipt selected: Missing IPT")
             return False
         try:
             act = self.ipt.execute(param=self.exec_param, wrapper=wrapper)
@@ -135,21 +112,7 @@ class IpsoRunnable(QRunnable):
                 self.signals_holder.on_update_images.emit(self.batch_process, self.ipt)
         except Exception as e:
             res = False
-            self.error_list.add_error(
-                new_error_text="Unable to execute tool button",
-                new_error_kind="exec_param",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            self.error_list.add_error(
-                new_error_text=repr(e),
-                new_error_kind="grid_search_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            self.signals_holder.on_feedback_log_object.emit(
-                "Unable to execute tool button", self.error_list
-            )
+            logger.exception("Unable to execute tool button")
         else:
             res = True
         finally:
@@ -160,26 +123,15 @@ class IpsoRunnable(QRunnable):
         status_message = ""
         log_message = ""
         param_list = ""
-        log_object = self.error_list
         try:
             before = timer()
             wrapper = self._get_wrapper(image_dict=image_dict)
             if wrapper is None:
-                self.error_list.add_error(
-                    new_error_text="No image selected: Missing wrapper",
-                    new_error_kind="wrapper_error",
-                    new_error_level=logging.CRITICAL,
-                    target_logger=logger,
-                )
+                logger.critical("No image selected: Missing wrapper",)
                 status_message = "No image selected: Missing wrapper"
                 return False
             if self.ipt is None:
-                self.error_list.add_error(
-                    new_error_text="No ipt selected: Missing IPT",
-                    new_error_kind="ipt_error",
-                    new_error_level=logging.ERROR,
-                    target_logger=logger,
-                )
+                logger.error("No ipt selected: Missing IPT",)
                 status_message = "No ipt selected: Missing IPT"
                 return False
 
@@ -201,60 +153,19 @@ class IpsoRunnable(QRunnable):
                 status_message = (
                     f"{self.ipt.name} processing failed: in {format_time(after - before)}"
                 )
-                wrapper.error_holder.add_error(
-                    f"Processing {self.ipt.name}",
-                    new_error_kind="ipt_error",
-                    new_error_level=logging.ERROR,
-                    target_logger=logger,
-                )
-                wrapper.error_holder.add_error(
-                    new_error_text=f"Param list; {param_list}",
-                    new_error_kind="ipt_error",
-                    new_error_level=logging.ERROR,
-                    target_logger=logger,
-                )
-                log_object = wrapper.error_holder
+                logger.error(f"Processing {self.ipt.name} - Param list; {param_list}")
         except Exception as e:
-            self.error_list.add_error(
-                new_error_text="Unable to process image",
-                new_error_kind="ipt_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            self.error_list.add_error(
-                new_error_text=repr(e),
-                new_error_kind="ipt_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            if self.ipt is not None:
-                self.error_list.add_error(
-                    f"Processing {self.ipt.name}",
-                    new_error_kind="ipt_error",
-                    new_error_level=err.ERR_LVL_EXCEPTION,
-                    target_logger=logger,
-                )
-            if param_list:
-                self.error_list.add_error(
-                    f"Params: {param_list}",
-                    new_error_kind="ipt_error",
-                    new_error_level=err.ERR_LVL_EXCEPTION,
-                    target_logger=logger,
-                )
-            status_message = f"Exception while processing image, cf. log"
-            self.signals_holder.on_feedback_log_object.emit(
-                "Unable to process image", self.error_list
-            )
+            logger.exception("Unable to process image")
+            status_message = "Exception while processing image, cf. log"
         finally:
             if status_message:
-                self.signals_holder.on_ending.emit(res, status_message, log_message, log_object)
+                self.signals_holder.on_ending.emit(res, status_message, log_message)
             return res
 
     def _process_pipeline(self, image_dict):
         status_message = ""
         log_message = None
         res = False
-        log_object = self.error_list
         try:
             before = timer()
 
@@ -262,16 +173,8 @@ class IpsoRunnable(QRunnable):
             if wrapper is None:
                 return
             if self.pipeline is None:
-                self.error_list.add_error(
-                    new_error_text="No pipeline selected",
-                    new_error_kind="pipeline_process_error",
-                    new_error_level=logging.CRITICAL,
-                    target_logger=logger,
-                )
-                status_message = "No pipeline selected"
+                logger.critical("No pipeline selected")
                 return
-
-            log_object = self.pipeline.last_error
 
             res = self.pipeline.execute(
                 src_image=wrapper,
@@ -282,27 +185,14 @@ class IpsoRunnable(QRunnable):
                 target_data_base=self.data_base,
             )
             if not res:
-                log_object.add_error(
-                    new_error_text="Failed to process pipeline",
-                    new_error_kind="pipeline_process_error",
-                    new_error_level=logging.ERROR,
-                    target_logger=logger,
-                )
-                status_message = f"Failed to process pipeline, cf. log"
+                logger.error("Failed to process pipeline")
+                status_message = "Failed to process pipeline, cf. log"
         except Exception as e:
-            log_object.add_error(
-                new_error_text="Unable to process pipeline",
-                new_error_kind="pipeline_process_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            status_message = f"Exception while processing pipeline, cf. log"
-            self.signals_holder.on_feedback_log_object.emit(
-                "Unable to process pipeline", log_object
-            )
+            logger.exception("Unable to process pipeline")
+            status_message = "Exception while processing pipeline, cf. log"
         finally:
             if status_message and not self.target_module:
-                self.signals_holder.on_ending.emit(res, status_message, log_message, log_object)
+                self.signals_holder.on_ending.emit(res, status_message, log_message)
             return res
 
     @Slot()
@@ -323,20 +213,7 @@ class IpsoRunnable(QRunnable):
             else:
                 raise NotImplementedError
         except Exception as e:
-            self.error_list.add_error(
-                new_error_text="Run process",
-                new_error_kind="run_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            self.error_list.add_error(
-                new_error_text=repr(e),
-                new_error_kind="run_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            log_message = f'Exception "{repr(e)}" running process'
-            self.signals_holder.on_feedback_log_object.emit("Run process", self.error_list)
+            logger.exception(f"Run process error {repr(e)}")
         finally:
             self.signals_holder.on_ended.emit()
 
@@ -377,41 +254,9 @@ class IpsoGroupProcessor(QRunnable):
             data_base=self.database,
         )
         if ipo is None:
-            err_holder = err.ErrorHolder(self)
-            err_holder.add_error(
-                new_error_text=file_name,
-                new_error_kind="process_error",
-                new_error_level=logging.ERROR,
-                target_logger=logger,
-            )
-            err_holder.add_error(
-                new_error_text="Unable to build wrapper from file",
-                new_error_kind="process_error",
-                new_error_level=logging.ERROR,
-                target_logger=logger,
-            )
-            self.signals_holder.on_log_event.emit(
-                ipo.luid, err.ERR_LVL_EXCEPTION, err_holder.to_html(), True,
-            )
-            err_holder = None
+            logger.error(f"Unable to build wrapper from file '{file_name}''")
         elif not ipo.check_source_image():
-            err_holder = err.ErrorHolder(self)
-            err_holder.add_error(
-                new_error_text=file_name,
-                new_error_kind="process_error",
-                new_error_level=logging.ERROR,
-                target_logger=logger,
-            )
-            err_holder.add_error(
-                new_error_text="Image seems to be corrupted",
-                new_error_kind="process_error",
-                new_error_level=logging.ERROR,
-                target_logger=logger,
-            )
-            self.signals_holder.on_log_event.emit(
-                ipo.luid, err.ERR_LVL_EXCEPTION, err_holder.to_html(), True,
-            )
-            err_holder = None
+            logger.error(f"Image seems to be corrupted '{file_name}''")
         elif ipo is not None and ipo.good_image:
             ipo.store_images = False
             try:
@@ -427,40 +272,13 @@ class IpsoGroupProcessor(QRunnable):
                         target_data_base=self.database,
                     )
             except Exception as e:
-                if self.script is None:
-                    err_holder = err.ErrorHolder(self)
-                    err_holder.add_error(
-                        new_error_text=file_name,
-                        new_error_kind="process_error",
-                        new_error_level=err.ERR_LVL_EXCEPTION,
-                        target_logger=logger,
-                    )
-                    err_holder.add_error(
-                        new_error_text=f"Failed to process image because {repr(e)}",
-                        new_error_kind="process_error",
-                        new_error_level=err.ERR_LVL_EXCEPTION,
-                        target_logger=logger,
-                    )
-                    error_text = err_holder.to_html()
-                    err_holder = None
-                else:
-                    self.script.last_error.add_error(
-                        new_error_text=f"Failed to process image because {repr(e)}",
-                        new_error_level=err.ERR_LVL_EXCEPTION,
-                        new_error_kind="process_error",
-                        target_logger=logger,
-                    )
-                    error_text = self.script.last_error.to_html()
-
+                logger.exception(f"Failed to process {file_name} because {repr(e)}")
                 if ipo is None or not ipo.good_image:
                     self.signals_holder.on_image_ready.emit(
                         np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
                     )
                 else:
                     self.signals_holder.on_image_ready.emit(ipo.current_image)
-                self.signals_holder.on_log_event.emit(
-                    ipo.luid, err.ERR_LVL_EXCEPTION, error_text, True,
-                )
             else:
                 if res:
                     try:
@@ -473,66 +291,38 @@ class IpsoGroupProcessor(QRunnable):
                         if self.script is not None:
                             self.signals_holder.on_image_ready.emit(self.script.mosaic)
                     except Exception as e:
-                        if self.script is None:
-                            err_holder = err.ErrorHolder(
-                                self,
-                                (
-                                    dict(text=ipo.name, type="csv_write_error"),
-                                    dict(
-                                        text=f"Failed to write image data because {repr(e)}",
-                                        type="csv_write_error",
-                                        target_logger=logger,
-                                    ),
-                                ),
-                            )
-                            error_text = err_holder.to_html()
-                            err_holder = None
-                        else:
-                            self.script.last_error.add_error(
-                                new_error_text=f"Failed to process image because {repr(e)}",
-                                new_error_level=err.ERR_LVL_EXCEPTION,
-                                new_error_kind="process_error",
-                                target_logger=logger,
-                            )
-                            error_text = self.script.last_error.to_html()
-                        self.signals_holder.on_log_event.emit(
-                            ipo.luid, err.ERR_LVL_EXCEPTION, error_text, True,
-                        )
+                        logger.exception(f"Failed to write image data because {repr(e)}")
                     else:
                         end_time = timer()
-                        if self.script is None or self.script.last_error.error_count == 0:
+                        if self.script is None or self.script.error_level < logging.WARNING:
                             self.signals_holder.on_log_event.emit(
                                 ipo.luid,
                                 logging.INFO,
                                 f"Successfully processed {ipo.name} in {format_time(end_time - start_time)}",
                                 True,
                             )
-                        elif self.script is not None and self.script.last_error.error_count > 0:
+                        elif (
+                            self.script is not None
+                            and self.script.error_level >= logging.WARNING
+                        ):
                             self.signals_holder.on_log_event.emit(
                                 ipo.luid,
                                 logging.WARNING,
-                                self.script.last_error.to_html(),
+                                "Error detected while processing image, cf. log for more details",
                                 True,
                             )
                 else:
                     self.signals_holder.on_log_event.emit(
-                        ipo.luid, logging.ERROR, ipo.error_holder.to_html(), True,
+                        ipo.luid,
+                        logging.ERROR,
+                        "Error detected while processing image, cf. log for more details",
+                        True,
                     )
             finally:
                 ipo.image_list = None
                 ipo = None
         else:
-            err_holder = err.ErrorHolder(
-                self,
-                (
-                    dict(
-                        text=f'Unable to process "{file_name}"',
-                        type="unknown_error",
-                        target_logger=logger,
-                    ),
-                ),
-            )
-            self.signals_holder.on_log_event.emit("", logging.ERROR, err_holder.to_html(), True)
+            logger.error(f'Unable to process "{file_name}"')
             res = False
 
     def run(self):
@@ -542,21 +332,7 @@ class IpsoGroupProcessor(QRunnable):
                 try:
                     self._run_process(file_name_, luid=luid)
                 except Exception as e:
-                    err_holder = err.ErrorHolder(
-                        self,
-                        (
-                            dict(text=file_name_, type="process_error"),
-                            dict(
-                                text=f"Failed to process image because {repr(e)}",
-                                type="process_error",
-                                target_logger=logger,
-                            ),
-                        ),
-                    )
-                    self.signals_holder.on_log_str.emit(
-                        "", err.ERR_LVL_EXCEPTION, err_holder.to_html(),
-                    )
-                    err_holder = None
+                    logger.exception(f"Failed to process image because {repr(e)}")
             self.signals_holder.on_ended.emit()
         else:
             try:
@@ -572,24 +348,18 @@ class IpsoMassRunnerSignals(QObject):
     on_launching = Signal(int)
     on_started = Signal(str)
     on_progress = Signal(int, int)
-    on_feedback_log_object = Signal(str, object)
     on_feedback_log_str = Signal(str, str, bool)
 
 
 class IpsoMassRunner(QRunnable):
     def __init__(self, **kwargs):
         super().__init__()
-        # Error holder
-        self.error_list = err.ErrorHolder(self)
         # Signals
         self.signals_holder = IpsoMassRunnerSignals()
         self.signals_holder.on_starting.connect(kwargs.get("on_starting", None))
         self.signals_holder.on_launching.connect(kwargs.get("on_launching", None))
         self.signals_holder.on_started.connect(kwargs.get("on_started", None))
         self.signals_holder.on_progress.connect(kwargs.get("on_progress", None))
-        self.signals_holder.on_feedback_log_object.connect(
-            kwargs.get("on_feedback_log_object", None)
-        )
         self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
         # Callbacks
         self.check_stop = kwargs.get("check_stop", None)
@@ -665,20 +435,7 @@ class IpsoMassRunner(QRunnable):
                     "No images to process", "No images to process", log_level=logging.WARNING
                 )
         except Exception as e:
-            self.error_list.add_error(
-                new_error_text="Mass processing",
-                new_error_kind="mass_process_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            self.error_list.add_error(
-                new_error_text=repr(e),
-                new_error_kind="mass_process_error",
-                new_error_level=err.ERR_LVL_EXCEPTION,
-                target_logger=logger,
-            )
-            log_message = f'Exception "{repr(e)}" while mass processing'
-            self.signals_holder.on_feedback_log_object.emit("Mass processing", self.error_list)
+            logger.exception(f'Exception "{repr(e)}" while mass processing')
             launch_state = "exception"
         finally:
             if launch_state != "ok":
@@ -704,13 +461,8 @@ class IpsoMassRunner(QRunnable):
         self.signals_holder.on_progress.emit(step, total)
         return self.is_continue()
 
-    def do_feedback(
-        self, status_msg: str, log_msg: str, obj: object, use_status_as_log: bool
-    ) -> bool:
-        if obj is None:
-            self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg, use_status_as_log)
-        else:
-            self.signals_holder.on_feedback_log_object.emit(status_msg, obj)
+    def do_feedback(self, status_msg: str, log_msg: str, use_status_as_log: bool) -> bool:
+        self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg, use_status_as_log)
         return self.is_continue()
 
 
@@ -718,7 +470,6 @@ class IpsoCsvBuilderSignals(QObject):
 
     on_start = Signal()
     on_progress = Signal(int, int)
-    on_feedback_log_object = Signal(str, object)
     on_feedback_log_str = Signal(str, str, bool)
     on_end = Signal()
 
@@ -730,9 +481,6 @@ class IpsoCsvBuilder(QRunnable):
         self.signals_holder = IpsoCsvBuilderSignals()
         self.signals_holder.on_start.connect(kwargs.get("on_start", None))
         self.signals_holder.on_progress.connect(kwargs.get("on_progress", None))
-        self.signals_holder.on_feedback_log_object.connect(
-            kwargs.get("on_feedback_log_object", None)
-        )
         self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
         self.signals_holder.on_end.connect(kwargs.get("on_end", None))
         # Callbacks
@@ -769,13 +517,8 @@ class IpsoCsvBuilder(QRunnable):
         self.signals_holder.on_progress.emit(step, total)
         return self.is_continue()
 
-    def do_feedback(
-        self, status_msg: str, log_msg: str, obj: object, use_status_as_log: bool
-    ) -> bool:
-        if obj is None:
-            self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg, use_status_as_log)
-        else:
-            self.signals_holder.on_feedback_log_object.emit(status_msg, obj)
+    def do_feedback(self, status_msg: str, log_msg: str, use_status_as_log: bool) -> bool:
+        self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg, use_status_as_log)
         return self.is_continue()
 
     def run(self):
@@ -881,18 +624,6 @@ class IpsoCsvBuilder(QRunnable):
                     "Built additional CSV files", " --- Built additional CSV files ---"
                 )
         except Exception as e:
-            err_holder = err.ErrorHolder(
-                self,
-                (
-                    dict(
-                        text="Unable to finalize pipeline",
-                        type="csv_error",
-                        target_logger=logger,
-                    ),
-                    dict(text=f"{repr(e)}", type="csv_error", target_logger=logger),
-                ),
-            )
-            self.signals_holder.on_feedback_log_str.emit("", err_holder.to_html(), False)
-            err_holder = None
+            logger.exception("Unable to finalize pipeline")
         finally:
             self.signals_holder.on_end.emit()

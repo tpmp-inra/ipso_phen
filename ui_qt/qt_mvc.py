@@ -1,5 +1,7 @@
 from datetime import datetime as dt
 from typing import Union
+import logging
+
 from PySide2.QtGui import QBrush, QColor, QIcon, QImage, QPalette, QPen, QPixmap
 from PySide2.QtWidgets import (
     QApplication,
@@ -8,6 +10,7 @@ from PySide2.QtWidgets import (
     QGraphicsScene,
     QGraphicsView,
     QHBoxLayout,
+    QGridLayout,
     QHeaderView,
     QItemDelegate,
     QLabel,
@@ -28,18 +31,28 @@ from PySide2.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QGroupBox,
+    QStyleOptionViewItem,
+    QGroupBox,
 )
-from PySide2.QtCore import QSize
-from base.ipt_loose_pipeline import GroupNode, ModuleNode, MosaicData, PipelineSettings
+from PySide2.QtCore import QSize, QRect
+from PySide2.QtCore import QAbstractItemModel, QAbstractTableModel, QModelIndex, Qt, Signal
+
+from base.ipt_loose_pipeline import (
+    GroupNode,
+    ModuleNode,
+    MosaicData,
+    PipelineSettings,
+)
 from base.ipt_abstract import IptBase, IptParam, IptParamHolder
 import base.ip_common as ipc
 from ui_qt.qt_funct import build_widgets, cv2_to_qimage
 import numpy as np
 import pandas as pd
-from PySide2.QtCore import QAbstractItemModel, QAbstractTableModel, QModelIndex, Qt, Signal
 from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 import cv2
 from tools.regions import RectangleRegion
+
+logger = logging.getLogger(__name__)
 
 
 class TreeNode(object):
@@ -99,7 +112,7 @@ class PandasNode(TreeNode):
         try:
             self.node_data = new_data
         except Exception as e:
-            print(f'Failed to process, because "{repr(e)}"')
+            logger.exception(f'Failed to process, because "{repr(e)}"')
             return False
         else:
             return True
@@ -176,16 +189,28 @@ class PipelineNode(TreeNode):
         elif isinstance(self.node_data, IptParam):
             return []
         elif isinstance(self.node_data, GroupNode):
-            return [
-                PipelineNode(
-                    node_data=node,
-                    parent=self,
-                    row=index,
-                    call_backs=self.call_backs,
-                    do_feedback=self.do_feedback,
-                )
-                for index, node in enumerate(self.node_data.nodes)
-            ]
+            if self.node_data.is_root:
+                return [
+                    PipelineNode(
+                        node_data=node,
+                        parent=self,
+                        row=index + 1,
+                        call_backs=self.call_backs,
+                        do_feedback=self.do_feedback,
+                    )
+                    for index, node in enumerate(self.node_data.nodes)
+                ]
+            else:
+                return [
+                    PipelineNode(
+                        node_data=node,
+                        parent=self,
+                        row=index + 1,
+                        call_backs=self.call_backs,
+                        do_feedback=self.do_feedback,
+                    )
+                    for index, node in enumerate(self.node_data.nodes)
+                ]
         else:
             return []
 
@@ -252,7 +277,7 @@ class PipelineNode(TreeNode):
             elif isinstance(new_data, dict) and "widget" in new_data:
                 self.widget_holder = new_data["widget"]
         except Exception as e:
-            print(f'Failed to process, because "{repr(e)}"')
+            logger.exception(f'Failed to process, because "{repr(e)}"')
             return False
         else:
             return True
@@ -274,7 +299,7 @@ class PipelineNode(TreeNode):
                 ),
             )
         except Exception as e:
-            print(f'Failed to process, because "{repr(e)}"')
+            logger.exception(f'Failed to process, because "{repr(e)}"')
             return False
         else:
             return True
@@ -284,7 +309,7 @@ class PipelineNode(TreeNode):
             node = self.children.pop(index)
             self.node_data.remove_node(node.node_data)
         except Exception as e:
-            print(f'Failed to process, because "{repr(e)}"')
+            logger.exception(f'Failed to process, because "{repr(e)}"')
             return False
         else:
             return True
@@ -297,7 +322,7 @@ class PipelineNode(TreeNode):
             # target_parent.node_data.insert_node(target_index, node.node_data)
             # target_parent.children.insert(target_index, node)
         except Exception as e:
-            print(f'Failed to process, because "{repr(e)}"')
+            logger.exception(f'Failed to process, because "{repr(e)}"')
             return False
         else:
             return True
@@ -359,7 +384,7 @@ class QColorDelegate(QItemDelegate):
 
             painter.restore()
         except Exception as e:
-            print(f"Failed to paint in {self.__class__.__name__}")
+            logger.exception(f"Failed to paint in {self.__class__.__name__}")
 
     def set_palette(self, new_palette):
         self._palette: QPalette = new_palette
@@ -458,7 +483,7 @@ class QImageDrawerDelegate(QItemDelegate):
 
             painter.restore()
         except Exception as e:
-            print(f"Failed to paint in {self.__class__.__name__}")
+            logger.exception(f"Failed to paint in {self.__class__.__name__}")
 
     def get_annotation(self, **kwargs):
         if self.use_annotations is False:
@@ -590,19 +615,29 @@ class PipelineDelegate(QStyledItemDelegate):
                 else:
                     QStyledItemDelegate.paint(self, painter, option, index)
         except Exception as e:
-            print(f"Failed to paint in {self.__class__.__name__}")
+            logger.exception(f"Failed to paint in {self.__class__.__name__}")
 
     def createEditor(self, parent, option, index):
         nd = index.internalPointer().node_data
         if isinstance(nd, GroupNode) and index.column() == 0:
+            # Create main widget
             widget = QWidget(parent)
             widget.setAutoFillBackground(True)
+            vb_main = QVBoxLayout(widget)
 
-            txt_group_name = QLineEdit(widget)
+            # Create main options widgets
+            gb_main_options = QGroupBox(widget)
+            gb_main_options.setTitle("Group settings")
+            gl_main_options = QGridLayout(gb_main_options)
+
+            gl_main_options.addWidget(QLabel("Name: ", gb_main_options), 0, 0, 1, 1)
+            txt_group_name = QLineEdit(gb_main_options)
             txt_group_name.setEnabled(isinstance(nd.parent, GroupNode))
             txt_group_name.setObjectName("txt_group_name")
+            gl_main_options.addWidget(txt_group_name, 0, 1, 1, 1)
 
-            cb_source = QComboBox(widget)
+            gl_main_options.addWidget(QLabel("Source: ", gb_main_options), 1, 0, 1, 1)
+            cb_source = QComboBox(gb_main_options)
             cb_source.setObjectName("cb_source")
             cb_source.addItem("last_output", "last_output")
             cb_source.addItem("source", "source")
@@ -613,8 +648,10 @@ class PipelineDelegate(QStyledItemDelegate):
                 for group in previous_groups[1:]:
                     nd = group.internalPointer().node_data
                     cb_source.addItem(nd.name, nd.uuid)
+            gl_main_options.addWidget(cb_source, 1, 1, 1, 1)
 
-            cb_merge_mode = QComboBox(widget)
+            gl_main_options.addWidget(QLabel("Merge mode: ", gb_main_options), 2, 0, 1, 1)
+            cb_merge_mode = QComboBox(gb_main_options)
             cb_merge_mode.setObjectName("cb_merge_mode")
             for merge_mode in [
                 ipc.MERGE_MODE_AND,
@@ -623,15 +660,19 @@ class PipelineDelegate(QStyledItemDelegate):
                 ipc.MERGE_MODE_NONE,
             ]:
                 cb_merge_mode.addItem(ipc.merge_mode_to_str(merge_mode), merge_mode)
+            gl_main_options.addWidget(cb_merge_mode, 2, 1, 1, 1)
 
-            hl = QHBoxLayout(widget)
-            hl.setContentsMargins(0, 0, 0, 0)
-            hl.addWidget(QLabel("Name: ", widget))
-            hl.addWidget(txt_group_name)
-            hl.addWidget(QLabel("Source: ", widget))
-            hl.addWidget(cb_source)
-            hl.addWidget(QLabel("Merge mode: ", widget))
-            hl.addWidget(cb_merge_mode)
+            vb_main.addWidget(gb_main_options)
+
+            gb_filters = QGroupBox(widget)
+            gb_filters.setTitle("Filters: Select which plants this group will be applied to")
+            gl_filters = QGridLayout(gb_filters)
+            for i, (k, _) in enumerate(nd.execute_filters.items()):
+                gl_filters.addWidget(QLabel(k), i, 0, 1, 1)
+                w = QLineEdit(gb_main_options)
+                w.setObjectName(k)
+                gl_filters.addWidget(w, i, 1, 1, 1)
+            vb_main.addWidget(gb_filters)
 
             return widget
         elif isinstance(nd, tuple) and index.column() == 0:
@@ -640,6 +681,15 @@ class PipelineDelegate(QStyledItemDelegate):
             return txt_pipeline_description
         else:
             return QStyledItemDelegate.createEditor(self, parent, option, index)
+
+    def updateEditorGeometry(
+        self, editor: QWidget, option: QStyleOptionViewItem, index: QModelIndex
+    ):
+        nd = index.internalPointer().node_data
+        r: QRect = option.rect
+        if isinstance(nd, GroupNode) and index.column() == 0 and not nd.is_root:
+            r.setHeight(editor.sizeHint().height())
+        editor.setGeometry(r)
 
     def setEditorData(self, editor, index):
         nd = index.internalPointer().node_data
@@ -655,6 +705,11 @@ class PipelineDelegate(QStyledItemDelegate):
             cb_source: QComboBox = editor.findChild(QComboBox, "cb_source")
             if cb_source is not None:
                 cb_source.setCurrentIndex(cb_source.findData(nd.source))
+
+            for k, v in nd.execute_filters.items():
+                txt_edt: QLineEdit = editor.findChild(QLineEdit, k)
+                if txt_edt is not None:
+                    txt_edt.setText(v)
         elif isinstance(nd, tuple) and index.column() == 0:
             if editor is not None:
                 editor.setText(nd[1])
@@ -662,7 +717,8 @@ class PipelineDelegate(QStyledItemDelegate):
             return QStyledItemDelegate.setEditorData(self, editor, index)
 
     def setModelData(self, editor, model, index):
-        if index.column() == 0 and isinstance(index.internalPointer().node_data, GroupNode):
+        nd = index.internalPointer().node_data
+        if index.column() == 0 and isinstance(nd, GroupNode):
             value = {}
 
             txt_group_name: QLineEdit = editor.findChild(QLineEdit, "txt_group_name")
@@ -676,6 +732,11 @@ class PipelineDelegate(QStyledItemDelegate):
             cb_source: QComboBox = editor.findChild(QComboBox, "cb_source")
             if cb_source is not None and cb_source.isEnabled():
                 value["source"] = cb_source.currentData()
+
+            for k, v in nd.execute_filters.items():
+                txt_edt: QLineEdit = editor.findChild(QLineEdit, k)
+                if txt_edt is not None:
+                    value[k] = txt_edt.text()
 
             model.setData(index, value, Qt.UserRole)
         else:
@@ -691,7 +752,7 @@ class MosaicDelegate(QStyledItemDelegate):
         try:
             QStyledItemDelegate.paint(self, painter, option, index)
         except Exception as e:
-            print(f"Failed to paint in {self.__class__.__name__}")
+            logger.exception(f"Failed to paint in {self.__class__.__name__}")
 
     def createEditor(self, parent, option, index):
         cb = QComboBox(parent=parent)
@@ -1148,9 +1209,11 @@ class PipelineModel(TreeModel):
                 item = self.get_item(index)
                 nd = item.node_data
                 if isinstance(nd, GroupNode) and isinstance(value, dict):
-                    nd.name = value.get("name", nd.name)
-                    nd.merge_mode = value.get("merge_mode", nd.merge_mode)
-                    nd.source = value.get("source", nd.source)
+                    nd.name = value.pop("name", nd.name)
+                    nd.merge_mode = value.pop("merge_mode", nd.merge_mode)
+                    nd.source = value.pop("source", nd.source)
+                    nd.execute_filters = value
+
                     self.dataChanged.emit(index, index)
                     return True
 
@@ -1274,7 +1337,9 @@ class PipelineModel(TreeModel):
         flags |= Qt.ItemIsUserCheckable
         if index.column() == 0:
             nd = self.get_item(index).node_data
-            if isinstance(nd, (GroupNode, str, tuple)):
+            if isinstance(nd, (str, tuple)):
+                flags |= Qt.ItemIsEditable
+            if isinstance(nd, GroupNode) and not nd.is_root:
                 flags |= Qt.ItemIsEditable
             if isinstance(nd, (ModuleNode, GroupNode)):
                 flags |= Qt.ItemIsUserCheckable

@@ -1,11 +1,21 @@
-from PySide2.QtWidgets import QStyledItemDelegate, QComboBox
+from PySide2.QtWidgets import (
+    QStyledItemDelegate,
+    QComboBox,
+    QTextBrowser,
+)
 from PySide2.QtGui import (
     QPalette,
     QFontMetrics,
     QStandardItem,
+    QFont,
+    QTextCursor,
 )
-from PySide2.QtCore import QEvent
-from PySide2.QtCore import Qt
+from PySide2.QtCore import (
+    QEvent,
+    Slot,
+    Signal,
+    Qt,
+)
 
 
 class QCheckableComboBox(QComboBox):
@@ -124,3 +134,37 @@ class QCheckableComboBox(QComboBox):
             if self.model().item(i).checkState() == Qt.Checked:
                 res.append(self.model().item(i).data())
         return res
+
+
+class QLogger(QTextBrowser):
+
+    log_received = Signal(str)
+
+    def __init__(self, parent):
+        super(QLogger, self).__init__()
+        self.setParent(parent)
+        self.setReadOnly(True)
+        self.setLineWidth(50)
+        self.setMinimumWidth(1200)
+        self.setFont(QFont("Consolas", 8))
+        self.flag = False
+
+    @Slot(str)
+    def append_text(self, text: str):
+        self.moveCursor(QTextCursor.End)
+        msg_lst = [line for line in text.split("\n") if line]
+        if msg_lst:
+            line = msg_lst[0]
+            self.insertHtml(
+                line.replace("DEBUG", '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>')
+                .replace("INFO", '<font color="blue"><b>INFO</b></font>')
+                .replace("ERROR", '<font color="OrangeRed"><b>ERROR</b></font>')
+                .replace("WARNING", '<font color="Yellow"><b>WARNING</b></font>')
+                .replace("CRITICAL", '<font color="DarkRed"><b>CRITICAL</b></font>')
+                + "<br>"
+            )
+            self.log_received.emit(line)
+
+        for line in msg_lst[1:]:
+            self.insertPlainText(line + "\n")
+        self.moveCursor(QTextCursor.End)
