@@ -256,6 +256,11 @@ class IptExposureChecker(IptBaseAnalyzer):
                     self.result, f"exposure_{self.input_params_as_str()}", text_overlay=False
                 )
 
+            self.demo_image = self.result
+            if len(rois) > 0:
+                for roi in rois:
+                    self.demo_image = roi.draw_to(self.demo_image, line_width=2)
+
             res = True
 
         except Exception as e:

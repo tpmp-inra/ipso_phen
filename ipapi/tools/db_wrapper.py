@@ -4,6 +4,7 @@ import sqlite3
 from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
 import logging
+from tqdm import tqdm
 
 
 import pandas as pd
@@ -13,7 +14,7 @@ from sqlalchemy_utils import database_exists
 
 from tools.image_list import ImageList
 from file_handlers.fh_base import file_handler_factory
-from tools.common_functions import print_progress_bar, force_directories, make_safe_name
+from tools.common_functions import force_directories, make_safe_name
 
 logger = logging.getLogger(__name__)
 
@@ -385,6 +386,7 @@ class DbWrapper(ABC):
         self.engine = None
         self.progress_call_back = kwargs.get("progress_call_back", None)
         self.connexion = None
+        self._tqdm = None
         self.db_info = kwargs.get("db_info", None)
 
     def __del__(self):
@@ -421,14 +423,22 @@ class DbWrapper(ABC):
     def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
         pass
 
+    def _init_progress(self, total: int, desc: str = "") -> None:
+        if self.progress_call_back is None:
+            logger.info(f'Starting "{desc}"')
+            self._tqdm = tqdm(total=total, desc=desc)
+
     def _callback(self, step, total, msg):
         if self.progress_call_back is not None:
             return self.progress_call_back(step, total, True)
         else:
-            print_progress_bar(
-                iteration=step, total=total, prefix=msg, suffix=f"Complete {step}/{total}"
-            )
+            self._tqdm.update(1)
             return True
+
+    def _close_progress(self, desc: str = ""):
+        if self._tqdm is not None:
+            logger.info(f'Ended "{desc}"')
+            self._tqdm.close()
 
     def print_table_names(self):
         if not self.connect():
@@ -585,6 +595,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             # Fill database
             if self.open_connexion():
                 total_ = len(file_list)
+                self._init_progress(total=total_, desc="Updating database")
                 for i, file in enumerate(file_list):
                     try:
                         fh = file_handler_factory(file)
@@ -619,6 +630,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 self._callback(
                     step=total_, total=total_, msg=f'Updated database "{self.db_file_name}"'
                 )
+                self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
             df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
@@ -742,6 +754,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             # Fill database
             self.close_connexion()
             total_ = len(file_list)
+            self._init_progress(total=total_, desc="Updating database")
             with self.engine as conn_:
                 for i, file in enumerate(file_list):
                     try:
@@ -774,6 +787,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                 self._callback(
                     step=total_, total=total_, msg=f'Updated database "{self.src_files_path}"'
                 )
+                self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
             df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
