@@ -2,9 +2,9 @@ import datetime
 import os
 from datetime import datetime as dt
 
-import file_handlers.fh_base as fh
+import ipapi.file_handlers.fh_base as fh
 
-# from file_handlers.fh_base import file_handler_factory
+# from ipapi.file_handlers.fh_base import file_handler_factory
 
 
 class ImageWrapper:

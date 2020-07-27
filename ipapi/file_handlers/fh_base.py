@@ -6,8 +6,12 @@ import sys
 from abc import ABC, abstractclassmethod
 import pkgutil
 
-import file_handlers
-from tools.common_functions import get_module_classes
+import ipapi.file_handlers
+from ipapi.tools.common_functions import get_module_classes
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FileHandlerBase(ABC):
@@ -39,7 +43,7 @@ class FileHandlerBase(ABC):
                 else:
                     self._date_time = ts
             except Exception as e:
-                print(f'Failed to update timestamp, please check format "{str(e)}"')
+                logger.exception(f'Failed to update timestamp, please check format "{str(e)}"')
 
     def __repr__(self):  # Serialization
         return self.file_path
@@ -449,12 +453,12 @@ class FileHandlerDefault(FileHandlerBase):
             try:
                 self._exp = os.path.basename(os.path.dirname(self.file_path))
             except Exception as e:
-                print(f"Unable to extract extension: {repr(e)}")
+                logger.exception(f"Unable to extract extension: {repr(e)}")
                 self._exp = ""
             try:
                 self._date_time = dt.fromtimestamp(os.path.getmtime(self.file_path))
             except Exception as e:
-                print(f"Unable to extract date from file because: {repr(e)}")
+                logger.exception(f"Unable to extract date from file because: {repr(e)}")
                 self._date_time = dt.now()
             self._date_time = self._date_time.replace(microsecond=0)
 
@@ -468,7 +472,7 @@ class FileHandlerDefault(FileHandlerBase):
 def file_handler_factory(file_path: str) -> FileHandlerBase:
     # Build unique class list
     file_handlers_list = get_module_classes(
-        package=file_handlers, class_inherits_from=FileHandlerBase, remove_abstract=True
+        package=ipapi.file_handlers, class_inherits_from=FileHandlerBase, remove_abstract=True
     )
 
     # Create objects

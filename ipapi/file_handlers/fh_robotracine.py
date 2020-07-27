@@ -1,7 +1,11 @@
 import os
 from datetime import datetime as dt
 
-from file_handlers.fh_base import FileHandlerBase
+from ipapi.file_handlers.fh_base import FileHandlerBase
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class FileHandlerRobotRacine(FileHandlerBase):
@@ -17,7 +21,7 @@ class FileHandlerRobotRacine(FileHandlerBase):
             try:
                 self._date_time = dt.fromtimestamp(os.path.getmtime(self.file_path))
             except Exception as e:
-                print(f"Unable to extract date from file because: {repr(e)}")
+                logger.exception(f"Unable to extract date from file because: {repr(e)}")
                 self._date_time = dt.now()
             self._date_time = self._date_time.replace(microsecond=0)
             self._camera = "pi_camera"

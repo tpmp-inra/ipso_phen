@@ -24,6 +24,7 @@ import numpy as np
 import pandas as pd
 import pkg_resources
 import psutil
+from psutil import Process
 from unidecode import unidecode
 
 from PySide2 import QtWidgets
@@ -88,33 +89,73 @@ from PySide2.QtWidgets import (
     QApplication,
 )
 
-from base.ip_abstract import AbstractImageProcessor
-from base.ipt_abstract import IptBase, IptParamHolder
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ipt_functional import call_ipt_code
-from base.ipt_holder import IptHolder
-from base.ipt_strict_pipeline import IptStrictPipeline
-from base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
-import base.ip_common as ipc
-from base.pipeline_launcher import save_state
-from tools import error_holder as eh
 
-from class_pipelines.ip_factory import ipo_factory
+class Signaller(QObject):
+    signal = Signal(str)
 
-from file_handlers.fh_base import file_handler_factory
 
-from tools.regions import RectangleRegion, AbstractRegion
-from tools.comand_line_wrapper import ArgWrapper
-from tools.common_functions import (
+class QtHandler(logging.Handler):
+    def __init__(self, slot_fct=None, *args, **kwargs):
+        super(QtHandler, self).__init__(*args, **kwargs)
+        self.signaller = Signaller()
+        self.set_slot_func(slot_fct)
+
+    def set_slot_func(self, slot_fct):
+        if slot_fct is not None:
+            self.signaller.signal.connect(slot_fct)
+
+    def emit(self, record):
+        record = self.format(record)
+        if record:
+            self.signaller.signal.emit(record)
+
+
+g_qt_log_handler = QtHandler()
+
+
+if not os.path.exists("logs"):
+    os.mkdir("logs")
+logging.basicConfig(
+    level=logging.INFO,
+    format="[%(asctime)s - %(name)s - %(levelname)s] - %(message)s",
+    handlers=[
+        g_qt_log_handler,
+        logging.FileHandler(
+            os.path.join("logs", f"{dt.now().strftime('%Y%b%d %H%M%S')}.log"),
+            mode="a",
+            delay=True,
+        ),
+    ],
+)
+
+
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ipt_abstract import IptBase, IptParamHolder
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ipt_functional import call_ipt_code
+from ipapi.base.ipt_holder import IptHolder
+from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
+from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
+import ipapi.base.ip_common as ipc
+from ipapi.base.pipeline_launcher import save_state
+from ipapi.tools import error_holder as eh
+
+from ipapi.class_pipelines.ip_factory import ipo_factory
+
+from ipapi.file_handlers.fh_base import file_handler_factory
+
+from ipapi.tools.regions import RectangleRegion, AbstractRegion
+from ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipapi.tools.common_functions import (
     force_directories,
     format_time,
     make_safe_name,
     natural_keys,
     open_file,
 )
-import tools.db_wrapper as dbw
-from tools.error_holder import ErrorHolder
-from base.pipeline_processor import PipelineProcessor
+import ipapi.tools.db_wrapper as dbw
+from ipapi.tools.error_holder import ErrorHolder
+from ipapi.base.pipeline_processor import PipelineProcessor
 
 from ui_qt import ui_consts
 from ui_qt.about import Ui_about_dialog
@@ -135,7 +176,6 @@ from ui_qt.qt_mvc import (
 )
 from ui_qt.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 from ui_qt.main import Ui_MainWindow
-from ui_qt.qt_log_streamer import XStream
 from ui_qt.qt_custom_widgets import QLogger
 
 _DATE_FORMAT = "%Y/%m/%d"
@@ -245,7 +285,7 @@ class NewToolDialog(QDialog):
         self.check_boxes = {}
 
         grp_layout = QVBoxLayout()
-        for k, v in ipc.tool_group_hints.items():
+        for k, v in ipc.tool_family_hints.items():
             if k in ipc.tool_groups_pipeline:
                 cb = QCheckBox(k)
                 cb.setToolTip(v)
@@ -256,7 +296,7 @@ class NewToolDialog(QDialog):
         self.ui.gb_pipeline_tool_groups.setLayout(grp_layout)
 
         grp_layout = QVBoxLayout()
-        for k, v in ipc.tool_group_hints.items():
+        for k, v in ipc.tool_family_hints.items():
             if (k in ipc.tool_groups_pipeline) or (k == "Unknown"):
                 continue
             else:
@@ -302,13 +342,15 @@ class NewToolDialog(QDialog):
 
             # Imports
             if (
-                self.check_boxes[ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR].isChecked()
-                or self.check_boxes[ipc.TOOL_GROUP_IMAGE_GENERATOR_STR].isChecked()
+                self.check_boxes[ipc.ToolFamily.FEATURE_EXTRACTION].isChecked()
+                or self.check_boxes[ipc.ToolFamily.IMAGE_GENERATOR].isChecked()
             ):
-                f.write(f"{spaces}from base.ipt_abstract_analyzer import IptBaseAnalyzer\n")
+                f.write(
+                    f"{spaces}from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n"
+                )
                 inh_class_name_ = "IptBaseAnalyzer"
             else:
-                f.write(f"{spaces}from base.ipt_abstract import IptBase\n")
+                f.write(f"{spaces}from ipapi.base.ipt_abstract import IptBase\n")
                 inh_class_name_ = "IptBase"
             f.write("\n\n")
 
@@ -335,7 +377,7 @@ class NewToolDialog(QDialog):
                 )
                 spaces = remove_tab(spaces)
                 f.write(f"{spaces})\n")
-            if self.check_boxes[ipc.TOOL_GROUP_IMAGE_GENERATOR_STR].isChecked():
+            if self.check_boxes[ipc.ToolFamily.IMAGE_GENERATOR].isChecked():
                 f.write(f"{spaces}self.add_text_input(\n")
                 spaces = add_tab(spaces)
                 f.write(f'{spaces}name="path",\n')
@@ -454,7 +496,7 @@ class NewToolDialog(QDialog):
             use_cases_ = ", ".join(
                 [
                     f"'{k}'"
-                    for k, _ in ipc.tool_group_hints.items()
+                    for k, _ in ipc.tool_family_hints.items()
                     if k in self.check_boxes and self.check_boxes[k].isChecked()
                 ]
             )
@@ -614,7 +656,6 @@ class FrmSelectFolder(QDialog):
 class IpsoMainForm(QtWidgets.QMainWindow):
     @log_method_execution_time
     def __init__(self):
-
         super(IpsoMainForm, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -624,16 +665,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.lv_log = QLogger(self.ui.dockWidgetContents)
         self.lv_log.setObjectName("lv_log")
         self.lv_log.log_received.connect(self.on_log_received)
-        self.ui.horizontalLayout_12.addWidget(self.lv_log)
+        g_qt_log_handler.set_slot_func(self.lv_log.append_text)
 
-        XStream.stdout().messageWritten.connect(self.lv_log.append_text)
-        XStream.stderr().messageWritten.connect(self.lv_log.append_text)
+        logger.info("Starting IPSO Phen")
+
+        self.ui.horizontalLayout_12.addWidget(self.lv_log)
 
         self._initializing = True
         self._working = False
         self._updating_saved_image_lists = False
         self._process_in_progress = False
-        self._current_database = None
+        self._current_database: dbw.DbWrapper = None
         self._current_tool = None
         self._file_name = ""
         self.multithread = True
@@ -742,6 +784,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._global_progress_bar = None
         self._global_stop_button = None
         self._status_label = QLabel("")
+
+        self.act_reset_db = QAction("Reset current database", self)
+        self.act_reset_db.setToolTip("Drops rebuilds current database (Only local databases)")
 
         # Start splash screen
         if not ui_consts.DISABLE_SPLASH_SCREEN:
@@ -857,7 +902,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             continue
                         # Menu items
                         use_case_root = tool_menu.addMenu(use_case)
-                        use_case_root.setToolTip(ipc.tool_group_hints.get(use_case, ""))
+                        use_case_root.setToolTip(ipc.tool_family_hints.get(use_case, ""))
                         op_lst = self._ip_tools_holder.list_by_use_case(use_case)
                         for op in op_lst:
                             act = QAction(op.name, self)
@@ -887,7 +932,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             act.setToolTip(op.hint)
                             update_font_(op, act)
                             use_case_root.addAction(act)
-                        use_case_root.setToolTip(ipc.tool_group_hints.get(use_case, ""))
+                        use_case_root.setToolTip(ipc.tool_family_hints.get(use_case, ""))
                         use_case_root.setToolTipsVisible(True)
                         use_case_root.triggered[QAction].connect(self.on_bt_pp_add_tool)
                 # Groups
@@ -1303,10 +1348,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         act.triggered.connect(self.on_local_database_connect)
         self.ui.mnu_connect_to_db.addAction(self.ui.mnu_db_action_group.addAction(act))
 
+    def on_reset_database(self):
+        logger.warning("Not implemented yet")
+
     def build_database_menu(self, add_external=False, selected: str = ""):
         self.ui.mnu_connect_to_db.clear()
         self.ui.mnu_db_action_group = QActionGroup(self)
         self.ui.mnu_db_action_group.setExclusive(True)
+
+        self.ui.mnu_connect_to_db.addAction(self.act_reset_db)
+        self.act_reset_db.triggered.connect(self.on_reset_database)
+        self.ui.mnu_connect_to_db.addSeparator()
+
         for ldb in self.local_databases:
             self.add_folder_database(
                 display_name=ldb.display_name,
@@ -1397,7 +1450,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def on_distant_database_selected(self, q):
         for ddb in self.distant_databases:
             if ddb.name == self.sender().text():
-                print(f"Connecting to experiment {ddb.name} in database {ddb.db_file_name}")
+                logger.info(
+                    f"Connecting to experiment {ddb.name} in database {ddb.db_file_name}"
+                )
                 self.current_database = dbw.ReadOnlyDbWrapper(
                     user=dbw.DB_USER,
                     port=dbw.DB_DEFAULT_PORT,
@@ -2284,8 +2339,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         use_status_as_log: bool = False,
         collect_garbage: bool = True,
         log_level: int = 20,
+        target_logger=logger,
     ):
-        process = psutil.Process(os.getpid())
+        process: Process = psutil.Process(os.getpid())
         mem_data = f"""[Memory: Used/Free%{process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
 
         self.setWindowTitle(f"{_PRAGMA_NAME} -- {mem_data}")
@@ -2297,7 +2353,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 eh.log_data(
                     log_msg=f"(Status) {status_message}",
                     log_level=log_level,
-                    target_logger=logger,
+                    target_logger=target_logger,
                 )
         else:
             self._status_label.setText("")
@@ -2306,11 +2362,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if self.ui.actionEnable_log.isChecked():
             if log_message is not None and isinstance(log_message, str):
                 eh.log_data(
-                    log_msg=log_message, log_level=log_level, target_logger=logger,
+                    log_msg=log_message, log_level=log_level, target_logger=target_logger,
                 )
             elif use_status_as_log and status_message:
                 eh.log_data(
-                    log_msg=status_message, log_level=log_level, target_logger=logger,
+                    log_msg=status_message, log_level=log_level, target_logger=target_logger,
                 )
         if (
             not self._collecting_garbage
@@ -2321,6 +2377,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self._collecting_garbage = True
             try:
                 old_mm_percent = process.memory_percent()
+                target_logger.info(
+                    "Collecting garbage, memory used {process.me} ({old_mm_percent}%)..."
+                )
                 self.update_feedback(
                     status_message="Collecting garbage...",
                     collect_garbage=False,
@@ -2334,7 +2393,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     collect_garbage=False,
                 )
             except Exception as e:
-                logger.exception(f"Unable to collect garbage: {repr(e)}")
+                target_logger.exception(f"Unable to collect garbage: {repr(e)}")
             finally:
                 self._collecting_garbage = False
                 self._last_garbage_collected = timer()
@@ -2368,7 +2427,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             f.write(f"**Real time**: {str(tool.real_time)}\n\n")
             f.write("## Usage\n\n")
             for use_case in tool.use_case:
-                f.write(f"- **{use_case}**: {ipc.tool_group_hints[use_case]}\n")
+                f.write(f"- **{use_case}**: {ipc.tool_family_hints[use_case]}\n")
             f.write("\n## Parameters\n\n")
             if tool.has_input:
                 for p in tool.gizmos:
@@ -2462,7 +2521,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 if use_case == "none":
                     continue
                 f.write(f"## {use_case}\n\n")
-                f.write(ipc.tool_group_hints[use_case] + "\n\n")
+                f.write(ipc.tool_family_hints[use_case] + "\n\n")
                 op_lst = self._ip_tools_holder.list_by_use_case(use_case)
                 for ipt_ in op_lst:
                     tool_name = f'ipt_{ipt_.name.replace(" ", "_")}'
@@ -2881,7 +2940,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def do_pp_progress(self, step: int, total: int):
         if threading.current_thread() is not threading.main_thread():
-            print("do_pp_progress: NOT MAIN THREAD")
+            logger.warning("do_pp_progress: NOT MAIN THREAD")
         self.global_progress_update(step=step, total=total, process_events=not self.multithread)
 
     def do_pp_check_abort(self):
@@ -2929,7 +2988,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def do_pp_item_ended(self):
         if threading.current_thread() is not threading.main_thread():
-            print("do_pp_item_ended: NOT MAIN THREAD")
+            logger.warning("do_pp_item_ended: NOT MAIN THREAD")
         if self._batch_stop_current:
             self.update_feedback(
                 status_message="Stopping mass pipeline, please wait...",
@@ -3003,7 +3062,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def do_pp_launching(self, total_count: int):
         if threading.current_thread() is not threading.main_thread():
-            print("do_pp_launching: NOT MAIN THREAD")
+            logger.warning("do_pp_launching: NOT MAIN THREAD")
         if total_count > 0:
             self.pp_threads_total = total_count
             self.pp_threads_step = 0
@@ -3017,7 +3076,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def on_pp_starting(self):
         if threading.current_thread() is not threading.main_thread():
-            print(": NOT MAIN THREAD")
+            logger.warning(": NOT MAIN THREAD")
         self.update_feedback(
             status_message="Starting mass processor",
             log_message="   --- Starting mass processor ---",
@@ -3028,7 +3087,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def do_pp_started(self, launch_state):
         if threading.current_thread() is not threading.main_thread():
-            print("do_pp_started: NOT MAIN THREAD")
+            logger.warning("do_pp_started: NOT MAIN THREAD")
         if launch_state == "ok":
             self.update_feedback(
                 status_message="",
@@ -4143,10 +4202,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         logger.exception("exception")
         logger.error("error")
         logger.critical("Critical")
-        # try:
-        #     print(1 / 0)
-        # except Exception as e:
-        #     logger.exception(f"Add to selection failed: {repr(e)}")
+        try:
+            print(1 / 0)
+        except Exception as e:
+            logger.exception(f"Add to selection failed: {repr(e)}")
         print(1 / 0)
 
     def on_bt_keep_annotated(self):
@@ -4992,31 +5051,31 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
                 # Update script generator menu
                 self.ui.action_add_exposure_fixer.setEnabled(
-                    ipc.TOOL_GROUP_EXPOSURE_FIXING_STR in value.use_case
+                    ipc.ToolFamily.EXPOSURE_FIXING in value.use_case
                 )
                 self.ui.action_add_white_balance_corrector.setEnabled(
-                    ipc.TOOL_GROUP_WHITE_BALANCE_STR in value.use_case
+                    ipc.ToolFamily.WHITE_BALANCE in value.use_case
                 )
                 self.ui.actionAdd_white_balance_fixer.setEnabled(
-                    ipc.TOOL_GROUP_PRE_PROCESSING_STR in value.use_case
+                    ipc.ToolFamily.PRE_PROCESSING in value.use_case
                 )
                 self.ui.actionAdd_channel_mask.setEnabled(
-                    ipc.TOOL_GROUP_THRESHOLD_STR in value.use_case
+                    ipc.ToolFamily.THRESHOLD in value.use_case
                 )
                 self.ui.action_build_roi_with_raw_image.setEnabled(
-                    bool(set(value.use_case) & {ipc.TOOL_GROUP_ROI,})
+                    bool(set(value.use_case) & {ipc.ToolFamily.ROI,})
                 )
                 self.ui.action_build_roi_with_pre_processed_image.setEnabled(
-                    bool(set(value.use_case) & {ipc.TOOL_GROUP_ROI,})
+                    bool(set(value.use_case) & {ipc.ToolFamily.ROI,})
                 )
                 self.ui.actionSet_contour_cleaner.setEnabled(
-                    ipc.TOOL_GROUP_MASK_CLEANUP_STR in value.use_case
+                    ipc.ToolFamily.MASK_CLEANUP in value.use_case
                 )
                 self.ui.action_add_feature_extractor.setEnabled(
-                    ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR in value.use_case
+                    ipc.ToolFamily.FEATURE_EXTRACTION in value.use_case
                 )
                 self.ui.action_add_image_generator.setEnabled(
-                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR in value.use_case
+                    ipc.ToolFamily.IMAGE_GENERATOR in value.use_case
                 )
 
                 # Add new widgets
@@ -5141,7 +5200,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self._update_pp_pipeline_state(default_process=True, pipeline=False)
 
     @property
-    def current_database(self):
+    def current_database(self) -> dbw.DbWrapper:
         return self._current_database
 
     @current_database.setter

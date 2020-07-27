@@ -12,22 +12,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_abstract import AbstractImageProcessor
-from base.ip_common import (
-    AVAILABLE_FEATURES,
-    C_RED,
-    TOOL_GROUP_MASK_CLEANUP_STR,
-    TOOL_GROUP_WHITE_BALANCE_STR,
-    TOOL_GROUP_EXPOSURE_FIXING_STR,
-    TOOL_GROUP_UNKNOWN_STR,
-    TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_THRESHOLD_STR,
-    TOOL_GROUP_ROI_RAW_IMAGE_STR,
-    TOOL_GROUP_ROI_PP_IMAGE_STR,
-    TOOL_GROUP_FEATURE_EXTRACTION_STR,
-    TOOL_GROUP_IMAGE_GENERATOR_STR,
-)
-from base.ipt_abstract import (
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_common import AVAILABLE_FEATURES, C_RED, ToolFamily
+from ipapi.base.ipt_abstract import (
     IptParam,
     IptBase,
     IptParamHolder,
@@ -35,10 +22,10 @@ from base.ipt_abstract import (
     MODULE_NAME_KEY,
     PARAMS_NAME_KEY,
 )
-from base.ipt_functional import call_ipt_code, call_ipt_func_code
-from tools.csv_writer import AbstractCsvWriter
-from tools.common_functions import get_module_classes, force_directories
-from tools.error_holder import ErrorHolder
+from ipapi.base.ipt_functional import call_ipt_code, call_ipt_func_code
+from ipapi.tools.csv_writer import AbstractCsvWriter
+from ipapi.tools.common_functions import get_module_classes, force_directories
+from ipapi.tools.error_holder import ErrorHolder
 
 
 last_script_version = "0.6.0.0"
@@ -239,27 +226,27 @@ class IptStrictPipeline(object):
             for tool_dict in res.get_operators():
                 current_kind = tool_dict["kind"]
                 if current_kind == "exp_fixer":
-                    tool_dict["kind"] = TOOL_GROUP_EXPOSURE_FIXING_STR
+                    tool_dict["kind"] = ToolFamily.EXPOSURE_FIXING
                 elif current_kind == "pre_processor":
-                    tool_dict["kind"] = TOOL_GROUP_PRE_PROCESSING_STR
+                    tool_dict["kind"] = ToolFamily.PRE_PROCESSING
                 elif current_kind == "mask_generator":
-                    tool_dict["kind"] = TOOL_GROUP_THRESHOLD_STR
+                    tool_dict["kind"] = ToolFamily.THRESHOLD
                 elif current_kind == "mask_cleaner":
-                    tool_dict["kind"] = TOOL_GROUP_MASK_CLEANUP_STR
+                    tool_dict["kind"] = ToolFamily.MASK_CLEANUP
                 elif current_kind == "roi_post_merge":
-                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                    tool_dict["kind"] = ToolFamily.ROI_PP_IMAGE_STR
                 elif current_kind == "roi_dynamic":
-                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                    tool_dict["kind"] = ToolFamily.ROI_PP_IMAGE_STR
                 elif current_kind == "roi_static":
-                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                    tool_dict["kind"] = ToolFamily.ROI_PP_IMAGE_STR
                 elif current_kind == "ROI (dynamic)":
-                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                    tool_dict["kind"] = ToolFamily.ROI_PP_IMAGE_STR
                 elif current_kind == "ROI (static)":
-                    tool_dict["kind"] = TOOL_GROUP_ROI_PP_IMAGE_STR
+                    tool_dict["kind"] = ToolFamily.ROI_PP_IMAGE_STR
                 elif current_kind == "feature_extractor":
-                    tool_dict["kind"] = TOOL_GROUP_FEATURE_EXTRACTION_STR
+                    tool_dict["kind"] = ToolFamily.FEATURE_EXTRACTION
                 elif current_kind == "Image generator":
-                    tool_dict["kind"] = TOOL_GROUP_IMAGE_GENERATOR_STR
+                    tool_dict["kind"] = ToolFamily.IMAGE_GENERATOR
                 else:
                     tool_dict["kind"] = tool_dict["kind"]
                 tool_dict.pop("changed", None)
@@ -349,14 +336,14 @@ class IptStrictPipeline(object):
         self,
         tool_only: bool = False,
         kinds: tuple = (
-            TOOL_GROUP_EXPOSURE_FIXING_STR,
-            TOOL_GROUP_PRE_PROCESSING_STR,
-            TOOL_GROUP_THRESHOLD_STR,
-            TOOL_GROUP_ROI_RAW_IMAGE_STR,
-            TOOL_GROUP_ROI_PP_IMAGE_STR,
-            TOOL_GROUP_MASK_CLEANUP_STR,
-            TOOL_GROUP_FEATURE_EXTRACTION_STR,
-            TOOL_GROUP_IMAGE_GENERATOR_STR,
+            ToolFamily.EXPOSURE_FIXING,
+            ToolFamily.PRE_PROCESSING,
+            ToolFamily.THRESHOLD,
+            ToolFamily.ROI_RAW_IMAGE,
+            ToolFamily.ROI_PP_IMAGE,
+            ToolFamily.MASK_CLEANUP,
+            ToolFamily.FEATURE_EXTRACTION,
+            ToolFamily.IMAGE_GENERATOR,
         ),
         conditions: dict = {},
     ) -> dict:
@@ -424,8 +411,7 @@ class IptStrictPipeline(object):
         """
         tools_ = self.get_operators(
             constraints=dict(
-                enabled=True,
-                kind=[TOOL_GROUP_EXPOSURE_FIXING_STR, TOOL_GROUP_WHITE_BALANCE_STR],
+                enabled=True, kind=[ToolFamily.EXPOSURE_FIXING, ToolFamily.WHITE_BALANCE],
             )
         )
         for tool in tools_:
@@ -496,7 +482,7 @@ class IptStrictPipeline(object):
             wrapper=wrapper, tools=None, use_last_result=use_last_result
         )
         tools_ = self.get_operators(
-            constraints=dict(enabled=True, kind=TOOL_GROUP_PRE_PROCESSING_STR)
+            constraints=dict(enabled=True, kind=ToolFamily.PRE_PROCESSING)
         )
         for tool in tools_:
             wrapper.current_image, use_last_result = self.process_tool(
@@ -520,9 +506,9 @@ class IptStrictPipeline(object):
             tools = self.get_operators(
                 constraints=dict(
                     kind=(
-                        TOOL_GROUP_PRE_PROCESSING_STR,
-                        TOOL_GROUP_THRESHOLD_STR,
-                        TOOL_GROUP_MASK_CLEANUP_STR,
+                        ToolFamily.PRE_PROCESSING,
+                        ToolFamily.THRESHOLD,
+                        ToolFamily.MASK_CLEANUP,
                     ),
                     enabled=True,
                 )
@@ -548,11 +534,11 @@ class IptStrictPipeline(object):
         target_pp_image=True,
     ):
         if target_raw_image and target_pp_image:
-            kinds = (TOOL_GROUP_ROI_RAW_IMAGE_STR, TOOL_GROUP_ROI_PP_IMAGE_STR)
+            kinds = (ToolFamily.ROI_RAW_IMAGE_STR, ToolFamily.ROI_PP_IMAGE_STR)
         elif target_raw_image:
-            kinds = (TOOL_GROUP_ROI_RAW_IMAGE_STR,)
+            kinds = (ToolFamily.ROI_RAW_IMAGE_STR,)
         elif target_pp_image:
-            kinds = (TOOL_GROUP_ROI_PP_IMAGE_STR,)
+            kinds = (ToolFamily.ROI_PP_IMAGE_STR,)
         else:
             kinds = ()
         if tools is None:
@@ -611,7 +597,7 @@ class IptStrictPipeline(object):
             if tool.process_wrapper(wrapper=wrapper):
                 if (
                     tool_dict["kind"]
-                    in [TOOL_GROUP_FEATURE_EXTRACTION_STR, TOOL_GROUP_IMAGE_GENERATOR_STR]
+                    in [ToolFamily.FEATURE_EXTRACTION, ToolFamily.IMAGE_GENERATOR]
                 ) and (hasattr(tool, "data_dict")):
                     ret = tool.data_dict
                 else:
@@ -621,17 +607,17 @@ class IptStrictPipeline(object):
                 self._last_wrapper_luid = ""
                 return None, False
 
-        if tool_kind == TOOL_GROUP_EXPOSURE_FIXING_STR:
+        if tool_kind == ToolFamily.EXPOSURE_FIXING:
             return ret, use_last_result
-        if tool_kind == TOOL_GROUP_PRE_PROCESSING_STR:
+        if tool_kind == ToolFamily.PRE_PROCESSING:
             return ret, use_last_result
-        elif tool_kind == TOOL_GROUP_THRESHOLD_STR:
+        elif tool_kind == ToolFamily.THRESHOLD:
             return ret, use_last_result
-        elif tool_kind in [TOOL_GROUP_ROI_RAW_IMAGE_STR, TOOL_GROUP_ROI_PP_IMAGE_STR]:
+        elif tool_kind in [ToolFamily.ROI_RAW_IMAGE_STR, ToolFamily.ROI_PP_IMAGE_STR]:
             raise AttributeError("ROI tools should never be fed to process_tool")
-        elif tool_kind == TOOL_GROUP_MASK_CLEANUP_STR:
+        elif tool_kind == ToolFamily.MASK_CLEANUP:
             return ret, use_last_result
-        elif tool_kind in [TOOL_GROUP_FEATURE_EXTRACTION_STR, TOOL_GROUP_IMAGE_GENERATOR_STR]:
+        elif tool_kind in [ToolFamily.FEATURE_EXTRACTION, ToolFamily.IMAGE_GENERATOR]:
             return ret, use_last_result
         else:
             self._last_wrapper_luid = ""
@@ -653,14 +639,14 @@ class IptStrictPipeline(object):
                 for op in self.get_operators(
                     constraints=dict(
                         kind=(
-                            TOOL_GROUP_EXPOSURE_FIXING_STR,
-                            TOOL_GROUP_PRE_PROCESSING_STR,
-                            TOOL_GROUP_THRESHOLD_STR,
-                            TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                            TOOL_GROUP_ROI_PP_IMAGE_STR,
-                            TOOL_GROUP_MASK_CLEANUP_STR,
-                            TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                            TOOL_GROUP_IMAGE_GENERATOR_STR,
+                            ToolFamily.EXPOSURE_FIXING,
+                            ToolFamily.PRE_PROCESSING,
+                            ToolFamily.THRESHOLD,
+                            ToolFamily.ROI_RAW_IMAGE_STR,
+                            ToolFamily.ROI_PP_IMAGE_STR,
+                            ToolFamily.MASK_CLEANUP,
+                            ToolFamily.FEATURE_EXTRACTION,
+                            ToolFamily.IMAGE_GENERATOR,
                         ),
                         enabled=True,
                     )
@@ -675,14 +661,14 @@ class IptStrictPipeline(object):
             total_steps = self.get_operators_count(
                 constraints=dict(
                     kind=(
-                        TOOL_GROUP_EXPOSURE_FIXING_STR,
-                        TOOL_GROUP_PRE_PROCESSING_STR,
-                        TOOL_GROUP_THRESHOLD_STR,
-                        TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                        TOOL_GROUP_ROI_PP_IMAGE_STR,
-                        TOOL_GROUP_MASK_CLEANUP_STR,
-                        TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                        TOOL_GROUP_IMAGE_GENERATOR_STR,
+                        ToolFamily.EXPOSURE_FIXING,
+                        ToolFamily.PRE_PROCESSING,
+                        ToolFamily.THRESHOLD,
+                        ToolFamily.ROI_RAW_IMAGE_STR,
+                        ToolFamily.ROI_PP_IMAGE_STR,
+                        ToolFamily.MASK_CLEANUP,
+                        ToolFamily.FEATURE_EXTRACTION,
+                        ToolFamily.IMAGE_GENERATOR,
                     ),
                     enabled=True,
                 )
@@ -721,11 +707,11 @@ class IptStrictPipeline(object):
             )
 
             # Build coarse mask
-            if len(tools_[TOOL_GROUP_THRESHOLD_STR]) > 0:
+            if len(tools_[ToolFamily.THRESHOLD]) > 0:
                 mask_list = []
                 mask_names = []
                 masks_failed_cpt = 0
-                for i, tool in enumerate(tools_[TOOL_GROUP_THRESHOLD_STR]):
+                for i, tool in enumerate(tools_[ToolFamily.THRESHOLD]):
                     target = tool["tool"].get_value_of("tool_target")
                     if target not in [None, "", "none"]:
                         continue
@@ -794,9 +780,9 @@ class IptStrictPipeline(object):
                 )
 
                 # Clean mask
-                if len(tools_[TOOL_GROUP_MASK_CLEANUP_STR]) > 0:
+                if len(tools_[ToolFamily.MASK_CLEANUP]) > 0:
                     res = True
-                    for tool in tools_[TOOL_GROUP_MASK_CLEANUP_STR]:
+                    for tool in tools_[ToolFamily.MASK_CLEANUP]:
                         tmp_mask, use_last_result = self.process_tool(
                             tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result
                         )
@@ -897,8 +883,8 @@ class IptStrictPipeline(object):
 
             # Prepare data holder
             if res and (
-                (not self.threshold_only and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0)
-                or (len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0)
+                (not self.threshold_only and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0)
+                or (len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0)
             ):
                 wrapper.csv_data_holder = AbstractCsvWriter()
 
@@ -913,10 +899,10 @@ class IptStrictPipeline(object):
             if (
                 res
                 and not self.threshold_only
-                and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0
+                and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0
             ):
                 wrapper.current_image = wrapper.retrieve_stored_image("exposure_fixed")
-                for tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
+                for tool in tools_[ToolFamily.FEATURE_EXTRACTION]:
                     current_data, use_last_result = self.process_tool(
                         tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result
                     )
@@ -938,8 +924,8 @@ class IptStrictPipeline(object):
                 res = len(wrapper.csv_data_holder.data_list) > 0
 
             # Generate images
-            if res and len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
-                for tool in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
+            if res and len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0:
+                for tool in tools_[ToolFamily.IMAGE_GENERATOR]:
                     current_data, use_last_result = self.process_tool(
                         tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result,
                     )
@@ -1018,9 +1004,9 @@ class IptStrictPipeline(object):
         # IPSO Phen libraries
         import_lst.extend(
             [
-                "from base.ip_abstract import AbstractImageProcessor",
-                "from base.ipt_functional import call_ipt, call_ipt_func",
-                "from tools.csv_writer import AbstractCsvWriter",
+                "from ipapi.base.ip_abstract import AbstractImageProcessor",
+                "from ipapi.base.ipt_functional import call_ipt, call_ipt_func",
+                "from ipapi.tools.csv_writer import AbstractCsvWriter",
             ]
         )
 
@@ -1082,11 +1068,11 @@ class IptStrictPipeline(object):
 
         # Build ROIs using fixed image
         # _________________
-        if len(tools_[TOOL_GROUP_ROI_RAW_IMAGE_STR]) > 0:
+        if len(tools_[ToolFamily.ROI_RAW_IMAGE_STR]) > 0:
             code_ += (
                 ws_ct + "# Build ROIs using fixed image\n" + ws_ct + "# _________________\n"
             )
-            for ef_tool in tools_[TOOL_GROUP_ROI_RAW_IMAGE_STR]:
+            for ef_tool in tools_[ToolFamily.ROI_RAW_IMAGE_STR]:
                 code_ += call_ipt_func_code(
                     ipt=ef_tool,
                     function_name="generate_roi",
@@ -1102,9 +1088,9 @@ class IptStrictPipeline(object):
 
         # Fix image exposition
         # ____________________
-        if len(tools_[TOOL_GROUP_EXPOSURE_FIXING_STR]) > 0:
+        if len(tools_[ToolFamily.EXPOSURE_FIXING]) > 0:
             code_ += ws_ct + "# Fix exposure\n" + ws_ct + "# ____________________\n"
-            for ef_tool in tools_[TOOL_GROUP_EXPOSURE_FIXING_STR]:
+            for ef_tool in tools_[ToolFamily.EXPOSURE_FIXING]:
                 code_ += call_ipt_code(
                     ipt=ef_tool,
                     white_spaces=ws_ct,
@@ -1128,14 +1114,14 @@ class IptStrictPipeline(object):
 
         # Pre process image (make segmentation easier)
         # ____________________________________________
-        if len(tools_[TOOL_GROUP_PRE_PROCESSING_STR]) > 0:
+        if len(tools_[ToolFamily.PRE_PROCESSING]) > 0:
             code_ += (
                 ws_ct
                 + "# Pre process image (make segmentation easier)\n"
                 + ws_ct
                 + "# ____________________________________________\n"
             )
-            for ef_tool in tools_[TOOL_GROUP_PRE_PROCESSING_STR]:
+            for ef_tool in tools_[ToolFamily.PRE_PROCESSING]:
                 code_ += call_ipt_code(
                     ipt=ef_tool,
                     white_spaces=ws_ct,
@@ -1152,9 +1138,9 @@ class IptStrictPipeline(object):
 
         # Build ROIs using preprocessed image
         # __________________
-        if len(tools_[TOOL_GROUP_ROI_PP_IMAGE_STR]) > 0:
+        if len(tools_[ToolFamily.ROI_PP_IMAGE_STR]) > 0:
             code_ += ws_ct + "# Build dynamic ROIs\n" + ws_ct + "# __________________\n"
-            for ef_tool in tools_[TOOL_GROUP_ROI_PP_IMAGE_STR]:
+            for ef_tool in tools_[ToolFamily.ROI_PP_IMAGE_STR]:
                 code_ += call_ipt_func_code(
                     ipt=ef_tool,
                     function_name="generate_roi",
@@ -1170,10 +1156,10 @@ class IptStrictPipeline(object):
 
         # Build coarse masks
         # __________________
-        if len(tools_[TOOL_GROUP_THRESHOLD_STR]) > 0:
+        if len(tools_[ToolFamily.THRESHOLD]) > 0:
             code_ += ws_ct + "# Build coarse masks\n" + ws_ct + "# __________________\n"
             code_ += ws_ct + "mask_list = []\n"
-            for mask_tool in tools_[TOOL_GROUP_THRESHOLD_STR]:
+            for mask_tool in tools_[ToolFamily.THRESHOLD]:
                 code_ += call_ipt_code(
                     ipt=mask_tool,
                     white_spaces=ws_ct,
@@ -1233,9 +1219,9 @@ class IptStrictPipeline(object):
 
         # Clean mask
         # __________
-        if len(tools_[TOOL_GROUP_MASK_CLEANUP_STR]) > 0:
+        if len(tools_[ToolFamily.MASK_CLEANUP]) > 0:
             code_ += ws_ct + "# Clean merged mask\n" + ws_ct + "# _________________\n"
-            for mc_tool in tools_[TOOL_GROUP_MASK_CLEANUP_STR]:
+            for mc_tool in tools_[ToolFamily.MASK_CLEANUP]:
                 code_ += call_ipt_code(
                     ipt=mc_tool,
                     white_spaces=ws_ct,
@@ -1316,8 +1302,8 @@ class IptStrictPipeline(object):
 
         # Prepare data holder
         # ___________________
-        if (not self.threshold_only and len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0) or (
-            len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0
+        if (not self.threshold_only and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0) or (
+            len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0
         ):
             code_ += ws_ct + "# Prepare data holder\n"
             code_ += ws_ct + "# ___________________\n"
@@ -1325,14 +1311,14 @@ class IptStrictPipeline(object):
 
         # Extract features
         # ________________
-        if not self.threshold_only and (len(tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]) > 0):
+        if not self.threshold_only and (len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0):
             code_ += ws_ct + "# Extract features\n"
             code_ += ws_ct + "# ________________\n"
             code_ += (
                 ws_ct
                 + "wrapper.current_image = wrapper.retrieve_stored_image('exposure_fixed')\n"
             )
-            for fe_tool in tools_[TOOL_GROUP_FEATURE_EXTRACTION_STR]:
+            for fe_tool in tools_[ToolFamily.FEATURE_EXTRACTION]:
                 code_ += call_ipt_code(
                     ipt=fe_tool,
                     white_spaces=ws_ct,
@@ -1379,10 +1365,10 @@ class IptStrictPipeline(object):
         code_ += "\n"
 
         # Generate images
-        if len(tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]) > 0:
+        if len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0:
             code_ += ws_ct + "# Generate images\n"
             code_ += ws_ct + "# _______________\n"
-            for ig_tool in tools_[TOOL_GROUP_IMAGE_GENERATOR_STR]:
+            for ig_tool in tools_[ToolFamily.IMAGE_GENERATOR]:
                 ig_tool.set_value_of(key="path", value=self.image_output_path)
                 code_ += call_ipt_code(
                     ipt=ig_tool,
@@ -1533,66 +1519,66 @@ class IptStrictPipeline(object):
 
     @staticmethod
     def ops_after(tool_kind: str):
-        if tool_kind in [TOOL_GROUP_ROI_RAW_IMAGE_STR]:
+        if tool_kind in [ToolFamily.ROI_RAW_IMAGE_STR]:
             return [
-                TOOL_GROUP_WHITE_BALANCE_STR,
-                TOOL_GROUP_EXPOSURE_FIXING_STR,
-                TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                TOOL_GROUP_PRE_PROCESSING_STR,
-                TOOL_GROUP_ROI_PP_IMAGE_STR,
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.WHITE_BALANCE,
+                ToolFamily.EXPOSURE_FIXING,
+                ToolFamily.ROI_RAW_IMAGE_STR,
+                ToolFamily.PRE_PROCESSING,
+                ToolFamily.ROI_PP_IMAGE_STR,
+                ToolFamily.THRESHOLD,
+                ToolFamily.MASK_CLEANUP,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        if tool_kind in [TOOL_GROUP_EXPOSURE_FIXING_STR, TOOL_GROUP_WHITE_BALANCE_STR]:
+        if tool_kind in [ToolFamily.EXPOSURE_FIXING, ToolFamily.WHITE_BALANCE]:
             return [
-                TOOL_GROUP_WHITE_BALANCE_STR,
-                TOOL_GROUP_EXPOSURE_FIXING_STR,
-                TOOL_GROUP_PRE_PROCESSING_STR,
-                TOOL_GROUP_ROI_PP_IMAGE_STR,
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.WHITE_BALANCE,
+                ToolFamily.EXPOSURE_FIXING,
+                ToolFamily.PRE_PROCESSING,
+                ToolFamily.ROI_PP_IMAGE_STR,
+                ToolFamily.THRESHOLD,
+                ToolFamily.MASK_CLEANUP,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        if tool_kind in [TOOL_GROUP_PRE_PROCESSING_STR]:
+        if tool_kind in [ToolFamily.PRE_PROCESSING]:
             return [
-                TOOL_GROUP_PRE_PROCESSING_STR,
-                TOOL_GROUP_ROI_PP_IMAGE_STR,
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.PRE_PROCESSING,
+                ToolFamily.ROI_PP_IMAGE_STR,
+                ToolFamily.THRESHOLD,
+                ToolFamily.MASK_CLEANUP,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        if tool_kind in [TOOL_GROUP_ROI_PP_IMAGE_STR]:
+        if tool_kind in [ToolFamily.ROI_PP_IMAGE_STR]:
             return [
-                TOOL_GROUP_ROI_PP_IMAGE_STR,
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.ROI_PP_IMAGE_STR,
+                ToolFamily.THRESHOLD,
+                ToolFamily.MASK_CLEANUP,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        elif tool_kind == TOOL_GROUP_THRESHOLD_STR:
+        elif tool_kind == ToolFamily.THRESHOLD:
             return [
-                TOOL_GROUP_THRESHOLD_STR,
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.THRESHOLD,
+                ToolFamily.MASK_CLEANUP,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        elif tool_kind == TOOL_GROUP_MASK_CLEANUP_STR:
+        elif tool_kind == ToolFamily.MASK_CLEANUP:
             return [
-                TOOL_GROUP_MASK_CLEANUP_STR,
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.MASK_CLEANUP,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        elif tool_kind == TOOL_GROUP_FEATURE_EXTRACTION_STR:
+        elif tool_kind == ToolFamily.FEATURE_EXTRACTION:
             return [
-                TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                TOOL_GROUP_IMAGE_GENERATOR_STR,
+                ToolFamily.FEATURE_EXTRACTION,
+                ToolFamily.IMAGE_GENERATOR,
             ]
-        elif tool_kind == TOOL_GROUP_IMAGE_GENERATOR_STR:
-            return [TOOL_GROUP_IMAGE_GENERATOR_STR]
+        elif tool_kind == ToolFamily.IMAGE_GENERATOR:
+            return [ToolFamily.IMAGE_GENERATOR]
         else:
             return []
 
@@ -1626,7 +1612,7 @@ class IptStrictPipeline(object):
 
     @property
     def is_functional(self):
-        return len(self.get_operators(dict(kind=TOOL_GROUP_THRESHOLD_STR, enabled=True))) > 0
+        return len(self.get_operators(dict(kind=ToolFamily.THRESHOLD, enabled=True))) > 0
 
     @property
     def target_data_base(self):

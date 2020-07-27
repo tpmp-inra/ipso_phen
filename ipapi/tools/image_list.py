@@ -1,8 +1,12 @@
 import os
 import random
 
-from tools.common_functions import time_method
-from base.image_wrapper import ImageWrapper
+from ipapi.tools.common_functions import time_method
+from ipapi.base.image_wrapper import ImageWrapper
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class ImageList:
@@ -52,7 +56,7 @@ class ImageList:
                 elif cmd["action"].lower() == "post_filter":
                     post_flts_.append(self._clean_mask(cmd["data"]))
                 elif cmd["action"].lower() == "decimate":
-                    print("Decimate command no longer supported")
+                    logger.info("Decimate command no longer supported")
                 elif cmd["action"].lower() == "pick_random":
                     pick_ = cmd["data"]
                 if cmd["action"].lower() == "exclude":
@@ -126,7 +130,7 @@ class ImageList:
             for name in files
             if name.lower().endswith(self.extensions)
         ]
-        print(f"Extension filtering file count: {len(file_list)}")
+        logger.info(f"Extension filtering file count: {len(file_list)}")
         return file_list
 
     @staticmethod
@@ -173,13 +177,15 @@ class ImageList:
                     is_accepted_, _ = self._is_file_matches_mask(file_list[i], mask)
                     if is_accepted_:
                         break
+                else:
+                    is_accepted_ = True
                 if is_accepted_:
                     i += 1
                 else:
                     del file_list[i]
             else:
                 i += 1
-        print(f"Comand filtering file count: {len(file_list)}")
+        logger.info(f"Comand filtering file count: {len(file_list)}")
 
         return file_list
 
@@ -196,7 +202,7 @@ class ImageList:
                 i += 1
             else:
                 del file_list[i]
-        print(f"Post filtering file count: {len(file_list)}")
+        logger.info(f"Post filtering file count: {len(file_list)}")
 
         return file_list
 

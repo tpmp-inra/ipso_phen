@@ -7,9 +7,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
-from base.ipt_abstract_merger import IptBaseMerger
-from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
+from ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
+from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptQuickShift(IptBaseMerger):
@@ -119,7 +119,7 @@ class IptQuickShift(IptBaseMerger):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_CLUSTERING_STR, TOOL_GROUP_VISUALIZATION_STR]
+        return [ToolFamily.CLUSTERING, ToolFamily.VISUALIZATION]
 
     @property
     def description(self):

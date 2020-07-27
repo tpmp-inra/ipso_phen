@@ -1,7 +1,7 @@
 import logging
 
 logger = logging.getLogger(__name__)
-from base.ipt_abstract import IptBase
+from ipapi.base.ipt_abstract import IptBase
 
 
 class IptDummyThreshold(IptBase):

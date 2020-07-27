@@ -9,18 +9,11 @@ import cv2
 import numpy as np
 from skimage.transform import hough_circle, hough_circle_peaks
 
-from base.ip_common import (
-    C_RED,
-    C_BLUE,
-    C_YELLOW,
-    C_ORANGE,
-    build_color_steps,
-    TOOL_GROUP_ROI,
-)
-from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
-from base.ipt_abstract import IptBase
-from ipt.ipt_edge_detector import IptEdgeDetector
-from tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
+import ipapi.base.ip_common as ipc
+from ipapi.base.ip_common import ToolFamily
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from ipapi.tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
 
 
 class IptHoughCircles(IptBase):
@@ -30,6 +23,13 @@ class IptHoughCircles(IptBase):
             desc="Allow retrieving data from cache",
             default_value=1,
             hint="Data will be retrieved only if params are identical.",
+        )
+        self.add_combobox(
+            name="source_selector",
+            desc="Select source",
+            default_value="current_image",
+            values={"current_image": "Current image", "mask": "Mask"},
+            hint="Select which image will be used as source",
         )
         self.add_roi_settings(
             default_name="unnamed_roi", default_type="keep", default_shape="rectangle"
@@ -285,7 +285,7 @@ class IptHoughCircles(IptBase):
                     min_idx = -1
                     min_accu = -1
                     i = 0
-                    colors = build_color_steps(C_YELLOW, (0, 125, 125), len(candidates))
+                    colors = ipc.build_color_steps(ipc.C_YELLOW, (0, 125, 125), len(candidates))
                     max_dist_to_root = self.get_value_of(
                         "max_dist_to_root", scale_factor=wrapper.scale_factor
                     )
@@ -322,13 +322,17 @@ class IptHoughCircles(IptBase):
                         )
                         if self.get_value_of("draw_boundaries") == 1:
                             cv2.circle(
-                                img, (roi_root.x, roi_root.y), min_radius, C_RED, line_width + 4
+                                img,
+                                (roi_root.x, roi_root.y),
+                                min_radius,
+                                ipc.C_RED,
+                                line_width + 4,
                             )
                             cv2.circle(
                                 img,
                                 (roi_root.x, roi_root.y),
                                 max_radius,
-                                C_BLUE,
+                                ipc.C_BLUE,
                                 line_width + 4,
                             )
                     else:
@@ -341,7 +345,7 @@ class IptHoughCircles(IptBase):
                         pickle.dump(self.result, f)
 
             if self.result is not None:
-                colors = build_color_steps(C_ORANGE, (0, 0, 255), len(self.result))
+                colors = ipc.build_color_steps(ipc.C_ORANGE, (0, 0, 255), len(self.result))
                 i = 0
                 annulus_size = self.get_value_of("annulus_size")
                 for center_x, center_y, radius in self.result:
@@ -362,11 +366,7 @@ class IptHoughCircles(IptBase):
             )
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.exception(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass
@@ -437,7 +437,7 @@ class IptHoughCircles(IptBase):
                 res = wrapper.apply_rois(wrapper.mask)
             else:
                 res = None
-                wrapper.error_holder.add_error("Unknown ROI target", target_logger=logger)
+                logger.error("Unknown ROI target")
             wrapper.store_image(res, roi_name, text_overlay=False)
             return res
         else:
@@ -461,11 +461,25 @@ class IptHoughCircles(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_ROI]
+        return [ipc.ToolFamily.ROI]
 
     @property
     def description(self):
         return "Hough circles detector: Perform a circular Hough transform.\nCan generate ROIs"
+
+    @property
+    def input_type(self):
+        if self.get_value_of("source_selector") == "mask":
+            return ipc.IO_MASK
+        else:
+            return ipc.IO_IMAGE
+
+    @property
+    def output_type(self):
+        if self.get_value_of("edge_only") == "mask":
+            return ipc.IO_IMAGE
+        else:
+            return ipc.IO_ROI
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
         self.set_value_of("enable_cache", 0)

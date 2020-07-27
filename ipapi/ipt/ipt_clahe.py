@@ -4,12 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from base.ip_common import (
-    TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_WHITE_BALANCE_STR,
-    ensure_odd,
-)
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily,ensure_odd
 
 
 class IptClahe(IptBase):
@@ -110,7 +106,7 @@ class IptClahe(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR, TOOL_GROUP_WHITE_BALANCE_STR]
+        return [ToolFamily.PRE_PROCESSING, ToolFamily.WHITE_BALANCE]
 
     @property
     def description(self):

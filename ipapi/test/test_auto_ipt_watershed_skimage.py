@@ -9,12 +9,12 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipt.ipt_watershed_skimage import IptWatershedSkimage
-from base.ip_abstract import AbstractImageProcessor
-from base.ipt_loose_pipeline import LoosePipeline
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.ipt.ipt_watershed_skimage import IptWatershedSkimage
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
-import base.ip_common as ipc
+import ipapi.base.ip_common as ipc
 
 
 class TestIptWatershedSkimage(unittest.TestCase):
@@ -22,15 +22,12 @@ class TestIptWatershedSkimage(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptWatershedSkimage()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptWatershedSkimage()
         if "(wip)" not in op.name.lower():
             self.assertIsNotNone(
-                op.process_wrapper.__doc__,
-                "Missing docstring for Watershed Skimage (WIP)",
+                op.process_wrapper.__doc__, "Missing docstring for Watershed Skimage (WIP)",
             )

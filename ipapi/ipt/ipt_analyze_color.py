@@ -9,10 +9,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import get_hr_channel_name, channel_color
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR, enclose_image, C_BLACK
-from tools import regions
+from ipapi.base.ip_common import get_hr_channel_name, channel_color
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ip_common import ToolFamily, enclose_image, C_BLACK
+from ipapi.tools import regions
 import os
 
 matplotlib.use("agg")
@@ -285,7 +285,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

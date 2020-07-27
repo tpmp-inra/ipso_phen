@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base import ip_common as ipc
-from base.ipt_abstract import IptBase
+from ipapi.base import ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
 
 
 class IptPrintColorSpaces(IptBase):

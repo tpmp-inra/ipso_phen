@@ -5,7 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from tools.common_functions import force_directories
+from ipapi.tools.common_functions import force_directories
 
 TABLE_ANNOTATIONS = "TABLE_ANNOTATIONS"
 

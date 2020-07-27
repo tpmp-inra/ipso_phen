@@ -7,11 +7,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from base.ip_common import (
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import (
     all_colors_dict,
-    TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_THRESHOLD_STR,
+    ToolFamily,
 )
 
 CHANNEL_COUNT = 3
@@ -310,7 +309,7 @@ class IptThresholdDistance(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR]
+        return [ToolFamily.PRE_PROCESSING]
 
     @property
     def description(self):

@@ -11,36 +11,9 @@ import logging
 import cv2
 import numpy as np
 
-from base.ip_common import (
-    C_BLACK,
-    C_LIGHT_STEEL_BLUE,
-    C_SILVER,
-    C_WHITE,
-    all_colors_dict,
-    enclose_image,
-    resize_image,
-    get_hr_channel_name,
-    create_channel_generator,
-    TOOL_GROUP_ANCILLARY_STR,
-    ensure_odd,
-    TOOL_GROUP_CLUSTERING_STR,
-    TOOL_GROUP_DEMO_STR,
-    TOOL_GROUP_DEFAULT_PROCESS_STR,
-    TOOL_GROUP_FEATURE_EXTRACTION_STR,
-    TOOL_GROUP_EXPOSURE_FIXING_STR,
-    TOOL_GROUP_IMAGE_GENERATOR_STR,
-    TOOL_GROUP_IMAGE_INFO_STR,
-    TOOL_GROUP_MASK_CLEANUP_STR,
-    TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_ROI,
-    TOOL_GROUP_THRESHOLD_STR,
-    TOOL_GROUP_VISUALIZATION_STR,
-    TOOL_GROUP_WHITE_BALANCE_STR,
-    TOOL_GROUP_UNKNOWN_STR,
-)
-from base.ip_abstract import AbstractImageProcessor
-from tools.common_functions import make_safe_name
-import base.ip_common as ipc
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.tools.common_functions import make_safe_name
+import ipapi.base.ip_common as ipc
 
 CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
@@ -301,7 +274,7 @@ class IptParam(object):
                 else:
                     res.append(opt_)
             except ValueError as e:
-                print(f'String decoding failed: "{repr(e)}"')
+                logger.exception(f'String decoding failed: "{repr(e)}"')
         return [str(i) for i in sorted(list(set(res)))]
 
     def decode_grid_search_options(self):
@@ -485,7 +458,7 @@ class IptParamHolder(object):
         try:
             self._param_list.append(new_item)
         except Exception as e:
-            print(f'Failed to add param "{repr(e)}')
+            logger.exception(f'Failed to add param "{repr(e)}')
         else:
             return new_item
 
@@ -503,7 +476,7 @@ class IptParamHolder(object):
             param.widget_type = "combo_box"
             return self.add(param)
         except Exception as e:
-            print(f'Failed to add param "{repr(e)}')
+            logger.exception(f'Failed to add param "{repr(e)}')
 
     def add_slider(
         self,
@@ -640,7 +613,7 @@ class IptParamHolder(object):
             values = {"none": "none"}
         else:
             values = {}
-        values = {**values, **{k: k for k in all_colors_dict}}
+        values = {**values, **{k: k for k in ipc.all_colors_dict}}
         param = IptParam(
             name=name, desc=desc, default_value=default_value, allowed_values=values, hint=hint
         )
@@ -671,8 +644,8 @@ class IptParamHolder(object):
         values = {
             **values,
             **{
-                channel_info[1]: get_hr_channel_name(channel_info[1])
-                for channel_info in create_channel_generator(include_msp=True)
+                channel_info[1]: ipc.get_hr_channel_name(channel_info[1])
+                for channel_info in ipc.create_channel_generator(include_msp=True)
             },
         }
         param = IptParam(
@@ -1260,14 +1233,21 @@ class IptBase(IptParamHolder, ABC):
     @classmethod
     def from_json(cls, json_data: dict):
         class_name = json_data[CLASS_NAME_KEY]
-        module_name = json_data[MODULE_NAME_KEY].replace("ip_tools", "ipt")
+        module_name: str = json_data[MODULE_NAME_KEY].replace("ip_tools", "ipt")
+        if "ipt" in module_name and "ipapi" not in module_name:
+            module_name = module_name.replace("ipt", "ipapi.ipt", 1)
         __import__(module_name)
         for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
                 try:
                     ipt = obj(**json_data[PARAMS_NAME_KEY])
+                    break
                 except Exception as e:
                     return e
+        else:
+            ipt = None
+        if ipt is None:
+            return None
         gs_params = json_data.get(GRID_SEARCH_PARAMS_NAME_KEY, None)
         if gs_params:
             for p in ipt.gizmos:
@@ -1541,7 +1521,9 @@ class IptBase(IptParamHolder, ABC):
         else:
             color_space = "RGB"
 
-        median_filter_size = 0 if median_filter_size == 1 else ensure_odd(median_filter_size)
+        median_filter_size = (
+            0 if median_filter_size == 1 else ipc.ensure_odd(median_filter_size)
+        )
 
         if source_type == "source":
             src_img = self.wrapper.current_image
@@ -1610,7 +1592,9 @@ class IptBase(IptParamHolder, ABC):
         min_ = self.get_value_of("min_t")
         max_ = self.get_value_of("max_t")
         median_filter_size = self.get_value_of("median_filter_size")
-        median_filter_size = 0 if median_filter_size == 1 else ensure_odd(median_filter_size)
+        median_filter_size = (
+            0 if median_filter_size == 1 else ipc.ensure_odd(median_filter_size)
+        )
 
         min_, max_ = min(min_, max_), max(min_, max_)
 
@@ -1782,7 +1766,7 @@ class IptBase(IptParamHolder, ABC):
     def code_imports(self, **kwargs):
         ret = [f"from {self.__module__} import {type(self).__name__}"]
         if kwargs.get("build_wrapper", "yes") is not False:
-            ret.append("from base.ip_abstract import AbstractImageProcessor")
+            ret.append("from ipapi.base.ip_abstract import AbstractImageProcessor")
         return ret
 
     def code_apply_roi(self, print_result=None, white_spaces=""):
@@ -1969,18 +1953,18 @@ class IptBase(IptParamHolder, ABC):
         if set(self.use_case).intersection(
             set(
                 (
-                    ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
-                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
-                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                    ipc.TOOL_GROUP_THRESHOLD_STR,
-                    ipc.TOOL_GROUP_WHITE_BALANCE_STR,
-                    ipc.TOOL_GROUP_ROI,
+                    ipc.ToolFamily.EXPOSURE_FIXING,
+                    ipc.ToolFamily.IMAGE_GENERATOR,
+                    ipc.ToolFamily.PRE_PROCESSING,
+                    ipc.ToolFamily.THRESHOLD,
+                    ipc.ToolFamily.WHITE_BALANCE,
+                    ipc.ToolFamily.ROI,
                 )
             )
         ):
             return ipc.IO_IMAGE
         elif set(self.use_case).intersection(
-            set((ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
+            set((ipc.ToolFamily.FEATURE_EXTRACTION, ipc.ToolFamily.MASK_CLEANUP))
         ):
             return ipc.IO_MASK
         else:
@@ -1991,24 +1975,24 @@ class IptBase(IptParamHolder, ABC):
         if set(self.use_case).intersection(
             set(
                 (
-                    ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
-                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                    ipc.TOOL_GROUP_WHITE_BALANCE_STR,
+                    ipc.ToolFamily.EXPOSURE_FIXING,
+                    ipc.ToolFamily.PRE_PROCESSING,
+                    ipc.ToolFamily.WHITE_BALANCE,
                 )
             )
         ):
             return ipc.IO_IMAGE
         elif set(self.use_case).intersection(
-            set((ipc.TOOL_GROUP_THRESHOLD_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR))
+            set((ipc.ToolFamily.THRESHOLD, ipc.ToolFamily.MASK_CLEANUP))
         ):
             return ipc.IO_MASK
-        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_ROI,))):
+        elif set(self.use_case).intersection(set((ipc.ToolFamily.ROI,))):
             return ipc.IO_ROI
         elif set(self.use_case).intersection(
-            set((ipc.TOOL_GROUP_IMAGE_GENERATOR_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR))
+            set((ipc.ToolFamily.IMAGE_GENERATOR, ipc.ToolFamily.FEATURE_EXTRACTION))
         ):
             return ipc.IO_DATA
-        elif set(self.use_case).intersection(set((ipc.TOOL_GROUP_VISUALIZATION_STR,))):
+        elif set(self.use_case).intersection(set((ipc.ToolFamily.VISUALIZATION,))):
             return ipc.IO_IMAGE
         else:
             return ipc.IO_NONE

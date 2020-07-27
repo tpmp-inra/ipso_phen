@@ -11,11 +11,11 @@ logger = logging.getLogger(__name__)
 
 from PySide2.QtCore import Slot, Signal, QObject, QRunnable
 
-import base.ip_common as ipc
-from class_pipelines.ip_factory import ipo_factory
-from tools.comand_line_wrapper import ArgWrapper
-from tools.common_functions import format_time, force_directories
-from file_handlers.fh_base import file_handler_factory
+import ipapi.base.ip_common as ipc
+from ipapi.class_pipelines.ip_factory import ipo_factory
+from ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipapi.tools.common_functions import format_time, force_directories
+from ipapi.file_handlers.fh_base import file_handler_factory
 
 
 class IpsoRunnableSignals(QObject):

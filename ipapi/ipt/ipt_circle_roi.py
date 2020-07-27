@@ -4,10 +4,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import resize_image
-from base.ipt_abstract import IptBase
-from tools.regions import CircleRegion, EmptyRegion
-import base.ip_common as ipc
+from ipapi.base.ip_common import resize_image
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.tools.regions import CircleRegion, EmptyRegion
+import ipapi.base.ip_common as ipc
 
 
 class IptCircleRoi(IptBase):
@@ -166,7 +166,7 @@ class IptCircleRoi(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_ROI]
+        return [ipc.ToolFamily.ROI]
 
     @property
     def description(self):
