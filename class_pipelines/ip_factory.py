@@ -2,7 +2,7 @@ import inspect
 import sys
 import pkgutil
 
-import class_pipelines
+import ipapi.class_pipelines as class_pipelines
 from ipapi.file_handlers.fh_base import file_handler_factory
 from ipapi.base.ip_abstract import AbstractImageProcessor
 from ipapi.tools.common_functions import get_module_classes
