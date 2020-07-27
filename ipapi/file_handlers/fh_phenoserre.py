@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 import numpy as np
 
-from file_handlers.fh_base import FileHandlerBase
+from ipapi.file_handlers.fh_base import FileHandlerBase
 
 
 class FileHandlerPhenoserre(FileHandlerBase):

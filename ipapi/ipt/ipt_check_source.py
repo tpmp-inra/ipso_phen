@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-import base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
 
 
 class IptCheckSource(IptBase):
@@ -73,7 +73,7 @@ class IptCheckSource(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_ASSERT_STR]
+        return [ipc.ToolFamily.ASSERT]
 
     @property
     def description(self):

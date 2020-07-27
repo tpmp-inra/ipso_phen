@@ -3,9 +3,9 @@ import sys
 import pkgutil
 
 import class_pipelines
-from file_handlers.fh_base import file_handler_factory
-from base.ip_abstract import AbstractImageProcessor
-from tools.common_functions import get_module_classes
+from ipapi.file_handlers.fh_base import file_handler_factory
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.tools.common_functions import get_module_classes
 
 
 def ipo_factory(

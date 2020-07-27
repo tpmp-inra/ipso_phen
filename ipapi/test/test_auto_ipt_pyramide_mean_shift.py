@@ -9,9 +9,9 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipt.ipt_pyramide_mean_shift import IptPyramidMeanShift
-from base.ip_abstract import AbstractImageProcessor
-import base.ip_common as ipc
+from ipapi.ipt.ipt_pyramide_mean_shift import IptPyramidMeanShift
+from ipapi.base.ip_abstract import AbstractImageProcessor
+import ipapi.base.ip_common as ipc
 
 
 class TestIptPyramidMeanShift(unittest.TestCase):
@@ -19,9 +19,7 @@ class TestIptPyramidMeanShift(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptPyramidMeanShift()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -41,18 +39,12 @@ class TestIptPyramidMeanShift(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "samples",
-                "images",
-                "arabido_small.jpg",
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
             )
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Pyramid mean shift")
-        self.assertIsInstance(
-            op.result, np.ndarray, "Empty result for Pyramid mean shift"
-        )
+        self.assertIsInstance(op.result, np.ndarray, "Empty result for Pyramid mean shift")
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""

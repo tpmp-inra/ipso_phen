@@ -6,10 +6,10 @@ logger = logging.getLogger(__name__)
 
 import cv2
 
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from tools.common_functions import force_directories
-from base import ip_common as ipc
-from tools import regions
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.tools.common_functions import force_directories
+from ipapi.base import ip_common as ipc
+from ipapi.tools import regions
 
 
 class IptCopyOrRenameImage(IptBaseAnalyzer):
@@ -239,7 +239,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return ["Image generator"]
+        return [ipc.ToolFamily.IMAGE_GENERATOR]
 
     @property
     def description(self):

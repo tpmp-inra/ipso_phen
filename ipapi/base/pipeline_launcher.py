@@ -121,7 +121,6 @@ def launch(**kwargs):
 
     def exit_error_message(msg: str) -> None:
         logger.error(msg)
-        print(msg + ", see logs for more details")
 
     # Retrieve images
     image_list_ = res.get("images", None)
@@ -195,7 +194,7 @@ def launch(**kwargs):
     pp.accepted_files = image_list_
     pp.script = script
     if not pp.accepted_files:
-        print("Nothing to precess")
+        logger.error("Nothing to precess")
         return 1
 
     # Process data

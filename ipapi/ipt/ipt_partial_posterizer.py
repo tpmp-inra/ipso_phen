@@ -1,12 +1,12 @@
-from base.ipt_abstract import IptBase
+from ipapi.base.ipt_abstract import IptBase
 import cv2
 import numpy as np
 
 import logging
 
 logger = logging.getLogger(__name__)
-from base.ip_common import all_colors_dict
-from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
+from ipapi.base.ip_common import all_colors_dict
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptPartialPosterizer(IptBase):
@@ -222,7 +222,7 @@ class IptPartialPosterizer(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR]
+        return [ToolFamily.PRE_PROCESSING]
 
     @property
     def description(self):

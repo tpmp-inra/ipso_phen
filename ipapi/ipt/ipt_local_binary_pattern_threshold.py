@@ -7,9 +7,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-import base.ip_common as ipc
-from tools.regions import RectangleRegion
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
+from ipapi.tools.regions import RectangleRegion
 
 
 class IptLocalBinaryPatternThreshold(IptBase):
@@ -220,9 +220,9 @@ class IptLocalBinaryPatternThreshold(IptBase):
     @property
     def use_case(self):
         return [
-            ipc.TOOL_GROUP_THRESHOLD_STR,
-            ipc.TOOL_GROUP_VISUALIZATION_STR,
-            ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+            ipc.ToolFamily.THRESHOLD,
+            ipc.ToolFamily.VISUALIZATION,
+            ipc.ToolFamily.PRE_PROCESSING,
         ]
 
     @property

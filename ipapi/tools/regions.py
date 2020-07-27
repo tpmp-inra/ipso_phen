@@ -2,7 +2,7 @@ import cv2
 import math
 import numpy as np
 
-import base.ip_common as ipc
+import ipapi.base.ip_common as ipc
 
 
 def tag_to_color(tag: str):

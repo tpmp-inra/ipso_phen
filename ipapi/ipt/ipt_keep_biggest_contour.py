@@ -1,8 +1,8 @@
 import logging
 
 logger = logging.getLogger(__name__)
-from base.ipt_abstract import IptBase
-from base.ip_common import TOOL_GROUP_MASK_CLEANUP_STR
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptKeepBiggestContours(IptBase):
@@ -107,7 +107,7 @@ class IptKeepBiggestContours(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_MASK_CLEANUP_STR]
+        return [ToolFamily.MASK_CLEANUP]
 
     @property
     def description(self):

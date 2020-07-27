@@ -9,9 +9,9 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipt.ipt_fix_white_balance_with_roi import IptFixWhiteBalanceWithRoi
-from base.ip_abstract import AbstractImageProcessor
-import base.ip_common as ipc
+from ipapi.ipt.ipt_fix_white_balance_with_roi import IptFixWhiteBalanceWithRoi
+from ipapi.base.ip_abstract import AbstractImageProcessor
+import ipapi.base.ip_common as ipc
 
 
 class TestIptFixWhiteBalanceWithRoi(unittest.TestCase):
@@ -19,17 +19,14 @@ class TestIptFixWhiteBalanceWithRoi(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptFixWhiteBalanceWithRoi()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptFixWhiteBalanceWithRoi()
         if "(wip)" not in op.name.lower():
             self.assertIsNotNone(
-                op.process_wrapper.__doc__,
-                "Missing docstring for Fix white balance with ROI",
+                op.process_wrapper.__doc__, "Missing docstring for Fix white balance with ROI",
             )
 
     def test_has_test_function(self):
@@ -42,11 +39,7 @@ class TestIptFixWhiteBalanceWithRoi(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "samples",
-                "images",
-                "arabido_small.jpg",
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
             )
         )
         res = op.process_wrapper(wrapper=wrapper)

@@ -6,8 +6,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import base.ip_common as ipc
-from base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
 
 
 class IptEdgeDetector(IptBase):
@@ -192,9 +192,9 @@ class IptEdgeDetector(IptBase):
     @property
     def use_case(self):
         return [
-            ipc.TOOL_GROUP_VISUALIZATION_STR,
-            ipc.TOOL_GROUP_ANCILLARY_STR,
-            ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+            ipc.ToolFamily.VISUALIZATION,
+            ipc.ToolFamily.ANCILLARY,
+            ipc.ToolFamily.PRE_PROCESSING,
         ]
 
     @property

@@ -2,9 +2,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_functional import call_ipt
-from base.ipt_abstract import IptBase
-from base.ip_common import TOOL_GROUP_DEMO_STR, TOOL_GROUP_VISUALIZATION_STR
+from ipapi.base.ipt_functional import call_ipt
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptDemo(IptBase):
@@ -170,22 +170,22 @@ class IptDemo(IptBase):
         Real time : True
 
         Keyword Arguments (in parentheses, argument name):
-            * Output image mode (output_mode): 
+            * Output image mode (output_mode):
             * A sample checkbox (checkbox): This is a hint
             * Sample combobox (combobox): This is a sample combobox
             * A slider (slider): This is a hint for a slider
             * A spin box (spin_box): This is a hint for a slider
             * A text input (text_input): This is a hint for the text input
             * This is a button, click to see what happens (button_sample): This is a hint for a sample button
-            * Channel (channel): 
-            * Select pseudo color map (color_map): 
-            * Select edge detection operator (operator): 
+            * Channel (channel):
+            * Select pseudo color map (color_map):
+            * Select edge detection operator (operator):
             * Canny's sigma (canny_sigma): Sigma.
             * Canny's first Threshold (canny_first): First threshold for the hysteresis procedure.
             * Canny's second Threshold (canny_second): Second threshold for the hysteresis procedure.
-            * Kernel size (kernel_size): 
+            * Kernel size (kernel_size):
             * Threshold (threshold): Threshold for kernel based operators
-            * Apply threshold (apply_threshold): 
+            * Apply threshold (apply_threshold):
         --------------
             * output  (text_output): A sample text output widget
             * output  (table_output): ('key', 'value')
@@ -213,7 +213,7 @@ class IptDemo(IptBase):
                     output_value=p_in.value,
                 )
 
-            # Accessing a widget's value, there's always a default value available
+            # Accessing a widget value, there's always a default value available
             output_mode = self.get_value_of("output_mode")
             if output_mode == "raw":
                 img = wrapper.current_image
@@ -261,7 +261,7 @@ class IptDemo(IptBase):
     @property
     def name(self) -> str:
         """Name displayed for tool selection in menus and such
-        
+       
         Returns:
             str -- Name
         """
@@ -272,7 +272,7 @@ class IptDemo(IptBase):
         """Handles wether or not the tool will react in real time to input modifications\n
             Return value does not have to static\n
             Warning: Some tools may take a lot of time to compute
-        
+       
         Returns:
             bool -- Wether or not tool reacts in real time
         """
@@ -283,7 +283,7 @@ class IptDemo(IptBase):
         """Result name used when generating automated scripts\n
             In case of a tool that returns nothing (like this one) return 'none'        
         Returns:
-            str -- 
+            str
         """
         return "none"
 
@@ -292,7 +292,7 @@ class IptDemo(IptBase):
         """Order in which the tool will be displayed.\n
             The lower the number, the higher the priority.\n
             Set this to a low value if you want your tools to show first
-        
+
         Returns:
             int -- Priority value
         """
@@ -312,7 +312,7 @@ class IptDemo(IptBase):
         Returns:
             list -- [description]
         """
-        return [TOOL_GROUP_DEMO_STR, TOOL_GROUP_VISUALIZATION_STR]
+        return [ToolFamily.DEMO, ToolFamily.VISUALIZATION]
 
     @property
     def description(self) -> str:

@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptAnalyzeChlorophyll(IptBaseAnalyzer):
@@ -116,7 +116,7 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

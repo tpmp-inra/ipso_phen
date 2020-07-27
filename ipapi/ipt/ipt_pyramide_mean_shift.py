@@ -4,8 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptPyramidMeanShift(IptBase):
@@ -71,7 +71,7 @@ class IptPyramidMeanShift(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_PRE_PROCESSING_STR]
+        return [ToolFamily.PRE_PROCESSING]
 
     @property
     def description(self):

@@ -9,10 +9,10 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipt.ipt_grab_cut import IptGrabCut
-from base.ip_abstract import AbstractImageProcessor
-from base.ipt_loose_pipeline import LoosePipeline
-import base.ip_common as ipc
+from ipapi.ipt.ipt_grab_cut import IptGrabCut
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ipt_loose_pipeline import LoosePipeline
+import ipapi.base.ip_common as ipc
 
 
 class TestIptGrabCut(unittest.TestCase):
@@ -20,9 +20,7 @@ class TestIptGrabCut(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptGrabCut()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""

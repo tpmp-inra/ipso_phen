@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ip_common import TOOL_GROUP_DEFAULT_PROCESS_STR
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptDefault(IptBaseAnalyzer):
@@ -111,7 +111,7 @@ class IptDefault(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_DEFAULT_PROCESS_STR]
+        return [ToolFamily.DEFAULT_PROCESS]
 
     @property
     def short_test_script(self):

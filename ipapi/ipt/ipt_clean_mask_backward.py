@@ -1,6 +1,8 @@
-from base.ipt_abstract import IptBase
 import os
 import cv2
+
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base import ip_common as ipc
 
 import logging
 
@@ -124,7 +126,7 @@ class IptCleanMaskBackward(IptBase):
 
     @property
     def use_case(self):
-        return ["Mask cleanup"]
+        return [ipc.ToolFamily.MASK_CLEANUP]
 
     @property
     def needs_previous_mask(self):

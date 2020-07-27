@@ -8,8 +8,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import DEFAULT_COLOR_MAP, TOOL_GROUP_CLUSTERING_STR
-from base.ipt_abstract_merger import IptBaseMerger
+from ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
+from ipapi.base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptRandomWalker(IptBaseMerger):
@@ -123,7 +123,7 @@ class IptRandomWalker(IptBaseMerger):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_CLUSTERING_STR]
+        return [ToolFamily.CLUSTERING]
 
     @property
     def description(self):
