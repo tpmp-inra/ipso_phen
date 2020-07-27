@@ -1,4 +1,4 @@
-from base.ipt_abstract import IptBase
+from ipapi.base.ipt_abstract import IptBase
 from abc import ABC, abstractproperty
 
 

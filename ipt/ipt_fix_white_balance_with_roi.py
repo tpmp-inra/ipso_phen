@@ -5,9 +5,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from tools.regions import RectangleRegion
-import base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.tools.regions import RectangleRegion
+import ipapi.base.ip_common as ipc
 
 
 class IptFixWhiteBalanceWithRoi(IptBase):
@@ -107,7 +107,7 @@ class IptFixWhiteBalanceWithRoi(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_WHITE_BALANCE_STR]
+        return [ipc.ToolFamily.WHITE_BALANCE]
 
     @property
     def description(self):

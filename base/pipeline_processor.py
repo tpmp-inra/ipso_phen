@@ -12,13 +12,13 @@ from typing import Union
 import pandas as pd
 from tqdm import tqdm
 
-from class_pipelines.ip_factory import ipo_factory
-from file_handlers.fh_base import file_handler_factory
-from base.image_wrapper import ImageWrapper
-from tools.comand_line_wrapper import ArgWrapper
-from tools.common_functions import time_method, force_directories
-from tools.error_holder import ErrorHolder
-from tools.image_list import ImageList
+from ipapi.class_pipelines.ip_factory import ipo_factory
+from ipapi.file_handlers.fh_base import file_handler_factory
+from ipapi.base.image_wrapper import ImageWrapper
+from ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipapi.tools.common_functions import time_method, force_directories
+from ipapi.tools.error_holder import ErrorHolder
+from ipapi.tools.image_list import ImageList
 
 logger = logging.getLogger(__name__)
 
@@ -298,7 +298,6 @@ class PipelineProcessor:
             return None
         i = 0
         cpt = 1
-        print("")
         results_list_ = []
 
         self.init_progress(total=len(files_to_process), desc="Checking completed tasks:")
@@ -308,7 +307,7 @@ class PipelineProcessor:
             elif isinstance(files_to_process[i], str):
                 fl = files_to_process[i]
             else:
-                print(f"Unable to handle {files_to_process[i]}")
+                self.log_state(log_message=f"Unable to handle {files_to_process[i]}")
                 continue
             img_wrapper = ImageWrapper(fl)
             fn = os.path.join(self.options.partials_path, img_wrapper.csv_file_name)

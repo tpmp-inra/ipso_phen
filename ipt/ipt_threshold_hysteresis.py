@@ -6,9 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from ipt.ipt_edge_detector import IptEdgeDetector
-from base.ip_common import TOOL_GROUP_THRESHOLD_STR
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptHysteresis(IptBase):
@@ -116,7 +116,7 @@ class IptHysteresis(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_THRESHOLD_STR]
+        return [ToolFamily.THRESHOLD]
 
     @property
     def description(self):

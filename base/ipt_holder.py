@@ -1,3 +1,6 @@
+import os
+import datetime
+import inspect
 from typing import Any
 import pkgutil
 import sys
@@ -7,20 +10,36 @@ import logging
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    import os
-
     abspath = os.path.abspath(__file__)
     fld_name = os.path.dirname(abspath)
     sys.path.insert(0, fld_name)
     sys.path.insert(0, os.path.dirname(fld_name))
     sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from tools.common_functions import get_module_classes
-from base.ipt_abstract import IptBase
-import ipt
-import base.ip_common as ipc
-import os
-import inspect
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s - %(name)s - %(levelname)s] - %(message)s",
+        handlers=[
+            logging.FileHandler(
+                os.path.join(
+                    "logs",
+                    f"ipt_holder_{datetime.datetime.now().strftime('%Y%b%d %H%M%S')}.log",
+                ),
+                mode="a",
+                delay=True,
+            ),
+        ],
+    )
+
+logger = logging.getLogger(__name__)
+
+from ipapi.tools.common_functions import get_module_classes
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.ipt as ipt
+import ipapi.base.ip_common as ipc
+from ipapi.tools.error_holder import log_data
 
 # Check PlantCV
 try:
@@ -48,7 +67,6 @@ class IptHolder(object):
         self._ipt_list = []
         self._use_cases = []
         self._log_callback = None
-        self._log_data = []
 
     def _init_holders(self):
         """Build list containing a single instance of all available tools
@@ -59,15 +77,26 @@ class IptHolder(object):
         )
 
         # Create objects
+        logger.info("Loading image processing modules")
+        error_count: int = 0
+        load_count: int = 0
         for cls in ipt_classes_list:
             try:
                 op = cls()
                 self._ipt_list.append(op)
                 self._use_cases.extend(op.use_case)
             except Exception as e:
-                print(f'Failed to add "{cls.__name__}" because "{repr(e)}"')
-            self._use_cases = sorted(list(set(self._use_cases)))
-            self._ipt_list.sort(key=lambda x: (x.order, x.name))
+                logger.exception(f'Failed to add "{cls.__name__}" because "{repr(e)}"')
+                error_count += 1
+            else:
+                logger.info(f'Loaded "{cls.__name__}"')
+                load_count += 1
+        self._use_cases = sorted(list(set(self._use_cases)))
+        self._ipt_list.sort(key=lambda x: (x.order, x.name))
+        if error_count == 0:
+            logger.info(f"Loaded {load_count} modules")
+        else:
+            logger.warning(f"Loaded {load_count} modules, {error_count} errors")
 
     def list_by_use_case(self, use_case: str = ""):
         return [op for op in self.ipt_list if not use_case or (use_case in op.use_case)]
@@ -142,15 +171,15 @@ class IptHolder(object):
             'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))\n\n'
         )
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
-        f.write("from base.ip_abstract import AbstractImageProcessor\n")
+        f.write("from ipapi.base.ip_abstract import AbstractImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
-            f.write("from base.ipt_loose_pipeline import LoosePipeline\n")
+            f.write("from ipapi.base.ipt_loose_pipeline import LoosePipeline\n")
             if "script_in_info_out" in tests_needed:
-                f.write("from base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
+                f.write("from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
 
         if "img_in_roi_out" in tests_needed:
-            f.write("import tools.regions as regions\n")
-        f.write("import base.ip_common as ipc\n\n\n")
+            f.write("import ipapi.tools.regions as regions\n")
+        f.write("import ipapi.base.ip_common as ipc\n\n\n")
 
     def write_test_use_case(self, f, op, spaces):
         f.write(f"{spaces}def test_use_case(self):\n")
@@ -160,7 +189,7 @@ class IptHolder(object):
         f.write(f"{spaces}for uc in op.use_case:\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}self.assertIn(uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {{uc}}")\n\n'
+            f'{spaces}self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {{uc}}")\n\n'
         )
         return remove_tab(remove_tab(spaces))
 
@@ -206,7 +235,7 @@ class IptHolder(object):
         f.write(f'{spaces}"""Test that when an image is in a mask goes out"""\n')
         self.write_init_operator(
             f=f,
-            use_case=ipc.TOOL_GROUP_THRESHOLD_STR,
+            use_case=ipc.ToolFamily.THRESHOLD,
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"
             else DEFAULT_TEST_IMAGE,
@@ -232,7 +261,7 @@ class IptHolder(object):
         f.write(f'{spaces}"""Test that when an image is in an image goes out"""\n')
         self.write_init_operator(
             f=f,
-            use_case=ipc.TOOL_GROUP_PRE_PROCESSING_STR,
+            use_case=ipc.ToolFamily.PRE_PROCESSING,
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"
             else DEFAULT_TEST_IMAGE,
@@ -254,7 +283,7 @@ class IptHolder(object):
         )
         spaces = self.write_init_pipeline(
             f=f,
-            use_case=ipc.TOOL_GROUP_MASK_CLEANUP_STR,
+            use_case=ipc.ToolFamily.MASK_CLEANUP,
             pipeline_name="test_cleaners.json",
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"
@@ -295,7 +324,7 @@ class IptHolder(object):
             spaces=spaces,
         )
         f.write(
-            f'{spaces}self.assertIsInstance(op, IptBaseAnalyzer, "{op.name} must inherit from IptBaseAnalyzer")\n'
+            f'{spaces}self.assertIsInstance(op, IptBaseAnalyzer, "{op.name} must inherit from ipapi.iptBaseAnalyzer")\n'
         )
         f.write(
             f'{spaces}self.assertTrue(res, "Failed to process {op.name} with test script")\n'
@@ -315,7 +344,7 @@ class IptHolder(object):
         f.write(f'{spaces}"""Test that tool generates an ROI"""\n')
         self.write_init_operator(
             f=f,
-            use_case=ipc.TOOL_GROUP_ROI,
+            use_case=ipc.ToolFamily.ROI,
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"
             else DEFAULT_TEST_IMAGE,
@@ -339,7 +368,7 @@ class IptHolder(object):
         f.write(f'{spaces}"""Test that tool returns a boolean"""\n')
         self.write_init_operator(
             f=f,
-            use_case=ipc.TOOL_GROUP_ASSERT_STR,
+            use_case=ipc.ToolFamily.ASSERT,
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"
             else DEFAULT_TEST_IMAGE,
@@ -359,7 +388,7 @@ class IptHolder(object):
         f.write(f'{spaces}"""Test that visualization tools add images to list"""\n')
         self.write_init_operator(
             f=f,
-            use_case=ipc.TOOL_GROUP_VISUALIZATION_STR,
+            use_case=ipc.ToolFamily.VISUALIZATION,
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"
             else DEFAULT_TEST_IMAGE,
@@ -410,19 +439,19 @@ class IptHolder(object):
                 "visualization",
             ],
             [
-                [ipc.TOOL_GROUP_ASSERT_STR],
+                [ipc.ToolFamily.ASSERT],
                 [
-                    ipc.TOOL_GROUP_EXPOSURE_FIXING_STR,
-                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                    ipc.TOOL_GROUP_WHITE_BALANCE_STR,
-                    ipc.TOOL_GROUP_CLUSTERING_STR,
+                    ipc.ToolFamily.EXPOSURE_FIXING,
+                    ipc.ToolFamily.PRE_PROCESSING,
+                    ipc.ToolFamily.WHITE_BALANCE,
+                    ipc.ToolFamily.CLUSTERING,
                 ],
-                [ipc.TOOL_GROUP_THRESHOLD_STR],
-                [ipc.TOOL_GROUP_IMAGE_GENERATOR_STR],
-                [ipc.TOOL_GROUP_MASK_CLEANUP_STR],
-                [ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR, ipc.TOOL_GROUP_IMAGE_GENERATOR_STR],
-                [ipc.TOOL_GROUP_ROI],
-                [ipc.TOOL_GROUP_VISUALIZATION_STR],
+                [ipc.ToolFamily.THRESHOLD],
+                [ipc.ToolFamily.IMAGE_GENERATOR],
+                [ipc.ToolFamily.MASK_CLEANUP],
+                [ipc.ToolFamily.FEATURE_EXTRACTION, ipc.ToolFamily.IMAGE_GENERATOR],
+                [ipc.ToolFamily.ROI],
+                [ipc.ToolFamily.VISUALIZATION],
             ],
         ):
             if use_cases.intersection(group):
@@ -439,10 +468,19 @@ class IptHolder(object):
     ):
         if self._log_callback is not None:
             return self._log_callback(
-                status_message, log_message, use_status_as_log, collect_garbage, log_level
+                status_message=status_message,
+                log_message=log_message,
+                use_status_as_log=use_status_as_log,
+                collect_garbage=collect_garbage,
+                log_level=log_level,
+                target_logger=logger,
             )
         else:
-            self._log_data.append(f"status: {status_message} - log: {log_message}")
+            log_data(
+                log_msg=f"status: {status_message} - log: {log_message}",
+                log_level=log_level,
+                target_logger=logger,
+            )
             return True
 
     def build_test_files(self, log_callback=None, overwrite=False):
@@ -561,10 +599,6 @@ class IptHolder(object):
                 )
                 subprocess.run(args=("black", test_script))
 
-            if self._log_data:
-                for ld in self._log_data:
-                    print(ld)
-
         finally:
             self._log_callback = None
 
@@ -590,7 +624,8 @@ if __name__ == "__main__":
     )
     args = vars(parser.parse_args())
 
-    # print(args)
-    # print("overwrite" in args and args["overwrite"] == "True")
+    logger.info("Building test files for ip modules")
 
     IptHolder().build_test_files(overwrite="overwrite" in args and args["overwrite"] == "True")
+
+    logger.info("Building test files for ip modules - Done")

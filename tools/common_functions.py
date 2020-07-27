@@ -7,6 +7,11 @@ import re
 import inspect
 import pkgutil
 
+import logging
+from typing import Union
+
+logger = logging.getLogger(__name__)
+
 # Check PlantCV
 try:
     from plantcv import plantcv as pcv
@@ -66,7 +71,7 @@ def print_progress_bar(iteration, total, prefix="", suffix="", bar_length=50, fi
         sys.stdout.flush()
 
 
-def open_file(filename: [tuple, str]) -> None:
+def open_file(filename: Union[tuple, str]) -> None:
     if isinstance(filename, tuple):
         filename = os.path.join(*filename)
     if sys.platform == "win32":
@@ -124,7 +129,7 @@ def get_module_classes(
                 except Exception as e:
                     print(f'Exception while handling {repr(cls_)} "{repr(e)}"')
         except Exception as e:
-            print(f'Exception while handling {repr(cls_)} "{repr(e)}"')
+            logger.exception(f'Exception while parsing {repr(name)} "{repr(e)}"')
 
     # Create objects
     return list(set(res))

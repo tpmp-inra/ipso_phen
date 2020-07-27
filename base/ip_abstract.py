@@ -10,20 +10,20 @@ from matplotlib import pyplot as plt
 import numpy as np
 import cv2
 
-from file_handlers.fh_base import file_handler_factory
-from base.image_wrapper import ImageWrapper
-import base.ip_common as ipc
-from tools.comand_line_wrapper import ArgWrapper
-from tools.regions import (
+from ipapi.file_handlers.fh_base import file_handler_factory
+from ipapi.base.image_wrapper import ImageWrapper
+import ipapi.base.ip_common as ipc
+from ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipapi.tools.regions import (
     CircleRegion,
     RectangleRegion,
     EmptyRegion,
     Point,
     AbstractRegion,
 )
-from tools.common_functions import time_method, force_directories
-from tools.error_holder import ErrorHolder
-from tools.db_wrapper import DB_TYPE_MEMORY
+from ipapi.tools.common_functions import time_method, force_directories
+from ipapi.tools.error_holder import ErrorHolder
+from ipapi.tools.db_wrapper import DB_TYPE_MEMORY
 import sys
 
 matplotlib.use("agg")
@@ -250,7 +250,7 @@ class AbstractImageProcessor(ImageWrapper):
                 )
                 y += cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
         else:
-            print(f'Unknown position: "{position}"')
+            logger.error(f'Unknown position: "{position}"')
 
     def draw_image(self, **kwargs):
         """Build pseudo color image
@@ -694,7 +694,7 @@ class AbstractImageProcessor(ImageWrapper):
                 self.print_image(mosaic_)
             except Exception as e:
                 # Unsupported format detected
-                print(
+                logger.exception(
                     'Exception: "{}" - Image: "{}", unsupported mosaic'.format(
                         repr(e), str(self)
                     )
@@ -715,7 +715,7 @@ class AbstractImageProcessor(ImageWrapper):
         self.print_mosaic()
 
     def avg_brightness_contrast(self, img: Any = None, mode: str = "std", mask=None) -> tuple:
-        """Calculates average brightness using one of 3 available metthods
+        """Calculates average brightness using one of 3 available methods
 
         * std='standard, objective'
         * p1='perceived option 1
@@ -796,7 +796,7 @@ class AbstractImageProcessor(ImageWrapper):
 
             return group, mask
         else:
-            print(f"Warning: {repr(self.name)} Invalid contour.")
+            logger.error(f"Warning: {repr(self.name)} Invalid contour.")
             return None, None
 
     @time_method
@@ -1597,8 +1597,6 @@ class AbstractImageProcessor(ImageWrapper):
             cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
         )
 
-        # print('Total cnts {}'.format(len(contours)))
-
         self.store_image(
             cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8),
             "src_img_with_cnt",
@@ -1624,8 +1622,7 @@ class AbstractImageProcessor(ImageWrapper):
 
             hull_img = src_image.copy()
             max_area = 0
-            # cnt_data = []
-            for i, hull in enumerate(hulls):
+            for hull in hulls:
                 morph_dict = self.get_distance_data(hull, roi_root, dist_max)
                 cl_cmp = morph_dict["dist_scaled_inverted"] * 255
                 cv2.drawContours(
@@ -1634,13 +1631,6 @@ class AbstractImageProcessor(ImageWrapper):
                 if morph_dict["scaled_area"] > max_area:
                     max_area = morph_dict["scaled_area"]
                     main_hull = hull
-
-            # cnt_data.sort(key=lambda cnt_s: cnt_s['dist'])
-            # for cnt_ in cnt_data:
-            #     print(f'[Dist(scaled inverted):{cnt_["dist"]:.2f}({cnt_["dist_scaled_inverted"]:.2f})]'
-            #           f'[Area(scaled): {cnt_["area"]:.2f}({cnt_["scaled_area"]:.2f})]')
-            # print('______')
-            # print(f'[MAX AREA:{max_area:.2f}][Dist max:{dist_max:.2f}]')
 
             self.store_image(hull_img, "src_img_with_cnt_distance_map")
         else:  # No ROI defined
@@ -1719,8 +1709,6 @@ class AbstractImageProcessor(ImageWrapper):
         ):
             raise NotImplementedError("Only integers allowed")
 
-        # print('Minimums allowed: [Area:{:.2f}] [Distance:{:.2f}]'.format(tolerance_area, tolerance_distance))
-
         self.store_image(src_mask, "raw__mask")
         # Delete all small contours
         if delete_all_bellow > 0:
@@ -1761,8 +1749,6 @@ class AbstractImageProcessor(ImageWrapper):
             cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
         )
 
-        # print('Total cnts {}'.format(len(contours)))
-
         img_cnt = cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8)
         self.store_image(img_cnt, "src_img_with_cnt")
 
@@ -1790,7 +1776,6 @@ class AbstractImageProcessor(ImageWrapper):
 
             hull_img = src_image.copy()
             max_area = 0
-            # cnt_data = []
             for i, hull in enumerate(hulls):
 
                 morph_dict = self.get_distance_data(hull, roi_root, dist_max)
@@ -1811,13 +1796,6 @@ class AbstractImageProcessor(ImageWrapper):
                     max_area = morph_dict["scaled_area"]
                     big_hull = hull
                     big_idx = i
-
-            # cnt_data.sort(key=lambda cnt_s: cnt_s['dist'])
-            # for cnt_ in cnt_data:
-            #     print(f'[Dist(scaled inverted):{cnt_["dist"]:.2f}({cnt_["dist_scaled_inverted"]:.2f})]'
-            #           f'[Area(scaled): {cnt_["area"]:.2f}({cnt_["scaled_area"]:.2f})]')
-            # print('______')
-            # print(f'[MAX AREA:{max_area:.2f}][Dist max:{dist_max:.2f}]')
 
             self.store_image(hull_img, "src_img_with_cnt_distance_map")
         else:  # No ROI defined
@@ -3263,7 +3241,7 @@ class AbstractImageProcessor(ImageWrapper):
             for l, line in enumerate(image_names):
                 parse_line(line, l, canvas)
         except Exception as e:
-            print(f'Failed to build mosaic, because "{repr(e)}"')
+            logger.exception(f'Failed to build mosaic, because "{repr(e)}"')
 
         return canvas
 

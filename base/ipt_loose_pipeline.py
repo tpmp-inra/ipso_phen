@@ -8,7 +8,7 @@ import logging
 
 import numpy as np
 
-from base.ipt_abstract import (
+from ipapi.base.ipt_abstract import (
     IptParam,
     IptBase,
     IptParamHolder,
@@ -16,13 +16,13 @@ from base.ipt_abstract import (
     MODULE_NAME_KEY,
     PARAMS_NAME_KEY,
 )
-from base.ipt_functional import get_ipt_class
-from base import ip_common as ipc
-from base.ipt_strict_pipeline import IptStrictPipeline
-from base.ip_abstract import AbstractImageProcessor
-import tools.error_holder as eh
-from tools.common_functions import format_time
-from tools.regions import RectangleRegion
+from ipapi.base.ipt_functional import get_ipt_class
+from ipapi.base import ip_common as ipc
+from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
+from ipapi.base.ip_abstract import AbstractImageProcessor
+import ipapi.tools.error_holder as eh
+from ipapi.tools.common_functions import format_time
+from ipapi.tools.regions import RectangleRegion
 
 
 logger = logging.getLogger(__name__)
@@ -592,11 +592,12 @@ class GroupNode(Node):
         wrapper.current_image = self.get_source_image(source=self.source, call_back=call_back)
 
         rois = []
+        only_rois = False
         for node in self.nodes:
             if not node.enabled:
                 continue
             if node.output_type != ipc.IO_ROI:
-                only_rois = False
+                break
         else:
             only_rois = True
 
@@ -1169,6 +1170,7 @@ class LoosePipeline(object):
             p.on_change = self.targeted_callback
 
     def invalidate(self):
+        self.stored_mosaic_images = {}
         for node in self.root.iter_items():
             if isinstance(node, ModuleNode):
                 node.invalidate()
@@ -1251,11 +1253,11 @@ class LoosePipeline(object):
                     "build_mask",
                 ],
                 [
-                    ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR,
-                    [ipc.TOOL_GROUP_WHITE_BALANCE_STR, ipc.TOOL_GROUP_EXPOSURE_FIXING_STR],
-                    ipc.TOOL_GROUP_PRE_PROCESSING_STR,
-                    ipc.TOOL_GROUP_ROI_PP_IMAGE_STR,
-                    ipc.TOOL_GROUP_THRESHOLD_STR,
+                    ipc.ToolFamily.ROI_RAW_IMAGE_STR,
+                    [ipc.ToolFamily.WHITE_BALANCE, ipc.ToolFamily.EXPOSURE_FIXING],
+                    ipc.ToolFamily.PRE_PROCESSING,
+                    ipc.ToolFamily.ROI_PP_IMAGE_STR,
+                    ipc.ToolFamily.THRESHOLD,
                 ],
             ):
                 src_group = tmp.get_operators(constraints={"kind": kinds})
@@ -1272,7 +1274,7 @@ class LoosePipeline(object):
 
             rois = tmp.get_operators(
                 constraints={
-                    "kind": [ipc.TOOL_GROUP_ROI_PP_IMAGE_STR, ipc.TOOL_GROUP_ROI_RAW_IMAGE_STR]
+                    "kind": [ipc.ToolFamily.ROI_PP_IMAGE_STR, ipc.ToolFamily.ROI_RAW_IMAGE_STR,]
                 }
             )
             dst_group = res.root.find_by_uuid(uuid="apply_roi")
@@ -1312,9 +1314,9 @@ class LoosePipeline(object):
             for uuid, kinds in zip(
                 ["clean_mask", "extract_features", "build_images"],
                 [
-                    ipc.TOOL_GROUP_MASK_CLEANUP_STR,
-                    ipc.TOOL_GROUP_FEATURE_EXTRACTION_STR,
-                    ipc.TOOL_GROUP_IMAGE_GENERATOR_STR,
+                    ipc.ToolFamily.MASK_CLEANUP,
+                    ipc.ToolFamily.FEATURE_EXTRACTION,
+                    ipc.ToolFamily.IMAGE_GENERATOR,
                 ],
             ):
                 src_group = tmp.get_operators(constraints={"kind": kinds})

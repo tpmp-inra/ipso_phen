@@ -4,13 +4,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import (
-    resize_image,
-    TOOL_GROUP_ROI,
-)
-from base.ipt_abstract import IptBase
-from tools.regions import CircleRegion, RectangleRegion, EmptyRegion
-from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
+from ipapi.base.ip_common import resize_image, ToolFamily
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.tools.regions import CircleRegion, RectangleRegion, EmptyRegion
 
 
 class IptRoiManager(IptBase):
@@ -199,8 +195,8 @@ class IptRoiManager(IptBase):
     @property
     def use_case(self):
         return [
-            TOOL_GROUP_ROI,
-            TOOL_GROUP_VISUALIZATION_STR,
+            ToolFamily.ROI,
+            ToolFamily.VISUALIZATION,
         ]
 
     @property

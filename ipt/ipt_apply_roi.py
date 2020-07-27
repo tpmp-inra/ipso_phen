@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-import base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
 
 
 class IptApplyRoi(IptBase):
@@ -103,9 +103,9 @@ class IptApplyRoi(IptBase):
             return res
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        if ipc.TOOL_GROUP_PRE_PROCESSING_STR in use_cases:
+        if ipc.ToolFamily.PRE_PROCESSING in use_cases:
             self.set_value_of("io_mode", "image")
-        elif ipc.TOOL_GROUP_MASK_CLEANUP_STR in use_cases:
+        elif ipc.ToolFamily.MASK_CLEANUP in use_cases:
             self.set_value_of("io_mode", "mask")
 
     @property
@@ -130,7 +130,7 @@ class IptApplyRoi(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_PRE_PROCESSING_STR, ipc.TOOL_GROUP_MASK_CLEANUP_STR]
+        return [ipc.ToolFamily.PRE_PROCESSING, ipc.ToolFamily.MASK_CLEANUP]
 
     @property
     def description(self):

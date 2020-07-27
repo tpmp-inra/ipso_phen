@@ -5,8 +5,8 @@ import logging
 
 from skimage.future import graph
 
-from base.ipt_abstract import IptBase
-from base.ip_common import DEFAULT_COLOR_MAP
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import DEFAULT_COLOR_MAP
 
 logger = logging.getLogger(__name__)
 

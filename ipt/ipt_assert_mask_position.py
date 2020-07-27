@@ -4,8 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-import base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
 
 
 class IptAssertMaskPosition(IptBase):
@@ -90,7 +90,7 @@ class IptAssertMaskPosition(IptBase):
             return res
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        if ipc.TOOL_GROUP_ASSERT_STR in use_cases:
+        if ipc.ToolFamily.ASSERT in use_cases:
             self._create_test_mask = True
 
     @property
@@ -115,7 +115,7 @@ class IptAssertMaskPosition(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.TOOL_GROUP_ASSERT_STR]
+        return [ipc.ToolFamily.ASSERT]
 
     @property
     def description(self):

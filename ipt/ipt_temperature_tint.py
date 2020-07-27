@@ -5,10 +5,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from base.ip_common import (
-    TOOL_GROUP_EXPOSURE_FIXING_STR,
-    TOOL_GROUP_PRE_PROCESSING_STR,
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import (
+    ToolFamily,
     C_FUCHSIA,
     C_ORANGE,
 )
@@ -143,7 +142,7 @@ class IptTemperatureTint(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_EXPOSURE_FIXING_STR, TOOL_GROUP_PRE_PROCESSING_STR]
+        return [ToolFamily.EXPOSURE_FIXING, ToolFamily.PRE_PROCESSING]
 
     @property
     def description(self):

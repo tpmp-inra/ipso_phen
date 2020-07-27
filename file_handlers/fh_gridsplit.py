@@ -1,7 +1,7 @@
 from datetime import datetime as dt
 import os
 
-from file_handlers.fh_base import FileHandlerBase
+from ipapi.file_handlers.fh_base import FileHandlerBase
 
 
 class FileHandlerGridSplit(FileHandlerBase):

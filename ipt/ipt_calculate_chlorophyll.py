@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from base.ip_common import TOOL_GROUP_VISUALIZATION_STR
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptCalculateChlorophyll(IptBase):
@@ -106,4 +106,4 @@ class IptCalculateChlorophyll(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_VISUALIZATION_STR]
+        return [ToolFamily.VISUALIZATION]
