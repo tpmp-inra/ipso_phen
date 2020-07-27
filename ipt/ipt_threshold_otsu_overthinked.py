@@ -5,13 +5,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
-from base.ipt_abstract import IptBase
-from base.ip_common import (
-    TOOL_GROUP_PRE_PROCESSING_STR,
-    TOOL_GROUP_THRESHOLD_STR,
-    TOOL_GROUP_VISUALIZATION_STR,
-)
+from ipapi.base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptOtsuOverthinked(IptBase):
@@ -156,7 +152,7 @@ class IptOtsuOverthinked(IptBase):
             return res
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        if TOOL_GROUP_THRESHOLD_STR in use_cases:
+        if ToolFamily.THRESHOLD in use_cases:
             self.set_value_of("merge_method", "l_or")
 
     @property
@@ -177,7 +173,7 @@ class IptOtsuOverthinked(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_THRESHOLD_STR]
+        return [ToolFamily.THRESHOLD]
 
     @property
     def description(self):

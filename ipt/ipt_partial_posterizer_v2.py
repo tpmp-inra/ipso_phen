@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-import base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
 
 
 class IptPartialPosterizerV2(IptBase):

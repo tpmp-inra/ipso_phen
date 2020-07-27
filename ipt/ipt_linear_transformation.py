@@ -5,13 +5,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ip_common import (
-    TOOL_GROUP_FEATURE_EXTRACTION_STR,
-    TOOL_GROUP_EXPOSURE_FIXING_STR,
-)
-from base.ip_common import TOOL_GROUP_PRE_PROCESSING_STR
+from ipapi.base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ip_common import ToolFamily
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptLinearTransformation(IptBaseAnalyzer):
@@ -108,14 +105,14 @@ class IptLinearTransformation(IptBaseAnalyzer):
 
         Keyword Arguments (in parentheses, argument name):
             * Activate tool (enabled): Toggle whether or not tool is active
-            * Select transformation (method): 
-            * Apply smart transformation if (apply_case): 
+            * Select transformation (method):
+            * Apply smart transformation if (apply_case):
             * Alpha/Gamma (alpha_gamma): Alpha value for linear transformation, gamma for gamma correction
-            * Beta (brightness) (beta): 
-            * Target brightness (target_brightness): 
-            * Limit brightness fixing (max_delta_for_brightness): 
-            * Show over an under exposed parts (show_over_under): 
-            * Brightness calculation mode (brg_calc): 
+            * Beta (brightness) (beta):
+            * Target brightness (target_brightness):
+            * Limit brightness fixing (max_delta_for_brightness):
+            * Show over an under exposed parts (show_over_under):
+            * Brightness calculation mode (brg_calc):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
         --------------
             * output  (tb_output): ('Image', 'Brightness average', 'Contrast average', 'Brightness min/max')
@@ -296,8 +293,8 @@ class IptLinearTransformation(IptBaseAnalyzer):
     @property
     def use_case(self):
         return [
-            TOOL_GROUP_PRE_PROCESSING_STR,
-            TOOL_GROUP_EXPOSURE_FIXING_STR,
+            ToolFamily.PRE_PROCESSING,
+            ToolFamily.EXPOSURE_FIXING,
         ]
 
     @property

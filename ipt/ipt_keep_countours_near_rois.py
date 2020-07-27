@@ -5,8 +5,8 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import cv2
 
-from base.ipt_abstract import IptBase
-from base import ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base import ip_common as ipc
 
 
 class IptKeepCountoursNearRois(IptBase):
@@ -435,7 +435,7 @@ class IptKeepCountoursNearRois(IptBase):
 
     @property
     def use_case(self):
-        return ["Mask cleanup"]
+        return [ipc.ToolFamily.MASK_CLEANUP]
 
     @property
     def description(self):

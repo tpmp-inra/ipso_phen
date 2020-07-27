@@ -8,10 +8,10 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipt.ipt_annulus_roi import IptAnnulusRoi
-from base.ip_abstract import AbstractImageProcessor
-import tools.regions as regions
-import base.ip_common as ipc
+from ipapi.ipt.ipt_annulus_roi import IptAnnulusRoi
+from ipapi.base.ip_abstract import AbstractImageProcessor
+import ipapi.tools.regions as regions
+import ipapi.base.ip_common as ipc
 
 
 class TestIptAnnulusRoi(unittest.TestCase):
@@ -19,9 +19,7 @@ class TestIptAnnulusRoi(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptAnnulusRoi()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -41,17 +39,11 @@ class TestIptAnnulusRoi(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Create an ROI",))
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "samples",
-                "images",
-                "arabido_small.jpg",
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
             )
         )
         res = op.process_wrapper(wrapper=wrapper)
-        self.assertTrue(
-            hasattr(op, "generate_roi"), "Class must have method generate_roi"
-        )
+        self.assertTrue(hasattr(op, "generate_roi"), "Class must have method generate_roi")
         self.assertTrue(res, "Failed to process Annulus ROI")
         r = op.generate_roi()
         self.assertIsInstance(r, regions.AbstractRegion, "ROI must be of type Region")

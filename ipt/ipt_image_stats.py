@@ -4,10 +4,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import get_hr_channel_name, CHANNELS_BY_SPACE, HSV, LAB, RGB
-from base.ipt_abstract import IptBase
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ip_common import TOOL_GROUP_FEATURE_EXTRACTION_STR
+from ipapi.base.ip_common import get_hr_channel_name, CHANNELS_BY_SPACE, HSV, LAB, RGB
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptImageStats(IptBaseAnalyzer):
@@ -138,7 +138,7 @@ class IptImageStats(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

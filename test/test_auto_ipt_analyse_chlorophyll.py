@@ -8,12 +8,12 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipt.ipt_analyse_chlorophyll import IptAnalyzeChlorophyll
-from base.ip_abstract import AbstractImageProcessor
-from base.ipt_loose_pipeline import LoosePipeline
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.ipt.ipt_analyse_chlorophyll import IptAnalyzeChlorophyll
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
-import base.ip_common as ipc
+import ipapi.base.ip_common as ipc
 
 
 class TestIptAnalyzeChlorophyll(unittest.TestCase):
@@ -21,9 +21,7 @@ class TestIptAnalyzeChlorophyll(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptAnalyzeChlorophyll()
         for uc in op.use_case:
-            self.assertIn(
-                uc, list(ipc.tool_group_hints.keys()), f"Unknown use case {uc}"
-            )
+            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -43,26 +41,18 @@ class TestIptAnalyzeChlorophyll(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("",))
         script = LoosePipeline.load(
             os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "samples",
-                "pipelines",
-                "test_extractors.json",
+                os.path.dirname(__file__), "..", "samples", "pipelines", "test_extractors.json",
             )
         )
         script.add_module(operator=op, target_group="grp_test_extractors")
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "samples",
-                "images",
-                "arabido_small.jpg",
+                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
             )
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertIsInstance(
-            op, IptBaseAnalyzer, "Analyze chlorophyll must inherit from IptBaseAnalyzer"
+            op, IptBaseAnalyzer, "Analyze chlorophyll must inherit from ipapi.iptBaseAnalyzer"
         )
         self.assertTrue(res, "Failed to process Analyze chlorophyll with test script")
         self.assertNotEqual(

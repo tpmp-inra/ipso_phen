@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from base.ip_common import TOOL_GROUP_THRESHOLD_STR, ensure_odd
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 class IptThresholdAdaptive(IptBase):
@@ -207,7 +207,7 @@ class IptThresholdAdaptive(IptBase):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_THRESHOLD_STR]
+        return [ToolFamily.THRESHOLD]
 
     @property
     def description(self):

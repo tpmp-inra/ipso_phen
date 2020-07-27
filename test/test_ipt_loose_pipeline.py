@@ -9,8 +9,8 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from base.ip_abstract import AbstractImageProcessor
-from base.ipt_loose_pipeline import LoosePipeline
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ipt_loose_pipeline import LoosePipeline
 
 
 class TestIptKeepCountoursNearRois(unittest.TestCase):

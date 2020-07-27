@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
+from ipapi.base.ipt_abstract import IptBase
 
 
 class IptConvertImageToMask(IptBase):
@@ -30,10 +30,7 @@ class IptConvertImageToMask(IptBase):
                 img = wrapper.current_image
 
                 if len(img.shape) > 2 and img.shape[2] >= 1:
-                    print(img.shape)
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-                print(img.shape)
 
                 t = self.get_value_of("threshold")
                 img[img > t] = 255

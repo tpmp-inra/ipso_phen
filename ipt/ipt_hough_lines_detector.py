@@ -6,12 +6,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-from ipt.ipt_edge_detector import IptEdgeDetector
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from base.ip_common import (
-    TOOL_GROUP_FEATURE_EXTRACTION_STR,
-    TOOL_GROUP_IMAGE_INFO_STR,
+from ipapi.base.ipt_abstract import IptBase
+from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base.ip_common import (
+    ToolFamily,
     C_GREEN,
     C_LIME,
     C_RED,
@@ -296,7 +295,7 @@ class IptHoughLines(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_IMAGE_INFO_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [ToolFamily.IMAGE_INFO, ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

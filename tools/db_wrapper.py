@@ -12,9 +12,9 @@ from sqlalchemy import create_engine, exc
 from sqlalchemy.sql import text
 from sqlalchemy_utils import database_exists
 
-from tools.image_list import ImageList
-from file_handlers.fh_base import file_handler_factory
-from tools.common_functions import force_directories, make_safe_name
+from ipapi.tools.image_list import ImageList
+from ipapi.file_handlers.fh_base import file_handler_factory
+from ipapi.tools.common_functions import force_directories, make_safe_name
 
 logger = logging.getLogger(__name__)
 

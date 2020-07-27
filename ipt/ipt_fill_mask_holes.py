@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract import IptBase
-import base.ip_common as ipc
+from ipapi.base.ipt_abstract import IptBase
+import ipapi.base.ip_common as ipc
 
 
 class IptFillMaskHoles(IptBase):
@@ -164,7 +164,7 @@ class IptFillMaskHoles(IptBase):
 
     @property
     def use_case(self):
-        return ["Mask cleanup"]
+        return [ipc.ToolFamily.MASK_CLEANUP]
 
     @property
     def description(self):

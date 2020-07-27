@@ -6,12 +6,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_common import (
+from ipapi.base.ip_common import (
     DEFAULT_COLOR_MAP,
-    TOOL_GROUP_CLUSTERING_STR,
-    TOOL_GROUP_FEATURE_EXTRACTION_STR,
+    ToolFamily,
 )
-from base.ipt_abstract_merger import IptBaseMerger
+from ipapi.base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptWatershedOpenCv(IptBaseMerger):
@@ -180,7 +179,7 @@ class IptWatershedOpenCv(IptBaseMerger):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_CLUSTERING_STR, TOOL_GROUP_FEATURE_EXTRACTION_STR]
+        return [ToolFamily.CLUSTERING, ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

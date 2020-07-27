@@ -6,9 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ipt_abstract_analyzer import IptBaseAnalyzer
-from tools.common_functions import force_directories
-from base.ip_common import TOOL_GROUP_IMAGE_GENERATOR_STR
+from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.tools.common_functions import force_directories
+from ipapi.base.ip_common import ToolFamily
 
 
 class IptAugmentData(IptBaseAnalyzer):
@@ -183,7 +183,7 @@ class IptAugmentData(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [TOOL_GROUP_IMAGE_GENERATOR_STR]
+        return [ToolFamily.IMAGE_GENERATOR]
 
     @property
     def description(self):

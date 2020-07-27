@@ -4,8 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from base.ip_abstract import AbstractImageProcessor
-from base.ip_common import DefaultCsvWriter
+from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_common import DefaultCsvWriter
 
 _EXPERIMENT = "".lower()  # Put the name of the experiment attached to this pipeline
 
