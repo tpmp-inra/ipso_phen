@@ -18,7 +18,13 @@ class IptEdgeDetector(IptBase):
             default_value=1,
             hint="Toggle whether or not tool is active",
         )
-        self.add_source_selector(default_value="source")
+        self.add_combobox(
+            name="source_selector",
+            desc="Select source",
+            default_value="current_image",
+            values={"current_image": "Current image", "mask": "Mask"},
+            hint="Select which image will be used as source",
+        )
         self.add_channel_selector(default_value="l")
         self.add_checkbox(
             name="normalize",
@@ -62,17 +68,28 @@ class IptEdgeDetector(IptBase):
         if wrapper is None:
             return False
 
-        operator_ = self.get_value_of("operator")
-        canny_sigma = self.get_value_of("canny_sigma")
-        canny_first = self.get_value_of("canny_first")
-        canny_second = self.get_value_of("canny_second")
-        channel = self.get_value_of("channel")
-        kernel_size = self.get_value_of("kernel_size")
-        threshold = self.get_value_of("threshold")
-        text_overlay = self.get_value_of("text_overlay") == 1
         res = False
         try:
-            src_img = self.extract_source_from_args()
+            operator_ = self.get_value_of("operator")
+            canny_sigma = self.get_value_of("canny_sigma")
+            canny_first = self.get_value_of("canny_first")
+            canny_second = self.get_value_of("canny_second")
+            channel = self.get_value_of("channel")
+            kernel_size = self.get_value_of("kernel_size")
+            threshold = self.get_value_of("threshold")
+            text_overlay = self.get_value_of("text_overlay") == 1
+            input_kind = self.get_value_of("source_selector")
+
+            if input_kind == "mask":
+                src_img = self.get_mask()
+            elif input_kind == "current_image":
+                src_img = wrapper.current_image
+            else:
+                src_img = None
+                logger.error(f"Unknown source: {input_kind}")
+                self.result = None
+                return
+
             if self.get_value_of("enabled") == 1:
                 c = wrapper.get_channel(
                     src_img=src_img,
@@ -163,11 +180,7 @@ class IptEdgeDetector(IptBase):
             res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

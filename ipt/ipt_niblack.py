@@ -59,7 +59,7 @@ class IptNiblack(IptBase):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             c = wrapper.get_channel(img, channel)
             if c is None:
                 self.do_channel_failure(channel)

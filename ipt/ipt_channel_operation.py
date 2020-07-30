@@ -102,7 +102,7 @@ class IptChannelOperation(IptBase):
             color_map = self.get_value_of("color_map")
             _, color_map = color_map.split("_")
 
-            img = self.extract_source_from_args()
+            img = wrapper.current_image
 
             c1 = wrapper.get_channel(img, channel_1)
             c2 = wrapper.get_channel(img, channel_2)

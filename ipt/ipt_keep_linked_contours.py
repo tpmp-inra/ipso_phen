@@ -90,7 +90,7 @@ class IptKeepLinkedContours(IptBase):
         delete_all_bellow = self.get_value_of("delete_all_bellow")
 
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             mask = self.get_mask()
             if mask is None:
                 wrapper.error_holder.add_error(

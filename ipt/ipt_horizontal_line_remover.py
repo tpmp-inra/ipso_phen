@@ -77,7 +77,7 @@ class IptHorizontalLineDetector(IptBase):
 
             params_to_string_ = self.input_params_as_str()
 
-            src_img = self.extract_source_from_args()
+            src_img = self.wrapper.current_image
             c = wrapper.get_channel(src_img, channel)
             if c is None:
                 self.do_channel_failure(channel)

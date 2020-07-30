@@ -112,7 +112,7 @@ class IptThresholdDistance(IptBase):
         res = False
         np.seterr(divide="ignore")
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             rois = self.get_ipt_roi(
                 wrapper=wrapper,
                 roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
