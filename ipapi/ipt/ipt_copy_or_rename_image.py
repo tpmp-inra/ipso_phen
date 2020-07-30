@@ -25,36 +25,12 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
             name="source_image",
             desc="Image to copy",
             default_value="source",
-            values=dict(
-                source="Source image",
-                fixed="Fixed image",
-                preprocessed="Pre processed image",
-                custom="Select from name below",
-            ),
+            values=dict(source="Source image", custom="Select from name below",),
         )
         self.add_text_input(
             name="named_source", desc="Custom image name", default_value="mask",
         )
-        self.add_combobox(
-            name="output_format",
-            desc="Image output format",
-            default_value="source",
-            values=dict(source="As source image", jpg="JPEG", png="PNG", tiff="TIFF"),
-        )
-        self.add_combobox(
-            name="output_name",
-            desc="Output naming convention",
-            default_value="as_source",
-            values=dict(
-                as_source="Same as source",
-                hash="Use hash for anonymous names",
-                suffix="Add suffix to name",
-                prefix="Add prefix to name",
-            ),
-        )
-        self.add_text_input(
-            name="prefix_suffix", desc="Prefix or suffix", default_value="",
-        )
+        self.add_file_naming()
         self.add_roi_selector()
         self.add_separator(name="sep1")
         self.add_spin_box(
@@ -107,25 +83,15 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 var_name = source
                 if source == "source":
                     img = wrapper.source_image
-                elif source == "fixed":
-                    img = wrapper.retrieve_stored_image("exposure_fixed")
-                elif source == "preprocessed":
-                    img = wrapper.retrieve_stored_image("pre_processed_image")
                 elif source == "custom":
                     var_name = self.get_value_of("named_source")
                     img = wrapper.retrieve_stored_image(var_name)
                 else:
                     img = None
-                    wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, unknown source: {source}",
-                        target_logger=logger,
-                    )
+                    logger.error(f"Copy or rename image FAILED, unknown source: {source}")
                     return
                 if img is None:
-                    wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, missing source: {source}",
-                        target_logger=logger,
-                    )
+                    logger.error(f"Copy or rename image FAILED, missing source: {source}")
                     return
 
                 # Apply ROIs
@@ -136,36 +102,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 )
                 img = wrapper.apply_roi_list(img=img, rois=rois)
 
-                # Build output file name
-                output_name_mode = self.get_value_of("output_name")
-                if output_name_mode == "as_source":
-                    dst_name = wrapper.file_handler.file_name_no_ext
-                elif output_name_mode == "hash":
-                    var_name = "hash_val"
-                    dst_name = self.get_short_hash(add_plant_name=False)
-                elif output_name_mode == "suffix":
-                    var_name = self.get_value_of("prefix_suffix")
-                    dst_name = wrapper.file_handler.file_name_no_ext + "_" + var_name
-                elif output_name_mode == "prefix":
-                    var_name = self.get_value_of("prefix_suffix")
-                    dst_name = var_name + "_" + wrapper.file_handler.file_name_no_ext
-                else:
-                    wrapper.error_holder.add_error(
-                        f"Copy or rename image FAILED, unknown naming convention: {output_name_mode}",
-                        target_logger=logger,
-                    )
-                    return
-                dst_path = self.get_value_of("path")
-
-                # Get new extension
-                file_ext = self.get_value_of("output_format")
-                if file_ext == "source":
-                    file_ext = self.wrapper.file_handler.file_ext
-                else:
-                    file_ext = f".{file_ext}"
-
-                # Build destination full path
-                dst_path = os.path.join(dst_path, f"{dst_name}{file_ext}")
+                dst_path = self.build_output_filename()
 
                 # Add image to list
                 wrapper.store_image(image=img, text="copied_or_renamed_image")
@@ -201,11 +138,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.exception(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:
@@ -244,3 +177,11 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
     @property
     def description(self):
         return "Copies an image, renaming it if needed"
+
+    @property
+    def required_images(self):
+        return (
+            [self.get_value_of("named_source")]
+            if self.get_value_of("source_image") == "custom"
+            else []
+        )

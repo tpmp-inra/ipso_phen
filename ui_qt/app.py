@@ -18,6 +18,7 @@ from typing import Any
 import shutil
 import subprocess
 import logging
+import webbrowser
 
 import cv2
 import numpy as np
@@ -254,6 +255,9 @@ class AboutDialog(Ui_about_dialog):
 
 
 class NewToolDialog(QDialog):
+
+    folder_path = "./ipapi/ipt"
+
     def __init__(self, parent=None, flags=0):
         super().__init__(parent)
 
@@ -317,17 +321,21 @@ class NewToolDialog(QDialog):
             .lower()
         )
         file_name = base_name + ".py"
-        # Update icon
-        if os.path.isfile(os.path.join("./ipt", file_name)):
-            # self.ui.bt_save.setEnabled(False)
-            self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/Error.png"))
-        else:
-            # self.ui.bt_save.setEnabled(True)
-            self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/OK.png"))
+        self.update_save_state(file_name)
+
         # Update file name
         self.ui.le_file_name.setText(file_name)
         # Update class name
         self.ui.le_class_name.setText("".join(x.capitalize() for x in base_name.split("_")))
+
+    def update_save_state(self, target_file_path: str):
+        # Update icon
+        if os.path.isfile(os.path.join(self.folder_path, target_file_path)):
+            self.ui.bt_save.setEnabled(False)
+            self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/Error.png"))
+        else:
+            self.ui.bt_save.setEnabled(True)
+            self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/OK.png"))
 
     def build_file(self):
         def add_tab(sc: str) -> str:
@@ -336,7 +344,7 @@ class NewToolDialog(QDialog):
         def remove_tab(sc: str) -> str:
             return sc[4:]
 
-        file_path = os.path.join("./ipapi/ipt", self.ui.le_file_name.text())
+        file_path = os.path.join(self.folder_path, self.ui.le_file_name.text())
         with open(file_path, "w", encoding="utf8") as f:
             spaces = ""
 
@@ -354,8 +362,8 @@ class NewToolDialog(QDialog):
                 inh_class_name_ = "IptBase"
             f.write("\n\n")
 
-            f.write("import logging")
-            f.write("logger = logging.getLogger(__name__)")
+            f.write("import logging\n")
+            f.write("logger = logging.getLogger(__name__)\n\n")
 
             # Class
             f.write(f"{spaces}class {self.ui.le_class_name.text()}({inh_class_name_}):\n")
@@ -435,11 +443,11 @@ class NewToolDialog(QDialog):
             f.write(f"{spaces}finally:\n")
             f.write(f"{spaces}    return res\n")
             spaces = remove_tab(spaces)
-            f.write(f"\n")
+            f.write("\n")
 
             # Properties
             spaces = add_tab("")
-            f.write("{spaces}@property\n")
+            f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def name(self):\n")
             f.write(f"{spaces}    return '{self.ui.le_tool_name.text()} (WIP)'\n")
             f.write("\n")
@@ -461,7 +469,7 @@ class NewToolDialog(QDialog):
                 f.write(f"{spaces}    return False is False else True\n")
             else:
                 f.write(f"{spaces}    return False\n")
-            f.write(f"\n")
+            f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def result_name(self):\n")
@@ -475,7 +483,7 @@ class NewToolDialog(QDialog):
                 f.write(f"{spaces}    return 'None'\n")
             else:
                 f.write(f"{spaces}    return 'None'\n")
-            f.write(f"\n")
+            f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def output_kind(self):\n")
@@ -489,7 +497,7 @@ class NewToolDialog(QDialog):
                 f.write(f"{spaces}    return 'None'\n")
             else:
                 f.write(f"{spaces}    return 'None'\n")
-            f.write(f"\n")
+            f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def use_case(self):\n")
@@ -501,7 +509,7 @@ class NewToolDialog(QDialog):
                 ]
             )
             f.write(f"{spaces}    return [{use_cases_}]\n")
-            f.write(f"\n")
+            f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def description(self):\n")
@@ -509,6 +517,8 @@ class NewToolDialog(QDialog):
             f.write(f"{spaces}    return ''''{desc}'''\n")
 
         subprocess.run(args=("black", file_path))
+
+        self.update_save_state(self.ui.le_file_name.text())
 
     def cancel_tool(self):
         self.close()
@@ -726,7 +736,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             ),
         }
         force_directories(self.static_folders["image_cache"])
-        force_directories(self.static_folders["image_output"])
         force_directories(self.static_folders["saved_data"])
         force_directories(self.static_folders["stored_data"])
         force_directories(self.static_folders["script"])
@@ -2414,10 +2423,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         ntd.show()
 
     def on_action_show_read_me(self):
-        open_file((os.getcwd(), "readme.html"))
+        webbrowser.open("https://github.com/tpmp-inra/ipso_phen/blob/master/readme.md")
 
     def on_action_show_documentation(self):
-        open_file((os.getcwd(), "site/index.html"))
+        webbrowser.open("https://ipso-phen.readthedocs.io/en/latest/")
 
     def build_tool_documentation(self, tool, tool_name):
         with open(os.path.join("docs", f"{tool_name}.md"), "w") as f:
@@ -3734,8 +3743,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
 
             if not image_path:
+                force_directories(self.static_folders["image_output"])
                 image_path = os.path.join(self.static_folders["image_output"], f"{text}.jpg")
             else:
+                force_directories(image_path)
                 image_path = os.path.join(image_path, f"{text}.jpg")
             cv2.imwrite(image_path, image_data["image"])
             image_data["written"] = True
@@ -4068,6 +4079,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         selected_mode = self.current_tool
         total_ = self.ui.cb_available_outputs.count()
         vid_name = f'{make_safe_name(selected_mode.name)}_{dt.now().strftime("%Y%B%d_%H%M%S")}_{total_}.mp4'
+        force_directories(self.static_folders["image_output"])
         v_output = os.path.join(self.static_folders["image_output"], vid_name)
 
         frame_rect = RectangleRegion(width=v_width, height=v_height)

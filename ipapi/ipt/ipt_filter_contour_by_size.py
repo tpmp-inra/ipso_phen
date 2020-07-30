@@ -100,20 +100,50 @@ class IptFilterContourBySize(IptBase):
                 )
                 out_mask = np.zeros_like(mask)
                 fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
+                # Discarded contours
+                for cnt in reversed(contours[:-1]):
+                    area_ = cv2.contourArea(cnt)
+                    if not (lt < area_ < ut):
+                        cv2.drawContours(dbg_mask, [cnt], 0, ipc.C_ORANGE, -1)
+                # Discarded sizes
+                for cnt in reversed(contours[:-1]):
+                    area_ = cv2.contourArea(cnt)
+                    if not (lt < area_ < ut):
+                        x, y, w, h = cv2.boundingRect(cnt)
+                        x += w // 2 - 10
+                        y += h // 2
+                        cv2.putText(
+                            dbg_mask,
+                            f"{area_}",
+                            (x, y),
+                            fnt[0],
+                            fnt[1],
+                            ipc.C_RED,
+                            thickness=2,
+                        )
+                # Discarded contours borders
+                for cnt in reversed(contours[:-1]):
+                    area_ = cv2.contourArea(cnt)
+                    if not (lt < area_ < ut):
+                        cv2.drawContours(dbg_mask, [cnt], 0, ipc.C_MAROON, 4)
+                # Kept contours
                 for cnt in contours:
                     area_ = cv2.contourArea(cnt)
                     if lt < area_ < ut:
                         cv2.drawContours(out_mask, [cnt], 0, 255, -1)
                         cv2.drawContours(dbg_mask, [cnt], 0, ipc.C_GREEN, -1)
-                        clr = ipc.C_LIME
-                    else:
-                        clr = ipc.C_RED
-                    x, y, w, h = cv2.boundingRect(cnt)
-                    x += w // 2 - 10
-                    y += h // 2
-                    cv2.putText(
-                        dbg_mask, f"{area_}", (x, y), fnt[0], fnt[1], clr, thickness=2,
-                    )
+                        x, y, w, h = cv2.boundingRect(cnt)
+                        x += w // 2 - 10
+                        y += h // 2
+                        cv2.putText(
+                            dbg_mask,
+                            f"{area_}",
+                            (x, y),
+                            fnt[0],
+                            fnt[1],
+                            ipc.C_LIME,
+                            thickness=2,
+                        )
 
                 wrapper.store_image(image=out_mask, text="filtered_contours")
                 wrapper.store_image(image=dbg_mask, text="tagged_contours")

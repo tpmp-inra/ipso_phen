@@ -197,7 +197,7 @@ class IptHoughLines(IptBaseAnalyzer):
                 wrapper.init_rois()
                 edges = wrapper.apply_rois(edges, f"ROIs_{self.input_params_as_str()}")
 
-            src_img = self.extract_source_from_args()
+            src_img = self.wrapper.current_image
             if self.get_value_of("source_file", "source") == "mask" and src_img is not None:
                 src_img = wrapper.draw_image(
                     src_image=wrapper.current_image,

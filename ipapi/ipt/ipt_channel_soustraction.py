@@ -88,7 +88,7 @@ class IptChannelSubtraction(IptBase):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             c1 = wrapper.get_channel(img, channel_1)
             c2 = wrapper.get_channel(img, channel_2)
             if c1 is None:

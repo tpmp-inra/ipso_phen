@@ -87,6 +87,7 @@ class AbstractImageProcessor(ImageWrapper):
         self.lock = False
 
         self.image_list = []
+        self.forced_storage_images_list = []
         self._rois_list = []
         self._mosaic_data = None
         self.data_output = {}
@@ -484,7 +485,11 @@ class AbstractImageProcessor(ImageWrapper):
             if dic["name"].lower() == text:
                 target.image_list.remove(dic)
 
-        if (text and (target.store_images or (text.lower() == "mosaic"))) or force_store:
+        if (
+            (text and (target.store_images or (text.lower() == "mosaic")))
+            or force_store
+            or (text in self.forced_storage_images_list)
+        ):
             # Create dummy image if issue
             if image is not None:
                 cp = image.copy()
@@ -2158,7 +2163,7 @@ class AbstractImageProcessor(ImageWrapper):
             kernel_size {int} -- kernel size
             kernel_shape {int} -- cv2 constant
             roi -- Region of Interest
-            dbg_text {str} -- debug text (default: {''})            
+            dbg_text {str} -- debug text (default: {''})
             proc_times {int} -- iterations
 
         Returns:

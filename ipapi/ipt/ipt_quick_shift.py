@@ -63,7 +63,7 @@ class IptQuickShift(IptBaseMerger):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
 
             if color_space.upper() == "HSV":
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
