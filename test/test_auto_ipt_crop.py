@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 import unittest
 
 abspath = os.path.abspath(__file__)
@@ -12,16 +13,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_roi_composition import IptRoiComposition
+from ipapi.ipt.ipt_crop import IptCrop
 from ipapi.base.ip_abstract import AbstractImageProcessor
-import ipapi.tools.regions as regions
 import ipapi.base.ip_common as ipc
 
 
-class TestIptRoiComposition(unittest.TestCase):
+class TestIptCrop(unittest.TestCase):
     def test_use_case(self):
         """Check that all use cases are allowed"""
-        op = IptRoiComposition()
+        op = IptCrop()
         for uc in op.use_case:
             self.assertIn(
                 uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}"
@@ -29,20 +29,20 @@ class TestIptRoiComposition(unittest.TestCase):
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
-        op = IptRoiComposition()
+        op = IptCrop()
         if "(wip)" not in op.name.lower():
             self.assertIsNotNone(
-                op.process_wrapper.__doc__, "Missing docstring for ROI composition"
+                op.process_wrapper.__doc__, "Missing docstring for Crop"
             )
 
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
-    def test_roi_out(self):
-        """Test that tool generates an ROI"""
-        op = IptRoiComposition()
-        op.apply_test_values_overrides(use_cases=("Create an ROI",))
+    def test_image_transformation(self):
+        """Test that when an image is in an image goes out"""
+        op = IptCrop()
+        op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
@@ -53,23 +53,19 @@ class TestIptRoiComposition(unittest.TestCase):
             )
         )
         res = op.process_wrapper(wrapper=wrapper)
-        self.assertTrue(
-            hasattr(op, "generate_roi"), "Class must have method generate_roi"
-        )
-        self.assertTrue(res, "Failed to process ROI composition")
-        r = op.generate_roi()
-        self.assertIsInstance(r, regions.AbstractRegion, "ROI must be of type Region")
+        self.assertTrue(res, "Failed to process Crop")
+        self.assertIsInstance(op.result, np.ndarray, "Empty result for Crop")
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""
-        op = IptRoiComposition()
+        op = IptCrop()
         op_doc_name = op.name.replace(" ", "_")
         op_doc_name = "ipt_" + op_doc_name + ".md"
         self.assertTrue(
             os.path.isfile(
                 os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
             ),
-            "Missing documentation file for ROI composition",
+            "Missing documentation file for Crop",
         )
 
 

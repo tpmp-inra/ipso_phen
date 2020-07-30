@@ -15,6 +15,7 @@ if __name__ == "__main__":
     sys.path.insert(0, fld_name)
     sys.path.insert(0, os.path.dirname(fld_name))
     sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
+    sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
     if not os.path.exists("logs"):
         os.mkdir("logs")
@@ -167,9 +168,12 @@ class IptHolder(object):
         f.write("fld_name = os.path.dirname(abspath)\n")
         f.write("sys.path.insert(0, fld_name)\n")
         f.write("sys.path.insert(0, os.path.dirname(fld_name))\n")
+        f.write("# When running tests from ipapi\n")
         f.write(
             'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))\n\n'
         )
+        f.write("# When running tests from IPSO Phen\n")
+        f.write('sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))\n\n')
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
         f.write("from ipapi.base.ip_abstract import AbstractImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
@@ -477,9 +481,7 @@ class IptHolder(object):
             )
         else:
             log_data(
-                log_msg=f"status: {status_message} - log: {log_message}",
-                log_level=log_level,
-                target_logger=logger,
+                log_msg=log_message, log_level=log_level, target_logger=logger,
             )
             return True
 
@@ -593,11 +595,11 @@ class IptHolder(object):
                 use_status_as_log=True,
                 log_level=logging.INFO,
             )
-            for test_script in files_to_format:
+            for test_script in tqdm(files_to_format, desc="Formating test files"):
                 self.log_state(
                     status_message=f"Formating {test_script}", use_status_as_log=True,
                 )
-                subprocess.run(args=("black", test_script))
+                subprocess.run(args=("black", "-q", test_script))
 
         finally:
             self._log_callback = None
@@ -620,12 +622,19 @@ if __name__ == "__main__":
         description="Build test files for all image processing tools"
     )
     parser.add_argument(
-        "-o", "--overwrite", required=False, help="Overwrite existing files", default=False,
+        "-o",
+        "--overwrite",
+        required=False,
+        help="Overwrite existing files",
+        action="store_true",
     )
     args = vars(parser.parse_args())
+    logger.info("Retrieved parameters")
+    for k, v in args.items():
+        logger.info(f"  * {k}: {v}")
 
     logger.info("Building test files for ip modules")
 
-    IptHolder().build_test_files(overwrite="overwrite" in args and args["overwrite"] == "True")
+    IptHolder().build_test_files(overwrite="overwrite" in args)
 
     logger.info("Building test files for ip modules - Done")

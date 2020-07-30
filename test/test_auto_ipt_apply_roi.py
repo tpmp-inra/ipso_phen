@@ -7,7 +7,11 @@ abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
+# When running tests from ipapi
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
+
+# When running tests from IPSO Phen
+sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_apply_roi import IptApplyRoi
 from ipapi.base.ip_abstract import AbstractImageProcessor
@@ -20,13 +24,17 @@ class TestIptApplyRoi(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptApplyRoi()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptApplyRoi()
         if "(wip)" not in op.name.lower():
-            self.assertIsNotNone(op.process_wrapper.__doc__, "Missing docstring for Apply ROI")
+            self.assertIsNotNone(
+                op.process_wrapper.__doc__, "Missing docstring for Apply ROI"
+            )
 
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""
@@ -38,7 +46,11 @@ class TestIptApplyRoi(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
             )
         )
         res = op.process_wrapper(wrapper=wrapper)
@@ -48,24 +60,36 @@ class TestIptApplyRoi(unittest.TestCase):
     def test_mask_transformation(self):
         """Test that when using the basic mask generated script this tool produces a mask"""
         op = IptApplyRoi()
-        op.apply_test_values_overrides(use_cases=(ipc.ToolFamily.MASK_CLEANUP,))
+        op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
             os.path.join(
-                os.path.dirname(__file__), "..", "samples", "pipelines", "test_cleaners.json",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "pipelines",
+                "test_cleaners.json",
             )
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
             )
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Apply ROI with test script")
-        self.assertIsInstance(wrapper.mask, np.ndarray, "Empty result for Range threshold")
+        self.assertIsInstance(
+            wrapper.mask, np.ndarray, "Empty result for Range threshold"
+        )
         self.assertEqual(len(wrapper.mask.shape), 2, "Masks can only have one channel")
         self.assertEqual(
-            np.sum(wrapper.mask[wrapper.mask != 255]), 0, "Masks values can only be 0 or 255",
+            np.sum(wrapper.mask[wrapper.mask != 255]),
+            0,
+            "Masks values can only be 0 or 255",
         )
 
     def test_documentation(self):
