@@ -62,7 +62,7 @@ class IptThreshold(IptBase):
             if self.get_value_of("enabled") == 1:
                 self.result = self.apply_binary_threshold(
                     wrapper=wrapper,
-                    img=self.extract_source_from_args(),
+                    img=self.wrapper.current_image,
                     channel=self.get_value_of("channel"),
                 )
 

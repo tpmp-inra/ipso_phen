@@ -37,11 +37,9 @@ class IptCalculateChlorophyll(IptBase):
 
         res = True
         try:
-            src_img = self.extract_source_from_args()
+            src_img = wrapper.current_image
             if src_img is None:
-                wrapper.error_holder.add_error(
-                    "Unable to fetch source target image", target_logger=logger
-                )
+                logger.error("Unable to fetch source target image")
                 res = False
 
             mask = self.get_mask()
@@ -78,11 +76,7 @@ class IptCalculateChlorophyll(IptBase):
             )
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:

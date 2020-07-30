@@ -154,12 +154,10 @@ class IptAnalyzeObject(IptBaseAnalyzer):
         res = False
         try:
             self.data_dict = {}
-            img = self.extract_source_from_args()
+            img = wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                )
+                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             obj, mask = wrapper.prepare_analysis(
@@ -327,11 +325,7 @@ class IptAnalyzeObject(IptBaseAnalyzer):
             else:
                 res = False
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

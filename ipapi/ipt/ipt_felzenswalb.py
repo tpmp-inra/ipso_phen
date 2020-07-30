@@ -52,7 +52,7 @@ class IptFelzenswalb(IptBaseMerger):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
 
             img = img_as_float(img)
             labels = felzenszwalb(img, scale=scale, sigma=sigma, min_size=min_size)

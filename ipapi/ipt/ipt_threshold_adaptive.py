@@ -107,7 +107,7 @@ class IptThresholdAdaptive(IptBase):
 
         res = False
         try:
-            src_img = self.extract_source_from_args()
+            src_img = self.wrapper.current_image
             wrapper.store_image(src_img, "source")
             if self.get_value_of("enabled") == 1:
                 median_filter_size = self.get_value_of("median_filter_size")

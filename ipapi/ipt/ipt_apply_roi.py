@@ -60,11 +60,11 @@ class IptApplyRoi(IptBase):
                     img = wrapper.current_image
                 elif io_mode == "mask":
                     img = self.get_mask()
-                    if img is None:
-                        wrapper.error_holder.add_error(
-                            f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                        )
-                        return
+                else:
+                    img = None
+                if img is None:
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
+                    return
 
                 # Retrieve ROIs
                 rois = self.get_ipt_roi(
@@ -92,11 +92,7 @@ class IptApplyRoi(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

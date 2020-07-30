@@ -10,7 +10,6 @@ import numpy as np
 from skimage.transform import hough_circle, hough_circle_peaks
 
 import ipapi.base.ip_common as ipc
-from ipapi.base.ip_common import ToolFamily
 from ipapi.base.ipt_abstract import IptBase
 from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
 from ipapi.tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
@@ -214,7 +213,7 @@ class IptHoughCircles(IptBase):
             ):
                 with open(pkl_file, "rb") as f:
                     self.result = pickle.load(f)
-                img = self.extract_source_from_args()
+                img = self.wrapper.current_image
                 line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
             else:
                 # Get the edge
@@ -254,7 +253,16 @@ class IptHoughCircles(IptBase):
                         dbg_str="cropped_edges",
                     )
 
-                img = self.extract_source_from_args()
+                input_kind = self.get_value_of("source_selector")
+                if input_kind == "mask":
+                    img = self.get_mask()
+                elif input_kind == "current_image":
+                    img = wrapper.current_image
+                else:
+                    img = None
+                    logger.error(f"Unknown source: {input_kind}")
+                    self.result = None
+                    return
 
                 # Detect circles
                 hough_radii = np.arange(min_radius, max_radius, step_radius)
@@ -364,6 +372,7 @@ class IptHoughCircles(IptBase):
                 text="hough_circles",
                 text_overlay=self.get_value_of("text_overlay") == 1,
             )
+            self.demo_image = img
             res = True
         except Exception as e:
             logger.exception(f'Failed to process {self. name}: "{repr(e)}"')
@@ -476,8 +485,8 @@ class IptHoughCircles(IptBase):
 
     @property
     def output_type(self):
-        if self.get_value_of("edge_only") == "mask":
-            return ipc.IO_IMAGE
+        if self.get_value_of("edge_only") == 1:
+            return ipc.IO_IMAGE  # self.input_type
         else:
             return ipc.IO_ROI
 

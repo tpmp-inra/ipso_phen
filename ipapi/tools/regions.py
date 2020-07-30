@@ -259,7 +259,7 @@ class AbstractRegion(object):
         r = self.as_rect()
         if r is None:
             return None
-        return img[r.top : r.bottom, r.left : r.right]
+        return img[r.top : r.bottom, r.left : r.right].copy(order="C")
 
 
 class EmptyRegion(AbstractRegion):

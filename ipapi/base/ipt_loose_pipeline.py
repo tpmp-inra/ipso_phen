@@ -118,10 +118,11 @@ class Node(object):
         self.parent = kwargs.get("parent")
         self.last_result = {}
 
-    def get_relevant_image(self):
-        demo_image = self.last_result.get("demo_image", None)
-        if demo_image is not None:
-            return demo_image
+    def get_relevant_image(self, exclude_demo: bool = False):
+        if not exclude_demo:
+            demo_image = self.last_result.get("demo_image", None)
+            if demo_image is not None:
+                return demo_image
 
         if self.output_type == ipc.IO_IMAGE:
             return self.last_result.get(
@@ -184,10 +185,16 @@ class Node(object):
             if isinstance(res, int) and (res > 0):
                 eh.log_data(log_msg=msg, log_level=res, target_logger=logger)
         md = np.array(self.root.parent.settings.mosaic.images)
+        wrapper = self.root.parent.wrapper
+        needed_images = wrapper.forced_storage_images_list
         if isinstance(data, (GroupNode, ModuleNode)):
             dn = data.name
             if dn in md:
                 self.root.parent.stored_mosaic_images[dn] = self.get_relevant_image()
+            if dn in needed_images:
+                wrapper.store_image(
+                    image=self.get_relevant_image(exclude_demo=True), text=dn, force_store=True
+                )
         elif isinstance(data, AbstractImageProcessor):
             for d in data.image_list:
                 if d["name"] in md:
@@ -320,10 +327,13 @@ class ModuleNode(Node):
                         data=None,
                     )
             # Get image
-            if self.output_type == ipc.IO_ROI:
-                res["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=[res["roi"]])
-            elif self.output_type in [ipc.IO_MASK, ipc.IO_NONE] and tool.demo_image is not None:
+            if (
+                self.output_type in [ipc.IO_MASK, ipc.IO_NONE, ipc.IO_ROI]
+                and tool.demo_image is not None
+            ):
                 res["image"] = tool.demo_image
+            elif self.output_type == ipc.IO_ROI:
+                res["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=[res["roi"]])
             elif self.output_type == ipc.IO_DATA:
                 if tool.demo_image is not None:
                     res["image"] = tool.demo_image
@@ -643,7 +653,14 @@ class GroupNode(Node):
                     elif node.output_type == ipc.IO_DATA:
                         wrapper.csv_data_holder.data_list.update(res["data"])
                     elif node.output_type == ipc.IO_ROI:
-                        rois.extend(res["roi"])
+                        roi_ = res.get("roi", None)
+                        if roi_ is None:
+                            logger.warning(f"Missing ROI for {node.name}")
+                        else:
+                            if isinstance(roi_, list):
+                                rois.extend(roi_)
+                            else:
+                                rois.append(roi_)
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
@@ -1153,6 +1170,9 @@ class LoosePipeline(object):
         self.wrapper.store_images = self.root.parent.debug_mode or kwargs.get(
             "target_module", ""
         )
+        for module in self.root.iter_items(types=("modules",)):
+            self.wrapper.forced_storage_images_list.extend(module.tool.required_images)
+
         self.silent = silent_mode
         self.root.execute(**kwargs)
         return self.error_level < self.stop_on

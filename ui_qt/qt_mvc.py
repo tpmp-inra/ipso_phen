@@ -604,13 +604,13 @@ class PipelineDelegate(QStyledItemDelegate):
                     QStyledItemDelegate.paint(self, painter, option, index)
             elif index.column() == 1:
                 node = index.internalPointer()
-                if hasattr(node, "reset_button"):
+                if hasattr(node, "reset_button") and node.reset_button is not None:
                     self.parent().setIndexWidget(index, node.reset_button)
                 else:
                     QStyledItemDelegate.paint(self, painter, option, index)
             elif index.column() == 2:
                 node = index.internalPointer()
-                if hasattr(node, "run_button"):
+                if hasattr(node, "run_button") and node.run_button is not None:
                     self.parent().setIndexWidget(index, node.run_button)
                 else:
                     QStyledItemDelegate.paint(self, painter, option, index)
@@ -1011,7 +1011,9 @@ class TreeModel(QAbstractItemModel):
 
     def parent(self, index):
         node = self.get_item(index)
-        if node.parent is None:
+        if not hasattr(node, "parent"):
+            raise ValueError()
+        elif node.parent is None:
             return QModelIndex()
         else:
             return self.createIndex(node.parent.row, 0, node.parent)
