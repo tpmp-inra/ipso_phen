@@ -5,7 +5,6 @@ import multiprocessing as mp
 import os
 from collections import Counter, defaultdict
 from collections import namedtuple
-from timeit import default_timer as timer
 import logging
 from typing import Union
 
