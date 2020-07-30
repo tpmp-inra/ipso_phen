@@ -60,7 +60,7 @@ class IptSauvola(IptBase):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             c = wrapper.get_channel(img, channel)
             thresh_sauvola = threshold_sauvola(c, window_size=window_size, k=k)
             binary_sauvola = (c > thresh_sauvola).astype(np.uint8)

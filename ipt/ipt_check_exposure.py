@@ -135,7 +135,7 @@ class IptExposureChecker(IptBaseAnalyzer):
         res = False
         try:
             self.data_dict = {}
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             text_overlay = self.get_value_of("text_overlay") == 1
             br_dict = None
             if self.get_value_of("enabled") != 1:
@@ -153,13 +153,11 @@ class IptExposureChecker(IptBaseAnalyzer):
             brg_calc = self.get_value_of("brg_calc")
             text_overlay = self.get_value_of("text_overlay") == 1
 
-            roi_names = self.get_value_of("roi_names").replace(" ", "").split(",")
-
             b, g, r = cv2.split(img.copy())
 
             # Calculate image brightness
             if brg_calc != "none":
-                calc_img = self.extract_source_from_args(source_mode="source_brightness")
+                calc_img = wrapper.current_image
                 wrapper.store_image(
                     calc_img, f'calc_image_{self.get_value_of("source_brightness")}'
                 )
@@ -236,7 +234,7 @@ class IptExposureChecker(IptBaseAnalyzer):
                 selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if len(rois) > 0:
-                self.result = self.extract_source_from_args()
+                self.result = self.wrapper.current_image
                 for roi in rois:
                     patch = wrapper.crop_to_roi(img=img, roi=roi)
                     self.result[roi.top : roi.bottom, roi.left : roi.right] = patch

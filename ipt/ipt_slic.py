@@ -53,7 +53,7 @@ class IptSlic(IptBaseMerger):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             labels = slic(img, n_segments=n_segments, compactness=compactness, sigma=sigma)
             if post_process != "none":
                 post_labels = labels.copy()

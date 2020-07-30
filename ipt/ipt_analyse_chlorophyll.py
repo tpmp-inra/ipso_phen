@@ -54,12 +54,10 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
 
             self.data_dict = {}
 
-            img = self.extract_source_from_args()
+            img = wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             b, g, r = cv2.split(cv2.bitwise_and(img, img, mask=mask))
@@ -86,11 +84,7 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
             self.add_value(key="chlorophyll_mean", value=tmp_tuple[0][0][0])
             self.add_value(key="chlorophyll_std_dev", value=tmp_tuple[1][0][0])
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             res = True

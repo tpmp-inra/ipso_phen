@@ -56,7 +56,7 @@ class IptSimpleWhiteBalance(IptBase):
                 max_ = self.get_value_of("max")
                 color_space = self.get_value_of("color_space")
 
-                res = self.extract_source_from_args()
+                res = self.wrapper.current_image
 
                 if color_space == "HSV":
                     res = cv2.cvtColor(res, cv2.COLOR_BGR2HSV)

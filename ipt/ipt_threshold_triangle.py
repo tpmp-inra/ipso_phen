@@ -58,7 +58,7 @@ class IptThresholdTriangle(IptBase):
 
         res = False
         try:
-            src_img = self.extract_source_from_args()
+            src_img = self.wrapper.current_image
 
             median_filter_size = (
                 0 if median_filter_size == 1 else ensure_odd(median_filter_size)

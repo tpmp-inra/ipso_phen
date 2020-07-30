@@ -101,12 +101,10 @@ class IptAnalyzeColor(IptBaseAnalyzer):
         res = False
         try:
             self.data_dict = {}
-            img = self.extract_source_from_args()
+            img = wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             hist_bins = self.get_value_of("hist_bins")
@@ -238,10 +236,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             if n > 0:
                 for c, v in channel_data.items():
                     if v["data"] is None:
-                        wrapper.error_holder.add_error(
-                            f'Missing channel {v["color_space"]}, {v["channel_name"]}',
-                            target_logger=logger,
-                        )
+                        logger.error(f'Missing channel {v["color_space"]}, {v["channel_name"]}')
                         continue
                     seed_ = f'{v["color_space"]}_{c}'
                     hist = cv2.calcHist([v["data"]], [0], mask, [n], [0, (256 - 1)])
@@ -255,11 +250,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

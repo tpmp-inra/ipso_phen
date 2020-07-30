@@ -93,7 +93,7 @@ class IptRegionalMaximaFiltering(IptBase):
                 _, color_map = color_map.split("_")
                 normalize = self.get_value_of("normalize") == 1
 
-                img = self.extract_source_from_args()
+                img = self.wrapper.current_image
                 c = wrapper.get_channel(img, channel)
                 if c is None:
                     self.do_channel_failure(channel)

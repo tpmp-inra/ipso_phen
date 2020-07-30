@@ -101,7 +101,7 @@ class IptPartialPosterizer(IptBase):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             if self.get_value_of("enabled") == 1:
                 blue_color = self.get_value_of(key="blue_color")
                 blue_percent = self.get_value_of("post_blue_value") / 100

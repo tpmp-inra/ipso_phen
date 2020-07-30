@@ -87,7 +87,7 @@ class IptImageSplitter(IptBase):
             padding_ver = self.get_value_of("padding_ver")
             write_to_disc = self.get_value_of("write_to_disc") == 1
 
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
 
             fn, ext = os.path.splitext(wrapper.file_name)
             h, w = img.shape[:2]

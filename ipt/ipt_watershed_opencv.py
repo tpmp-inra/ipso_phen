@@ -71,7 +71,7 @@ class IptWatershedOpenCv(IptBaseMerger):
 
         res = True
         try:
-            src_img = self.extract_source_from_args()
+            src_img = self.wrapper.current_image
             if src_img is None:
                 return False
 

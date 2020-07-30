@@ -109,7 +109,7 @@ class IptCustomChannel(IptBase):
 
         res = False
         try:
-            img = self.extract_source_from_args()
+            img = self.wrapper.current_image
             if self.get_value_of("enabled") == 1:
                 channels = []
                 channel_names = []
