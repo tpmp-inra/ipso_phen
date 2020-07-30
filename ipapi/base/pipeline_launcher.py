@@ -13,6 +13,7 @@ import ipapi.tools.db_wrapper as dbw
 from ipapi.tools.common_functions import force_directories, format_time
 from ipapi.base.pipeline_processor import PipelineProcessor
 from ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipapi.file_handlers.fh_base import file_handler_factory
 
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ def save_state(
     images: list,
     database_data=None,
     thread_count: int = 1,
+    build_annotation_csv: bool = False,
 ) -> dict:
     return dict(
         output_folder=output_folder,
@@ -46,6 +48,7 @@ def save_state(
         images=images,
         thread_count=thread_count,
         database_data=database_data,
+        build_annotation_csv=build_annotation_csv,
     )
 
 
@@ -91,6 +94,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         included=_get_key("included", res, overrides, []),
         excluded=_get_key("excluded", res, overrides, []),
         overwrite=_get_key("overwrite", res, overrides, False),
+        build_annotation_csv=_get_key("build_annotation_csv", res, overrides, False),
     )
 
 
@@ -199,6 +203,32 @@ def launch(**kwargs):
 
     # Process data
     groups_to_process = pp.prepare_groups(res["series_id_time_delta"])
+    if res["build_annotation_csv"]:
+        try:
+            if pp.options.group_by_series:
+                wrappers = [file_handler_factory(f[0]) for f in groups_to_process]
+            else:
+                wrappers = [file_handler_factory(f) for f in groups_to_process]
+            pd.DataFrame.from_dict(
+                {
+                    "plant": [i.plant for i in wrappers],
+                    "date_time": [i.date_time for i in wrappers],
+                    "disease_index": "",
+                }
+            ).sort_values(
+                by=["plant", "date_time"], axis=0, na_position="first", ascending=True
+            ).to_csv(
+                os.path.join(pp.options.dst_path, f"{csv_file_name}_diseaseindex.csv"),
+                index=False,
+            )
+        except Exception as e:
+            preffix = "FAIL"
+            logger.exception(f"Unable to build disease index file")
+        else:
+            preffix = "SUCCESS"
+            logger.info("Built disease index file")
+        print(f"{preffix} - Disease index file")
+
     groups_to_process = pp.handle_existing_data(groups_to_process)
     groups_to_process_count = len(groups_to_process)
     if groups_to_process_count > 0:
@@ -206,81 +236,13 @@ def launch(**kwargs):
         pp.process_groups(groups_list=groups_to_process, target_database=db)
 
     # Merge dataframe
-    df = pp.merge_result_files(csv_file_name=csv_file_name + ".csv")
-
-    group_by_series_id = False
-    group_by_hour = False
-    group_by_day = False
-    build_median_df = False
-    build_mean_df = False
-
-    steps_ = 0
-    if group_by_series_id:
-        if build_median_df:
-            steps_ += 1
-        if build_mean_df:
-            steps_ += 1
-    if group_by_hour:
-        if build_median_df:
-            steps_ += 1
-        if build_mean_df:
-            steps_ += 1
-    if group_by_day:
-        if build_median_df:
-            steps_ += 1
-        if build_mean_df:
-            steps_ += 1
-    if steps_ > 0:
-        logger.info(" --- Building additional CSV files ---")
-        pb = tqdm(total=steps_, desc="Building additional CSV files:")
-        if "_raw_data" in csv_file_name:
-            csv_file_name = csv_file_name.replace("_raw_data", "")
-        if csv_file_name.endswith(".csv"):
-            csv_file_name = csv_file_name.replace(".csv", "")
-        df = df.drop("view_option", axis=1)
-        if group_by_series_id:
-            csv_sid_root_name = csv_file_name + "_sid"
-            if build_median_df:
-                df.groupby("series_id").median().merge(df).drop(
-                    ["series_id"], axis=1
-                ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
-                    os.path.join(pp.options.dst_path, f"{csv_sid_root_name}_median.csv")
-                )
-                pb.update(1)
-            if build_mean_df:
-                df.groupby("series_id").mean().drop(
-                    ["series_id"]
-                ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
-                    os.path.join(pp.options.dst_path, f"{csv_sid_root_name}_mean.csv")
-                )
-                pb.update(1)
-        if group_by_hour:
-            csv_hour_root_name = csv_file_name + "_hour"
-            if build_median_df:
-                pass
-                pb.update(1)
-            if build_mean_df:
-                pass
-                pb.update(1)
-        if group_by_day:
-            csv_day_root_name = csv_file_name + "_day"
-            if build_median_df:
-                df.groupby("date").median().drop_duplicates().sort_values(
-                    by=["plant", "date"]
-                ).to_csv(os.path.join(pp.options.dst_path, f"{csv_day_root_name}_median.csv"))
-                pb.update(1)
-            if build_mean_df:
-                df.groupby("date").mean().drop_duplicates().sort_values(
-                    by=["plant", "date"]
-                ).to_csv(os.path.join(pp.options.dst_path, f"{csv_day_root_name}_mean.csv"))
-                pb.update(1)
-        pb.close()
-        logger.info(" --- Built additional CSV files ---")
-
-    last_word = (
+    pp.merge_result_files(csv_file_name=csv_file_name + ".csv")
+    logger.info(
         f"Processed {groups_to_process_count} groups/images in {format_time(timer() - start)}"
     )
-    logger.info(last_word)
-    print(last_word + ". See logs for more details")
+
+    # Build videos
+
+    print("Done, see logs for more details")
 
     return 0
