@@ -7,7 +7,11 @@ abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
+# When running tests from ipapi
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
+
+# When running tests from IPSO Phen
+sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_print_channels import IptPrintChannels
 from ipapi.base.ip_abstract import AbstractImageProcessor
@@ -19,7 +23,9 @@ class TestIptPrintChannels(unittest.TestCase):
         """Check that all use cases are allowed"""
         op = IptPrintChannels()
         for uc in op.use_case:
-            self.assertIn(uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}")
+            self.assertIn(
+                uc, list(ipc.tool_family_hints.keys()), f"Unknown use case {uc}"
+            )
 
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
@@ -39,7 +45,11 @@ class TestIptPrintChannels(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
             )
         )
         res = op.process_wrapper(wrapper=wrapper)
@@ -52,14 +62,20 @@ class TestIptPrintChannels(unittest.TestCase):
         op.apply_test_values_overrides(use_cases=("Visualization",))
         wrapper = AbstractImageProcessor(
             os.path.join(
-                os.path.dirname(__file__), "..", "samples", "images", "arabido_small.jpg",
+                os.path.dirname(__file__),
+                "..",
+                "samples",
+                "images",
+                "arabido_small.jpg",
             )
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Simple white balance")
-        self.assertGreater(len(wrapper.image_list), 0, "Visualizations must add images to list")
+        self.assertGreater(
+            len(wrapper.image_list), 0, "Visualizations must add images to list"
+        )
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""
