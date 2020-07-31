@@ -240,7 +240,7 @@ class PipelineProcessor:
         else:
             # Build dictionary
             self.init_progress(
-                total=len(self.accepted_files), desc="Building plants dictionaries:"
+                total=len(self.accepted_files), desc="Building plants dictionaries"
             )
             plants_ = defaultdict(list)
             for item in self.accepted_files:
@@ -250,7 +250,7 @@ class PipelineProcessor:
             self.close_progress()
 
             # Sort all lists by timestamp
-            self.init_progress(total=len(plants_), desc="Sorting observations:")
+            self.init_progress(total=len(plants_), desc="Sorting observations")
             for v in plants_.values():
                 self.update_progress()
                 v.sort(key=lambda x: x.date_time)
@@ -258,7 +258,7 @@ class PipelineProcessor:
 
             # Consume
             files_to_process = []
-            self.init_progress(total=len(plants_.values()), desc="Grouping by series:")
+            self.init_progress(total=len(plants_.values()), desc="Grouping by series")
             for v in plants_.values():
                 self.update_progress()
                 while len(v) > 0:
@@ -299,7 +299,7 @@ class PipelineProcessor:
         cpt = 1
         results_list_ = []
 
-        self.init_progress(total=len(files_to_process), desc="Checking completed tasks:")
+        self.init_progress(total=len(files_to_process), desc="Checking completed tasks")
         while i < len(files_to_process):
             if isinstance(files_to_process[i], list):
                 fl = files_to_process[i][0]
@@ -345,7 +345,7 @@ class PipelineProcessor:
         ):
             csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
             start_idx = 0
-            self.init_progress(total=len(csv_lst), desc="Merging CSV files:")
+            self.init_progress(total=len(csv_lst), desc="Merging CSV files")
 
             df = pd.DataFrame()
             for csv_file in csv_lst:
@@ -417,7 +417,7 @@ class PipelineProcessor:
                 log_message=f"   --- Processing {len(groups_list)} {handled_class} ---",
             ):
                 return
-            self.init_progress(total=len(groups_list), desc="Processing images:")
+            self.init_progress(total=len(groups_list), desc="Processing images")
 
             max_cores = min([10, mp.cpu_count()])
             if isinstance(self.multi_thread, int):
