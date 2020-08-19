@@ -1,6 +1,4 @@
 import csv
-import datetime
-import json
 import multiprocessing as mp
 import os
 from collections import Counter, defaultdict
@@ -13,38 +11,13 @@ from tqdm import tqdm
 
 from ipapi.class_pipelines.ip_factory import ipo_factory
 from ipapi.file_handlers.fh_base import file_handler_factory
-from ipapi.base.image_wrapper import ImageWrapper
 from ipapi.tools.comand_line_wrapper import ArgWrapper
 from ipapi.tools.common_functions import time_method, force_directories
-from ipapi.tools.error_holder import ErrorHolder
 from ipapi.tools.image_list import ImageList
 
 logger = logging.getLogger(__name__)
 
-WorkerResult = namedtuple("WorkerResult", "result, name, error")
-
-
-def _run_process(file_path, script, options, list_res, data_base):
-    res = WorkerResult(False, "None", "")
-    ipo = ipo_factory(
-        file_path, options, force_abstract=script is not None, data_base=data_base
-    )
-    if ipo:
-        if script is None:
-            bool_res = ipo.process_image(threshold_only=options.threshold_only)
-            res = WorkerResult(bool_res, str(ipo), "")
-        else:
-            script.image_output_path = ipo.dst_path
-            if hasattr(script, "process_image"):
-                bool_res = script.process_image(progress_callback=None, wrapper=ipo)
-            elif hasattr(script, "execute"):
-                bool_res = bool(script.execute(src_image=ipo, target_data_base=data_base))
-            else:
-                bool_res = False
-            res = WorkerResult(bool_res, str(ipo), "")
-        list_res.append(res)
-
-    return dict(wrapper=ipo, res=res)
+WorkerResult = namedtuple("WorkerResult", "result, name, message")
 
 
 def _pipeline_worker(arg):
@@ -60,60 +33,43 @@ def _pipeline_worker(arg):
     """
 
     # Extract parameters
-    file_path, _, options, script, db = arg
-    list_res = []
+    file_path, options, script, db = arg
 
     try:
-        if isinstance(file_path, list):
-            fh = file_handler_factory(file_path[0])
-            series_id_ = f'{fh.camera}_{fh.date_time.strftime("%Y%m%d%H%M%S")}_{fh.plant}'
-            csv_file_path_ = ""
-            csv_header_ = ""
-            csv_data_ = []
-            is_write_csv_ = False
-            for file_name_ in file_path:
-                res = _run_process(
-                    file_path=file_name_,
-                    script=script,
-                    options=options,
-                    data_base=db,
-                    list_res=list_res,
-                )
-                if res["res"].result:
-                    ipo = res["wrapper"]
-                    if csv_file_path_ == "":
-                        csv_file_path_ = ipo.csv_file_path
-                    if options.write_result_text:
-                        ipo.csv_data_holder.update_csv_value("series_id", series_id_, True)
-                        if csv_header_ == "":
-                            csv_header_ = ipo.csv_data_holder.header_to_list()
-                        csv_data_.append(ipo.csv_data_holder.data_to_list())
-                    is_write_csv_ = True
-
-            if is_write_csv_ and options.write_result_text and csv_header_ and csv_file_path_:
-                with open(csv_file_path_, "w", newline="") as csv_file_:
-                    wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
-                    wr.writerow(csv_header_)
-                    for row_ in csv_data_:
-                        wr.writerow(row_)
+        ipo = ipo_factory(
+            file_path=file_path if isinstance(file_path, str) else file_path[0],
+            options=options,
+            force_abstract=script is not None,
+            data_base=db,
+        )
+        bool_res = False
+        if ipo is None:
+            return WorkerResult(False, f"{file_path}", "Failed to build wrapper")
+        elif os.path.isfile(ipo.csv_file_path) and options.overwrite is False:
+            return WorkerResult(True, str(ipo), f"Skipped {ipo.name}, already exists")
+        elif script is None:
+            bool_res = ipo.process_image(threshold_only=options.threshold_only)
+            return WorkerResult(bool_res, str(ipo), "")
         else:
-            res = _run_process(
-                file_path=file_path,
-                script=script,
-                options=options,
-                data_base=db,
-                list_res=list_res,
-            )
-            if res["res"].result and options.write_result_text:
-                ipo = res["wrapper"]
-                with open(ipo.csv_file_path, "w", newline="") as csv_file_:
-                    wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
-                    wr.writerow(ipo.csv_data_holder.header_to_list())
-                    wr.writerow(ipo.csv_data_holder.data_to_list())
+            script.image_output_path = ipo.dst_path
+            if hasattr(script, "process_image"):
+                bool_res = script.process_image(progress_callback=None, wrapper=ipo)
+            elif hasattr(script, "execute"):
+                bool_res = bool(script.execute(src_image=ipo, target_data_base=db))
+            else:
+                bool_res = False
+
+        if bool_res:
+            if isinstance(file_path, tuple):
+                ipo.csv_data_holder.update_csv_value("series_id", file_path[1], True)
+            with open(ipo.csv_file_path, "w", newline="") as f:
+                wr = csv.writer(f, quoting=csv.QUOTE_NONE)
+                wr.writerow(ipo.csv_data_holder.header_to_list())
+                wr.writerow(ipo.csv_data_holder.data_to_list())
     except Exception as e:
-        list_res.append(WorkerResult(False, file_path, repr(e)))
-    finally:
-        return list_res
+        return WorkerResult(False, file_path, repr(e))
+    else:
+        return WorkerResult(bool_res, str(ipo), "")
 
 
 class PipelineProcessor:
@@ -141,7 +97,6 @@ class PipelineProcessor:
         self.accepted_files = []
         self._last_signature = ""
         self.progress_callback = None
-        self.log_callback = None
         self.log_item = None
         self.script = None
         self._tqdm = None
@@ -177,41 +132,23 @@ class PipelineProcessor:
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
 
-    def handle_result(self, process_result, wrapper_index, total):
-        res = False
-        if not process_result:
+    def handle_result(self, wrapper_res, wrapper_index, total):
+        if not wrapper_res:
             logger.error("Process error - UNKNOWN ERROR")
-            res = self.log_state(status_message="Process error")
-            logger.error("UNKNOWN ERROR")
             self._process_errors += 1
         else:
             spaces_ = len(str(total))
-            for wrapper_res in process_result:
-                if wrapper_res.result is True:
-                    res = self.log_state(
-                        log_message=f'{(wrapper_index + 1):{spaces_}d}/{total} OK - "{wrapper_res.name}"'
-                    )
-                    logger.info(
-                        f'{(wrapper_index + 1):{spaces_}d}/{total} OK - "{wrapper_res.name}"'
-                    )
-                else:
-                    res = self.log_state(error_holder=wrapper_res.error)
-                    self._process_errors += 1
-            if self.options.group_by_series:
-                res = self.log_state(log_message="____________________________________________")
-                logger.info("____________________________________________")
-
+            msg_prefix = (
+                f">>>> "
+                + f'{"OK" if wrapper_res.result is True else "FAIL"}'
+                + " - "
+                + f"{(wrapper_index + 1):{spaces_}d}/{total} >>> "
+            )
+            msg_suffix = f" - {wrapper_res.message}" if wrapper_res.message else ""
+            logger.info(f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
+            if wrapper_res.result is not True:
+                self._process_errors += 1
         self.update_progress()
-
-        return res
-
-    def log_state(
-        self, status_message: str = "", log_message: str = "", use_status_as_log: bool = False,
-    ):
-        if self.log_callback is not None:
-            return self.log_callback(status_message, log_message, use_status_as_log)
-        else:
-            return True
 
     def init_progress(self, total: int, desc: str = "") -> None:
         if self.progress_callback is None:
@@ -234,7 +171,7 @@ class PipelineProcessor:
 
     def group_by_series(self, time_delta: int):
         # Build dictionary
-        self.init_progress(total=len(self.accepted_files), desc="Building plants dictionaries:")
+        self.init_progress(total=len(self.accepted_files), desc="Building plants dictionaries")
         plants_ = defaultdict(list)
         for item in self.accepted_files:
             self.update_progress()
@@ -243,7 +180,7 @@ class PipelineProcessor:
         self.close_progress()
 
         # Sort all lists by timestamp
-        self.init_progress(total=len(plants_), desc="Sorting observations:")
+        self.init_progress(total=len(plants_), desc="Sorting observations")
         for v in plants_.values():
             self.update_progress()
             v.sort(key=lambda x: x.date_time)
@@ -251,7 +188,7 @@ class PipelineProcessor:
 
         # Consume
         files_to_process = []
-        self.init_progress(total=len(plants_.values()), desc="Grouping by series:")
+        self.init_progress(total=len(plants_.values()), desc="Grouping by series")
         for v in plants_.values():
             self.update_progress()
             while len(v) > 0:
@@ -275,110 +212,49 @@ class PipelineProcessor:
 
         return files_to_process
 
-    def remove_already_processed_images(self, files_to_process):
-        if not self.log_state(
-            status_message="Checking completed files",
-            log_message="   --- Checking completed files ---",
-        ):
-            return None
-        i = 0
-        cpt = 1
-        results_list_ = []
-
-        self.init_progress(total=len(files_to_process), desc="Checking completed tasks")
-        while i < len(files_to_process):
-            if isinstance(files_to_process[i], list):
-                fl = files_to_process[i][0]
-            elif isinstance(files_to_process[i], str):
-                fl = files_to_process[i]
-            else:
-                self.log_state(log_message=f"Unable to handle {files_to_process[i]}")
-                continue
-            img_wrapper = ImageWrapper(fl)
-            fn = os.path.join(self.options.partials_path, img_wrapper.csv_file_name)
-            if os.path.isfile(fn):
-                del files_to_process[i]
-                results_list_.append(fl)
-                if self.log_item is not None:
-                    self.log_item(img_wrapper.luid, "success", "", False)
-            else:
-                if self.log_item is not None:
-                    self.log_item(img_wrapper.luid, "refresh", "", False)
-                i += 1
-            self.update_progress()
-            cpt += 1
-        self.close_progress()
-        if len(results_list_) > 0:
-            res = self.log_state(
-                log_message="Already analyzed files: <ul>"
-                + "".join(f"<li>{s}</li>" for s in results_list_)
-                + "</ul>"
-            )
-        else:
-            res = self.log_state(
-                status_message="Completed files checked",
-                log_message=f"   --- Completed files checked ---<br>",
-            )
-        if res:
-            return files_to_process
-        else:
-            return None
-
     def merge_result_files(self, csv_file_name: str) -> Union[None, pd.DataFrame]:
-        if self.log_state(
-            status_message="Merging partial outputs",
-            log_message="   --- Starting file merging ---",
-        ):
-            csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
-            start_idx = 0
-            self.init_progress(total=len(csv_lst), desc="Merging CSV files")
+        logger.info("   --- Starting file merging ---")
+        csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
+        self.init_progress(total=len(csv_lst), desc="Merging CSV files")
 
-            df = pd.DataFrame()
-            for csv_file in csv_lst:
-                try:
-                    df = df.append(pd.read_csv(csv_file))
-                except Exception as e:
-                    logger.exception("Merge error")
-                    self.log_state(status_message="Merge error")
-                self.update_progress()
+        df = pd.DataFrame()
+        for csv_file in csv_lst:
+            try:
+                df = df.append(pd.read_csv(csv_file))
+            except Exception as e:
+                logger.exception("Merge error")
+            self.update_progress()
 
-            def put_column_in_front(col_name: str, dataframe):
-                df_cols = list(dataframe.columns)
-                if col_name not in df_cols:
-                    return dataframe
-                df_cols.pop(df_cols.index(col_name))
-                return dataframe.reindex(columns=[col_name] + df_cols)
+        def put_column_in_front(col_name: str, dataframe):
+            df_cols = list(dataframe.columns)
+            if col_name not in df_cols:
+                return dataframe
+            df_cols.pop(df_cols.index(col_name))
+            return dataframe.reindex(columns=[col_name] + df_cols)
 
-            df = put_column_in_front(col_name="area", dataframe=df)
-            df = put_column_in_front(col_name="source_path", dataframe=df)
-            df = put_column_in_front(col_name="luid", dataframe=df)
-            df = put_column_in_front(col_name="view_option", dataframe=df)
-            df = put_column_in_front(col_name="camera", dataframe=df)
-            df = put_column_in_front(col_name="date_time", dataframe=df)
-            df = put_column_in_front(col_name="condition", dataframe=df)
-            df = put_column_in_front(col_name="genotype", dataframe=df)
-            df = put_column_in_front(col_name="plant", dataframe=df)
-            df = put_column_in_front(col_name="experiment", dataframe=df)
+        df = put_column_in_front(col_name="area", dataframe=df)
+        df = put_column_in_front(col_name="source_path", dataframe=df)
+        df = put_column_in_front(col_name="luid", dataframe=df)
+        df = put_column_in_front(col_name="view_option", dataframe=df)
+        df = put_column_in_front(col_name="camera", dataframe=df)
+        df = put_column_in_front(col_name="date_time", dataframe=df)
+        df = put_column_in_front(col_name="condition", dataframe=df)
+        df = put_column_in_front(col_name="genotype", dataframe=df)
+        df = put_column_in_front(col_name="plant", dataframe=df)
+        df = put_column_in_front(col_name="experiment", dataframe=df)
 
-            sort_list = ["plant"] if "plant" in list(df.columns) else []
-            sort_list = (
-                sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
-            )
-            if sort_list:
-                df.sort_values(by=sort_list, axis=0, inplace=True, na_position="first")
+        sort_list = ["plant"] if "plant" in list(df.columns) else []
+        sort_list = sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+        if sort_list:
+            df.sort_values(by=sort_list, axis=0, inplace=True, na_position="first")
 
-            df.reset_index(drop=True, inplace=True)
+        df.reset_index(drop=True, inplace=True)
 
-            df.to_csv(
-                path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False
-            )
-            self.close_progress()
-            self.log_state(
-                status_message="Merged partial outputs",
-                log_message="   --- Merged partial outputs ---<br>",
-            )
+        df.to_csv(path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False)
+        self.close_progress()
+        logger.info("   --- Merged partial outputs ---<br>")
 
-            return df
+        return df
 
     def prepare_groups(self, time_delta: int):
         if self.options.group_by_series:
@@ -386,23 +262,11 @@ class PipelineProcessor:
         else:
             return self.accepted_files[:]
 
-    def handle_existing_data(self, groups_list):
-        if (groups_list is not None) and not self.options.overwrite:
-            return self.remove_already_processed_images(groups_list)
-        else:
-            return groups_list
-
     def process_groups(self, groups_list, target_database):
         # Build images and data
-        is_user_abort = False
         if groups_list:
             force_directories(self.options.partials_path)
-            handled_class = "groups" if self.options.group_by_series else "files"
-            if not self.log_state(
-                status_message="Processing files",
-                log_message=f"   --- Processing {len(groups_list)} {handled_class} ---",
-            ):
-                return
+            logger.info(f"   --- Processing {len(groups_list)} files ---")
             self.init_progress(total=len(groups_list), desc="Processing images")
 
             max_cores = min([10, mp.cpu_count()])
@@ -424,7 +288,6 @@ class PipelineProcessor:
                         (
                             (
                                 fl,
-                                False,
                                 self.options,
                                 self.script,
                                 None if target_database is None else target_database.copy(),
@@ -434,33 +297,20 @@ class PipelineProcessor:
                         chunky_size_,
                     )
                 ):
-                    if not self.handle_result(res, i, len(groups_list)):
-                        is_user_abort = True
-                        break
+                    self.handle_result(res, i, len(groups_list))
             else:
                 for i, fl in enumerate(groups_list):
                     res = _pipeline_worker(
                         [
                             fl,
-                            self.log_times,
                             self.options,
                             self.script,
                             None if target_database is None else target_database.copy(),
                         ]
                     )
-                    if not self.handle_result(res, i, len(groups_list)):
-                        is_user_abort = True
-                        break
-            if is_user_abort:
-                suffix_ = "User abort"
-            elif self._process_errors > 0:
-                suffix_ = f"Complete, {self._process_errors} errors"
-            else:
-                suffix_ = "Complete"
+                    self.handle_result(res, i, len(groups_list))
             self.close_progress()
-            self.log_state(
-                status_message="Files processed", log_message=f"   --- Files processed ---<br>"
-            )
+            logger.info("   --- Files processed ---")
 
     @time_method
     def run(self, target_database=None):
@@ -473,19 +323,13 @@ class PipelineProcessor:
             # build series
             files_to_process = self.prepare_groups(time_delta=20)
 
-            # If overwrite is disabled remove all files already analysed
-            files_to_process = self.handle_existing_data(files_to_process)
-
             # Build images and data
             self.process_groups(files_to_process, target_database)
 
             # Build text merged file
             self.merge_result_files("raw_output_data.csv")
         else:
-            self.log_state(
-                status_message="Nothing to do", log_message=f"   --- Nothing to do ---<br>"
-            )
-            print("Nothing to do")
+            logger.info("   --- Nothing to do ---")
 
     @property
     def last_signature(self):
