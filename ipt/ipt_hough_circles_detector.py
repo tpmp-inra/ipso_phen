@@ -293,7 +293,7 @@ class IptHoughCircles(IptBase):
                     min_idx = -1
                     min_accu = -1
                     i = 0
-                    colors = ipc.build_color_steps(ipc.C_YELLOW, (0, 125, 125), len(candidates))
+                    colors = ipc.build_color_steps(step_count=len(candidates))
                     max_dist_to_root = self.get_value_of(
                         "max_dist_to_root", scale_factor=wrapper.scale_factor
                     )
@@ -353,7 +353,7 @@ class IptHoughCircles(IptBase):
                         pickle.dump(self.result, f)
 
             if self.result is not None:
-                colors = ipc.build_color_steps(ipc.C_ORANGE, (0, 0, 255), len(self.result))
+                colors = ipc.build_color_steps(step_count=len(self.result))
                 i = 0
                 annulus_size = self.get_value_of("annulus_size")
                 for center_x, center_y, radius in self.result:

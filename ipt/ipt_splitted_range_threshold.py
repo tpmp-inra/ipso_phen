@@ -136,7 +136,7 @@ class IptSplittedRangeThreshold(IptBase):
                 )
                 outside_mask = wrapper.delete_rois(src_mask=outside_mask, tags=rois)
                 wrapper.store_image(
-                    image=outside_mask, text=f"outside_mask{self.get_value_of('channel')}"
+                    image=outside_mask, text=f"outside_mask_{self.get_value_of('channel')}"
                 )
 
                 # Merge masks
