@@ -1,4 +1,5 @@
 from ipapi.base.ipt_abstract import IptBase
+from ipapi.tools import regions
 import numpy as np
 import cv2
 
@@ -59,84 +60,93 @@ class IptFilterContourBySize(IptBase):
 
                 lt, ut = self.get_value_of("min_threshold"), self.get_value_of("max_threshold")
 
-                # Get ROIs as mask
-                rois = self.get_ipt_roi(
-                    wrapper=wrapper,
-                    roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
-                )
-                if rois:
-                    rois_mask = np.zeros_like(mask)
-                    for roi in rois:
-                        rois_mask = roi.draw_to(dst_img=rois_mask, line_width=-1, color=255)
-                    mask = np.bitwise_and(mask, rois_mask)
-                wrapper.store_image(mask, "mask_after_roi")
-
                 # Get source contours
-                contours = ipc.get_contours(
-                    mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
-                )
-                dbg_mask = np.dstack(
+                contours = [
+                    c
+                    for c in ipc.get_contours(
+                        mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+                    )
+                    if cv2.contourArea(c, True) < 0
+                ]
+                contours.sort(key=lambda x: cv2.contourArea(x))
+                colors = ipc.build_color_steps(step_count=len(contours))
+
+                dbg_img = np.dstack(
                     (np.zeros_like(mask), np.zeros_like(mask), np.zeros_like(mask))
                 )
-                colors = ipc.build_color_steps(ipc.C_BLUE, ipc.C_YELLOW, len(contours))
-                for clr, cnt in zip(colors, reversed(contours[:-1])):
-                    cv2.drawContours(dbg_mask, [cnt], 0, clr, -1)
-                fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
+                for clr, cnt in zip(colors, contours):
+                    cv2.drawContours(dbg_img, [cnt], 0, clr, -1)
+                dbg_img = np.dstack(
+                    (
+                        cv2.bitwise_and(dbg_img[:, :, 0], mask),
+                        cv2.bitwise_and(dbg_img[:, :, 1], mask),
+                        cv2.bitwise_and(dbg_img[:, :, 2], mask),
+                    )
+                )
+                wrapper.store_image(
+                    image=dbg_img, text="all_contours",
+                )
 
-                for cnt in reversed(contours[:-1]):
+                fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
+                for cnt in contours:
                     area_ = cv2.contourArea(cnt)
                     x, y, w, h = cv2.boundingRect(cnt)
                     x += w // 2 - 10
                     y += h // 2
                     if area_ > 0:
                         cv2.putText(
-                            dbg_mask, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 255), 2
+                            dbg_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 255), 2
                         )
-                wrapper.store_image(image=dbg_mask, text="all_contours")
+                wrapper.store_image(
+                    image=dbg_img, text="all_contours_with_sizes",
+                )
 
-                dbg_mask = np.dstack(
+                dbg_img = np.dstack(
                     (np.zeros_like(mask), np.zeros_like(mask), np.zeros_like(mask))
                 )
                 out_mask = np.zeros_like(mask)
-                fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
                 # Discarded contours
-                for cnt in reversed(contours[:-1]):
+                for cnt in contours:
                     area_ = cv2.contourArea(cnt)
                     if not (lt < area_ < ut):
-                        cv2.drawContours(dbg_mask, [cnt], 0, ipc.C_ORANGE, -1)
-                # Discarded sizes
-                for cnt in reversed(contours[:-1]):
-                    area_ = cv2.contourArea(cnt)
-                    if not (lt < area_ < ut):
-                        x, y, w, h = cv2.boundingRect(cnt)
-                        x += w // 2 - 10
-                        y += h // 2
-                        cv2.putText(
-                            dbg_mask,
-                            f"{area_}",
-                            (x, y),
-                            fnt[0],
-                            fnt[1],
-                            ipc.C_RED,
-                            thickness=2,
-                        )
+                        cv2.drawContours(dbg_img, [cnt], 0, ipc.C_ORANGE, -1)
                 # Discarded contours borders
-                for cnt in reversed(contours[:-1]):
+                for cnt in contours:
                     area_ = cv2.contourArea(cnt)
                     if not (lt < area_ < ut):
-                        cv2.drawContours(dbg_mask, [cnt], 0, ipc.C_MAROON, 4)
+                        cv2.drawContours(dbg_img, [cnt], 0, ipc.C_MAROON, 4)
                 # Kept contours
                 for cnt in contours:
                     area_ = cv2.contourArea(cnt)
                     if lt < area_ < ut:
                         cv2.drawContours(out_mask, [cnt], 0, 255, -1)
-                        cv2.drawContours(dbg_mask, [cnt], 0, ipc.C_GREEN, -1)
+                        cv2.drawContours(dbg_img, [cnt], 0, ipc.C_GREEN, -1)
+                dbg_img = np.dstack(
+                    (
+                        cv2.bitwise_and(dbg_img[:, :, 0], mask),
+                        cv2.bitwise_and(dbg_img[:, :, 1], mask),
+                        cv2.bitwise_and(dbg_img[:, :, 2], mask),
+                    )
+                )
+                # Discarded sizes
+                for cnt in contours:
+                    area_ = cv2.contourArea(cnt)
+                    if not (lt < area_ < ut):
                         x, y, w, h = cv2.boundingRect(cnt)
                         x += w // 2 - 10
                         y += h // 2
                         cv2.putText(
-                            dbg_mask,
+                            dbg_img, f"{area_}", (x, y), fnt[0], fnt[1], ipc.C_RED, thickness=2,
+                        )
+                # Kept sizes
+                for cnt in contours:
+                    area_ = cv2.contourArea(cnt)
+                    if lt < area_ < ut:
+                        x, y, w, h = cv2.boundingRect(cnt)
+                        x += w // 2 - 10
+                        y += h // 2
+                        cv2.putText(
+                            dbg_img,
                             f"{area_}",
                             (x, y),
                             fnt[0],
@@ -145,13 +155,29 @@ class IptFilterContourBySize(IptBase):
                             thickness=2,
                         )
 
-                wrapper.store_image(image=out_mask, text="filtered_contours")
-                wrapper.store_image(image=dbg_mask, text="tagged_contours")
-                self.result = out_mask
+                out_mask = cv2.bitwise_and(out_mask, mask,)
+
+                # Apply ROIs if needed
+                rois = self.get_ipt_roi(
+                    wrapper=wrapper,
+                    roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
+                    selection_mode=self.get_value_of("roi_selection_mode"),
+                )
                 if rois:
-                    for roi in rois:
-                        dbg_mask = roi.draw_to(dst_img=dbg_mask, line_width=8, color=255)
-                self.demo_image = dbg_mask
+                    untouched_mask = regions.delete_rois(rois=rois, image=self.get_mask())
+                    self.result = cv2.bitwise_or(
+                        untouched_mask, regions.keep_rois(rois=rois, image=out_mask)
+                    )
+                    self.demo_image = cv2.bitwise_or(
+                        dbg_img, np.dstack((untouched_mask, untouched_mask, untouched_mask))
+                    )
+                else:
+                    self.result = out_mask
+                    self.demo_image = dbg_img
+
+                wrapper.store_image(image=self.result, text="filtered_contours")
+                wrapper.store_image(image=self.demo_image, text="tagged_contours")
+
                 res = True
             else:
                 wrapper.store_image(wrapper.current_image, "current_image")

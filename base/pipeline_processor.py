@@ -233,61 +233,47 @@ class PipelineProcessor:
             self._tqdm.close()
 
     def group_by_series(self, time_delta: int):
-        json_file = f"./saved_data/{self._last_signature}.json"
-        if False and self.last_signature and os.path.isfile(json_file):
-            with open(json_file, "r") as f:
-                files_to_process = json.load(f)
-        else:
-            # Build dictionary
-            self.init_progress(
-                total=len(self.accepted_files), desc="Building plants dictionaries"
-            )
-            plants_ = defaultdict(list)
-            for item in self.accepted_files:
-                self.update_progress()
-                fh = file_handler_factory(item)
-                plants_[fh.plant].append(fh)
-            self.close_progress()
+        # Build dictionary
+        self.init_progress(total=len(self.accepted_files), desc="Building plants dictionaries:")
+        plants_ = defaultdict(list)
+        for item in self.accepted_files:
+            self.update_progress()
+            fh = file_handler_factory(item)
+            plants_[fh.plant].append(fh)
+        self.close_progress()
 
-            # Sort all lists by timestamp
-            self.init_progress(total=len(plants_), desc="Sorting observations")
-            for v in plants_.values():
-                self.update_progress()
-                v.sort(key=lambda x: x.date_time)
-            self.close_progress()
+        # Sort all lists by timestamp
+        self.init_progress(total=len(plants_), desc="Sorting observations:")
+        for v in plants_.values():
+            self.update_progress()
+            v.sort(key=lambda x: x.date_time)
+        self.close_progress()
 
-            # Consume
-            files_to_process = []
-            self.init_progress(total=len(plants_.values()), desc="Grouping by series")
-            for v in plants_.values():
-                self.update_progress()
-                while len(v) > 0:
-                    main = v.pop(0)
-                    file_list_ = [main.file_path]
-                    while (len(v) > 0) and (
-                        (v[0].date_time - main.date_time).total_seconds() / 60 < time_delta
-                    ):
-                        file_list_.append(v.pop(0).file_path)
-                    files_to_process.append(file_list_)
-            self.close_progress()
-
-            if self.last_signature:
-                with open(json_file, "w") as f:
-                    json.dump(files_to_process, f, indent=2)
+        # Consume
+        files_to_process = []
+        self.init_progress(total=len(plants_.values()), desc="Grouping by series:")
+        for v in plants_.values():
+            self.update_progress()
+            while len(v) > 0:
+                main = v.pop(0)
+                main_luid = main.luid
+                files_to_process.append((main.file_path, main_luid))
+                while (len(v) > 0) and (
+                    (v[0].date_time - main.date_time).total_seconds() / 60 < time_delta
+                ):
+                    files_to_process.append((v.pop(0).file_path, main_luid))
+        self.close_progress()
 
         # Print stats
         stat_lst = [len(i) for i in files_to_process]
-        self.log_state(log_message="-- Series statistics  --")
-        self.log_state(log_message=f"Originale file count: {sum(stat_lst)}")
-        self.log_state(log_message=f"Group count: {len(stat_lst)}")
+        logger.info("-- Series statistics  --")
+        logger.info(f"Originale file count: {sum(stat_lst)}")
+        logger.info(f"Group count: {len(stat_lst)}")
         for k, v in Counter(stat_lst).items():
-            self.log_state(log_message=f"Qtt: {k}, Mode frequency: {v}")
-            self.log_state(log_message=f"Min: {min(stat_lst)}, Max: {max(stat_lst)}")
+            logger.info(f"Qtt: {k}, Mode frequency: {v}")
+            logger.info(f"Min: {min(stat_lst)}, Max: {max(stat_lst)}")
 
-        if self.log_state(log_message="--"):
-            return files_to_process
-        else:
-            return None
+        return files_to_process
 
     def remove_already_processed_images(self, files_to_process):
         if not self.log_state(
