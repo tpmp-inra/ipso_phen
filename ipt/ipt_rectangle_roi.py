@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 from ipapi.base.ip_common import resize_image
 from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.regions import CircleRegion, RectangleRegion, EmptyRegion
+from ipapi.tools.regions import RectangleRegion, EmptyRegion
 import ipapi.base.ip_common as ipc
 
 

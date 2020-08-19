@@ -77,7 +77,6 @@ class IptAnalyzeBound(IptBaseAnalyzer):
         res = False
         try:
             self.data_dict = {}
-            img = wrapper.current_image
             mask = self.get_mask()
             if mask is None:
                 logger.error(f"FAIL {self.name}: mask must be initialized")
@@ -125,14 +124,12 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                 )
 
                 pseudo_color_channel = self.get_value_of("channel")
-                c = wrapper.get_channel(src_img=img, channel=pseudo_color_channel)
-                background_img = np.dstack((c, c, c))
                 p_img = wrapper.draw_image(
-                    src_image=background_img,
+                    src_image=wrapper.current_image,
                     channel=pseudo_color_channel,
                     src_mask=mask,
                     foreground="false_colour",
-                    background="source",
+                    background="bw",
                     normalize_before=True,
                     color_map=cv2.COLORMAP_SUMMER,
                     roi=roi_top,
@@ -145,7 +142,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                     channel=pseudo_color_channel,
                     src_mask=mask,
                     foreground="false_colour",
-                    background="source",
+                    background="bw",
                     normalize_before=False,
                     color_map=cv2.COLORMAP_HOT,
                     roi=roi_bottom,
@@ -175,7 +172,7 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
     @property
     def real_time(self):
-        return False
+        return True
 
     @property
     def result_name(self):

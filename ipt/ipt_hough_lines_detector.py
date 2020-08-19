@@ -218,7 +218,7 @@ class IptHoughLines(IptBaseAnalyzer):
                     minLineLength=min_line_size,
                     maxLineGap=max_line_gap,
                 )
-                colors = build_color_steps(C_BLUE, C_LIGHT_STEEL_BLUE, len(lines))
+                colors = build_color_steps(step_count=len(lines))
                 if lines is not None:
                     for i, line in enumerate(lines):
                         x1, y1, x2, y2 = line[0]
@@ -233,7 +233,7 @@ class IptHoughLines(IptBaseAnalyzer):
                 )
                 if lines is not None:
                     h, w = edges.shape[:2]
-                    colors = build_color_steps(C_BLUE, C_LIGHT_STEEL_BLUE, len(lines))
+                    colors = build_color_steps(step_count=len(lines))
                     for i, line in enumerate(lines):
                         for rho, theta in line:
                             a = np.cos(theta)
