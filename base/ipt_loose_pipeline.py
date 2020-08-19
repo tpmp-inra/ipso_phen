@@ -262,29 +262,28 @@ class ModuleNode(Node):
         res = {}
         wrapper = self.root.parent.wrapper
         if self.root.parent.show_source_image:
-            if (
-                self.input_type == ipc.IO_IMAGE
-                and wrapper is not None
-                and wrapper.current_image is not None
-            ):
-                img_callback = wrapper.current_image
-            if (
-                self.input_type == ipc.IO_MASK
-                and wrapper is not None
-                and wrapper.mask is not None
-            ):
-                img_callback = wrapper.mask
-            else:
-                img_callback = None
-            if img_callback is not None:
+            if wrapper is not None and wrapper.current_image is not None:
                 self.do_call_back(
                     call_back=call_back,
                     res=logging.INFO,
                     msg="",
                     data={
                         "plant_name": wrapper.plant,
-                        "name": f"{self.name} (source)",
-                        "image": img_callback,
+                        "name": f"{self.name} (source image)",
+                        "image": wrapper.current_image,
+                        "luid": wrapper.luid,
+                        "data": {},
+                    },
+                )
+            if wrapper is not None and wrapper.mask is not None:
+                self.do_call_back(
+                    call_back=call_back,
+                    res=logging.INFO,
+                    msg="",
+                    data={
+                        "plant_name": wrapper.plant,
+                        "name": f"{self.name} (source mask)",
+                        "image": wrapper.mask,
                         "luid": wrapper.luid,
                         "data": {},
                     },
@@ -613,6 +612,17 @@ class GroupNode(Node):
 
         is_current_image_changed = False
 
+        def add_roi(wrapper: AbstractImageProcessor, roi_list: list, roi, node):
+            if roi is None:
+                logger.warning(f"Missing ROI for {node.name}")
+            else:
+                if isinstance(roi, list):
+                    roi_list.extend(roi)
+                    wrapper.add_rois(roi_list=roi)
+                else:
+                    roi_list.append(roi)
+                    wrapper.add_roi(new_roi=roi)
+
         if self.merge_mode == ipc.MERGE_MODE_NONE:
             for node in self.nodes:
                 if not node.enabled:
@@ -627,8 +637,9 @@ class GroupNode(Node):
                     if node.output_type == ipc.IO_DATA:
                         wrapper.csv_data_holder.data_list.update(res["data"])
                     elif node.output_type == ipc.IO_ROI:
-                        wrapper.add_roi(new_roi=res["roi"])
-                        rois.append(res["roi"])
+                        add_roi(
+                            wrapper=wrapper, roi_list=rois, roi=res.get("roi", None), node=node
+                        )
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
@@ -653,14 +664,9 @@ class GroupNode(Node):
                     elif node.output_type == ipc.IO_DATA:
                         wrapper.csv_data_holder.data_list.update(res["data"])
                     elif node.output_type == ipc.IO_ROI:
-                        roi_ = res.get("roi", None)
-                        if roi_ is None:
-                            logger.warning(f"Missing ROI for {node.name}")
-                        else:
-                            if isinstance(roi_, list):
-                                rois.extend(roi_)
-                            else:
-                                rois.append(roi_)
+                        add_roi(
+                            wrapper=wrapper, roi_list=rois, roi=res.get("roi", None), node=node
+                        )
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
@@ -682,6 +688,10 @@ class GroupNode(Node):
                         images.append(res["image"])
                     elif node.output_type == ipc.IO_MASK:
                         images.append(res["mask"])
+                    elif node.output_type == ipc.IO_ROI:
+                        add_roi(
+                            wrapper=wrapper, roi_list=rois, roi=res.get("roi", None), node=node
+                        )
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:

@@ -1,10 +1,8 @@
-from enum import Enum
 import cv2
 import numpy as np
 import random
 from typing import Any, Union
-from distutils.version import LooseVersion
-import enum
+import math
 
 from ipapi.tools.csv_writer import AbstractCsvWriter
 
@@ -13,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ToolFamily():
+class ToolFamily:
     ANCILLARY = "Ancillary"
     CLUSTERING = "Clustering"
     DEMO = "Demo"
@@ -406,37 +404,34 @@ def random_color(restrained: bool = True) -> tuple:
         return random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255)
 
 
-def build_color_steps(
-    start_color: tuple = (0, 0, 0), stop_color: tuple = (255, 255, 255), step_count: int = 10
-) -> list:
+def scaled_rgb(mag, color_min, color_max):
+    """ Return a tuple of integers, as used in AWT/Java plots. """
+    try:
+        x = float(mag - color_min) / (color_max - color_min)
+    except ZeroDivisionError:
+        logger.exception("Scaled rgb tried to divide by 0")
+        x = 0.5  # color_max == color_min
+    blue = min((max((4 * (0.75 - x), 0.0)), 1.0))
+    red = min((max((4 * (x - 0.25), 0.0)), 1.0))
+    green = min((max((4 * math.fabs(x - 0.5) - 1.0, 0.0)), 1.0))
+    return int(red * 255), int(green * 255), int(blue * 255)
+
+
+def build_color_steps(step_count: int) -> list:
     """
-    Builds a list of colors from start_color to stop_color of step_count items
-    :param start_color:
-    :param stop_color:
+    Builds a list containing step_count different colors from blue to yellow
     :param step_count:
     :return:
     """
     if step_count <= 1:
-        return [start_color]
+        return [C_LIGHT_STEEL_BLUE]
     else:
-
-        def ensure_range(val, min_val, max_val):
-            return max(min(max_val, val), min_val)
-
-        b_step = (stop_color[0] - start_color[0]) // (step_count - 1)
-        g_step = (stop_color[1] - start_color[1]) // (step_count - 1)
-        r_step = (stop_color[2] - start_color[2]) // (step_count - 1)
-        return [
-            (
-                ensure_range(val=start_color[0] + i * b_step, min_val=0, max_val=255),
-                ensure_range(val=start_color[1] + i * g_step, min_val=0, max_val=255),
-                ensure_range(val=start_color[2] + i * r_step, min_val=0, max_val=255),
-            )
-            for i in range(0, step_count)
-        ]
+        return [scaled_rgb(mag=i, color_min=0, color_max=step_count) for i in range(step_count)]
 
 
-def ensure_odd(i: int, min_val: [None, int] = None, max_val: [None, int] = None) -> int:
+def ensure_odd(
+    i: int, min_val: Union[None, int] = None, max_val: Union[None, int] = None
+) -> int:
     """Transforms an odd number into pair number by adding one
 
     Arguments:
