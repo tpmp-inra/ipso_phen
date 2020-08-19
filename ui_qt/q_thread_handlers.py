@@ -240,7 +240,7 @@ class IpsoGroupProcessor(QRunnable):
         if on_image_ready is not None:
             self.signals_holder.on_image_ready.connect(on_image_ready)
 
-        self.file_path = kwargs.get("file_path")
+        self.item = kwargs.get("item")
         self.database = kwargs.get("database")
         self.options = kwargs.get("options")
         self.script = kwargs.get("script")
@@ -257,6 +257,11 @@ class IpsoGroupProcessor(QRunnable):
             logger.error(f"Unable to build wrapper from file '{file_name}''")
         elif not ipo.check_source_image():
             logger.error(f"Image seems to be corrupted '{file_name}''")
+        elif os.path.isfile(ipo.csv_file_path) and self.options.overwrite is False:
+            self.signals_holder.on_log_event.emit(
+                ipo.luid, logging.INFO, f"Skipped {ipo.name}, already exists", True,
+            )
+            logger.info(f"Skipped {ipo.name}, already exists")
         elif ipo is not None and ipo.good_image:
             ipo.store_images = False
             try:
@@ -326,19 +331,15 @@ class IpsoGroupProcessor(QRunnable):
             res = False
 
     def run(self):
-        if isinstance(self.file_path, list):
-            luid = file_handler_factory(self.file_path[0]).luid
-            for file_name_ in self.file_path:
-                try:
-                    self._run_process(file_name_, luid=luid)
-                except Exception as e:
-                    logger.exception(f"Failed to process image because {repr(e)}")
+        try:
+            if isinstance(self.item, tuple):
+                self._run_process(self.item[0], luid=self.item[1])
+            else:
+                self._run_process(self.item)
+        except Exception as e:
+            logger.exception(f"Failed to process image because {repr(e)}")
+        finally:
             self.signals_holder.on_ended.emit()
-        else:
-            try:
-                self._run_process(self.file_path)
-            finally:
-                self.signals_holder.on_ended.emit()
         self.script = None
 
 
@@ -396,12 +397,6 @@ class IpsoMassRunner(QRunnable):
                     return
                 groups_to_process = self.pipeline.prepare_groups(self.group_time_delta)
 
-                # If overwrite is disabled remove all files already analysed
-                if not self.is_continue():
-                    launch_state = "abort"
-                    return
-                groups_to_process = self.pipeline.handle_existing_data(groups_to_process)
-
                 # Process all groups
                 if not self.is_continue():
                     launch_state = "abort"
@@ -410,12 +405,12 @@ class IpsoMassRunner(QRunnable):
                 self.signals_holder.on_launching.emit(groups_to_process_count)
                 if groups_to_process_count > 0:
                     force_directories(self.pipeline.options.partials_path)
-                    for i, group in enumerate(groups_to_process):
+                    for i, item in enumerate(groups_to_process):
                         item_worker = IpsoGroupProcessor(
                             on_ended=self.on_item_ended,
                             on_log_event=self.on_log_item_event,
                             on_image_ready=self.on_item_image_ready,
-                            file_path=group,
+                            item=item,
                             database=self._target_database,
                             options=self.pipeline.options,
                             script=None

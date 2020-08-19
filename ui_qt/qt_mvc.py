@@ -5,7 +5,6 @@ import logging
 from PySide2.QtGui import QBrush, QColor, QIcon, QImage, QPalette, QPen, QPixmap
 from PySide2.QtWidgets import (
     QApplication,
-    QCheckBox,
     QComboBox,
     QGraphicsScene,
     QGraphicsView,
@@ -17,22 +16,17 @@ from PySide2.QtWidgets import (
     QLineEdit,
     QPushButton,
     QSizePolicy,
-    QSlider,
     QSpacerItem,
     QSpinBox,
     QStyle,
     QStyledItemDelegate,
     QTableView,
-    QTableWidget,
-    QTextBrowser,
-    QTextEdit,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
     QWidget,
     QGroupBox,
     QStyleOptionViewItem,
-    QGroupBox,
 )
 from PySide2.QtCore import QSize, QRect
 from PySide2.QtCore import QAbstractItemModel, QAbstractTableModel, QModelIndex, Qt, Signal
@@ -363,9 +357,7 @@ class QColorDelegate(QItemDelegate):
                     num_val = None
                     max_val = None
                 if (num_val is not None) and (max_val is not None):
-                    colors = ipc.build_color_steps(
-                        start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
-                    )
+                    colors = ipc.build_color_steps(step_count=max_val + 1)
                     painter.setBrush(QBrush(QColor(*ipc.bgr_to_rgb(colors[num_val]))))
             else:
                 if option.state & QStyle.State_Selected:
@@ -383,6 +375,7 @@ class QColorDelegate(QItemDelegate):
             painter.drawText(option.rect, Qt.AlignCenter, str(value))
 
             painter.restore()
+            painter.end()
         except Exception as e:
             logger.exception(f"Failed to paint in {self.__class__.__name__}")
 
@@ -456,8 +449,6 @@ class QImageDrawerDelegate(QItemDelegate):
     def paint(self, painter, option, index):
         try:
             painter.save()
-
-            df: pd.DataFrame = self.parent().model().images
 
             # Try cache retrieval
             data = self.get_annotation(row_number=index.row())

@@ -122,7 +122,7 @@ logging.basicConfig(
     handlers=[
         g_qt_log_handler,
         logging.FileHandler(
-            os.path.join("logs", f"{dt.now().strftime('%Y%b%d %H%M%S')}.log"),
+            os.path.join("logs", f"{dt.now().strftime('%Y%B%d %H%M%S')}.log"),
             mode="a",
             delay=True,
         ),
@@ -394,7 +394,7 @@ class NewToolDialog(QDialog):
                 f.write(f'{spaces}hint="Can be overridden at process call",\n')
                 spaces = remove_tab(spaces)
                 f.write(f"{spaces})\n")
-            f.write(f"\n")
+            f.write("\n")
 
             # Process image
             spaces = add_tab("")
@@ -403,7 +403,7 @@ class NewToolDialog(QDialog):
             f.write(f"{spaces}wrapper = self.init_wrapper(**kwargs)\n")
             f.write(f"{spaces}if wrapper is None:\n")
             f.write(f"{spaces}    return False\n")
-            f.write(f"\n")
+            f.write("\n")
             f.write(f"{spaces}res = False\n")
             f.write(f"{spaces}try:\n")
             spaces = add_tab(spaces)
@@ -418,7 +418,7 @@ class NewToolDialog(QDialog):
                         'Failure {self.ui.le_tool_name.text()}: mask must be initialized')\n"""
                 )
                 f.write(f"{spaces}    return\n")
-            f.write(f"\n")
+            f.write("\n")
             f.write(f"{spaces}# Write your code here\n")
             f.write(f"{spaces}wrapper.store_image(img, 'current_image')\n")
             f.write(f"{spaces}res = True\n")
@@ -3885,9 +3885,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     pass
                 else:
                     max_val = df[df.columns[col]].max()
-                    colors = ipc.build_color_steps(
-                        start_color=ipc.C_LIME, stop_color=ipc.C_RED, step_count=max_val + 1
-                    )
+                    colors = ipc.build_color_steps(step_count=max_val + 1)
                     color = QColor(*ipc.bgr_to_rgb(colors[val]))
             else:
                 color = QColor(*ipc.bgr_to_rgb(ipc.C_WHITE))

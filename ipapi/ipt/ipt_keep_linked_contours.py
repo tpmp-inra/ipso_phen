@@ -98,8 +98,6 @@ class IptKeepLinkedContours(IptBase):
                 )
                 return
 
-            params_as_str = self.input_params_as_str()
-
             self.result = wrapper.keep_linked_contours(
                 src_image=wrapper.current_image,
                 src_mask=mask,

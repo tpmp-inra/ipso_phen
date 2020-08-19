@@ -345,10 +345,13 @@ class AbstractImageProcessor(ImageWrapper):
             elif background == "silver":
                 background_img = np.full(foreground_img.shape, ipc.C_SILVER, np.uint8)
             elif background == "bw":
-                background_img = cv2.cvtColor(foreground_img, cv2.COLOR_BGR2GRAY)
+                background_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
                 background_img = np.dstack((background_img, background_img, background_img))
             elif background == "source":
-                background_img = np.copy(foreground_img)
+                if len(src.shape) == 2 or (len(src.shape) == 3 and src.shape[2] == 1):
+                    background_img = np.dstack((src, src, src))
+                else:
+                    background_img = np.copy(src)
             elif isinstance(background, tuple):
                 if len(background) == 3:
                     background_img = np.full(foreground_img.shape, background, np.uint8)
@@ -1357,7 +1360,7 @@ class AbstractImageProcessor(ImageWrapper):
                 src_mask=mask,
                 background=pseudo_bkg,
             )
-            self.store_image(pseudo_colour, f"pseudo_on")
+            self.store_image(pseudo_colour, "pseudo_on")
 
         # handle color quantiles
         keys = [k for k in self.csv_data_holder.data_list]
@@ -1919,7 +1922,7 @@ class AbstractImageProcessor(ImageWrapper):
             if area_ > 10:
                 cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2)
         self.store_image(
-            image=hull_img, text=f"src_img_with_cnt_after_agg_iter_last", force_store=True
+            image=hull_img, text="src_img_with_cnt_after_agg_iter_last", force_store=True
         )
 
         # At this point we have the zone were the contours are allowed to be

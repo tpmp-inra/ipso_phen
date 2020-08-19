@@ -75,11 +75,7 @@ class IptKeepCountoursNearRois(IptBase):
             labels = [item["label"] for item in contours[cnt_data["name"]]]
             if not labels:
                 continue
-            colors = ipc.build_color_steps(
-                start_color=cnt_data["start_color"],
-                stop_color=cnt_data["stop_color"],
-                step_count=max(labels) + 1,
-            )
+            colors = ipc.build_color_steps(step_count=max(labels) + 1,)
             for item in contours[cnt_data["name"]]:
                 cv2.drawContours(
                     image=canvas,
