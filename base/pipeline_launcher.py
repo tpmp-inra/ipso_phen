@@ -19,7 +19,7 @@ from ipapi.file_handlers.fh_base import file_handler_factory
 logger = logging.getLogger(__name__)
 
 IS_LOG_DATA = True
-IS_USE_MULTI_THREAD = False
+IS_USE_MULTI_THREAD = True
 
 
 def save_state(
