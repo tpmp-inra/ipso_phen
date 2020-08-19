@@ -89,6 +89,10 @@ class Point:
         """(x, y)"""
         return self.x, self.y
 
+    def as_list(self):
+        """[x, y]"""
+        return [self.x, self.y]
+
     def copy(self):
         """Return a full copy of this point."""
         return Point(self.x, self.y)
@@ -134,25 +138,18 @@ class Point:
         Interestingly, you can use this in y-down computer graphics, if
         you just remember that it turns clockwise, rather than
         counter-clockwise.
-
-        The new position is returned as a new Point.
         """
         s, c = [f(rad) for f in (math.sin, math.cos)]
-        x, y = (c * self.x - s * self.y, s * self.x + c * self.y)
-        return Point(x, y)
+        self.x, self.y = (c * self.x - s * self.y, s * self.x + c * self.y)
 
-    def rotate_about(self, p, theta):
-        """Rotate counter-clockwise around a point, by theta degrees.
+    def rotate_about(self, p, rad):
+        """Rotate counter-clockwise around a point, by rad radians.
 
         Positive y goes *up,* as in traditional mathematics.
-
-        The new position is returned as a new Point.
         """
-        result = self.copy()
-        result.slide_xy(-p.x, -p.y)
-        result.rotate(theta)
-        result.slide_xy(p.x, p.y)
-        return result
+        self.slide_xy(-p.x, -p.y)
+        self.rotate(rad)
+        self.slide_xy(p.x, p.y)
 
 
 class AbstractRegion(object):
@@ -576,6 +573,157 @@ class RectangleRegion(AbstractRegion):
         return self.width / self.height
 
 
+class RotatedRectangle(AbstractRegion):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        left = kwargs.get("left", None)
+        top = kwargs.get("top", None)
+        width = kwargs.get("width", None)
+        height = kwargs.get("height", None)
+        right = kwargs.get("right", None)
+        source_width = kwargs.get("source_width", None)
+        bottom = kwargs.get("bottom", None)
+        source_height = kwargs.get("source_height", None)
+        height = kwargs.get("height", None)
+        height = kwargs.get("height", None)
+
+        if left is None and right is None:
+            if width is None or width == 0:
+                left = 0
+                width = source_width
+            elif width > 0:
+                left = 0
+            elif width < 0:
+                left = source_width + width
+                width = -width
+        elif left is not None:
+            if right is not None:
+                width = right - left
+            elif width is None:
+                width = source_width - left
+        elif right is not None:
+            if width is not None:
+                left = right - width
+            else:
+                left = 0
+                width = source_width - right
+
+        if top is None and bottom is None:
+            if height is None or height == 0:
+                top = 0
+                height = source_height
+            elif height > 0:
+                top = 0
+            elif height < 0:
+                top = source_height + height
+                height = -height
+        elif top is not None:
+            if bottom is not None:
+                height = bottom - top
+            elif height is None:
+                height = source_height - top
+        elif bottom is not None:
+            if height is not None:
+                top = bottom - height
+            else:
+                top = 0
+                height = source_height - bottom
+
+        self._left = left
+        self._top = top
+        self._width = width
+        self._height = height
+        self.angle = kwargs.get("angle", 0)
+
+    def __repr__(self) -> str:
+        return f"""
+        Rect:[l:{self._left},w:{self._width}/t:{self._top},h:{self._height},a:{self.angle} - name:{self.name}, tag:{self.tag}]
+        """
+
+    def inflate(self, dl, dr, dt, db):
+        """Inflates self by d- in each direction"""
+        self._left -= dl
+        self._width += 2 * dr
+        self._top -= dt
+        self._height += 2 * db
+
+    def expand(self, n):
+        self._left -= n
+        self._top -= n
+        self._width += 2 * n
+        self._height += 2 * n
+
+    def as_poly(self) -> list:
+        points = [
+            Point(self._left, self._top),
+            Point(self._left + self._width, self._top),
+            Point(self._left + self._width, self._top + self._height),
+            Point(self._left, self._top + self._height),
+        ]
+        for point in points:
+            point.rotate_about(self.center, math.radians(self.angle))
+        return points
+
+    def to_contour(self) -> np.array:
+        return np.array([point.as_list() for point in self.as_poly()], dtype=np.int32,)
+
+    def to_mask(self, width, height):
+        mask = np.zeros((height, width), dtype=np.uint8)
+        cv2.drawContours(mask, [self.to_contour()], 0, (255,), -1)
+        return mask
+
+    def draw_to(self, dst_img, line_width=-1, color=None):
+        res = dst_img.copy()
+        cv2.drawContours(
+            res, [self.to_contour()], 0, self.color if color is None else color, line_width
+        )
+        return res
+
+    def fill(self, dst_img, color):
+        return self.draw_to(dst_img=dst_img, line_width=-1, color=color)
+
+    def is_empty(self) -> bool:
+        return self._width == 0 or self._height == 0
+
+    def as_rect(self):
+        points = self.as_poly()
+        left = min([p.x for p in points])
+        top = min([p.y for p in points])
+        return RectangleRegion(
+            left=left,
+            width=max([p.x for p in points]) - left,
+            top=top,
+            height=max([p.y for p in points]) - top,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
+        )
+
+    def as_circle(self):
+        return self.as_rect().as_circle()
+
+    def as_annulus(self):
+        return self.as_rect().as_annulus()
+
+    @property
+    def radius(self) -> int:
+        return max(self._width, self._height) // 2
+
+    @property
+    def center(self) -> Point:
+        return Point(self._left + self._width // 2, self._top + self._height // 2)
+
+    @property
+    def area(self) -> float:
+        return self._width * self._height
+
+    @property
+    def ar(self) -> float:
+        """Returns aspect ratio"""
+        return self._width / self._height
+
+
 class CircleRegion(AbstractRegion):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -892,3 +1040,31 @@ class CompositeRegion(AbstractRegion):
     def ar(self) -> float:
         """Returns aspect ratio"""
         return self.as_rect().ar
+
+
+def draw_rois(rois: list, image, line_width=-1, color=None):
+    for roi in rois:
+        image = roi.draw_to(dst_img=image, line_width=line_width, color=color)
+    return image
+
+
+def fill_rois(rois: list, image, color):
+    return draw_rois(rois=rois, image=image, line_width=-1, color=color)
+
+
+def keep_rois(rois: list, image):
+    cp = image.copy()
+
+    if (len(cp.shape) == 2) or (len(cp.shape) == 3 and cp.shape[2] == 1):
+        cr = np.zeros_like(cp)
+    else:
+        cr = np.zeros_like(cp[:, :, 0])
+    cr = fill_rois(rois=rois, image=cr, color=255)
+
+    return cv2.bitwise_and(cp, cp, mask=cr)
+
+
+def delete_rois(rois: list, image):
+    for roi in rois:
+        image = roi.delete(src_image=image)
+    return image

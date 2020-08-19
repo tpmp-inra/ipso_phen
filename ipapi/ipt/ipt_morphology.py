@@ -1,5 +1,9 @@
+import numpy as np
+import cv2
+
 from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipapi.tools import regions
+from ipapi.base import ip_common as ipc
 
 import logging
 
@@ -19,10 +23,10 @@ class IptMorphology(IptBase):
         Real time : False
 
         Keyword Arguments (in parentheses, argument name):
-            * Morphology operator (morph_op): 
-            * Kernel size (kernel_size): 
-            * Kernel shape (kernel_shape): 
-            * Iterations (proc_times): 
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -31,14 +35,12 @@ class IptMorphology(IptBase):
 
         res = False
         try:
-            mask = wrapper.current_image
-            if not (len(mask.shape) == 2 or (len(mask.shape) == 3 and mask.shape[2] == 1)):
-                mask = self.get_mask()
-                if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                    )
-                    return
+            mask = self.get_mask()
+            if mask is None:
+                wrapper.error_holder.add_error(
+                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                )
+                return
             self.result = self.apply_morphology_from_params(mask.copy())
             rois = self.get_ipt_roi(
                 wrapper=wrapper,
@@ -46,11 +48,32 @@ class IptMorphology(IptBase):
                 selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if rois:
-                self.result = wrapper.multi_or(
-                    (wrapper.keep_rois(self.result, rois), wrapper.delete_rois(mask, rois))
+                self.result = cv2.bitwise_or(
+                    regions.delete_rois(rois=rois, image=mask),
+                    regions.keep_rois(rois=rois, image=self.result),
                 )
+
+                self.demo_image = cv2.bitwise_or(
+                    np.dstack((self.result, self.result, self.result)),
+                    regions.draw_rois(
+                        rois=rois,
+                        image=np.dstack(
+                            (
+                                np.zeros_like(self.result),
+                                np.zeros_like(self.result),
+                                np.zeros_like(self.result),
+                            )
+                        ),
+                        line_width=wrapper.width // 200,
+                        color=ipc.C_BLUE,
+                    ),
+                )
+            else:
+                self.demo_image = self.result
             wrapper.store_image(
-                self.result, f'morphology_{self.get_value_of("morph_op")}', text_overlay=True
+                self.demo_image,
+                f'morphology_{self.get_value_of("morph_op")}',
+                text_overlay=True,
             )
 
         except Exception as e:
@@ -83,7 +106,7 @@ class IptMorphology(IptBase):
 
     @property
     def use_case(self):
-        return [ToolFamily.MASK_CLEANUP]
+        return [ipc.ToolFamily.MASK_CLEANUP]
 
     @property
     def description(self):

@@ -71,7 +71,7 @@ DB_INFO_LOCAL_SAMPLES = DbInfo(
 )
 
 DB_INFO_EXT_HD = DbInfo(
-    display_name="external_hard_drive", src_files_path="f:/input", dbms="psql",
+    display_name="external_hard_drive", src_files_path="G:/images", dbms="psql",
 )
 
 
