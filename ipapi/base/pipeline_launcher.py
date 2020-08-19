@@ -182,6 +182,7 @@ def launch(**kwargs):
     logger.info(f'Append timestamp to root folder: {res["append_time_stamp"]}')
     logger.info(f'Generate series ID: {res["generate_series_id"]}')
     logger.info(f'Series ID time delta allowed: {res["series_id_time_delta"]}')
+    logger.info(f'Build annotation ready CSV: {res["build_annotation_csv"]}')
     logger.info(f"Images: {len(image_list_)}")
     logger.info(f"Concurrent processes count: {mpc}")
     logger.info(f"Script summary: {str(script)}")
@@ -206,7 +207,10 @@ def launch(**kwargs):
     if res["build_annotation_csv"]:
         try:
             if pp.options.group_by_series:
-                wrappers = [file_handler_factory(f[0]) for f in groups_to_process]
+                files, luids = map(list, zip(*groups_to_process))
+                wrappers = [
+                    file_handler_factory(files[i]) for i in [luids.index(x) for x in set(luids)]
+                ]
             else:
                 wrappers = [file_handler_factory(f) for f in groups_to_process]
             pd.DataFrame.from_dict(
@@ -229,7 +233,6 @@ def launch(**kwargs):
             logger.info("Built disease index file")
         print(f"{preffix} - Disease index file")
 
-    groups_to_process = pp.handle_existing_data(groups_to_process)
     groups_to_process_count = len(groups_to_process)
     if groups_to_process_count > 0:
         pp.multi_thread = mpc
