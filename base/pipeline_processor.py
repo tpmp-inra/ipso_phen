@@ -317,7 +317,7 @@ class PipelineProcessor:
         else:
             res = self.log_state(
                 status_message="Completed files checked",
-                log_message=f"   --- Completed files checked ---<br>",
+                log_message="   --- Completed files checked ---<br>",
             )
         if res:
             return files_to_process
@@ -459,7 +459,7 @@ class PipelineProcessor:
                 suffix_ = "Complete"
             self.close_progress()
             self.log_state(
-                status_message="Files processed", log_message=f"   --- Files processed ---<br>"
+                status_message="Files processed", log_message="   --- Files processed ---<br>"
             )
 
     @time_method
@@ -483,7 +483,7 @@ class PipelineProcessor:
             self.merge_result_files("raw_output_data.csv")
         else:
             self.log_state(
-                status_message="Nothing to do", log_message=f"   --- Nothing to do ---<br>"
+                status_message="Nothing to do", log_message="   --- Nothing to do ---<br>"
             )
             print("Nothing to do")
 
