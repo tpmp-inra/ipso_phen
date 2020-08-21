@@ -182,7 +182,7 @@ class Node(object):
                 self.absolute_count if is_progress else -1,
             )
         else:
-            if isinstance(res, int) and (res > 0):
+            if isinstance(res, int) and (res >= logging.WARNING):
                 eh.log_data(log_msg=msg, log_level=res, target_logger=logger)
         md = np.array(self.root.parent.settings.mosaic.images)
         wrapper = self.root.parent.wrapper
@@ -628,7 +628,13 @@ class GroupNode(Node):
                 if not node.enabled:
                     continue
                 if node.is_group and not node.matches_filters:
-                    logger.info(f"Group {node.name} did not match filters, skipped")
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=logging.INFO,
+                        msg=f"Group {node.name} did not match filters, skipped",
+                        data=None,
+                        is_progress=False,
+                    )
                     continue
                 res = node.execute(**kwargs)
                 if self.stop_processing:
@@ -650,7 +656,13 @@ class GroupNode(Node):
                 if not node.enabled:
                     continue
                 if node.is_group and not node.matches_filters:
-                    logger.info(f"Group {node.name} did not match filters, skipped")
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=logging.INFO,
+                        msg=f"Group {node.name} did not match filters, skipped",
+                        data=None,
+                        is_progress=False,
+                    )
                     continue
                 res = node.execute(**kwargs)
                 if self.stop_processing:
@@ -678,7 +690,13 @@ class GroupNode(Node):
                 if not node.enabled:
                     continue
                 if node.is_group and not node.matches_filters:
-                    logger.info(f"Group {node.name} did not match filters, skipped")
+                    self.do_call_back(
+                        call_back=call_back,
+                        res=logging.INFO,
+                        msg=f"Group {node.name} did not match filters, skipped",
+                        data=None,
+                        is_progress=False,
+                    )
                     continue
                 res = node.execute(**kwargs)
                 if self.stop_processing:
