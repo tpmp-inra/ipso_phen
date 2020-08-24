@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
 import logging
 from tqdm import tqdm
+import win32api
 
 
 import pandas as pd
@@ -31,6 +32,27 @@ DB_TYPE_PERMANENT = "DB_TYPE_PERMANENT"
 DB_TYPE_MEMORY = "DB_TYPE_MEMORY"
 DB_TYPE_RO = "DB_TYPE_RO"
 DB_TYPE_RW = "DB_TYPE_RW"
+
+
+g_storage_path = ""
+
+
+def get_mass_storage_path():
+    global g_storage_path
+    if not g_storage_path:
+        drives = {}
+        for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
+            try:
+                drives[win32api.GetVolumeInformation(drive)[0]] = drive
+            except:
+                pass
+        if "2bigTPMP" in drives:
+            g_storage_path = os.path.join(drives["2bigTPMP"], "images", "")
+        elif "TPMP_ EXT" in drives:
+            g_storage_path = os.path.join(drives["TPMP_ EXT"], "input", "")
+        else:
+            g_storage_path = ""
+    return g_storage_path
 
 
 class DbInfo:
@@ -69,6 +91,20 @@ DB_INFO_LOCAL_SAMPLES = DbInfo(
     src_files_path=os.path.join(os.path.expanduser("~"), "Pictures", "ipso_phen_cache", ""),
     dbms="psql",
 )
+
+if get_mass_storage_path() is not None:
+    DB_MASS_STORAGE = [
+        DbInfo(
+            display_name=f"ms_{name}",
+            src_files_path=os.path.join(get_mass_storage_path(), name),
+            dbms="psql",
+        )
+        for name in os.listdir(get_mass_storage_path())
+        if os.path.isdir(os.path.join(get_mass_storage_path(), name))
+    ]
+else:
+    DB_MASS_STORAGE = []
+
 
 DB_INFO_EXT_HD = DbInfo(
     display_name="external_hard_drive", src_files_path="G:/images", dbms="psql",
