@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 from ipapi.base.ip_common import all_colors_dict
 from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipapi.base.ip_common import ToolFamily
-from ipapi.base.ip_common import ToolFamily
+import ipapi.tools.regions as regions
 
 
 class IptExposureChecker(IptBaseAnalyzer):
@@ -234,10 +234,9 @@ class IptExposureChecker(IptBaseAnalyzer):
                 selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if len(rois) > 0:
-                self.result = self.wrapper.current_image
-                for roi in rois:
-                    patch = wrapper.crop_to_roi(img=img, roi=roi)
-                    self.result[roi.top : roi.bottom, roi.left : roi.right] = patch
+                self.result = regions.copy_rois(
+                    rois=rois, src=img, dst=self.wrapper.current_image
+                )
             else:
                 self.result = img
 

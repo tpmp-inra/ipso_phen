@@ -1042,6 +1042,10 @@ class CompositeRegion(AbstractRegion):
         return self.as_rect().ar
 
 
+def copy_rois(rois: list, src, dst):
+    return cv2.bitwise_or(delete_rois(rois=rois, image=dst), keep_rois(rois=rois, image=src))
+
+
 def draw_rois(rois: list, image, line_width=-1, color=None):
     for roi in rois:
         image = roi.draw_to(dst_img=image, line_width=line_width, color=color)
