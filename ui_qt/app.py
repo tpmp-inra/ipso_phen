@@ -163,8 +163,6 @@ from ui_qt.about import Ui_about_dialog
 from ui_qt.folder_selector import Ui_folder_selector
 from ui_qt.new_tool import Ui_dlg_new_tool
 from ui_qt.qt_mvc import (
-    CTreeWidget,
-    CTreeWidgetItem,
     QMouseGraphicsView,
     build_widgets,
     QPandasModel,
@@ -1192,13 +1190,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def init_image_browser(self, dataframe):
         self.ui.tv_image_browser.setModel(QImageDatabaseModel(dataframe))
-        self.ui.tv_image_browser.setItemDelegate(
-            QImageDrawerDelegate(
-                parent=self.ui.tv_image_browser,
-                palette=qApp.palette(),
-                use_annotations=self.ui.actionEnable_annotations.isChecked(),
-            )
-        )
+        # self.ui.tv_image_browser.setItemDelegate(
+        #     QImageDrawerDelegate(
+        #         parent=self.ui.tv_image_browser,
+        #         palette=qApp.palette(),
+        #         use_annotations=self.ui.actionEnable_annotations.isChecked(),
+        #     )
+        # )
         self.ui.tv_image_browser.setSortingEnabled(True)
         selectionModel = self.ui.tv_image_browser.selectionModel()
         selectionModel.selectionChanged.connect(self.on_tv_image_browser_selection_changed)
@@ -2033,7 +2031,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
             # Add default postgress databases if missing and enabled
             if len(self.local_databases) == 0 and ui_consts.ENABLE_POSTGRES:
-                self.local_databases = [dbw.DB_INFO_LOCAL_SAMPLES, dbw.DB_INFO_EXT_HD]
+                self.local_databases = [dbw.DB_INFO_LOCAL_SAMPLES]
+            self.local_databases.extend(dbw.DB_MASS_STORAGE)
 
             if (
                 last_db is not None
@@ -3229,22 +3228,29 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             delegate = self.ui.tv_image_browser.itemDelegate()
             sel_ct = model.rowCount()
         else:
+            delegate = None
             sel_ct = 0
         if no_good:
-            self.lv_stats.insertPlainText("No images selectted\n")
-            self.lv_stats.insertPlainText("Please add images to selection to get statistics\n")
-            self.lv_stats.insertPlainText("\n")
-            self.lv_stats.insertPlainText("________________________________________________\n")
+            self.ui.lv_stats.insertPlainText("No images selectted\n")
+            self.ui.lv_stats.insertPlainText(
+                "Please add images to selection to get statistics\n"
+            )
+            self.ui.lv_stats.insertPlainText("\n")
+            self.ui.lv_stats.insertPlainText(
+                "________________________________________________\n"
+            )
 
         include_annotations = self.ui.cb_stat_include_annotations.isChecked()
         self.update_feedback(status_message="Building selection stats", use_status_as_log=True)
         self.global_progress_start(add_stop_button=True)
         try:
-            self.lv_stats.insertPlainText("\n")
-            self.lv_stats.insertPlainText("________________________________________________\n")
-            self.lv_stats.insertPlainText(f"Selected items count: {sel_ct}\n")
-            self.lv_stats.insertPlainText("\n")
-            if include_annotations is True:
+            self.ui.lv_stats.insertPlainText("\n")
+            self.ui.lv_stats.insertPlainText(
+                "________________________________________________\n"
+            )
+            self.ui.lv_stats.insertPlainText(f"Selected items count: {sel_ct}\n")
+            self.ui.lv_stats.insertPlainText("\n")
+            if include_annotations is True and delegate is not None:
                 gbl_cpt = 0
                 ann_counter = defaultdict(int)
                 for i in range(0, model.rowCount()):
@@ -3252,26 +3258,38 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     if ann_ is not None:
                         gbl_cpt += 1
                         ann_counter[ann_["kind"].lower()] += 1
-                self.lv_stats.insertPlainText(
+                self.ui.lv_stats.insertPlainText(
                     f"Annotations: {gbl_cpt}, " f"{gbl_cpt / sel_ct * 100:.2f}%\n"
                 )
                 for k, v in ann_counter.items():
-                    self.lv_stats.insertPlainText(
+                    self.ui.lv_stats.insertPlainText(
                         f"  {k.ljust(13)}: {v}, {v / sel_ct * 100:.2f}%\n"
                     )
-                self.lv_stats.insertPlainText(
+                self.ui.lv_stats.insertPlainText(
                     "________________________________________________\n"
                 )
-                self.lv_stats.insertPlainText("\n")
+                self.ui.lv_stats.insertPlainText("\n")
 
             df: pd.DataFrame = model.images
-            for key in ["experiment", "plant", "date", "camera", "view_option"]:
-                self.lv_stats.insertPlainText(f"{key}:\n")
-                self.lv_stats.insertPlainText("\n".join(df[key].unique()))
-                self.lv_stats.insertPlainText(df.group(key).agg({key: "count"}))
-                self.lv_stats.insertPlainText(
-                    "________________________________________________\n"
+            for key in ["Experiment", "Plant", "Date", "Camera", "view_option"]:
+                self.ui.lv_stats.insertPlainText(f"{key}s:\n")
+                self.ui.lv_stats.insertPlainText(
+                    "\n".join(
+                        [
+                            f"- {k}: {v}"
+                            for k, v in df.groupby(key)
+                            .agg({key: "count"})
+                            .iloc[:, 0]
+                            .to_dict()
+                            .items()
+                        ]
+                    )
                 )
+                self.ui.lv_stats.insertPlainText("\n")
+                self.ui.lv_stats.insertPlainText("\n")
+            self.ui.lv_stats.insertPlainText(
+                "________________________________________________\n"
+            )
         except Exception as e:
             logger.exception(f"Failed to update statistics: {repr(e)}")
         finally:
@@ -4881,7 +4899,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save pipeline processor state",
-            dir=self.dynamic_folders["pp_state"],
+            dir=os.path.join(
+                self.dynamic_folders["pp_state"], f"{self._src_image_wrapper.experiment}.json"
+            ),
             filter="JSON(*.json)",
         )[0]
         if file_name_:
