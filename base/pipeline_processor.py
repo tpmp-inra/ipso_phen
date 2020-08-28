@@ -36,40 +36,25 @@ def _pipeline_worker(arg):
     file_path, options, script, db = arg
 
     try:
-        ipo = ipo_factory(
-            file_path=file_path if isinstance(file_path, str) else file_path[0],
+        bool_res = script.execute(
+            src_image=file_path if isinstance(file_path, str) else file_path[0],
+            silent_mode=True,
+            target_module="",
+            additional_data={"luid": file_path[1]} if isinstance(file_path, tuple) else {},
+            write_data=True,
+            target_data_base=db,
+            overwrite_data=options.overwrite,
+            store_images=False,
             options=options,
-            force_abstract=script is not None,
-            data_base=db,
+            call_back=None,
         )
-        bool_res = False
-        if ipo is None:
-            return WorkerResult(False, f"{file_path}", "Failed to build wrapper")
-        elif os.path.isfile(ipo.csv_file_path) and options.overwrite is False:
-            return WorkerResult(True, str(ipo), f"Skipped {ipo.name}, already exists")
-        elif script is None:
-            bool_res = ipo.process_image(threshold_only=options.threshold_only)
-            return WorkerResult(bool_res, str(ipo), "")
-        else:
-            script.image_output_path = ipo.dst_path
-            if hasattr(script, "process_image"):
-                bool_res = script.process_image(progress_callback=None, wrapper=ipo)
-            elif hasattr(script, "execute"):
-                bool_res = bool(script.execute(src_image=ipo, target_data_base=db))
-            else:
-                bool_res = False
-
-        if bool_res:
-            if isinstance(file_path, tuple):
-                ipo.csv_data_holder.update_csv_value("series_id", file_path[1], True)
-            with open(ipo.csv_file_path, "w", newline="") as f:
-                wr = csv.writer(f, quoting=csv.QUOTE_NONE)
-                wr.writerow(ipo.csv_data_holder.header_to_list())
-                wr.writerow(ipo.csv_data_holder.data_to_list())
     except Exception as e:
         return WorkerResult(False, file_path, repr(e))
     else:
-        return WorkerResult(bool_res, str(ipo), "")
+        if script.wrapper is not None:
+            return WorkerResult(bool_res, str(script.wrapper), "")
+        else:
+            return WorkerResult(bool_res, "Unknown", "")
 
 
 class PipelineProcessor:
