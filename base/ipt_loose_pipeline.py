@@ -5,17 +5,12 @@ from timeit import default_timer as timer
 import itertools
 from typing import Union
 import logging
+import csv
+import os
 
 import numpy as np
 
-from ipapi.base.ipt_abstract import (
-    IptParam,
-    IptBase,
-    IptParamHolder,
-    CLASS_NAME_KEY,
-    MODULE_NAME_KEY,
-    PARAMS_NAME_KEY,
-)
+from ipapi.base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ipapi.base.ipt_functional import get_ipt_class
 from ipapi.base import ip_common as ipc
 from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
@@ -415,14 +410,24 @@ class ModuleNode(Node):
                         data=wrapper if self.root.parent.debug_mode else self,
                     )
                 else:
-                    self.do_call_back(
-                        call_back=call_back,
-                        res=logging.ERROR,
-                        msg=f"Failed to processed {self.name} in {format_time(timer() - before)}",
-                        data=wrapper
-                        if self.root.parent.debug_mode or self.uuid == target_module
-                        else self,
-                    )
+                    if ipc.ToolFamily.ASSERT in self.tool.use_case:
+                        self.do_call_back(
+                            call_back=call_back,
+                            res=logging.ERROR,
+                            msg=f'Assertion "{self.tool.name}" failed for {self.name}',
+                            data=wrapper
+                            if self.root.parent.debug_mode or self.uuid == target_module
+                            else self,
+                        )
+                    else:
+                        self.do_call_back(
+                            call_back=call_back,
+                            res=logging.ERROR,
+                            msg=f"Failed to process {self.name} in {format_time(timer() - before)}",
+                            data=wrapper
+                            if self.root.parent.debug_mode or self.uuid == target_module
+                            else self,
+                        )
 
         return self.last_result
 
@@ -1175,34 +1180,83 @@ class LoosePipeline(object):
         return True
 
     def execute(
-        self, src_image: Union[str, AbstractImageProcessor], silent_mode: bool = False, **kwargs
+        self,
+        src_image: Union[str, AbstractImageProcessor],
+        silent_mode: bool = False,
+        target_module: str = "",
+        additional_data: dict = {},
+        write_data: bool = False,
+        target_data_base=None,
+        overwrite_data: bool = False,
+        store_images: bool = True,
+        options=None,
+        **kwargs,
     ):
+        # Override settings
         self.error_level = logging.INFO
         self.stop_processing = False
+        self.silent = silent_mode
+
+        # Build/retrieve wrapper
         if isinstance(src_image, str):
-            self.wrapper = AbstractImageProcessor(src_image)
+            self.wrapper = AbstractImageProcessor(src_image, options=options)
         elif isinstance(src_image, AbstractImageProcessor):
             self.wrapper = src_image
         else:
             logger.error(f"Unknown source {str(src_image)}")
             self.error_level = logging.ERROR
             return False
-        src_img = self.wrapper.current_image
-        if src_img is None or self.wrapper.good_image is False:
+
+        # Check wrapper
+        if self.wrapper is None:
+            if isinstance(src_image, str):
+                logger.error(f"Unable to build wrapper from file '{src_image}''")
+            else:
+                logger.error("Unable to retrieve wrapper.")
+            self.error_level = logging.ERROR
             return False
+        elif not self.wrapper.check_source_image():
+            if isinstance(src_image, str):
+                logger.error(f"Image seems to be corrupted '{src_image}''")
+            else:
+                logger.error("Image seems to be corrupted.")
+            self.error_level = logging.ERROR
+            return False
+        elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
+            logger.info(f"Skipped {self.wrapper.name}, already exists")
+            self.error_level = logging.INFO
+            return True
+
+        # Override wrapper settings
         if self.last_wrapper_luid != self.wrapper.luid:
             self.invalidate()
             self.last_wrapper_luid = self.wrapper.luid
         self.wrapper.lock = True
-        self.wrapper.target_database = kwargs.get("target_data_base", None)
-        self.wrapper.store_images = self.root.parent.debug_mode or kwargs.get(
-            "target_module", ""
+        self.wrapper.target_database = target_data_base
+        self.wrapper.store_images = store_images and (
+            self.root.parent.debug_mode or bool(target_module)
         )
         for module in self.root.iter_items(types=("modules",)):
             self.wrapper.forced_storage_images_list.extend(module.tool.required_images)
+        if options is not None:
+            self.image_output_path = self.wrapper.dst_path
 
-        self.silent = silent_mode
+        # Execute pipeline
         self.root.execute(**kwargs)
+
+        # Update data with forced key value pairs
+        for k, v in additional_data.items():
+            self.wrapper.csv_data_holder.update_csv_value(key=k, value=v, force_pair=True)
+
+        if (self.error_level < self.stop_on) and (write_data is True):
+            try:
+                with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
+                    wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
+                    wr.writerow(self.wrapper.csv_data_holder.header_to_list())
+                    wr.writerow(self.wrapper.csv_data_holder.data_to_list())
+            except Exception as e:
+                logger.exception(f"Failed to write image data because {repr(e)}")
+
         return self.error_level < self.stop_on
 
     def targeted_callback(self, param: IptParam):

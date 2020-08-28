@@ -278,9 +278,13 @@ class AbstractImageProcessor(ImageWrapper):
         obj = kwargs.get("objects", None)
         channel = kwargs.get("channel", "l")
         background = kwargs.get("background", "source")
+        if background == "color":
+            background = kwargs.get("bcg_color", ipc.C_BLACK)
         foreground = kwargs.get("foreground", "source")
+        if foreground == "color":
+            foreground = kwargs.get("fore_color", ipc.C_WHITE)
         bck_grd_luma = kwargs.get("bck_grd_luma", 100)
-        normalize_before = kwargs.get("normalize_before", False)
+        normalize_before = bool(kwargs.get("normalize_before", False))
         color_map = kwargs.get("color_map", ipc.DEFAULT_COLOR_MAP)
         if isinstance(color_map, str):
             _, color_map = color_map.split("_")
@@ -303,6 +307,10 @@ class AbstractImageProcessor(ImageWrapper):
             mask_ = mask.copy()
         else:
             mask_ = None
+
+        fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
+        fnt_scale = src.shape[0] / 1000
+        fnt_thickness = max(round(src.shape[1] / 1080) * 2, 1)
 
         # Build foreground
         if len(src.shape) == 2 or (len(src.shape) == 3 and src.shape[2] == 1):
@@ -327,6 +335,8 @@ class AbstractImageProcessor(ImageWrapper):
             foreground_img = np.full(src.shape, ipc.C_SILVER, np.uint8)
         elif foreground == "white":
             foreground_img = np.full(src.shape, ipc.C_WHITE, np.uint8)
+        elif isinstance(foreground, tuple):
+            foreground_img = np.full(src.shape, foreground, np.uint8)
         elif foreground == "bw":
             foreground_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
             foreground_img = np.dstack((foreground_img, foreground_img, foreground_img))
@@ -442,9 +452,26 @@ class AbstractImageProcessor(ImageWrapper):
                                 img,
                                 (int(cmx), int(cmy)),
                                 centroid_width,
-                                ipc.C_YELLOW,
+                                ipc.C_BLUE,
                                 centroid_line_width,
                             )
+                            if bool(kwargs.get("cy_num", False)) is True:
+                                cv2.line(
+                                    img,
+                                    (int(cmx), 0),
+                                    (int(cmx), int(cmy)),
+                                    ipc.C_BLUE,
+                                    centroid_line_width,
+                                )
+                                cv2.putText(
+                                    img,
+                                    f"cy: {cmy:.2f}",
+                                    (int(cmx) + 5, int(cmy / 2)),
+                                    fnt[0],
+                                    fnt_scale,
+                                    ipc.C_BLUE,
+                                    fnt_thickness,
+                                )
 
         if roi is not None:
             src_ = src.copy()
