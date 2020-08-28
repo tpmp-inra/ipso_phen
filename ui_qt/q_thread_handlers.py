@@ -4,7 +4,6 @@ import csv
 import logging
 
 import numpy as np
-import pandas as pd
 
 
 logger = logging.getLogger(__name__)
@@ -15,7 +14,7 @@ import ipapi.base.ip_common as ipc
 from ipapi.class_pipelines.ip_factory import ipo_factory
 from ipapi.tools.comand_line_wrapper import ArgWrapper
 from ipapi.tools.common_functions import format_time, force_directories
-from ipapi.file_handlers.fh_base import file_handler_factory
+from ipapi.base.ipt_loose_pipeline import LoosePipeline
 
 
 class IpsoRunnableSignals(QObject):
@@ -243,92 +242,51 @@ class IpsoGroupProcessor(QRunnable):
         self.item = kwargs.get("item")
         self.database = kwargs.get("database")
         self.options = kwargs.get("options")
-        self.script = kwargs.get("script")
+        self.script: LoosePipeline = kwargs.get("script")
 
     def _run_process(self, file_name, luid: str = ""):
         start_time = timer()
-        ipo = ipo_factory(
-            file_name,
-            self.options,
-            force_abstract=self.script is not None,
-            data_base=self.database,
-        )
-        if ipo is None:
-            logger.error(f"Unable to build wrapper from file '{file_name}''")
-        elif not ipo.check_source_image():
-            logger.error(f"Image seems to be corrupted '{file_name}''")
-        elif os.path.isfile(ipo.csv_file_path) and self.options.overwrite is False:
-            self.signals_holder.on_log_event.emit(
-                ipo.luid, logging.INFO, f"Skipped {ipo.name}, already exists", True,
+
+        try:
+            res = self.script.execute(
+                src_image=file_name,
+                silent_mode=True,
+                target_module="",
+                additional_data={"luid": luid} if luid else {},
+                write_data=True,
+                target_data_base=self.database,
+                overwrite_data=self.options.overwrite,
+                store_images=False,
+                options=self.options,
+                call_back=None,
             )
-            logger.info(f"Skipped {ipo.name}, already exists")
-        elif ipo is not None and ipo.good_image:
-            ipo.store_images = False
-            try:
-                if self.script is None:
-                    res = ipo.process_image(threshold_only=self.options.threshold_only)
-                else:
-                    self.script.image_output_path = ipo.dst_path
-                    res = self.script.execute(
-                        src_image=ipo,
-                        call_back=None,
-                        target_module=None,
-                        silent_mode=True,
-                        target_data_base=self.database,
-                    )
-            except Exception as e:
-                logger.exception(f"Failed to process {file_name} because {repr(e)}")
-                if ipo is None or not ipo.good_image:
-                    self.signals_holder.on_image_ready.emit(
-                        np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
-                    )
-                else:
-                    self.signals_holder.on_image_ready.emit(ipo.current_image)
+        except Exception as e:
+            logger.exception(f"Failed to process {file_name} because {repr(e)}")
+            if self.script.wrapper is None or not self.script.wrapper.good_image:
+                self.signals_holder.on_image_ready.emit(
+                    np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+                )
             else:
-                if res:
-                    try:
-                        if luid:
-                            ipo.csv_data_holder.update_csv_value("series_id", luid, True)
-                        with open(ipo.csv_file_path, "w", newline="") as csv_file_:
-                            wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
-                            wr.writerow(ipo.csv_data_holder.header_to_list())
-                            wr.writerow(ipo.csv_data_holder.data_to_list())
-                        if self.script is not None:
-                            self.signals_holder.on_image_ready.emit(self.script.mosaic)
-                    except Exception as e:
-                        logger.exception(f"Failed to write image data because {repr(e)}")
-                    else:
-                        end_time = timer()
-                        if self.script is None or self.script.error_level < logging.WARNING:
-                            self.signals_holder.on_log_event.emit(
-                                ipo.luid,
-                                logging.INFO,
-                                f"Successfully processed {ipo.name} in {format_time(end_time - start_time)}",
-                                True,
-                            )
-                        elif (
-                            self.script is not None
-                            and self.script.error_level >= logging.WARNING
-                        ):
-                            self.signals_holder.on_log_event.emit(
-                                ipo.luid,
-                                logging.WARNING,
-                                "Error detected while processing image, cf. log for more details",
-                                True,
-                            )
-                else:
-                    self.signals_holder.on_log_event.emit(
-                        ipo.luid,
-                        logging.ERROR,
-                        "Error detected while processing image, cf. log for more details",
-                        True,
-                    )
-            finally:
-                ipo.image_list = None
-                ipo = None
+                self.signals_holder.on_image_ready.emit(self.script.wrapper.current_image)
         else:
-            logger.error(f'Unable to process "{file_name}"')
-            res = False
+            if res:
+                self.signals_holder.on_log_event.emit(
+                    self.script.wrapper.luid,
+                    self.script.error_level,
+                    f"Processed {self.script.wrapper.name} in {format_time(timer() - start_time)}",
+                    True,
+                )
+            else:
+                self.signals_holder.on_log_event.emit(
+                    self.script.wrapper.luid,
+                    logging.ERROR,
+                    "Error detected while processing image, cf. log for more details",
+                    True,
+                )
+        finally:
+            if self.script.wrapper is not None:
+                self.script.wrapper.image_list = None
+                self.script.wrapper = None
 
     def run(self):
         try:

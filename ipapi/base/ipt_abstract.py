@@ -1676,6 +1676,8 @@ class IptBase(IptParamHolder, ABC):
             source_image, f"{dbg_suffix}_labels_on_source_image", text_overlay=True
         )
 
+        return watershed_image, source_image
+
     def help_stub(self):
         res = '"""\n'
         res += f"{self.name}:\n"
