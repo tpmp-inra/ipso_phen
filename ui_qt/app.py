@@ -409,7 +409,7 @@ class NewToolDialog(QDialog):
             spaces = add_tab(spaces)
             f.write(f"{spaces}img = wrapper.current_image\n")
             if self.ui.chk_mask_required.isChecked():
-                f.write(f"{spaces}mask = wrapper.mask\n")
+                f.write(f"{spaces}mask = self.get_mask()\n")
                 f.write(f"{spaces}if mask is None:\n")
                 f.write(
                     f"""{spaces}    logger.error(
@@ -2250,8 +2250,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             else:
                 settings_.remove("current_data_base")
 
+            mass_storage_dbs = [db.display_name for db in dbw.DB_MASS_STORAGE]
             if len(self.local_databases) > 0:
                 for ldb in self.local_databases:
+                    if ldb.display_name in mass_storage_dbs:
+                        continue
                     settings_.beginGroup(f"local_databases/{ldb.display_name}")
                     settings_.setValue("display_name", ldb.display_name)
                     settings_.setValue("db_file_name", ldb.db_file_name)

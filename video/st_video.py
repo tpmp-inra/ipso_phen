@@ -257,7 +257,7 @@ st.title("Video tools")
 
 st.subheader("Initialize")
 
-src_folder = st.text_input("Source folder: ", os.path.join("d:", "input", ""))
+src_folder = st.text_input("Source folder: ", os.path.join("g:", "images", ""))
 num_cores = st.slider("Thread count", 1, MAX_CORES, 1)
 video_resolution = st.selectbox("Video resolution", ["1080p", "720p", "576p", "480p"])
 video_aspect_ratio = st.selectbox("Video aspect ratio", ["16/9", "4/3", "1/1"])
@@ -265,23 +265,23 @@ video_aspect_ratio = st.selectbox("Video aspect ratio", ["16/9", "4/3", "1/1"])
 video_height = int(video_resolution[0:-1])
 video_width = int(video_height * eval(video_aspect_ratio))
 
+db_name = st.selectbox(
+    label="Select source experiment",
+    options=["Please make your choice..."] + [db.display_name for db in dbw.DB_MASS_STORAGE],
+)
+
 job_choice = st.selectbox(
     "Select what kind of video to make",
     ["Please make your choice...", "Single plant", "Side by side comparison"],
 )
 
-if job_choice != "Please make your choice...":
+if job_choice != "Please make your choice..." and db_name != "Please make your choice...":
     st.subheader("Building database")
     current_progress = st.progress(0)
-    current_database = dbw.db_info_to_database(
-        dbw.DbInfo(
-            display_name=make_safe_name(src_folder),
-            db_file_name=make_safe_name(src_folder) + ".db",
-            src_files_path=src_folder,
-            dbms="sqlite",
-        ),
-        progress_call_back=progress_update,
-    )
+    for db in dbw.DB_MASS_STORAGE:
+        if db.display_name == db_name:
+            current_database = dbw.db_info_to_database(db, progress_call_back=progress_update,)
+            break
     current_progress.progress(1 / 1)
     st.write("Database OK")
     st.subheader("Filter")

@@ -74,6 +74,8 @@ class IptCalculateChlorophyll(IptBase):
                 f"POnChloro_{self.input_params_as_str(exclude_defaults=True)}",
                 text_overlay=text_overlay,
             )
+            self.demo_image = pseudo
+            self.result = calc_img
         except Exception as e:
             res = False
             logger.error(f'Failed to process {self. name}: "{repr(e)}"')
