@@ -70,6 +70,7 @@ tool_groups_pipeline = [
     ToolFamily.THRESHOLD,
     ToolFamily.WHITE_BALANCE,
     ToolFamily.IMAGE_GENERATOR,
+    ToolFamily.VISUALIZATION,
 ]
 
 IO_IMAGE = "io_image"

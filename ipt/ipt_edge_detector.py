@@ -177,6 +177,7 @@ class IptEdgeDetector(IptBase):
             else:
                 wrapper.store_image(src_img, "source")
 
+            self.demo_image = self.result
             res = True
         except Exception as e:
             res = False

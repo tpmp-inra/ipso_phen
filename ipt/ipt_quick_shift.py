@@ -85,9 +85,13 @@ class IptQuickShift(IptBaseMerger):
             )
             water_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
 
-            self.print_segmentation_labels(water_img.copy(), labels, dbg_suffix="quick_shift")
+            _, lbl_on_src = self.print_segmentation_labels(
+                water_img.copy(), labels, dbg_suffix="quick_shift"
+            )
 
-            wrapper.store_image(water_img, f"quick_shift_vis", text_overlay=True)
+            wrapper.store_image(water_img, "quick_shift_vis", text_overlay=True)
+
+            self.demo_image = lbl_on_src
 
         except Exception as e:
             res = False
