@@ -68,7 +68,7 @@ class IptFilterContourBySize(IptBase):
                     )
                     if cv2.contourArea(c, True) < 0
                 ]
-                contours.sort(key=lambda x: cv2.contourArea(x))
+                contours.sort(key=lambda x: cv2.contourArea(x), reverse=True)
                 colors = ipc.build_color_steps(step_count=len(contours))
 
                 dbg_img = np.dstack(
@@ -105,11 +105,39 @@ class IptFilterContourBySize(IptBase):
                     (np.zeros_like(mask), np.zeros_like(mask), np.zeros_like(mask))
                 )
                 out_mask = np.zeros_like(mask)
+
                 # Discarded contours
+                size_cnts = np.dstack(
+                    (np.zeros_like(mask), np.zeros_like(mask), np.zeros_like(mask))
+                )
+                for cnt in contours:
+                    area_ = cv2.contourArea(cnt)
+                    if area_ < lt:
+                        cv2.drawContours(size_cnts, [cnt], 0, ipc.C_RED, -1)
+                    elif area_ > ut:
+                        cv2.drawContours(size_cnts, [cnt], 0, ipc.C_BLUE, -1)
+                    else:
+                        cv2.drawContours(size_cnts, [cnt], 0, ipc.C_WHITE, -1)
+                wrapper.store_image(image=size_cnts, text="cnts_by_size")
+
+                # Discarded contours
+                size_cnts = np.dstack(
+                    (np.zeros_like(mask), np.zeros_like(mask), np.zeros_like(mask))
+                )
+                for cnt in sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True):
+                    area_ = cv2.contourArea(cnt)
+                    if area_ < lt:
+                        cv2.drawContours(size_cnts, [cnt], 0, ipc.C_RED, -1)
+                    elif area_ > ut:
+                        cv2.drawContours(size_cnts, [cnt], 0, ipc.C_BLUE, -1)
+                    else:
+                        cv2.drawContours(size_cnts, [cnt], 0, ipc.C_WHITE, -1)
+                wrapper.store_image(image=size_cnts, text="cnts_by_size_reversed")
+
                 for cnt in contours:
                     area_ = cv2.contourArea(cnt)
                     if not (lt < area_ < ut):
-                        cv2.drawContours(dbg_img, [cnt], 0, ipc.C_ORANGE, -1)
+                        cv2.drawContours(dbg_img, [cnt], 0, ipc.C_RED, -1)
                 # Discarded contours borders
                 for cnt in contours:
                     area_ = cv2.contourArea(cnt)
@@ -121,6 +149,9 @@ class IptFilterContourBySize(IptBase):
                     if lt < area_ < ut:
                         cv2.drawContours(out_mask, [cnt], 0, 255, -1)
                         cv2.drawContours(dbg_img, [cnt], 0, ipc.C_GREEN, -1)
+                    else:
+                        cv2.drawContours(out_mask, [cnt], 0, 0, -1)
+                        cv2.drawContours(dbg_img, [cnt], 0, ipc.C_RED, -1)
                 dbg_img = np.dstack(
                     (
                         cv2.bitwise_and(dbg_img[:, :, 0], mask),
