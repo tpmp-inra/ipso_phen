@@ -1183,7 +1183,6 @@ class LoosePipeline(object):
         self,
         src_image: Union[str, AbstractImageProcessor],
         silent_mode: bool = False,
-        target_module: str = "",
         additional_data: dict = {},
         write_data: bool = False,
         target_data_base=None,
@@ -1234,7 +1233,7 @@ class LoosePipeline(object):
         self.wrapper.lock = True
         self.wrapper.target_database = target_data_base
         self.wrapper.store_images = store_images and (
-            self.root.parent.debug_mode or bool(target_module)
+            self.root.parent.debug_mode or bool(kwargs.get("target_module", ""))
         )
         for module in self.root.iter_items(types=("modules",)):
             self.wrapper.forced_storage_images_list.extend(module.tool.required_images)
