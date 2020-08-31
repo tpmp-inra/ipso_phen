@@ -82,6 +82,7 @@ class PipelineProcessor:
         self.accepted_files = []
         self._last_signature = ""
         self.progress_callback = None
+        self.error_callback = None
         self.log_item = None
         self.script = None
         self._tqdm = None
@@ -120,6 +121,7 @@ class PipelineProcessor:
     def handle_result(self, wrapper_res, wrapper_index, total):
         if not wrapper_res:
             logger.error("Process error - UNKNOWN ERROR")
+            self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
             spaces_ = len(str(total))
@@ -131,6 +133,8 @@ class PipelineProcessor:
             )
             msg_suffix = f" - {wrapper_res.message}" if wrapper_res.message else ""
             logger.info(f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
+            if wrapper_res.result is not True:
+                self.report_error(logging.ERROR, f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
             if wrapper_res.result is not True:
                 self._process_errors += 1
         self.update_progress()
@@ -149,6 +153,10 @@ class PipelineProcessor:
         else:
             self.progress_callback(step=self._progress_step, total=self._progress_total)
             self._progress_step += 1
+
+    def report_error(self, error_level, error_message):
+        if self.error_callback is not None:
+            self.error_callback(error_level, error_message)
 
     def close_progress(self):
         if self._tqdm is not None:

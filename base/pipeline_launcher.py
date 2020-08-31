@@ -195,6 +195,8 @@ def launch(**kwargs):
         group_by_series=res["generate_series_id"],
         store_images=False,
     )
+    pp.progress_callback = kwargs["progress_callback"]
+    pp.error_callback = kwargs["error_callback"]
     pp.ensure_root_output_folder()
     pp.accepted_files = image_list_
     pp.script = script
