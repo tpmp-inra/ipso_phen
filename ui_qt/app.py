@@ -1,9 +1,7 @@
 import csv
 import gc
 import glob
-import itertools
 import json
-from logging import CRITICAL
 import multiprocessing as mp
 import os
 import random
@@ -11,7 +9,7 @@ import string
 import sys
 import threading
 import traceback
-from collections import Counter, defaultdict, namedtuple
+from collections import defaultdict
 from datetime import datetime as dt
 from timeit import default_timer as timer
 from typing import Any
@@ -23,7 +21,6 @@ import webbrowser
 import cv2
 import numpy as np
 import pandas as pd
-import pkg_resources
 import psutil
 from psutil import Process
 from unidecode import unidecode
@@ -31,28 +28,20 @@ from unidecode import unidecode
 from PySide2 import QtWidgets
 from PySide2.QtCore import (
     QObject,
-    QRunnable,
     QSettings,
     Qt,
     QPoint,
-    QThread,
     QThreadPool,
-    QTimer,
-    QItemSelectionModel,
-    Slot,
     Signal,
 )
 from PySide2.QtGui import (
     QColor,
     QFont,
-    QFontMetrics,
     QIcon,
-    QImage,
     QPalette,
     QPixmap,
     QShowEvent,
     QTextCursor,
-    QTextOption,
 )
 from PySide2.QtWidgets import (
     QAction,
@@ -135,7 +124,6 @@ from ipapi.base.ipt_abstract import IptBase, IptParamHolder
 from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipapi.base.ipt_functional import call_ipt_code
 from ipapi.base.ipt_holder import IptHolder
-from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
 from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import ipapi.base.ip_common as ipc
 from ipapi.base.pipeline_launcher import save_state
@@ -143,9 +131,7 @@ from ipapi.tools import error_holder as eh
 
 from ipapi.class_pipelines.ip_factory import ipo_factory
 
-from ipapi.file_handlers.fh_base import file_handler_factory
-
-from ipapi.tools.regions import RectangleRegion, AbstractRegion
+from ipapi.tools.regions import RectangleRegion
 from ipapi.tools.comand_line_wrapper import ArgWrapper
 from ipapi.tools.common_functions import (
     force_directories,
@@ -155,7 +141,6 @@ from ipapi.tools.common_functions import (
     open_file,
 )
 import ipapi.tools.db_wrapper as dbw
-from ipapi.tools.error_holder import ErrorHolder
 from ipapi.base.pipeline_processor import PipelineProcessor
 
 from ui_qt import ui_consts

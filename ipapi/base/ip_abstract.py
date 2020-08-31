@@ -22,7 +22,6 @@ from ipapi.tools.regions import (
     AbstractRegion,
 )
 from ipapi.tools.common_functions import time_method, force_directories
-from ipapi.tools.error_holder import ErrorHolder
 from ipapi.tools.db_wrapper import DB_TYPE_MEMORY
 import sys
 
@@ -104,8 +103,6 @@ class AbstractImageProcessor(ImageWrapper):
         self.csv_data_holder.update_csv_value("date_time", self.date_time)
         self.csv_data_holder.update_csv_value("camera", self.camera)
         self.csv_data_holder.update_csv_value("view_option", self.view_option)
-
-        self.error_holder = ErrorHolder(self)
 
     def reset(self):
         if self.lock:
@@ -1702,7 +1699,7 @@ class AbstractImageProcessor(ImageWrapper):
                 cv2.drawContours(src_image, [cnt], 0, (0, 0, 255), 2)
                 cv2.drawContours(src_mask, [cnt], 0, (0, 0, 0), -1)
 
-        self.store_image(src_image, "img_wth_tagged_cnt")
+        self.store_image(src_image, "img_wth_tagged_cnt", force_store=True)
         self.store_image(src_mask, "mask_lnk_cnts")
 
         return src_mask
@@ -3384,8 +3381,6 @@ class AbstractImageProcessor(ImageWrapper):
         """
         res = False
         try:
-            self.error_holder.clear()
-
             if not self.check_source():
                 return
 
