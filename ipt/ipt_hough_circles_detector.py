@@ -13,6 +13,7 @@ import ipapi.base.ip_common as ipc
 from ipapi.base.ipt_abstract import IptBase
 from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
 from ipapi.tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
+from ipapi.tools.common_functions import force_directories
 
 
 class IptHoughCircles(IptBase):
@@ -206,6 +207,8 @@ class IptHoughCircles(IptBase):
                 )
                 + ".pkl",
             )
+            if self.get_value_of("enable_cache") == 1:
+                force_directories("stored_data")
             if (
                 (self.get_value_of("enable_cache") == 1)
                 and edge_only is False
