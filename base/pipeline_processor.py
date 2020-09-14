@@ -40,7 +40,9 @@ def _pipeline_worker(arg):
             src_image=file_path if isinstance(file_path, str) else file_path[0],
             silent_mode=True,
             target_module="",
-            additional_data={"luid": file_path[1]} if isinstance(file_path, tuple) else {},
+            additional_data={"luid": file_path[1]}
+            if isinstance(file_path, tuple)
+            else {},
             write_data=True,
             target_data_base=db,
             overwrite_data=options.overwrite,
@@ -58,21 +60,21 @@ def _pipeline_worker(arg):
 
 
 class PipelineProcessor:
-    """ Process image processing pipelines according to options
+    """Process image processing pipelines according to options
 
-        script_path: calling script path (use __file__), required = true
+    script_path: calling script path (use __file__), required = true
 
-        kwargs (only used if no command line is present):
-        - src_path: filename or folder, required=True
-        - dst_path: Output directory for image files, required=False.
-        - store_images: Store debug images while processing, required= False, default=False)
-        - write_images: Write/print debug images, required= False, default=False)
-        - write_result: Write output images, required= False, default=True)
-        - write_result_text: Write result text file, required= False, default=False
-        - write_mosaic: Write mosaic image in a separate folder
-        - overwrite: Overwrite already analysed files, required= False, default=False
-        - seed_output: Suffix output folder with date, required= False, default=False
-        - threshold_only: if true no analysis will be performed after threshold, required=False, default=False
+    kwargs (only used if no command line is present):
+    - src_path: filename or folder, required=True
+    - dst_path: Output directory for image files, required=False.
+    - store_images: Store debug images while processing, required= False, default=False)
+    - write_images: Write/print debug images, required= False, default=False)
+    - write_result: Write output images, required= False, default=True)
+    - write_result_text: Write result text file, required= False, default=False
+    - write_mosaic: Write mosaic image in a separate folder
+    - overwrite: Overwrite already analysed files, required= False, default=False
+    - seed_output: Suffix output folder with date, required= False, default=False
+    - threshold_only: if true no analysis will be performed after threshold, required=False, default=False
     """
 
     def __init__(self, **kwargs):
@@ -83,6 +85,7 @@ class PipelineProcessor:
         self._last_signature = ""
         self.progress_callback = None
         self.error_callback = None
+        self.progress_and_log_callback = None
         self.log_item = None
         self.script = None
         self._tqdm = None
@@ -105,15 +108,16 @@ class PipelineProcessor:
                 img_lst.add_folders(src_path)
             else:
                 img_lst.add_folder(src_path)
-            self.accepted_files = img_lst.filter(masks=self.masks, flat_list_out=flatten_list)
+            self.accepted_files = img_lst.filter(
+                masks=self.masks, flat_list_out=flatten_list
+            )
         else:
             self.accepted_files = []
 
         return len(self.accepted_files) > 0
 
     def ensure_root_output_folder(self):
-        """Creates output folder if does not exist
-        """
+        """Creates output folder if does not exist"""
 
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
@@ -134,7 +138,9 @@ class PipelineProcessor:
             msg_suffix = f" - {wrapper_res.message}" if wrapper_res.message else ""
             logger.info(f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
             if wrapper_res.result is not True:
-                self.report_error(logging.ERROR, f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
+                self.report_error(
+                    logging.ERROR, f"{msg_prefix}{wrapper_res.name}{msg_suffix}"
+                )
             if wrapper_res.result is not True:
                 self._process_errors += 1
         self.update_progress()
@@ -158,13 +164,26 @@ class PipelineProcessor:
         if self.error_callback is not None:
             self.error_callback(error_level, error_message)
 
+    def log_and_update_progress(
+        self, error_level: int, message: str, step: int, total: int
+    ):
+        if self.progress_and_log_callback is not None:
+            self.progress_and_log_callback(
+                error_level,
+                message,
+                step,
+                total,
+            )
+
     def close_progress(self):
         if self._tqdm is not None:
             self._tqdm.close()
 
     def group_by_series(self, time_delta: int):
         # Build dictionary
-        self.init_progress(total=len(self.accepted_files), desc="Building plants dictionaries")
+        self.init_progress(
+            total=len(self.accepted_files), desc="Building plants dictionaries"
+        )
         plants_ = defaultdict(list)
         for item in self.accepted_files:
             self.update_progress()
@@ -237,13 +256,17 @@ class PipelineProcessor:
         df = put_column_in_front(col_name="experiment", dataframe=df)
 
         sort_list = ["plant"] if "plant" in list(df.columns) else []
-        sort_list = sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+        sort_list = (
+            sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+        )
         if sort_list:
             df.sort_values(by=sort_list, axis=0, inplace=True, na_position="first")
 
         df.reset_index(drop=True, inplace=True)
 
-        df.to_csv(path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False)
+        df.to_csv(
+            path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False
+        )
         self.close_progress()
         logger.info("   --- Merged partial outputs ---<br>")
 
@@ -283,7 +306,9 @@ class PipelineProcessor:
                                 fl,
                                 self.options,
                                 self.script,
-                                None if target_database is None else target_database.copy(),
+                                None
+                                if target_database is None
+                                else target_database.copy(),
                             )
                             for fl in groups_list
                         ),
