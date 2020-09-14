@@ -98,7 +98,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def launch(**kwargs):
+def prepare(**kwargs):
     start = timer()
 
     # Script
@@ -195,6 +195,8 @@ def launch(**kwargs):
         group_by_series=res["generate_series_id"],
         store_images=False,
     )
+    pp.progress_callback = kwargs.get("progress_callback", None)
+    pp.error_callback = kwargs.get("error_callback", None)
     pp.ensure_root_output_folder()
     pp.accepted_files = image_list_
     pp.script = script
@@ -209,7 +211,8 @@ def launch(**kwargs):
             if pp.options.group_by_series:
                 files, luids = map(list, zip(*groups_to_process))
                 wrappers = [
-                    file_handler_factory(files[i]) for i in [luids.index(x) for x in set(luids)]
+                    file_handler_factory(files[i])
+                    for i in [luids.index(x) for x in set(luids)]
                 ]
             else:
                 wrappers = [file_handler_factory(f) for f in groups_to_process]

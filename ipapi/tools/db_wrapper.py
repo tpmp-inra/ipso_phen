@@ -5,7 +5,12 @@ from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
 import logging
 from tqdm import tqdm
-import win32api
+try:
+    import win32api
+except:
+    is_winapi = False
+else:
+    is_winapi = True
 
 
 import pandas as pd
@@ -39,7 +44,7 @@ g_storage_path = ""
 
 def get_mass_storage_path():
     global g_storage_path
-    if not g_storage_path:
+    if not g_storage_path and is_winapi:
         drives = {}
         for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
             try:
@@ -92,7 +97,7 @@ DB_INFO_LOCAL_SAMPLES = DbInfo(
     dbms="psql",
 )
 
-if get_mass_storage_path() is not None:
+if get_mass_storage_path():
     DB_MASS_STORAGE = [
         DbInfo(
             display_name=f"ms_{name}",

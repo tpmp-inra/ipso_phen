@@ -1,69 +1,34 @@
 # IPAPI
 
-Ipapi is an API containing all core classes, tools and image processing tools used by IPSO Phen.  
+IpAPI is an API containing all core classes, tools and image processing tools used by IPSO Phen.  
 It has its own repository so it can be used as a standalone library.
 
 ## Getting Started
 
-WIP
+This library is isued as a subtree for [IPSO Phen](https://github.com/tpmp-inra/ipso_phen) and [IPSO CLI](https://github.com/tpmp-inra/ipso_cli)
 
 ### Installing
 
-#### Clone method
-
-WIP
-
-### Pip method
-
-WIP
-
-## Running the tests
-
-WIP
-
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
+- Clone the repository at this address: https://github.com/tpmp-inra/ipapi
+- Move into the created folder
+- Create new environment: _python -m venv env_
+- Activate environment: _source ./env/bin/activate_
+- Clone environment: _pip install -r requirements.txt_
 
 ## Built With
 
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+- [OPENCV](https://pypi.org/project/opencv-python//) - Image processing library.
+- [Scikit image](https://scikit-image.org/) - Image processing library.
+- [Numpy](https://numpy.org/) - The fundamental package for scientific computing with Python
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Authors
 
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+- **Felicià MAVIANE** - [tr31zh](https://github.com/tr31zh)
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
-
+This project is licensed under the MIT License - see the [LICENSE](<[LICENSE.md](https://github.com/tpmp-inra/imapi/blob/master/LICENSE)>) file for details.
