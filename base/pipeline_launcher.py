@@ -98,7 +98,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def launch(**kwargs):
+def prepare(**kwargs):
     start = timer()
 
     # Script
@@ -211,7 +211,8 @@ def launch(**kwargs):
             if pp.options.group_by_series:
                 files, luids = map(list, zip(*groups_to_process))
                 wrappers = [
-                    file_handler_factory(files[i]) for i in [luids.index(x) for x in set(luids)]
+                    file_handler_factory(files[i])
+                    for i in [luids.index(x) for x in set(luids)]
                 ]
             else:
                 wrappers = [file_handler_factory(f) for f in groups_to_process]
