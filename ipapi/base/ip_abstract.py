@@ -27,15 +27,15 @@ import sys
 
 matplotlib.use("agg")
 
-KLC_FULLY_INSIDE = dict(val=0, color=(0, 255, 0))  # GREEN
-KLC_OVERLAPS = dict(val=1, color=(255, 0, 0))  # BLUE
-KLC_PROTECTED_DIST_OK = dict(val=2, color=(255, 125, 0))  # LIGHT BLUE
-KLC_PROTECTED_SIZE_OK = dict(val=3, color=(125, 255, 0))  # LIGHT GREEN
-KLC_OK_TOLERANCE = dict(val=4, color=(255, 255, 0))  # TALE
-KLC_NO_BIG_ENOUGH = dict(val=5, color=(255, 0, 255))  # FUCHSIA
-KLC_NO_CLOSE_ENOUGH = dict(val=6, color=(0, 255, 255))  # ORANGE
-KLC_OUTSIDE = dict(val=7, color=(0, 0, 255))  # RED
-KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE = dict(val=8, color=(125, 255, 125))  # LIGHTER GREEN
+KLC_FULLY_INSIDE = dict(val=0, color=ipc.C_GREEN)
+KLC_OVERLAPS = dict(val=1, color=ipc.C_BLUE)
+KLC_PROTECTED_DIST_OK = dict(val=2, color=ipc.C_LIGHT_STEEL_BLUE)
+KLC_PROTECTED_SIZE_OK = dict(val=3, color=ipc.C_CABIN_BLUE)
+KLC_OK_TOLERANCE = dict(val=4, color=ipc.C_TEAL)
+KLC_NO_BIG_ENOUGH = dict(val=5, color=ipc.C_FUCHSIA)
+KLC_NO_CLOSE_ENOUGH = dict(val=6, color=ipc.C_ORANGE)
+KLC_OUTSIDE = dict(val=7, color=ipc.C_RED)
+KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE = dict(val=8, color=ipc.C_LIME)
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +209,9 @@ class AbstractImageProcessor(ImageWrapper):
             return len(self.msp_images_holder)
 
     @staticmethod
-    def _draw_text(img: Any, text: str, fnt_color: tuple = ipc.C_RED, position: str = "BOTTOM"):
+    def _draw_text(
+        img: Any, text: str, fnt_color: tuple = ipc.C_RED, position: str = "BOTTOM"
+    ):
         """Draw text into img, always draws on bottom left portion of the image
 
         :param img: target image
@@ -353,7 +355,9 @@ class AbstractImageProcessor(ImageWrapper):
                 background_img = np.full(foreground_img.shape, ipc.C_SILVER, np.uint8)
             elif background == "bw":
                 background_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-                background_img = np.dstack((background_img, background_img, background_img))
+                background_img = np.dstack(
+                    (background_img, background_img, background_img)
+                )
             elif background == "source":
                 if len(src.shape) == 2 or (len(src.shape) == 3 and src.shape[2] == 1):
                     background_img = np.dstack((src, src, src))
@@ -364,7 +368,9 @@ class AbstractImageProcessor(ImageWrapper):
                     background_img = np.full(foreground_img.shape, background, np.uint8)
                 elif len(background) == 1:
                     background_img = np.full(
-                        foreground_img.shape, (background, background, background), np.uint8
+                        foreground_img.shape,
+                        (background, background, background),
+                        np.uint8,
                     )
                 else:
                     logger.error(f"Unknown color: {background}")
@@ -382,7 +388,9 @@ class AbstractImageProcessor(ImageWrapper):
                 background_img = cv2.cvtColor(background_img, cv2.COLOR_LAB2BGR)
             # Merge foreground & background
             foreground_img = cv2.bitwise_and(foreground_img, foreground_img, mask=mask_)
-            background_img = cv2.bitwise_and(background_img, background_img, mask=255 - mask_)
+            background_img = cv2.bitwise_and(
+                background_img, background_img, mask=255 - mask_
+            )
             img = cv2.bitwise_or(foreground_img, background_img)
             # Draw contour
             if (np.count_nonzero(mask_) > 0) and (
@@ -397,7 +405,9 @@ class AbstractImageProcessor(ImageWrapper):
             ):
                 if obj is None:
                     id_objects, obj_hierarchy = ipc.get_contours_and_hierarchy(
-                        mask=mask_, retrieve_mode=cv2.RETR_TREE, method=cv2.CHAIN_APPROX_NONE
+                        mask=mask_,
+                        retrieve_mode=cv2.RETR_TREE,
+                        method=cv2.CHAIN_APPROX_NONE,
                     )
                     obj, _ = self.object_composition(img, id_objects, obj_hierarchy)
                 if contour_thickness > 0:
@@ -419,8 +429,14 @@ class AbstractImageProcessor(ImageWrapper):
                     (x, y), radius = cv2.minEnclosingCircle(obj)
                     center = (int(x), int(y))
                     radius = int(radius)
-                    cv2.circle(img, center, radius, ipc.C_YELLOW, enclosing_circle_thickness)
-                if (centroid_width > 0) or (height_thickness > 0) or (width_thickness > 0):
+                    cv2.circle(
+                        img, center, radius, ipc.C_YELLOW, enclosing_circle_thickness
+                    )
+                if (
+                    (centroid_width > 0)
+                    or (height_thickness > 0)
+                    or (width_thickness > 0)
+                ):
                     moments = cv2.moments(mask_, binaryImage=True)
                     if moments["m00"] != 0:
                         cmx, cmy = (
@@ -690,7 +706,9 @@ class AbstractImageProcessor(ImageWrapper):
         if (self.store_mosaic.lower() != "none") or (self.write_mosaic.lower() != "none"):
             if self._mosaic_data is None:
                 if self.store_mosaic.lower() == "debug":
-                    self._mosaic_data = np.array(["source", "img_wth_tagged_cnt", "shapes"])
+                    self._mosaic_data = np.array(
+                        ["source", "img_wth_tagged_cnt", "shapes"]
+                    )
                 elif self.store_mosaic.lower() == "result":
                     img_lst = ["!n", "!n", "!n", "!n"]
                     available_images = [dic["name"] for dic in self.image_list]
@@ -746,7 +764,9 @@ class AbstractImageProcessor(ImageWrapper):
 
         self.print_mosaic()
 
-    def avg_brightness_contrast(self, img: Any = None, mode: str = "std", mask=None) -> tuple:
+    def avg_brightness_contrast(
+        self, img: Any = None, mode: str = "std", mask=None
+    ) -> tuple:
         """Calculates average brightness using one of 3 available methods
 
         * std='standard, objective'
@@ -915,7 +935,9 @@ class AbstractImageProcessor(ImageWrapper):
                     key="rotated_bounding_rectangle_height", value=hl, force_pair=True
                 )
                 self.csv_data_holder.update_csv_value(
-                    key="rotated_bounding_rectangle_rotation", value=r + 180, force_pair=True
+                    key="rotated_bounding_rectangle_rotation",
+                    value=r + 180,
+                    force_pair=True,
                 )
                 self.csv_data_holder.data_list.pop("rotated_bounding_rectangle", None)
                 bounding_rec_thickness = 4
@@ -942,12 +964,24 @@ class AbstractImageProcessor(ImageWrapper):
             # Some new f(r)iends
             if self.csv_data_holder.has_csv_key("width_data"):
                 mask_data = ipc.MaskData(mask)
-                _, _, _, min_, max_, avg_, std_ = mask_data.width_quantile_stats(1, 0, tag=0)
-                self.csv_data_holder.update_csv_value("shape_width", width, force_pair=True)
-                self.csv_data_holder.update_csv_value("shape_width_min", min_, force_pair=True)
-                self.csv_data_holder.update_csv_value("shape_width_max", max_, force_pair=True)
-                self.csv_data_holder.update_csv_value("shape_width_avg", avg_, force_pair=True)
-                self.csv_data_holder.update_csv_value("shape_width_std", std_, force_pair=True)
+                _, _, _, min_, max_, avg_, std_ = mask_data.width_quantile_stats(
+                    1, 0, tag=0
+                )
+                self.csv_data_holder.update_csv_value(
+                    "shape_width", width, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "shape_width_min", min_, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "shape_width_max", max_, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "shape_width_avg", avg_, force_pair=True
+                )
+                self.csv_data_holder.update_csv_value(
+                    "shape_width_std", std_, force_pair=True
+                )
                 self.csv_data_holder.data_list.pop("width_data", None)
 
             if self.store_images:
@@ -1078,7 +1112,9 @@ class AbstractImageProcessor(ImageWrapper):
                             )
                             qtl_img = cv2.bitwise_or(
                                 qtl_img,
-                                np.dstack((np.zeros_like(mask), p_qt_msk, np.zeros_like(mask))),
+                                np.dstack(
+                                    (np.zeros_like(mask), p_qt_msk, np.zeros_like(mask))
+                                ),
                             )
                         self.store_image(qtl_img, f"quantiles_width_{n}")
 
@@ -1090,7 +1126,11 @@ class AbstractImageProcessor(ImageWrapper):
 
     @time_method
     def analyze_bound(
-        self, img: Any, mask: Any, line_position: int = -1, pseudo_color_channel: str = " v"
+        self,
+        img: Any,
+        mask: Any,
+        line_position: int = -1,
+        pseudo_color_channel: str = " v",
     ):
         """User-input boundary line tool
         Inputs:
@@ -1193,7 +1233,11 @@ class AbstractImageProcessor(ImageWrapper):
                         width_thickness=4,
                     )
                     cv2.line(
-                        p_img, (0, line_position), (self.width, line_position), ipc.C_RED, 3
+                        p_img,
+                        (0, line_position),
+                        (self.width, line_position),
+                        ipc.C_RED,
+                        3,
                     )
                     self.store_image(p_img, "bounds")
             except Exception as e:
@@ -1251,7 +1295,9 @@ class AbstractImageProcessor(ImageWrapper):
                 if self.store_images:
                     calc_img = cv2.bitwise_and(c, c, mask=mask)
                     calc_img = (
-                        (calc_img - calc_img.min()) / (calc_img.max() - calc_img.min()) * 255
+                        (calc_img - calc_img.min())
+                        / (calc_img.max() - calc_img.min())
+                        * 255
                     ).astype(np.uint8)
                     pseudo = self.draw_image(
                         src_image=img,
@@ -1266,8 +1312,12 @@ class AbstractImageProcessor(ImageWrapper):
                     c.reshape(c.shape[1] * c.shape[0]),
                     mask=mask.reshape(mask.shape[1] * mask.shape[0]),
                 )
-                self.csv_data_holder.update_csv_value("chlorophyll_mean", tmp_tuple[0][0][0])
-                self.csv_data_holder.update_csv_value("chlorophyll_std_dev", tmp_tuple[1][0][0])
+                self.csv_data_holder.update_csv_value(
+                    "chlorophyll_mean", tmp_tuple[0][0][0]
+                )
+                self.csv_data_holder.update_csv_value(
+                    "chlorophyll_std_dev", tmp_tuple[1][0][0]
+                )
             except Exception as e:
                 return False
             else:
@@ -1530,9 +1580,9 @@ class AbstractImageProcessor(ImageWrapper):
                 else:
                     res_ = KLC_NO_CLOSE_ENOUGH
             elif ok_dist:
-                if self.rois_intersects("safe", test_cnt) and cv2.contourArea(test_cnt) > pow(
-                    dilation_iter * 2, 2
-                ):
+                if self.rois_intersects("safe", test_cnt) and cv2.contourArea(
+                    test_cnt
+                ) > pow(dilation_iter * 2, 2):
                     return KLC_PROTECTED_DIST_OK
                 else:
                     res_ = KLC_NO_BIG_ENOUGH
@@ -1542,13 +1592,17 @@ class AbstractImageProcessor(ImageWrapper):
                 res_ = KLC_OUTSIDE
 
             # Check area override limit
-            if (area_override_size > 0) and (cv2.contourArea(test_cnt) > area_override_size):
+            if (area_override_size > 0) and (
+                cv2.contourArea(test_cnt) > area_override_size
+            ):
                 return KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
             else:
                 return res_
 
         # Check hull intersection
-        if (dilation_iter < 0) and (cv2.contourArea(cmp_hull) > cv2.contourArea(master_hull)):
+        if (dilation_iter < 0) and (
+            cv2.contourArea(cmp_hull) > cv2.contourArea(master_hull)
+        ):
             cmp_img = np.full(mask.shape, 0, np.uint8)
             cv2.drawContours(cmp_img, [cmp_hull], -1, 255, -1)
             master_img = np.full(mask.shape, 0, np.uint8)
@@ -1607,7 +1661,9 @@ class AbstractImageProcessor(ImageWrapper):
         src_image = kwargs.get("src_image", self.current_image)
         src_mask = kwargs.get("src_mask", self.mask)
         if (src_image is None) or (src_mask is None):
-            logger.error(f'Source & mask are mandatory for keep linked contours "{str(self)}')
+            logger.error(
+                f'Source & mask are mandatory for keep linked contours "{str(self)}'
+            )
             return None
         dilation_iter = kwargs.get("dilation_iter", 0)
         roi = kwargs.get("roi", self.get_roi("main_roi"))
@@ -1626,7 +1682,8 @@ class AbstractImageProcessor(ImageWrapper):
             mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
         )
         self.store_image(
-            cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
+            cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8),
+            "img_dilated_cnt",
         )
 
         self.store_image(
@@ -1725,7 +1782,9 @@ class AbstractImageProcessor(ImageWrapper):
         src_image = kwargs.get("src_image", self.current_image)
         src_mask = kwargs.get("src_mask", self.mask)
         if (src_image is None) or (src_mask is None):
-            logger.error(f'Source & mask are mandatory for keep linked contours "{str(self)}',)
+            logger.error(
+                f'Source & mask are mandatory for keep linked contours "{str(self)}',
+            )
             return None
         dilation_iter = kwargs.get("dilation_iter", 0)
         tolerance_distance = kwargs.get("tolerance_distance", 0)
@@ -1761,7 +1820,13 @@ class AbstractImageProcessor(ImageWrapper):
                     y += h // 2
                     cv2.drawContours(small_img, [cnt], -1, ipc.C_RED, -1)
                     cv2.putText(
-                        small_img, f"Area: {area_}", (x, y), fnt[0], fnt[1], ipc.C_FUCHSIA, 2
+                        small_img,
+                        f"Area: {area_}",
+                        (x, y),
+                        fnt[0],
+                        fnt[1],
+                        ipc.C_FUCHSIA,
+                        2,
                     )
                 else:
                     cv2.drawContours(small_img, [cnt], -1, ipc.C_GREEN, -1)
@@ -1778,7 +1843,8 @@ class AbstractImageProcessor(ImageWrapper):
             mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
         )
         self.store_image(
-            cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8), "img_dilated_cnt"
+            cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8),
+            "img_dilated_cnt",
         )
 
         img_cnt = cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8)
@@ -1870,6 +1936,9 @@ class AbstractImageProcessor(ImageWrapper):
             else:
                 unknown_hulls.append(hull)
 
+        safe_roi = self.get_roi("safe", exists_only=True)
+        if safe_roi is not None:
+            hull_img = safe_roi.draw_to(dst_img=hull_img, line_width=self.width // 200)
         self.store_image(hull_img, "src_img_with_cnt_as_hull_init")
 
         hull_img = src_image.copy()
@@ -1936,7 +2005,9 @@ class AbstractImageProcessor(ImageWrapper):
             area_ = cv2.contourArea(gh)
             cv2.drawContours(hull_img, [gh], -1, KLC_FULLY_INSIDE["color"], 8)
             if area_ > 0:
-                cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 0), 2)
+                cv2.putText(
+                    hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 0), 2
+                )
         for uh in unknown_hulls:
             x, y, w, h = cv2.boundingRect(uh)
             x += w // 2 - 10
@@ -1944,7 +2015,9 @@ class AbstractImageProcessor(ImageWrapper):
             area_ = cv2.contourArea(uh)
             cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE["color"], 8)
             if area_ > 10:
-                cv2.putText(hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2)
+                cv2.putText(
+                    hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2
+                )
         self.store_image(
             image=hull_img, text="src_img_with_cnt_after_agg_iter_last", force_store=True
         )
@@ -2011,10 +2084,22 @@ class AbstractImageProcessor(ImageWrapper):
             ori_img = np.copy(img)
             for i, _ in enumerate(id_objects):
                 cv2.drawContours(
-                    ori_img, id_objects, i, (255, 0, 0), -1, lineType=8, hierarchy=obj_hierarchy
+                    ori_img,
+                    id_objects,
+                    i,
+                    (255, 0, 0),
+                    -1,
+                    lineType=8,
+                    hierarchy=obj_hierarchy,
                 )
                 cv2.drawContours(
-                    ori_img, id_objects, i, (0, 0, 255), 2, lineType=8, hierarchy=obj_hierarchy
+                    ori_img,
+                    id_objects,
+                    i,
+                    (0, 0, 255),
+                    2,
+                    lineType=8,
+                    hierarchy=obj_hierarchy,
                 )
             self.store_image(ori_img, "masked_whole_cnts")
 
@@ -2238,7 +2323,9 @@ class AbstractImageProcessor(ImageWrapper):
         )
         if dbg_text:
             self.store_image(
-                result, "{}_dilate_{}_{}_times".format(dbg_text, kernel_size, proc_times), rois
+                result,
+                "{}_dilate_{}_{}_times".format(dbg_text, kernel_size, proc_times),
+                rois,
             )
         return result
 
@@ -2273,7 +2360,9 @@ class AbstractImageProcessor(ImageWrapper):
         )
         if dbg_text:
             self.store_image(
-                result, "{}_erode_{}_{}_times".format(dbg_text, kernel_size, proc_times), rois
+                result,
+                "{}_erode_{}_{}_times".format(dbg_text, kernel_size, proc_times),
+                rois,
             )
         return result
 
@@ -2299,7 +2388,9 @@ class AbstractImageProcessor(ImageWrapper):
             median_filter_size {int} -- median filter size (default: {0})
         """
 
-        for color_space, channel, _ in ipc.create_channel_generator(self.available_channels):
+        for color_space, channel, _ in ipc.create_channel_generator(
+            self.available_channels
+        ):
             fs = median_filter_size
             while True:
                 if test_normalize:
@@ -2350,7 +2441,9 @@ class AbstractImageProcessor(ImageWrapper):
                         self.add_rect_roi(42, 70, 6, 2432, "roi_bar_left", "erode")
                         self.add_rect_roi(1894, 46, 18, 2372, "roi_bar_right", "erode")
                         self.add_rect_roi(236, 1416, 42, 1876, "safe_left_top", "safe")
-                        self.add_rect_roi(1550, 256, 372, 1528, "safe_right_middle", "safe")
+                        self.add_rect_roi(
+                            1550, 256, 372, 1528, "safe_right_middle", "safe"
+                        )
                     else:
                         self.add_rect_roi(28, 1998, 756, 1290, "main_roi", "keep")
                         self.add_rect_roi(1688, 338, 20, 290, "roi_cable", "erode")
@@ -2359,7 +2452,9 @@ class AbstractImageProcessor(ImageWrapper):
                         self.add_rect_roi(90, 46, 688, 46, "roi_bolt_left", "erode")
                         self.add_rect_roi(1894, 46, 686, 46, "roi_bolt_right", "erode")
                         self.add_rect_roi(236, 1416, 42, 1876, "safe_left_top", "safe")
-                        self.add_rect_roi(1550, 256, 372, 1528, "safe_right_middle", "safe")
+                        self.add_rect_roi(
+                            1550, 256, 372, 1528, "safe_right_middle", "safe"
+                        )
                 elif self.is_blue_background:
                     self.add_rect_roi(28, 1998, 20, 1290, "main_roi", "keep")
                     self.add_rect_roi(1688, 338, 20, 290, "roi_cable", "erode")
@@ -2410,7 +2505,11 @@ class AbstractImageProcessor(ImageWrapper):
         ]
 
     def apply_mask_data_dict(
-        self, source_image, mask_data: dict, store_masks: bool = True, dbg_str_prefix: str = ""
+        self,
+        source_image,
+        mask_data: dict,
+        store_masks: bool = True,
+        dbg_str_prefix: str = "",
     ):
         """DEPRECATED Build mask from dict built in prepare_masks_data_dict
 
@@ -2574,7 +2673,9 @@ class AbstractImageProcessor(ImageWrapper):
         for roi in roi_list:
             src_mask = roi.delete(src_mask)
         if dbg_str:
-            self.store_image(image=src_mask, text=dbg_str, rois=roi_list if dbg_str else ())
+            self.store_image(
+                image=src_mask, text=dbg_str, rois=roi_list if dbg_str else ()
+            )
 
         return src_mask
 
@@ -3013,7 +3114,9 @@ class AbstractImageProcessor(ImageWrapper):
             c = self.get_channel(src_img, channel, "", [], normalize, median_filter_size)
         else:
             dbg_str = "source"
-            if len(src_img.shape) == 2 or (len(src_img.shape) == 3 and src_img.shape[2] == 1):
+            if len(src_img.shape) == 2 or (
+                len(src_img.shape) == 3 and src_img.shape[2] == 1
+            ):
                 c = src_img.copy()
             else:
                 logger.error("If no channel is selected source must be grayscale image",)
@@ -3185,9 +3288,14 @@ class AbstractImageProcessor(ImageWrapper):
                 img = wrapper.current_image
             self.store_image(img, wrapper.view_option)
 
-        return mosaic_image_list, self.build_mosaic(self.current_image.shape, mosaic_image_list)
+        return (
+            mosaic_image_list,
+            self.build_mosaic(self.current_image.shape, mosaic_image_list),
+        )
 
-    def build_channels_mosaic(self, src_img, rois=(), normalize=False, median_filter_size=0):
+    def build_channels_mosaic(
+        self, src_img, rois=(), normalize=False, median_filter_size=0
+    ):
         """Builds mosaic of channels using parameters
 
         :param src_img:
@@ -3209,7 +3317,9 @@ class AbstractImageProcessor(ImageWrapper):
                 mosaic_data_[color_space] = [img_name]
             else:
                 mosaic_data_[color_space].append(img_name)
-        mosaic_image_list = np.array([mosaic_data_[cs] for cs in ipc.CHANNELS_FLAT.keys()])
+        mosaic_image_list = np.array(
+            [mosaic_data_[cs] for cs in ipc.CHANNELS_FLAT.keys()]
+        )
         return mosaic_image_list, self.build_mosaic(src_img.shape, mosaic_image_list)
 
     def build_mosaic(
@@ -3362,7 +3472,9 @@ class AbstractImageProcessor(ImageWrapper):
         Returns:
             dict -- dictionnary containing analysis options
         """
-        pseudo_color_channel = kwargs.get("pseudo_color_channel", "l" if self.is_msp else "v")
+        pseudo_color_channel = kwargs.get(
+            "pseudo_color_channel", "l" if self.is_msp else "v"
+        )
         boundary_position = kwargs.get("boundary_position", -1)
 
         return dict(
@@ -3519,7 +3631,12 @@ class AbstractImageProcessor(ImageWrapper):
             return EmptyRegion
         else:
             return RectangleRegion(
-                left=0, width=self.width, top=0, height=self.height, name="main_roi", tag="keep"
+                left=0,
+                width=self.width,
+                top=0,
+                height=self.height,
+                name="main_roi",
+                tag="keep",
             )
 
     def get_rois(self, tags: set = None):
@@ -3564,7 +3681,9 @@ class AbstractImageProcessor(ImageWrapper):
             tag {str} -- ROI associated tag (default: {''})
             color {tuple} -- ROI print color (default: {None})
         """
-        circle = CircleRegion(cx=left, cy=top, radius=radius, name=name, tag=tag, color=color)
+        circle = CircleRegion(
+            cx=left, cy=top, radius=radius, name=name, tag=tag, color=color
+        )
         self._rois_list.append(circle)
         return circle
 
@@ -3754,7 +3873,10 @@ class AbstractImageProcessor(ImageWrapper):
     def available_channels_as_tuple(self):
         if self.is_msp:
             res = [
-                ci for ci in ipc.create_channel_generator(include_msp=True, include_chla=True)
+                ci
+                for ci in ipc.create_channel_generator(
+                    include_msp=True, include_chla=True
+                )
             ]
         elif self.is_vis:
             res = [ci for ci in ipc.create_channel_generator(include_chla=True)]
