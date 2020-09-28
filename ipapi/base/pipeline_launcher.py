@@ -98,7 +98,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def prepare(**kwargs):
+def launch(**kwargs):
     start = timer()
 
     # Script
@@ -145,8 +145,6 @@ def prepare(**kwargs):
         output_folder_ = os.path.join(output_folder_, res["sub_folder_name"], "")
     else:
         output_folder_ = os.path.join(output_folder_, "")
-    global g_log_file
-    g_log_file = os.path.join(output_folder_, "log.txt")
     force_directories(output_folder_)
     csv_file_name = res.get("csv_file_name", None)
     if not csv_file_name:
