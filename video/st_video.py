@@ -24,7 +24,7 @@ from ipapi.tools.common_functions import force_directories, make_safe_name
 
 import ipapi.tools.db_wrapper as dbw
 from ipapi.base.ip_abstract import AbstractImageProcessor
-from ipapi.base.ipt_functional import call_ipt
+from ipapi.base.ipt_functional import chain_ipt
 from ipapi.tools.common_functions import print_progress_bar
 
 # import ptvsd
@@ -39,12 +39,18 @@ _DATE_FORMAT = "%Y/%m/%d"
 
 def build_image(wrapper):
     # return wrapper.current_image
-    return call_ipt(
+    return chain_ipt(
         ipt_id="IptLinearTransformation",
-        source=wrapper,
+        source=chain_ipt(
+            ipt_id="IptSimpleWhiteBalance",
+            source=wrapper,
+            return_type="result",
+            min=0,
+            max=3,
+        ),
         method="alpha_beta_target",
-        target_brightness=65,
-    )
+        target_brightness=170,
+    ).current_image
 
 
 def build_single_plant_video(arg):
@@ -232,7 +238,11 @@ def build_sbs_video():
 
 
 def query_current_database(
-    command: str, table: str = "snapshots", columns: str = "*", additional: str = "", **kwargs,
+    command: str,
+    table: str = "snapshots",
+    columns: str = "*",
+    additional: str = "",
+    **kwargs,
 ):
     return current_database.query(
         command=command, table=table, columns=columns, additional=additional, **kwargs
@@ -267,7 +277,8 @@ video_width = int(video_height * eval(video_aspect_ratio))
 
 db_name = st.selectbox(
     label="Select source experiment",
-    options=["Please make your choice..."] + [db.display_name for db in dbw.DB_MASS_STORAGE],
+    options=["Please make your choice..."]
+    + [db.display_name for db in dbw.DB_MASS_STORAGE],
 )
 
 job_choice = st.selectbox(
@@ -280,7 +291,9 @@ if job_choice != "Please make your choice..." and db_name != "Please make your c
     current_progress = st.progress(0)
     for db in dbw.DB_MASS_STORAGE:
         if db.display_name == db_name:
-            current_database = dbw.db_info_to_database(db, progress_call_back=progress_update,)
+            current_database = dbw.db_info_to_database(
+                db, progress_call_back=progress_update,
+            )
             break
     current_progress.progress(1 / 1)
     st.write("Database OK")
@@ -321,7 +334,9 @@ if job_choice != "Please make your choice..." and db_name != "Please make your c
                 chunky_size_ = 1
                 for i, _ in enumerate(
                     pool.imap_unordered(
-                        build_single_plant_video, (plant_ for plant_ in plants), chunky_size_
+                        build_single_plant_video,
+                        (plant_ for plant_ in plants),
+                        chunky_size_,
                     )
                 ):
                     current_progress.progress((i + 1) / total_)
@@ -338,7 +353,9 @@ if job_choice != "Please make your choice..." and db_name != "Please make your c
         if st.button("Build video"):
             force_directories(dst_folder)
             num_cores = min([MAX_CORES, num_cores])
-            st.write(f"Building sbs video for  {','.join(plants)} using {num_cores} cores")
+            st.write(
+                f"Building sbs video for  {','.join(plants)} using {num_cores} cores"
+            )
 
             build_sbs_video()
 
