@@ -85,7 +85,7 @@ class PipelineProcessor:
         self._last_signature = ""
         self.progress_callback = None
         self.error_callback = None
-        self.progress_and_log_callback = None
+        self.abort_callback = None
         self.log_item = None
         self.script = None
         self._tqdm = None
@@ -164,20 +164,15 @@ class PipelineProcessor:
         if self.error_callback is not None:
             self.error_callback(error_level, error_message)
 
-    def log_and_update_progress(
-        self, error_level: int, message: str, step: int, total: int
-    ):
-        if self.progress_and_log_callback is not None:
-            self.progress_and_log_callback(
-                error_level,
-                message,
-                step,
-                total,
-            )
-
     def close_progress(self):
         if self._tqdm is not None:
             self._tqdm.close()
+
+    def check_abort(self):
+        if self.abort_callback is None:
+            return False
+        else:
+            return self.abort_callback()
 
     def group_by_series(self, time_delta: int):
         # Build dictionary
@@ -278,7 +273,7 @@ class PipelineProcessor:
         else:
             return self.accepted_files[:]
 
-    def process_groups(self, groups_list, target_database):
+    def process_groups(self, groups_list, target_database=None):
         # Build images and data
         if groups_list:
             force_directories(self.options.partials_path)
@@ -315,6 +310,9 @@ class PipelineProcessor:
                         chunky_size_,
                     )
                 ):
+                    if self.check_abort():
+                        logger.info("User stopped process")
+                        break
                     self.handle_result(res, i, len(groups_list))
             else:
                 for i, fl in enumerate(groups_list):
@@ -326,6 +324,9 @@ class PipelineProcessor:
                             None if target_database is None else target_database.copy(),
                         ]
                     )
+                    if self.check_abort():
+                        logger.info("User stopped process")
+                        break
                     self.handle_result(res, i, len(groups_list))
             self.close_progress()
             logger.info("   --- Files processed ---")
