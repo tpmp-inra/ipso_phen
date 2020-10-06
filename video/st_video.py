@@ -24,7 +24,7 @@ from ipapi.tools.common_functions import force_directories, make_safe_name
 
 import ipapi.tools.db_wrapper as dbw
 from ipapi.base.ip_abstract import AbstractImageProcessor
-from ipapi.base.ipt_functional import chain_ipt
+from ipapi.base.ipt_functional import chain_ipt, call_ipt
 from ipapi.tools.common_functions import print_progress_bar
 
 # import ptvsd
@@ -37,8 +37,21 @@ MAX_CORES = mp.cpu_count()
 _DATE_FORMAT = "%Y/%m/%d"
 
 
-def build_image(wrapper):
-    # return wrapper.current_image
+def build_pass_through(wrapper):
+    return wrapper.current_image
+
+
+def build_dla(wrapper):
+    return call_ipt(
+        ipt_id="IptLinearTransformation",
+        source=wrapper,
+        return_type="result",
+        method="alpha_beta_target",
+        target_brightness=200,
+    ).current_image
+
+
+def build_tomato_gen(wrapper):
     return chain_ipt(
         ipt_id="IptLinearTransformation",
         source=chain_ipt(
@@ -53,6 +66,31 @@ def build_image(wrapper):
     ).current_image
 
 
+def build_atsys(wrapper):
+    return chain_ipt(
+        ipt_id="IptLinearTransformation",
+        source=chain_ipt(
+            ipt_id="IptSimpleWhiteBalance",
+            source=chain_ipt(
+                ipt_id="IptTemperatureTint",
+                source=wrapper,
+                return_type="result",
+                clip_method="rescale",
+                temperature_adjustment=-10,
+                tint_adjustment=10,
+            ),
+            return_type="result",
+        ),
+        return_type="result",
+        method="alpha_beta_target",
+        target_brightness=65,
+    ).current_image
+
+
+def build_image(wrapper):
+    return build_atsys(wrapper=wrapper)
+
+
 def build_single_plant_video(arg):
     plant = arg
 
@@ -64,7 +102,7 @@ def build_single_plant_video(arg):
         command="SELECT",
         columns="FilePath",
         additional="ORDER BY date_time ASC",
-        # date=dict(operator="IN", values=dates),
+        date=dict(operator="IN", values=dates),
         experiment=experiment,
         plant=plant,
         view_option=view_options[0],
@@ -152,13 +190,13 @@ def build_single_plant_video(arg):
 def build_sbs_video():
     p_output = os.path.join(dst_folder, f'output_{"_".join(plants)}_.mp4')
     if os.path.isfile(p_output):
-        return f"Plant {plant} already handled"
+        return f"Plants {'_'.join(plants)} already handled"
 
     ret = current_database.query(
         command="SELECT",
         columns="FilePath",
         additional="ORDER BY date_time ASC",
-        # date=dict(operator="IN", values=dates),
+        date=dict(operator="IN", values=dates),
         experiment=experiment,
         plant=plants[0],
         view_option=view_option,

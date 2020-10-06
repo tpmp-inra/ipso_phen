@@ -17,6 +17,8 @@ import shutil
 import subprocess
 import logging
 import webbrowser
+from typing import Union, Any
+from enum import Enum, unique
 
 import cv2
 import numpy as np
@@ -55,7 +57,6 @@ from PySide2.QtWidgets import (
     QLineEdit,
     QMenu,
     QMessageBox,
-    QPlainTextEdit,
     QProgressBar,
     QPushButton,
     QSlider,
@@ -65,18 +66,11 @@ from PySide2.QtWidgets import (
     QTableWidget,
     QTableWidgetItem,
     QTextBrowser,
-    QGridLayout,
-    QSplitter,
     QToolButton,
     QToolTip,
-    QTreeWidgetItem,
-    QTreeWidgetItemIterator,
     QVBoxLayout,
     QWidget,
     QListWidgetItem,
-    QTextEdit,
-    QTableView,
-    QApplication,
 )
 
 
@@ -168,14 +162,20 @@ _TIME_FORMAT = "%H:%M:%S"
 _TAB_TOOLS = "tab_tools"
 _TAB_PIPELINE_V2 = "tb_pipeline_v2"
 
-_ACTIVE_SCRIPT_TAG = "Active script"
-
-_IMAGE_LISTS_PATH = "./saved_data/image_lists.json"
-
 _PRAGMA_NAME = "IPSO Phen"
 _PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json)
 ;;JSON compatible pipeline (*.json)"""
 __version__ = "0.6.547b"
+
+
+@unique
+class DbType(Enum):
+    LOCAL_DB = "Local PSQL databases"
+    MASS_DB = "Mass storage databases"
+    PHENOSERRE = "Phenoserre databases"
+    PHENOPSIS = "Phenopsis databases"
+    CUSTOM_DB = "Custom databases"
+
 
 logger = logging.getLogger(__name__)
 
@@ -309,7 +309,9 @@ class NewToolDialog(QDialog):
         # Update file name
         self.ui.le_file_name.setText(file_name)
         # Update class name
-        self.ui.le_class_name.setText("".join(x.capitalize() for x in base_name.split("_")))
+        self.ui.le_class_name.setText(
+            "".join(x.capitalize() for x in base_name.split("_"))
+        )
 
     def update_save_state(self, target_file_path: str):
         # Update icon
@@ -496,7 +498,9 @@ class NewToolDialog(QDialog):
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def description(self):\n")
-            desc = self.ui.te_description.toPlainText().replace("'", " ").replace('"', " ")
+            desc = (
+                self.ui.te_description.toPlainText().replace("'", " ").replace('"', " ")
+            )
             f.write(f"{spaces}    return ''''{desc}'''\n")
 
         subprocess.run(args=("black", file_path))
@@ -574,16 +578,18 @@ class FrmSelectFolder(QDialog):
 
     def on_cb_dbms_index_changed(self, idx):
         self.ui.edt_db_name.setEnabled(idx != 0)
-        self.db_file_name = self.folder_path
+        self.db_qualified_name = self.folder_path
 
     def on_db_name_changed(self, text):
         self._db_name_changed = True
-        self.db_file_name = text
+        self.db_qualified_name = text
 
     def on_folder_selected(self):
         self.folder_path = str(
             QFileDialog.getExistingDirectory(
-                parent=self, caption="Select folder containing images", dir=self.folder_path,
+                parent=self,
+                caption="Select folder containing images",
+                dir=self.folder_path,
             )
         )
 
@@ -605,12 +611,12 @@ class FrmSelectFolder(QDialog):
         self.ui.edt_fld_name.setText(value)
         if self.ui.edt_db_name.isEnabled():
             if not self._db_name_changed:
-                self.db_file_name = self.folder_path
+                self.db_qualified_name = self.folder_path
         else:
-            self.db_file_name = ""
+            self.db_qualified_name = ""
 
     @property
-    def db_file_name(self):
+    def db_qualified_name(self):
         return self.ui.edt_db_name.text()
 
     @property
@@ -625,8 +631,8 @@ class FrmSelectFolder(QDialog):
         else:
             return "unknown dbms"
 
-    @db_file_name.setter
-    def db_file_name(self, value):
+    @db_qualified_name.setter
+    def db_qualified_name(self, value):
         if not self._db_name_changed:
             if self.dbms == "none":
                 self.ui.edt_db_name.setText("NA")
@@ -687,10 +693,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 os.path.expanduser("~"), "Documents", root_ipso_folder, "image_lists", ""
             ),
             "pp_output": os.path.join(
-                os.path.expanduser("~"), "Documents", root_ipso_folder, "pipeline_output", ""
+                os.path.expanduser("~"),
+                "Documents",
+                root_ipso_folder,
+                "pipeline_output",
+                "",
             ),
             "pp_state": os.path.join(
-                os.path.expanduser("~"), "Documents", root_ipso_folder, "pipeline_state", ""
+                os.path.expanduser("~"),
+                "Documents",
+                root_ipso_folder,
+                "pipeline_state",
+                "",
             ),
             "db_image_folder": os.path.join(os.path.expanduser("~"), "Documents", ""),
         }
@@ -715,7 +729,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             "saved_data": "./saved_data/",
             "stored_data": "./stored_data/",
             "sql_db": os.path.join(
-                os.path.expanduser("~"), "Documents", root_ipso_folder, "sqlite_databases", ""
+                os.path.expanduser("~"),
+                "Documents",
+                root_ipso_folder,
+                "sqlite_databases",
+                "",
             ),
         }
         force_directories(self.static_folders["image_cache"])
@@ -778,7 +796,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._status_label = QLabel("")
 
         self.act_reset_db = QAction("Reset current database", self)
-        self.act_reset_db.setToolTip("Drops rebuilds current database (Only local databases)")
+        self.act_reset_db.setToolTip(
+            "Drops rebuilds current database (Only local databases)"
+        )
 
         # Start splash screen
         if not ui_consts.DISABLE_SPLASH_SCREEN:
@@ -915,7 +935,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     op_lst = [
                         op
                         for op in self._ip_tools_holder.list_by_use_case(use_case)
-                        if bool(set(op.use_case).intersection(set(ipc.tool_groups_pipeline)))
+                        if bool(
+                            set(op.use_case).intersection(set(ipc.tool_groups_pipeline))
+                        )
                     ]
                     if op_lst:
                         use_case_root = tool_menu.addMenu(use_case)
@@ -941,6 +963,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         "Threshold",
                         "Mask cleanup",
                         "Feature extraction",
+                        "Visualization helper",
                     ],
                     [
                         """Default exposure and white balance fixing tools\n
@@ -953,6 +976,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             Added tools need to be configured""",
                         """Add tools to extract features from the image, some may need a mask\n
                             Added tools need to be configured""",
+                        """Add tools to help visualize the pipeline output""",
                     ],
                 ):
                     act = QAction(name, self)
@@ -968,7 +992,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         # Build database selectors
         self.current_database = None
         self.distant_databases = []
-        self.local_databases = []
+        self.image_databases = defaultdict(list)
         self.recent_folders = []
 
         # Make the connections
@@ -978,7 +1002,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         )
         self.ui.cb_plant.currentIndexChanged.connect(self.cb_plant_current_index_changed)
         self.ui.cb_date.currentIndexChanged.connect(self.cb_date_current_index_changed)
-        self.ui.cb_camera.currentIndexChanged.connect(self.cb_camera_current_index_changed)
+        self.ui.cb_camera.currentIndexChanged.connect(
+            self.cb_camera_current_index_changed
+        )
         self.ui.cb_view_option.currentIndexChanged.connect(
             self.cb_view_option_current_index_changed
         )
@@ -1011,10 +1037,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         # Batches
         self.ui.bt_launch_batch.clicked.connect(self.on_bt_launch_batch)
         self.ui.lw_last_batch.itemSelectionChanged.connect(self.on_itemSelectionChanged)
-        self.ui.bt_set_batch_as_selection.clicked.connect(self.on_bt_set_batch_as_selection)
+        self.ui.bt_set_batch_as_selection.clicked.connect(
+            self.on_bt_set_batch_as_selection
+        )
 
         # Images browser
-        self.ui.tv_image_browser.doubleClicked.connect(self.on_tv_image_browser_double_clicked)
+        self.ui.tv_image_browser.doubleClicked.connect(
+            self.on_tv_image_browser_double_clicked
+        )
 
         # Annotations
         self.ui.bt_delete_annotation.clicked.connect(self.on_bt_delete_annotation)
@@ -1035,14 +1065,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         )
         self.ui.action_about_form.triggered.connect(self.on_action_about_form)
         self.ui.action_use_dark_theme.triggered.connect(self.on_color_theme_changed)
-        self.ui.action_use_multithreading.triggered.connect(self.on_action_use_multithreading)
+        self.ui.action_use_multithreading.triggered.connect(
+            self.on_action_use_multithreading
+        )
         self.ui.action_save_pipeline_processor_state.triggered.connect(
             self.on_action_save_pipeline_processor_state
         )
 
         # Help
         self.ui.action_show_read_me.triggered.connect(self.on_action_show_read_me)
-        self.ui.action_show_documentation.triggered.connect(self.on_action_show_documentation)
+        self.ui.action_show_documentation.triggered.connect(
+            self.on_action_show_documentation
+        )
         self.ui.action_build_tool_documentation.triggered.connect(
             self.on_action_build_tool_documentation
         )
@@ -1053,11 +1087,21 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.action_show_log.triggered.connect(self.on_action_show_log)
 
         # Video
-        self.ui.action_video_1_24_second.triggered.connect(self.on_video_frame_duration_changed)
-        self.ui.action_video_half_second.triggered.connect(self.on_video_frame_duration_changed)
-        self.ui.action_video_1_second.triggered.connect(self.on_video_frame_duration_changed)
-        self.ui.action_video_5_second.triggered.connect(self.on_video_frame_duration_changed)
-        self.ui.action_video_res_first_image.triggered.connect(self.on_video_resolution_changed)
+        self.ui.action_video_1_24_second.triggered.connect(
+            self.on_video_frame_duration_changed
+        )
+        self.ui.action_video_half_second.triggered.connect(
+            self.on_video_frame_duration_changed
+        )
+        self.ui.action_video_1_second.triggered.connect(
+            self.on_video_frame_duration_changed
+        )
+        self.ui.action_video_5_second.triggered.connect(
+            self.on_video_frame_duration_changed
+        )
+        self.ui.action_video_res_first_image.triggered.connect(
+            self.on_video_resolution_changed
+        )
         self.ui.action_video_res_1080p.triggered.connect(self.on_video_resolution_changed)
         self.ui.action_video_res_720p.triggered.connect(self.on_video_resolution_changed)
         self.ui.action_video_res_576p.triggered.connect(self.on_video_resolution_changed)
@@ -1095,13 +1139,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.action_de_delete_column.triggered.connect(self.on_action_de_delete_column)
         self.ui.action_de_save_csv.triggered.connect(self.on_action_de_save_csv)
 
-        self.ui.bt_update_selection_stats.clicked.connect(self.on_bt_update_selection_stats)
+        self.ui.bt_update_selection_stats.clicked.connect(
+            self.on_bt_update_selection_stats
+        )
 
         # Pipeline processor
         self.ui.sl_pp_thread_count.valueChanged.connect(
             self.on_sl_pp_thread_count_index_changed
         )
-        self.ui.bt_pp_select_output_folder.clicked.connect(self.on_bt_pp_select_output_folder)
+        self.ui.bt_pp_select_output_folder.clicked.connect(
+            self.on_bt_pp_select_output_folder
+        )
         self.ui.bt_pp_select_script.clicked.connect(self.on_bt_pp_load)
         self.ui.bt_pp_reset.clicked.connect(self.on_bt_pp_reset)
         self.ui.bt_pp_start.clicked.connect(self.on_bt_pp_start)
@@ -1175,16 +1223,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def init_image_browser(self, dataframe):
         self.ui.tv_image_browser.setModel(QImageDatabaseModel(dataframe))
-        # self.ui.tv_image_browser.setItemDelegate(
-        #     QImageDrawerDelegate(
-        #         parent=self.ui.tv_image_browser,
-        #         palette=qApp.palette(),
-        #         use_annotations=self.ui.actionEnable_annotations.isChecked(),
-        #     )
-        # )
         self.ui.tv_image_browser.setSortingEnabled(True)
         selectionModel = self.ui.tv_image_browser.selectionModel()
-        selectionModel.selectionChanged.connect(self.on_tv_image_browser_selection_changed)
+        selectionModel.selectionChanged.connect(
+            self.on_tv_image_browser_selection_changed
+        )
         self.update_images_queue()
 
         model = self.get_image_model()
@@ -1234,7 +1277,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         if not self._updating_image_browser and (last_row != current_row):
             self.select_image_from_luid(
-                self.get_image_model().get_cell_data(row_number=current_row, column_name="Luid")
+                self.get_image_model().get_cell_data(
+                    row_number=current_row, column_name="Luid"
+                )
             )
 
     def update_image_browser(self, dataframe, mode: str = "add"):
@@ -1295,7 +1340,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
-            self.dynamic_folders["image_list"] = os.path.join(os.path.dirname(file_name_), "")
+            self.dynamic_folders["image_list"] = os.path.join(
+                os.path.dirname(file_name_), ""
+            )
             model = self.get_image_model()
             if model is not None and model.images.shape[0] > 0:
                 model.images.to_csv(file_name_, index=False)
@@ -1308,7 +1355,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
-            self.dynamic_folders["image_list"] = os.path.join(os.path.dirname(file_name_), "")
+            self.dynamic_folders["image_list"] = os.path.join(
+                os.path.dirname(file_name_), ""
+            )
             self.init_image_browser(pd.read_csv(file_name_))
 
     def build_recent_folders_menu(self, new_folder: str = ""):
@@ -1343,7 +1392,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def on_reset_database(self):
         logger.warning("Not implemented yet")
 
-    def build_database_menu(self, add_external=False, selected: str = ""):
+    def build_database_menu(self, selected: str = ""):
         self.ui.mnu_connect_to_db.clear()
         self.ui.mnu_db_action_group = QActionGroup(self)
         self.ui.mnu_db_action_group.setExclusive(True)
@@ -1352,53 +1401,22 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.act_reset_db.triggered.connect(self.on_reset_database)
         self.ui.mnu_connect_to_db.addSeparator()
 
-        for ldb in self.local_databases:
-            self.add_folder_database(
-                display_name=ldb.display_name,
-                hint=f"{ldb.display_name}\n{ldb.db_folder_name}",
-                enabled=os.path.isdir(ldb.src_files_path),
-                selected=selected == ldb.db_file_name,
-            )
-        if add_external:
-            self.ui.mnu_connect_to_db.addSeparator()
-            self.distant_databases = []
-            ddb_list = dbw.ReadOnlyDbWrapper(
-                user="fmavianemac",
-                port=5432,
-                password="",
-                db_file_name="ipso_db_experiments",
-                main_table="TABLE_EXPERIMENTS",
-            )
-            if ddb_list is not None:
-                qr = ddb_list.query(
-                    command="SELECT",
-                    table="TABLE_EXPERIMENTS",
-                    columns="db_file_name, experiment, robot",
-                )
-                if qr is not None:
-                    for ddb in qr:
-                        self.distant_databases.append(
-                            dbw.DbInfo(
-                                display_name=ddb[1],
-                                db_file_name=ddb[0],
-                                src_files_path="",
-                                dbms="psql",
-                            )
-                        )
-                        act = QAction(ddb[1], self, checkable=True)
-                        act.setEnabled(True)
-                        act.setToolTip(f"Experiment: {ddb[1]}\nRobot:{ddb[2]}")
-                        act.triggered.connect(self.on_distant_database_selected)
-                        self.ui.mnu_connect_to_db.addAction(
-                            self.ui.mnu_db_action_group.addAction(act)
-                        )
+        for dbt in DbType:
+            db_type_root = self.ui.mnu_connect_to_db.addMenu(dbt.value)
+            for ldb in self.image_databases[dbt]:
+                act = QAction(ldb.display_name, self, checkable=True)
+                act.setEnabled(os.path.isdir(ldb.src_files_path))
+                act.setChecked(selected == ldb.db_qualified_name)
+                act.setToolTip(f"{ldb.display_name}\n{ldb.db_folder_name}")
+                act.triggered.connect(self.on_local_database_connect)
+                db_type_root.addAction(self.ui.mnu_db_action_group.addAction(act))
 
     def do_parse_folder(self, folder_path):
         self.build_recent_folders_menu(new_folder=folder_path)
         self.current_database = dbw.db_info_to_database(
             dbw.DbInfo(
                 display_name="Memory database",
-                db_file_name=":memory:",
+                db_qualified_name=":memory:",
                 src_files_path=folder_path,
                 dbms="sqlite",
                 db_folder_name=self.static_folders["sql_db"],
@@ -1413,13 +1431,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.do_parse_folder(dlg.folder_path)
             else:
                 ldb = None
-                for ldb in self.local_databases:
-                    if ldb.src_files_path == dlg.folder_path:
+                for ldb in self.image_databases[DbType.CUSTOM_DB]:
+                    if (ldb.src_files_path == dlg.folder_path) and (dlg.dbms == ldb.dbms):
                         self.update_feedback(
                             status_message="Database already exists",
                             log_message=f"""
                             There's already a database named {ldb.display_name}
-                            pointing to {ldb.src_files_path} using {ldb.dbms}.<br>
+                            pointing to {ldb.src_files_path} using {ldb.dbms}.
                             Existing database will be used.""",
                             log_level=logging.WARNING,
                         )
@@ -1427,35 +1445,32 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         return
                 self.dynamic_folders["db_image_folder"] = dlg.folder_path
                 new_db = dbw.DbInfo(
-                    display_name=dlg.db_file_name,
-                    db_file_name=f"{dlg.db_file_name}.db",
+                    display_name=dlg.db_qualified_name,
                     src_files_path=dlg.folder_path,
                     dbms=dlg.dbms,
                     db_folder_name=self.static_folders["sql_db"],
                 )
                 self.current_database = dbw.db_info_to_database(new_db)
-                self.local_databases.append(new_db)
-                self.build_database_menu(
-                    add_external=dbw.LOAD_DISTANT_DATABASES, selected=dlg.db_file_name
-                )
+                self.image_databases[DbType.CUSTOM_DB].append(new_db)
+                self.build_database_menu(selected=dlg.db_qualified_name)
 
     def on_distant_database_selected(self, q):
         for ddb in self.distant_databases:
             if ddb.name == self.sender().text():
                 logger.info(
-                    f"Connecting to experiment {ddb.name} in database {ddb.db_file_name}"
+                    f"Connecting to experiment {ddb.name} in database {ddb.db_qualified_name}"
                 )
                 self.current_database = dbw.ReadOnlyDbWrapper(
                     user=dbw.DB_USER,
                     port=dbw.DB_DEFAULT_PORT,
                     password="",
-                    db_file_name=ddb.db_file_name,
+                    db_qualified_name=ddb.db_qualified_name,
                     src_files_path=self.static_folders["image_cache"],
                 )
                 break
 
     def on_local_database_connect(self, q):
-        for ldb in self.local_databases:
+        for ldb in [n for v in self.image_databases.values() for n in v]:
             if ldb.display_name == self.sender().text():
                 db = dbw.db_info_to_database(ldb)
                 if isinstance(db, str):
@@ -1514,7 +1529,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             or self.update_database(db_wrapper=self.current_database)
         ):
             return self.current_database.query(
-                command=command, table=table, columns=columns, additional=additional, **kwargs
+                command=command,
+                table=table,
+                columns=columns,
+                additional=additional,
+                **kwargs,
             )
         return None
 
@@ -1531,7 +1550,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             or self.update_database(db_wrapper=self.current_database)
         ):
             return self.current_database.query_to_pandas(
-                command=command, table=table, columns=columns, additional=additional, **kwargs
+                command=command,
+                table=table,
+                columns=columns,
+                additional=additional,
+                **kwargs,
             )
         return None
 
@@ -1617,7 +1640,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self._global_progress_bar.setValue(100)
                 else:
                     self._global_progress_bar.setFormat(f"{step}/{total}")
-                    self._global_progress_bar.setValue(round((min(step, total)) / total * 100))
+                    self._global_progress_bar.setValue(
+                        round((min(step, total)) / total * 100)
+                    )
             self._last_progress_update = timer()
             if process_events:
                 self.process_events()
@@ -1786,7 +1811,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             elif theme == "Demo":
                 palette = QPalette()
                 palette.setColor(QPalette.WindowText, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE)))
-                palette.setColor(QPalette.Text, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE_VIOLET)))
+                palette.setColor(
+                    QPalette.Text, QColor(*ipc.bgr_to_rgb(ipc.C_BLUE_VIOLET))
+                )
                 palette.setColor(
                     QPalette.ToolTipText, QColor(*ipc.bgr_to_rgb(ipc.C_CABIN_BLUE))
                 )
@@ -1799,11 +1826,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
                 palette.setColor(QPalette.Window, QColor(*ipc.bgr_to_rgb(ipc.C_MAROON)))
                 palette.setColor(QPalette.Base, QColor(*ipc.bgr_to_rgb(ipc.C_BLACK)))
-                palette.setColor(QPalette.AlternateBase, QColor(*ipc.bgr_to_rgb(ipc.C_GREEN)))
-                palette.setColor(QPalette.ToolTipBase, QColor(*ipc.bgr_to_rgb(ipc.C_LIME)))
+                palette.setColor(
+                    QPalette.AlternateBase, QColor(*ipc.bgr_to_rgb(ipc.C_GREEN))
+                )
+                palette.setColor(
+                    QPalette.ToolTipBase, QColor(*ipc.bgr_to_rgb(ipc.C_LIME))
+                )
                 palette.setColor(QPalette.Button, QColor(*ipc.bgr_to_rgb(ipc.C_ORANGE)))
                 palette.setColor(QPalette.Link, QColor(*ipc.bgr_to_rgb(ipc.C_WHITE)))
-                palette.setColor(QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_SILVER)))
+                palette.setColor(
+                    QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_SILVER))
+                )
                 palette.setColor(QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_RED)))
             else:
                 self.update_feedback(
@@ -1963,7 +1996,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.spl_de_hor.setSizes((h * 4, h))
 
             self.ui.selected_main_tab = settings_.value("global_tab_name", "")
-            self.ui.tw_tool_box.setCurrentIndex(int(settings_.value("toolbox_tab_index", 0)))
+            self.ui.tw_tool_box.setCurrentIndex(
+                int(settings_.value("toolbox_tab_index", 0))
+            )
 
             for k, v in self.dynamic_folders.items():
                 self.dynamic_folders[k] = settings_.value(k, self.dynamic_folders[k])
@@ -1984,56 +2019,60 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             # Retrieve last active database
             last_db = dbw.DbInfo(
                 display_name=settings_.value("current_data_base/display_name", ""),
-                db_file_name=settings_.value("current_data_base/db_file_name", ""),
+                db_qualified_name=settings_.value(
+                    "current_data_base/db_qualified_name", ""
+                ),
                 src_files_path=settings_.value("current_data_base/src_files_path", ""),
                 dbms=settings_.value("current_data_base/dbms", ""),
                 db_folder_name=settings_.value("current_data_base/db_folder_name", ""),
             )
-            if last_db.db_file_name == "":
+            if last_db.db_qualified_name == "":
                 last_db = None
             elif (
                 last_db.dbms == "sqlite"
-                and last_db.db_file_name != ":memory:"
+                and last_db.db_qualified_name != ":memory:"
                 and not os.path.isfile(os.path.join(last_db.db_full_file_path))
             ):
                 last_db = None
 
             # Load saved databases
-            settings_.beginGroup("local_databases")
+            settings_.beginGroup(DbType.CUSTOM_DB.name)
             for ldb_name in settings_.childGroups():
                 db_info = dbw.DbInfo(
                     display_name=settings_.value(f"{ldb_name}/display_name", ""),
-                    db_file_name=settings_.value(f"{ldb_name}/db_file_name", ""),
+                    db_qualified_name=settings_.value(
+                        f"{ldb_name}/db_qualified_name", ""
+                    ),
                     src_files_path=settings_.value(f"{ldb_name}/src_files_path", ""),
                     dbms=settings_.value(f"{ldb_name}/dbms", ""),
                     db_folder_name=settings_.value(f"{ldb_name}/db_folder_name", ""),
                 )
                 # Remove from databases if dead link
-                if db_info.dbms == "sqlite" and not os.path.isfile(db_info.db_full_file_path):
+                if db_info.dbms == "sqlite" and not os.path.isfile(
+                    db_info.db_full_file_path
+                ):
                     continue
-                self.local_databases.append(db_info)
+                self.image_databases[DbType.CUSTOM_DB].append(db_info)
             settings_.endGroup()
 
             # Add default postgress databases if missing and enabled
-            if len(self.local_databases) == 0 and ui_consts.ENABLE_POSTGRES:
-                self.local_databases = [dbw.DB_INFO_LOCAL_SAMPLES]
-            self.local_databases.extend(dbw.DB_MASS_STORAGE)
+            self.image_databases[DbType.LOCAL_DB] = dbw.DB_LOCAL_STORAGE
+            self.image_databases[DbType.MASS_DB] = dbw.DB_MASS_STORAGE
 
             if (
                 last_db is not None
-                and last_db.db_file_name
-                and last_db.db_file_name != ":memory:"
+                and last_db.db_qualified_name
+                and last_db.db_qualified_name != ":memory:"
             ):
-                for db in self.local_databases:
-                    if db.db_file_name == last_db.db_file_name:
+                for db in [n for v in self.image_databases.values() for n in v]:
+                    if db.db_qualified_name == last_db.db_qualified_name:
                         break
                 else:
-                    self.local_databases.append(last_db)
+                    self.image_databases[DbType.CUSTOM_DB].append(last_db)
 
             # Load data bases
             self.build_database_menu(
-                add_external=dbw.LOAD_DISTANT_DATABASES,
-                selected="" if last_db is None else last_db.db_file_name,
+                selected="" if last_db is None else last_db.db_qualified_name
             )
 
             # Load recent folders
@@ -2054,7 +2093,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
             # Fill check options
             self.ui.chk_experiment.setChecked(
-                settings_.value("checkbox_status/experiment_checkbox_state", "true").lower()
+                settings_.value(
+                    "checkbox_status/experiment_checkbox_state", "true"
+                ).lower()
                 == "true"
             )
             self.ui.chk_plant.setChecked(
@@ -2062,18 +2103,22 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 == "true"
             )
             self.ui.chk_date.setChecked(
-                settings_.value("checkbox_status/date_checkbox_state", "true").lower() == "true"
+                settings_.value("checkbox_status/date_checkbox_state", "true").lower()
+                == "true"
             )
             self.ui.chk_camera.setChecked(
                 settings_.value("checkbox_status/camera_checkbox_state", "true").lower()
                 == "true"
             )
             self.ui.chk_view_option.setChecked(
-                settings_.value("checkbox_status/view_option_checkbox_state", "true").lower()
+                settings_.value(
+                    "checkbox_status/view_option_checkbox_state", "true"
+                ).lower()
                 == "true"
             )
             self.ui.chk_time.setChecked(
-                settings_.value("checkbox_status/time_checkbox_state", "true").lower() == "true"
+                settings_.value("checkbox_status/time_checkbox_state", "true").lower()
+                == "true"
             )
 
             # Fill batch options
@@ -2124,16 +2169,20 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 == "true"
             )
             self.ui.cb_pp_append_experience_name.setChecked(
-                settings_.value("pipeline_processor/append_experience_name", "true").lower()
+                settings_.value(
+                    "pipeline_processor/append_experience_name", "true"
+                ).lower()
                 == "true"
             )
             self.ui.cb_pp_append_timestamp_to_output_folder.setChecked(
-                settings_.value("pipeline_processor/append_timestamp", "true").lower() == "true"
+                settings_.value("pipeline_processor/append_timestamp", "true").lower()
+                == "true"
             )
             self.ui.sl_pp_thread_count.setValue(
                 int(
                     settings_.value(
-                        "pipeline_processor/thread_count", self.ui.sl_pp_thread_count.value()
+                        "pipeline_processor/thread_count",
+                        self.ui.sl_pp_thread_count.value(),
                     )
                 )
             )
@@ -2141,7 +2190,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.sp_pp_time_delta.setValue(
                 int(
                     settings_.value(
-                        "pipeline_processor/sp_pp_time_delta", self.ui.sp_pp_time_delta.value()
+                        "pipeline_processor/sp_pp_time_delta",
+                        self.ui.sp_pp_time_delta.value(),
                     )
                 )
             )
@@ -2199,14 +2249,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             settings_.setValue("process_mode", self.current_tool.name)
             settings_.setValue("selected_style", self._selected_style)
             settings_.setValue("selected_theme", self._selected_theme)
-            settings_.setValue("multithread", self.ui.action_use_multithreading.isChecked())
+            settings_.setValue(
+                "multithread", self.ui.action_use_multithreading.isChecked()
+            )
             settings_.setValue("log_geometry", self.ui.dk_log.geometry())
 
             for k, v in self.dynamic_folders.items():
                 settings_.setValue(k, v)
 
             settings_.beginGroup("checkbox_status")
-            settings_.setValue("experiment_checkbox_state", self.ui.chk_experiment.isChecked())
+            settings_.setValue(
+                "experiment_checkbox_state", self.ui.chk_experiment.isChecked()
+            )
             settings_.setValue("plant_checkbox_state", self.ui.chk_plant.isChecked())
             settings_.setValue("date_checkbox_state", self.ui.chk_date.isChecked())
             settings_.setValue("camera_checkbox_state", self.ui.chk_camera.isChecked())
@@ -2227,7 +2281,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if self.current_database is not None:
                 settings_.beginGroup("current_data_base")
                 settings_.setValue("display_name", self.current_database.display_name)
-                settings_.setValue("db_file_name", self.current_database.db_file_name)
+                settings_.setValue(
+                    "db_qualified_name", self.current_database.db_qualified_name
+                )
                 settings_.setValue("src_files_path", self.current_database.src_files_path)
                 settings_.setValue("dbms", self.current_database.dbms)
                 settings_.setValue("db_folder_name", self.current_database.db_folder_name)
@@ -2235,20 +2291,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             else:
                 settings_.remove("current_data_base")
 
-            mass_storage_dbs = [db.display_name for db in dbw.DB_MASS_STORAGE]
-            if len(self.local_databases) > 0:
-                for ldb in self.local_databases:
-                    if ldb.display_name in mass_storage_dbs:
-                        continue
-                    settings_.beginGroup(f"local_databases/{ldb.display_name}")
-                    settings_.setValue("display_name", ldb.display_name)
-                    settings_.setValue("db_file_name", ldb.db_file_name)
-                    settings_.setValue("src_files_path", ldb.src_files_path)
-                    settings_.setValue("dbms", ldb.dbms)
-                    settings_.setValue("db_folder_name", ldb.db_folder_name)
-                    settings_.endGroup()
-            else:
-                settings_.remove("local_databases")
+            settings_.remove("sqlite_databases")
+            for ldb in self.image_databases[DbType.CUSTOM_DB]:
+                settings_.beginGroup(f"{DbType.CUSTOM_DB.name}/{ldb.display_name}")
+                settings_.setValue("display_name", ldb.display_name)
+                settings_.setValue("db_qualified_name", ldb.db_qualified_name)
+                settings_.setValue("src_files_path", ldb.src_files_path)
+                settings_.setValue("dbms", ldb.dbms)
+                settings_.setValue("db_folder_name", ldb.db_folder_name)
+                settings_.endGroup()
 
             settings_.beginGroup("recent_folders")
             for i, fld in enumerate(self.recent_folders):
@@ -2265,7 +2316,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 "append_experience_name", self.ui.cb_pp_append_experience_name.isChecked()
             )
             settings_.setValue(
-                "append_timestamp", self.ui.cb_pp_append_timestamp_to_output_folder.isChecked()
+                "append_timestamp",
+                self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
             )
             settings_.setValue("thread_count", self.ui.sl_pp_thread_count.value())
             settings_.setValue("sp_pp_time_delta", self.ui.sp_pp_time_delta.value())
@@ -2297,9 +2349,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 settings_.setValue("last_pipeline_path", "")
 
             if save_lst_ is True:
-                model.images.to_csv("./saved_data/last_image_browser_state.csv", index=False)
+                model.images.to_csv(
+                    "./saved_data/last_image_browser_state.csv", index=False
+                )
                 settings_.setValue(
-                    "last_image_browser_state", "./saved_data/last_image_browser_state.csv"
+                    "last_image_browser_state",
+                    "./saved_data/last_image_browser_state.csv",
                 )
             else:
                 settings_.setValue("last_image_browser_state", "")
@@ -2358,11 +2413,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if self.ui.actionEnable_log.isChecked():
             if log_message is not None and isinstance(log_message, str):
                 eh.log_data(
-                    log_msg=log_message, log_level=log_level, target_logger=target_logger,
+                    log_msg=log_message,
+                    log_level=log_level,
+                    target_logger=target_logger,
                 )
             elif use_status_as_log and status_message:
                 eh.log_data(
-                    log_msg=status_message, log_level=log_level, target_logger=target_logger,
+                    log_msg=status_message,
+                    log_level=log_level,
+                    target_logger=target_logger,
                 )
         if (
             not self._collecting_garbage
@@ -2477,7 +2536,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def on_action_build_tool_documentation(self):
         self.build_tool_documentation(
-            tool=self.current_tool, tool_name=f'ipt_{self.current_tool.name.replace(" ", "_")}'
+            tool=self.current_tool,
+            tool_name=f'ipt_{self.current_tool.name.replace(" ", "_")}',
         )
 
     def on_action_build_test_files(self):
@@ -2584,8 +2644,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     nd = model.get_item(current_node).node_data
                     if isinstance(nd, ModuleNode) or isinstance(nd, GroupNode):
                         self.ui.bt_pp_delete.setEnabled(True)
-                        self.ui.bt_pp_up.setEnabled(index.row() > 0)
-                        self.ui.bt_pp_down.setEnabled(index.row() < len(parent.children) - 1)
+                        self.ui.bt_pp_up.setEnabled(current_node.row() > 0)
+                        self.ui.bt_pp_down.setEnabled(
+                            current_node.row() < len(parent.children) - 1
+                        )
                         return
 
         self.ui.bt_pp_up.setEnabled(False)
@@ -2629,9 +2691,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self.ui.cb_available_outputs.count() - 1
                 )
         elif result == "ERROR":
-            self.update_feedback(status_message=msg, log_message=msg, log_level=logging.ERROR)
+            self.update_feedback(
+                status_message=msg, log_message=msg, log_level=logging.ERROR
+            )
         elif result == "WARNING":
-            self.update_feedback(status_message=msg, log_message=msg, log_level=logging.WARNING)
+            self.update_feedback(
+                status_message=msg, log_message=msg, log_level=logging.WARNING
+            )
         elif result == "GRID_SEARCH_START":
             self.update_feedback(
                 status_message=f"Starting grid search with {total_steps} configurations",
@@ -2645,7 +2711,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif result == "GRID_SEARCH_NOK":
             self.update_feedback(status_message=msg, use_status_as_log=True)
         elif result == "GRID_SEARCH_END":
-            self.update_feedback(status_message=f"Ending grid search", use_status_as_log=True)
+            self.update_feedback(
+                status_message=f"Ending grid search", use_status_as_log=True
+            )
         else:
             logger.exception(f'Unknown result: "Unknown pipeline result {result}"')
 
@@ -2686,7 +2754,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
-            self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
+            self.dynamic_folders["pipeline"] = os.path.join(
+                os.path.dirname(file_name_), ""
+            )
             try:
                 self.pipeline = LoosePipeline.load(file_name=file_name_)
             except Exception as e:
@@ -2702,13 +2772,16 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
-            self.dynamic_folders["pipeline"] = os.path.join(os.path.dirname(file_name_), "")
+            self.dynamic_folders["pipeline"] = os.path.join(
+                os.path.dirname(file_name_), ""
+            )
             if not file_name_.lower().endswith(".json"):
                 file_name_ += ".json"
             res = self.pipeline.save(file_name_)
             if res:
                 self.update_feedback(
-                    status_message=f'Saved pipeline to: "{file_name_}"', use_status_as_log=True
+                    status_message=f'Saved pipeline to: "{file_name_}"',
+                    use_status_as_log=True,
                 )
                 self.last_pipeline_path = file_name_
             else:
@@ -2738,7 +2811,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         model: PipelineModel = self.ui.tv_pp_view.model()
         if model is None:
             self.pipeline = LoosePipeline(
-                name="None", description="Double click to edit description",
+                name="None",
+                description="Double click to edit description",
             )
             model: PipelineModel = self.ui.tv_pp_view.model()
         # Get menu item text
@@ -2766,9 +2840,24 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if text == "Default empty group":
             added_index = model.add_group(selected_items=index)
             self.ui.tv_pp_view.expand(added_index.parent())
+        elif text == "Visualization helper":
+            added_index = model.add_group(
+                selected_items=index,
+                merge_mode=ipc.MERGE_MODE_NONE,
+                name=text,
+            )
+            tool = self.find_tool_by_name("Visualization helper")
+            if tool is not None:
+                model.add_module(
+                    selected_items=added_index,
+                    module=tool.copy(copy_wrapper=False),
+                    enabled=True,
+                )
         elif text == "Fix exposure":
             added_index = model.add_group(
-                selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
+                selected_items=index,
+                merge_mode=ipc.MERGE_MODE_CHAIN,
+                name=text,
             )
             tool = self.find_tool_by_name("Simple white balance")
             if tool is not None:
@@ -2787,7 +2876,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Pre process image":
             added_index = model.add_group(
-                selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
+                selected_items=index,
+                merge_mode=ipc.MERGE_MODE_CHAIN,
+                name=text,
             )
             tool = self.find_tool_by_name("Check exposure")
             if tool is not None:
@@ -2806,7 +2897,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Threshold":
             added_index = model.add_group(
-                selected_items=index, merge_mode=ipc.MERGE_MODE_AND, name=text,
+                selected_items=index,
+                merge_mode=ipc.MERGE_MODE_AND,
+                name=text,
             )
             tool = self.find_tool_by_name("Multi range threshold")
             if tool is not None:
@@ -2818,7 +2911,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Mask cleanup":
             added_index = model.add_group(
-                selected_items=index, merge_mode=ipc.MERGE_MODE_CHAIN, name=text,
+                selected_items=index,
+                merge_mode=ipc.MERGE_MODE_CHAIN,
+                name=text,
             )
             tool = self.find_tool_by_name("Keep linked Contours")
             if tool is not None:
@@ -2830,7 +2925,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Feature extraction":
             added_index = model.add_group(
-                selected_items=index, merge_mode=ipc.MERGE_MODE_NONE, name=text,
+                selected_items=index,
+                merge_mode=ipc.MERGE_MODE_NONE,
+                name=text,
             )
             tool = self.find_tool_by_name("Observation data")
             if tool is not None:
@@ -2872,12 +2969,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             tool = self.find_tool_by_name(text)
             if tool is None:
                 self.update_feedback(
-                    status_message=f'Unable to add "{text}" to pipeline', use_status_as_log=True
+                    status_message=f'Unable to add "{text}" to pipeline',
+                    use_status_as_log=True,
                 )
                 return
             else:
                 added_index = model.add_module(
-                    selected_items=index, module=tool.copy(copy_wrapper=False), enabled=True,
+                    selected_items=index,
+                    module=tool.copy(copy_wrapper=False),
+                    enabled=True,
                 )
             self.ui.tv_pp_view.expand(added_index.parent())
 
@@ -2901,7 +3001,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_pp_append_timestamp_to_output_folder.setChecked(False)
         self.ui.sl_pp_thread_count.setValue(0)
         if self._src_image_wrapper is not None:
-            self.ui.edt_csv_file_name.setText(f"{self._src_image_wrapper.experiment}_raw_data")
+            self.ui.edt_csv_file_name.setText(
+                f"{self._src_image_wrapper.experiment}_raw_data"
+            )
         else:
             self.ui.edt_csv_file_name.setText("unknown_experiment_raw_data")
         self.ui.sp_pp_time_delta.setValue(20)
@@ -2937,7 +3039,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def do_pp_progress(self, step: int, total: int):
         if threading.current_thread() is not threading.main_thread():
             logger.warning("do_pp_progress: NOT MAIN THREAD")
-        self.global_progress_update(step=step, total=total, process_events=not self.multithread)
+        self.global_progress_update(
+            step=step, total=total, process_events=not self.multithread
+        )
 
     def do_pp_check_abort(self):
         return self._batch_stop_current
@@ -3003,7 +3107,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             self.pp_threads_step += 1
             self.global_progress_update(
-                self.pp_threads_step, self.pp_threads_total, process_events=not self.multithread
+                self.pp_threads_step,
+                self.pp_threads_total,
+                process_events=not self.multithread,
             )
             if self.pp_threads_step >= self.pp_threads_total:
                 if self.pp_pipeline is not None:
@@ -3204,7 +3310,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def on_sl_pp_thread_count_index_changed(self, value):
         self.pp_thread_pool.setMaxThreadCount(value)
-        self.ui.lb_pp_thread_count.setText(f"{value}/{self.ui.sl_pp_thread_count.maximum()}")
+        self.ui.lb_pp_thread_count.setText(
+            f"{value}/{self.ui.sl_pp_thread_count.maximum()}"
+        )
 
     def on_bt_launch_batch(self):
         self.run_process(wrapper=None)
@@ -3229,7 +3337,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
         include_annotations = self.ui.cb_stat_include_annotations.isChecked()
-        self.update_feedback(status_message="Building selection stats", use_status_as_log=True)
+        self.update_feedback(
+            status_message="Building selection stats", use_status_as_log=True
+        )
         self.global_progress_start(add_stop_button=True)
         try:
             self.ui.lv_stats.insertPlainText("\n")
@@ -3320,7 +3430,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._updating_available_images = len(wrapper.image_list) != 1
         try:
             for dic in wrapper.image_list:
-                if avoid_duplicates and self.ui.cb_available_outputs.findText(dic["name"]) >= 0:
+                if (
+                    avoid_duplicates
+                    and self.ui.cb_available_outputs.findText(dic["name"]) >= 0
+                ):
                     continue
                 if dic["written"] is True:
                     continue
@@ -3364,7 +3477,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif mode == "script":
             if not is_batch_process:
                 self.on_bt_clear_result()
-            self.update_feedback(status_message="Executing current script, please wait...")
+            self.update_feedback(
+                status_message="Executing current script, please wait..."
+            )
         elif mode == "module":
             pass
         elif mode == "pipeline":
@@ -3383,7 +3498,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
     def do_thread_ending(self, success: bool, status_msg: str, log_msg: str):
-        if self.threads_total > 1 and self.threads_step < self.threads_total and status_msg:
+        if (
+            self.threads_total > 1
+            and self.threads_step < self.threads_total
+            and status_msg
+        ):
             status_msg += f" ({self.threads_step + 1}/{self.threads_total})"
         self.update_feedback(status_message=status_msg, log_message=log_msg)
 
@@ -3405,7 +3524,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
                 return
         else:
-            logger.exception("Unable to update available images because: unknown argument")
+            logger.exception(
+                "Unable to update available images because: unknown argument"
+            )
             return
 
         if isinstance(sender, IptParamHolder):
@@ -3476,7 +3597,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             use_status_as_log=use_status_as_log,
         )
 
-    def update_thread_counts(self, thread_step: int, thread_total: int, thread_waiting: int):
+    def update_thread_counts(
+        self, thread_step: int, thread_total: int, thread_waiting: int
+    ):
         self.threads_step = thread_step
         self.threads_waiting = thread_waiting
         self.threads_total = thread_total
@@ -3653,7 +3776,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.begin_edit_image_browser()
         try:
             self.update_feedback(
-                status_message="Setting las batch as selected images", use_status_as_log=True
+                status_message="Setting las batch as selected images",
+                use_status_as_log=True,
             )
             luids = [
                 self.ui.lw_last_batch.item(i).text()
@@ -3674,7 +3798,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         ShowTextDialog(
             title=f"Help for {self.current_tool.name}",
             text=self.current_tool.hint,
-            pt=self.sender().mapToGlobal(QPoint(self.sender().width(), self.sender().height())),
+            pt=self.sender().mapToGlobal(
+                QPoint(self.sender().width(), self.sender().height())
+            ),
             use_html=False,
         ).exec_()
 
@@ -3699,13 +3825,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     if self.ui.action_create_wrapper_before.isChecked()
                     else "",
                 )
+            else:
+                code_ = "Unknown code generation mode"
         except Exception as e:
             code_ = "Unable to generate code"
         ShowTextDialog(
             title=f"Code for {self.current_tool.name}",
             text=code_,
             use_html=False,
-            pt=self.sender().mapToGlobal(QPoint(self.sender().width(), self.sender().height())),
+            pt=self.sender().mapToGlobal(
+                QPoint(self.sender().width(), self.sender().height())
+            ),
         ).exec_()
 
     def on_bt_clear_result(self):
@@ -3734,7 +3864,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         try:
             if not self._src_image_wrapper.good_image:
                 self.update_feedback(
-                    status_message="Bad image", log_message=self._src_image_wrapper.error_holder
+                    status_message="Bad image",
+                    log_message=self._src_image_wrapper.error_holder,
                 )
                 return False
 
@@ -3744,13 +3875,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         f'{image_data["plant_name"]}_{str(index)}_{image_data["name"]}'
                     )
                 else:
-                    text = make_safe_name(f'{image_data["plant_name"]}_{image_data["name"]}')
+                    text = make_safe_name(
+                        f'{image_data["plant_name"]}_{image_data["name"]}'
+                    )
                 if add_time_stamp:
                     text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
 
             if not image_path:
                 force_directories(self.static_folders["image_output"])
-                image_path = os.path.join(self.static_folders["image_output"], f"{text}.jpg")
+                image_path = os.path.join(
+                    self.static_folders["image_output"], f"{text}.jpg"
+                )
             else:
                 force_directories(image_path)
                 image_path = os.path.join(image_path, f"{text}.jpg")
@@ -3796,8 +3931,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.action_video_half_second.setChecked(
             self.sender() == self.ui.action_video_half_second
         )
-        self.ui.action_video_1_second.setChecked(self.sender() == self.ui.action_video_1_second)
-        self.ui.action_video_5_second.setChecked(self.sender() == self.ui.action_video_5_second)
+        self.ui.action_video_1_second.setChecked(
+            self.sender() == self.ui.action_video_1_second
+        )
+        self.ui.action_video_5_second.setChecked(
+            self.sender() == self.ui.action_video_5_second
+        )
 
     def on_video_resolution_changed(self):
         self.ui.action_video_res_first_image.setChecked(
@@ -3806,16 +3945,32 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.action_video_res_1080p.setChecked(
             self.sender() == self.ui.action_video_res_1080p
         )
-        self.ui.action_video_res_720p.setChecked(self.sender() == self.ui.action_video_res_720p)
-        self.ui.action_video_res_576p.setChecked(self.sender() == self.ui.action_video_res_576p)
-        self.ui.action_video_res_480p.setChecked(self.sender() == self.ui.action_video_res_480p)
-        self.ui.action_video_res_376p.setChecked(self.sender() == self.ui.action_video_res_376p)
-        self.ui.action_video_res_240p.setChecked(self.sender() == self.ui.action_video_res_240p)
+        self.ui.action_video_res_720p.setChecked(
+            self.sender() == self.ui.action_video_res_720p
+        )
+        self.ui.action_video_res_576p.setChecked(
+            self.sender() == self.ui.action_video_res_576p
+        )
+        self.ui.action_video_res_480p.setChecked(
+            self.sender() == self.ui.action_video_res_480p
+        )
+        self.ui.action_video_res_376p.setChecked(
+            self.sender() == self.ui.action_video_res_376p
+        )
+        self.ui.action_video_res_240p.setChecked(
+            self.sender() == self.ui.action_video_res_240p
+        )
 
     def on_video_aspect_ratio_changed(self):
-        self.ui.action_video_ar_16_9.setChecked(self.sender() == self.ui.action_video_ar_16_9)
-        self.ui.action_video_ar_4_3.setChecked(self.sender() == self.ui.action_video_ar_4_3)
-        self.ui.action_video_ar_1_1.setChecked(self.sender() == self.ui.action_video_ar_1_1)
+        self.ui.action_video_ar_16_9.setChecked(
+            self.sender() == self.ui.action_video_ar_16_9
+        )
+        self.ui.action_video_ar_4_3.setChecked(
+            self.sender() == self.ui.action_video_ar_4_3
+        )
+        self.ui.action_video_ar_1_1.setChecked(
+            self.sender() == self.ui.action_video_ar_1_1
+        )
 
     def on_action_video_bkg_color_changed(self):
         self.ui.action_video_bkg_color_black.setChecked(
@@ -3829,12 +3984,24 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         )
 
     def on_sis_changed(self):
-        self.ui.act_settings_sir_keep.setChecked(self.sender() == self.ui.act_settings_sir_keep)
-        self.ui.act_settings_sir_2x.setChecked(self.sender() == self.ui.act_settings_sir_2x)
-        self.ui.act_settings_sir_3x.setChecked(self.sender() == self.ui.act_settings_sir_3x)
-        self.ui.act_settings_sir_4x.setChecked(self.sender() == self.ui.act_settings_sir_4x)
-        self.ui.act_settings_sir_5x.setChecked(self.sender() == self.ui.act_settings_sir_5x)
-        self.ui.act_settings_sir_6x.setChecked(self.sender() == self.ui.act_settings_sir_6x)
+        self.ui.act_settings_sir_keep.setChecked(
+            self.sender() == self.ui.act_settings_sir_keep
+        )
+        self.ui.act_settings_sir_2x.setChecked(
+            self.sender() == self.ui.act_settings_sir_2x
+        )
+        self.ui.act_settings_sir_3x.setChecked(
+            self.sender() == self.ui.act_settings_sir_3x
+        )
+        self.ui.act_settings_sir_4x.setChecked(
+            self.sender() == self.ui.act_settings_sir_4x
+        )
+        self.ui.act_settings_sir_5x.setChecked(
+            self.sender() == self.ui.act_settings_sir_5x
+        )
+        self.ui.act_settings_sir_6x.setChecked(
+            self.sender() == self.ui.act_settings_sir_6x
+        )
 
     def get_de_model(self) -> QPandasModel:
         ret = self.ui.tb_ge_dataframe.model()
@@ -3917,7 +4084,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.tb_ge_dataframe.setSortingEnabled(True)
         if dataframe is not None:
             selectionModel = self.ui.tb_ge_dataframe.selectionModel()
-            selectionModel.selectionChanged.connect(self.ui.tb_ge_dataframe_selection_changed)
+            selectionModel.selectionChanged.connect(
+                self.ui.tb_ge_dataframe_selection_changed
+            )
             self.de_fill_description(dataframe.describe(include="all"))
             self.de_fill_columns_info(dataframe)
         else:
@@ -4013,7 +4182,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 filter="CSV(*.csv)",
             )[0]
             if file_name_:
-                self.dynamic_folders["csv"] = os.path.join(os.path.dirname(file_name_), "")
+                self.dynamic_folders["csv"] = os.path.join(
+                    os.path.dirname(file_name_), ""
+                )
                 df.to_csv(file_name_, index=False)
                 self.update_feedback(
                     status_message="Dataframe saved",
@@ -4051,7 +4222,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         # Set resolution & aspect ratio
         if self.ui.action_video_res_first_image.isChecked():
-            v_height, v_width = self.ui.cb_available_outputs.itemData(0)["image"].shape[:2]
+            v_height, v_width = self.ui.cb_available_outputs.itemData(0)["image"].shape[
+                :2
+            ]
         else:
             if self.ui.action_video_res_720p.isChecked():
                 v_height = 720
@@ -4106,8 +4279,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 if self.ui.action_video_stack_and_jitter.isChecked() and (i < total_ - 1):
                     new_left = int(frame_rect.width * random.uniform(0, 0.7))
                     new_top = int(frame_rect.height * random.uniform(0, 0.7))
-                    new_width = int((frame_rect.width - new_left) * random.uniform(0.5, 1))
-                    new_height = int((frame_rect.height - new_top) * random.uniform(0.5, 1))
+                    new_width = int(
+                        (frame_rect.width - new_left) * random.uniform(0.5, 1)
+                    )
+                    new_height = int(
+                        (frame_rect.height - new_top) * random.uniform(0.5, 1)
+                    )
                     r = RectangleRegion(
                         left=new_left, width=new_width, top=new_top, height=new_height
                     )
@@ -4126,7 +4303,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     rect=RectangleRegion(
                         left=r.left, right=r.right, top=r.top, bottom=r.bottom
                     ),
-                    frame_width=2 if self.ui.action_video_stack_and_jitter.isChecked() else 0,
+                    frame_width=2
+                    if self.ui.action_video_stack_and_jitter.isChecked()
+                    else 0,
                 )
 
                 def write_image_times(out_writer, img_, times=12):
@@ -4161,7 +4340,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             (self.ui.chk_plant, self.ui.cb_plant.currentText(), "Plant"),
             (self.ui.chk_date, self.ui.cb_date.currentText(), "Date"),
             (self.ui.chk_camera, self.ui.cb_camera.currentText(), "Camera"),
-            (self.ui.chk_view_option, self.ui.cb_view_option.currentText(), "view_option"),
+            (
+                self.ui.chk_view_option,
+                self.ui.cb_view_option.currentText(),
+                "view_option",
+            ),
             (self.ui.chk_time, self.ui.cb_time.currentText(), "Time"),
         ):
             chk_box, cb_text, label_ = couple[0], couple[1], couple[2]
@@ -4192,7 +4375,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if id is None:
                 return
             id.set_annotation(
-                luid=self._src_image_wrapper.luid, experiment=self._src_image_wrapper.experiment
+                luid=self._src_image_wrapper.luid,
+                experiment=self._src_image_wrapper.experiment,
             )
             self.ui.cb_annotation_level.setCurrentIndex(0)
             self.ui.te_annotations.clear()
@@ -4208,7 +4392,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def on_bt_remove_from_selection(self):
         self.begin_edit_image_browser()
         try:
-            self.update_image_browser(dataframe=self.execute_current_query(), mode="remove")
+            self.update_image_browser(
+                dataframe=self.execute_current_query(), mode="remove"
+            )
         finally:
             self.end_edit_image_browser()
 
@@ -4312,7 +4498,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             return
         self.clear_camera_combo_box()
         if self.ui.cb_date.count() > 0:
-            self._current_date = dt.strptime(self.ui.cb_date.currentText(), _DATE_FORMAT).date()
+            self._current_date = dt.strptime(
+                self.ui.cb_date.currentText(), _DATE_FORMAT
+            ).date()
             self.fill_camera_combo_box()
         self.ui.chk_date.setEnabled(self.ui.cb_date.count() > 0)
 
@@ -4339,7 +4527,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def cb_time_current_index_changed(self, _):
         if self.ui.cb_time.count() > 0 and not self._updating_combo_boxes:
-            self._current_time = dt.strptime(self.ui.cb_time.currentText(), _TIME_FORMAT).time()
+            self._current_time = dt.strptime(
+                self.ui.cb_time.currentText(), _TIME_FORMAT
+            ).time()
             self.file_name = self.current_selected_image_path()
 
     def on_chk_pp_show_last_item(self):
@@ -4385,7 +4575,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if param.grid_search_mode:
             param.gs_input.textEdited.connect(self.on_grid_search_param_changed)
             param.gs_auto_fill.clicked.connect(self.on_grid_search_auto_fill_range)
-            param.gs_copy_from_param.clicked.connect(self.on_grid_search_gs_copy_from_param)
+            param.gs_copy_from_param.clicked.connect(
+                self.on_grid_search_gs_copy_from_param
+            )
             param.gs_reset.clicked.connect(self.on_grid_search_reset)
             return
         elif isinstance(param.allowed_values, dict):
@@ -4407,7 +4599,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 call_back = self.on_process_param_clicked
             else:
                 call_back = None
-        elif isinstance(param.allowed_values, tuple) or isinstance(param.allowed_values, list):
+        elif isinstance(param.allowed_values, tuple) or isinstance(
+            param.allowed_values, list
+        ):
             pa = tuple(param.allowed_values)
             if pa == (0, 1):
                 call_back = self.on_process_param_changed_chk
@@ -4530,7 +4724,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             tool.owner.root.invalidate(tool.owner)
             if widget.allow_real_time and tool.real_time and not tool.block_feedback:
                 self.run_process(
-                    wrapper=self._src_image_wrapper, ipt=tool, target_module=tool.owner.uuid
+                    wrapper=self._src_image_wrapper,
+                    ipt=tool,
+                    target_module=tool.owner.uuid,
                 )
         elif isinstance(tool, IptBase):
             if widget.allow_real_time and tool.real_time and not tool.block_feedback:
@@ -4542,7 +4738,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         widget = self.sender()
         tool = widget.tool
         if isinstance(tool, IptBase):
-            self.run_process(wrapper=self._src_image_wrapper, ipt=tool, exec_param=widget.param)
+            self.run_process(
+                wrapper=self._src_image_wrapper, ipt=tool, exec_param=widget.param
+            )
 
     def on_process_param_changed_sl(self, value):
         if self._updating_process_modes:
@@ -4646,7 +4844,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def fill_date_combo_box(self):
         self.clear_date_combo_box()
         date_list = [
-            item.replace("-", "/") if isinstance(item, str) else item.strftime(_DATE_FORMAT)
+            item.replace("-", "/")
+            if isinstance(item, str)
+            else item.strftime(_DATE_FORMAT)
             for item in self.get_query_items(
                 column="Date", experiment=self._current_exp, plant=self._current_plant
             )
@@ -4655,7 +4855,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_date.addItems(date_list)
         self.ui.cb_date.setEnabled(self.ui.cb_date.count() > 1)
         if self._updating_combo_boxes:
-            target_index = self.ui.cb_date.findText(self._current_date.strftime(_DATE_FORMAT))
+            target_index = self.ui.cb_date.findText(
+                self._current_date.strftime(_DATE_FORMAT)
+            )
             if target_index < 0:
                 target_index = 0
                 self._current_date = dt.strptime(
@@ -4888,12 +5090,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             parent=self,
             caption="Save pipeline processor state",
             dir=os.path.join(
-                self.dynamic_folders["pp_state"], f"{self._src_image_wrapper.experiment}.json"
+                self.dynamic_folders["pp_state"],
+                f"{self._src_image_wrapper.experiment}.json",
             ),
             filter="JSON(*.json)",
         )[0]
         if file_name_:
-            self.dynamic_folders["pp_state"] = os.path.join(os.path.dirname(file_name_), "")
+            self.dynamic_folders["pp_state"] = os.path.join(
+                os.path.dirname(file_name_), ""
+            )
             append_experience_name = (
                 model.get_cell_data(row_number=0, column_name="Experiment")
                 if self.ui.cb_pp_append_experience_name.isChecked()
@@ -4927,7 +5132,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     log_message=f'Pipeline state saved to: "{file_name_}"',
                 )
 
-    def find_tool_by_name(self, tool_name):
+    def find_tool_by_name(self, tool_name) -> Union[None, IptBase]:
         lst = self._ip_tools_holder.ipt_list
         for ipt_ in lst:
             if ipt_.name == tool_name:
@@ -4935,7 +5140,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 break
         else:
             self.update_feedback(
-                status_message=f'Unable to find "{tool_name}" operator', use_status_as_log=True
+                status_message=f'Unable to find "{tool_name}" operator',
+                use_status_as_log=True,
             )
             return None
 
@@ -5029,7 +5235,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             and selected_mode.real_time
                             and self.selected_run_tab != _TAB_PIPELINE_V2
                         ):
-                            self.run_process(wrapper=self._src_image_wrapper, ipt=selected_mode)
+                            self.run_process(
+                                wrapper=self._src_image_wrapper, ipt=selected_mode
+                            )
                         elif not self._batch_is_active:
                             img = self._src_image_wrapper.current_image
                             if self._src_image_wrapper.good_image:
@@ -5081,10 +5289,20 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     ipc.ToolFamily.THRESHOLD in value.use_case
                 )
                 self.ui.action_build_roi_with_raw_image.setEnabled(
-                    bool(set(value.use_case) & {ipc.ToolFamily.ROI,})
+                    bool(
+                        set(value.use_case)
+                        & {
+                            ipc.ToolFamily.ROI,
+                        }
+                    )
                 )
                 self.ui.action_build_roi_with_pre_processed_image.setEnabled(
-                    bool(set(value.use_case) & {ipc.ToolFamily.ROI,})
+                    bool(
+                        set(value.use_case)
+                        & {
+                            ipc.ToolFamily.ROI,
+                        }
+                    )
                 )
                 self.ui.actionSet_contour_cleaner.setEnabled(
                     ipc.ToolFamily.MASK_CLEANUP in value.use_case
@@ -5200,11 +5418,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if value is not None and model is not None:
             selectionModel = self.ui.tv_pp_view.selectionModel()
             selectionModel.selectionChanged.connect(self.on_tv_pp_view_selection_changed)
-            self.ui.tv_pp_view.setItemDelegate(PipelineDelegate(parent=self.ui.tv_pp_view))
+            self.ui.tv_pp_view.setItemDelegate(
+                PipelineDelegate(parent=self.ui.tv_pp_view)
+            )
             self.ui.tv_pp_view.header().setStretchLastSection(False)
             self.ui.tv_pp_view.header().setSectionResizeMode(0, QHeaderView.Stretch)
-            self.ui.tv_pp_view.header().setSectionResizeMode(1, QHeaderView.ResizeToContents)
-            self.ui.tv_pp_view.header().setSectionResizeMode(2, QHeaderView.ResizeToContents)
+            self.ui.tv_pp_view.header().setSectionResizeMode(
+                1, QHeaderView.ResizeToContents
+            )
+            self.ui.tv_pp_view.header().setSectionResizeMode(
+                2, QHeaderView.ResizeToContents
+            )
             self.ui.tv_pp_view.setColumnWidth(1, 12)
             self.ui.tv_pp_view.setColumnWidth(2, 12)
 
@@ -5229,7 +5453,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             reset_selection = (
                 self._current_database is not None
-                and self._current_database.db_file_name != value.db_file_name
+                and self._current_database.db_qualified_name != value.db_qualified_name
             )
             changed_ = self._current_database != value
             self._current_database = value.copy()
@@ -5239,9 +5463,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         status_message="Not connected to a database or file system",
                         use_status_as_log=True,
                     )
-                elif self._current_database.db_file_name:
+                elif self._current_database.db_qualified_name:
                     self.update_feedback(
-                        status_message=f"Connected to {self._current_database.db_file_name}",
+                        status_message=f"Connected to {self._current_database.db_qualified_name}",
                         use_status_as_log=True,
                     )
                 else:
