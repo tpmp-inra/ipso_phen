@@ -168,6 +168,17 @@ class PipelineProcessor:
         if self.error_callback is not None:
             self.error_callback(error_level, error_message)
 
+    def log_and_update_progress(
+        self, error_level: int, message: str, step: int, total: int
+    ):
+        if self.progress_and_log_callback is not None:
+            self.progress_and_log_callback(
+                error_level,
+                message,
+                step,
+                total,
+            )
+
     def close_progress(self):
         if self._tqdm is not None:
             self._tqdm.close()
