@@ -1,5 +1,4 @@
 import inspect
-import sys
 from typing import Union
 
 import ipapi.ipt as ipt
@@ -32,6 +31,23 @@ def call_ipt(ipt_id: str, source, return_type: str = "result", **kwargs):
                     return ipt.data_dict
                 else:
                     return ipt.result
+    return None
+
+
+def chain_ipt(ipt_id: str, source, **kwargs):
+    """Processes an image/wrapper with an IPT using an function like syntax
+    :param ipt_id: Class name of the IPT
+    :param source: Wrapper or path to source image
+    :param kwargs: Parameters for the IPT
+    """
+    item = get_ipt_class(ipt_id)
+    if item is not None:
+        with item(source, **kwargs) as (res, ipt):
+            if res:
+                ipt.wrapper.current_image = ipt.result
+                return ipt.wrapper
+            else:
+                return None
     return None
 
 

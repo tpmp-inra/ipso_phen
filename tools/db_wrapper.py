@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
 import logging
 from tqdm import tqdm
+
 try:
     import win32api
 except:
@@ -60,15 +61,41 @@ def get_mass_storage_path():
     return g_storage_path
 
 
+def get_local_storage_path():
+    return os.path.join(
+        os.path.expanduser("~"),
+        "Pictures",
+        "ipso_phen_cache",
+        "",
+    )
+
+
 class DbInfo:
     def __init__(self, **kwargs):
         self.display_name = kwargs.get("display_name", "unknown")
-        self.db_file_name = kwargs.get(
-            "db_file_name", DB_PREFIX + make_safe_name(self.display_name)
+        self.db_qualified_name = kwargs.get(
+            "db_qualified_name",
+            make_safe_name(self.display_name),
         )
         self.src_files_path = kwargs.get("src_files_path", "")
         self.dbms = kwargs.get("dbms", "sqlite")
+        if self.db_qualified_name != ":memory:":
+            if self.dbms == "sqlite" and not self.db_qualified_name.endswith(".db"):
+                self.db_qualified_name += ".db"
+            elif self.dbms == "psql" and not self.db_qualified_name.startswith("psql_"):
+                self.db_qualified_name = "psql_" + self.db_qualified_name
+
         self.db_folder_name = kwargs.get("db_folder_name", "./sqlite_databases")
+
+    @property
+    def full_display_name(self):
+        return self.display_name + (
+            "(sqlite)"
+            if self.dbms == "sqlite"
+            else "(psql)"
+            if self.dbms == "psql"
+            else "(?)"
+        )
 
     @classmethod
     def from_json(cls, json_data: dict):
@@ -77,7 +104,7 @@ class DbInfo:
     def to_json(self):
         return {
             "display_name": self.display_name,
-            "db_file_name": self.db_file_name,
+            "db_qualified_name": self.db_qualified_name,
             "src_files_path": self.src_files_path,
             "dbms": self.dbms,
             "db_folder_name": self.db_folder_name,
@@ -88,19 +115,24 @@ class DbInfo:
 
     @property
     def db_full_file_path(self) -> str:
-        return os.path.join(self.db_folder_name, self.db_file_name)
+        return os.path.join(self.db_folder_name, self.db_qualified_name)
 
 
-DB_INFO_LOCAL_SAMPLES = DbInfo(
-    display_name="local_samples",
-    src_files_path=os.path.join(os.path.expanduser("~"), "Pictures", "ipso_phen_cache", ""),
-    dbms="psql",
-)
+DB_LOCAL_STORAGE = [
+    DbInfo(
+        display_name=name,
+        src_files_path=os.path.join(get_local_storage_path(), name),
+        dbms="psql",
+    )
+    for name in os.listdir(get_local_storage_path())
+    if os.path.isdir(os.path.join(get_local_storage_path(), name))
+]
+
 
 if get_mass_storage_path():
     DB_MASS_STORAGE = [
         DbInfo(
-            display_name=f"ms_{name}",
+            display_name=name,
             src_files_path=os.path.join(get_mass_storage_path(), name),
             dbms="psql",
         )
@@ -112,7 +144,9 @@ else:
 
 
 DB_INFO_EXT_HD = DbInfo(
-    display_name="external_hard_drive", src_files_path="G:/images", dbms="psql",
+    display_name="external_hard_drive",
+    src_files_path="G:/images",
+    dbms="psql",
 )
 
 
@@ -216,7 +250,9 @@ class QueryHandlerPostgres(QueryHandler):
             [f"{self.format_key(key=k, value=v)}" for k, v in kwargs.items()]
         )
         if constraints_:
-            s = text(f'{command} {columns} FROM "{table}" WHERE {constraints_} {additional}')
+            s = text(
+                f'{command} {columns} FROM "{table}" WHERE {constraints_} {additional}'
+            )
         else:
             s = text(f'{command} {columns} FROM "{table}" {additional}')
 
@@ -227,7 +263,9 @@ class QueryHandlerPostgres(QueryHandler):
                 if op.lower() == "between":
                     param_dict.update(v)
                 elif op.lower() == "in":
-                    param_dict.update({f"val_{i}": val for i, val in enumerate(v["values"])})
+                    param_dict.update(
+                        {f"val_{i}": val for i, val in enumerate(v["values"])}
+                    )
 
         return s, param_dict
 
@@ -364,7 +402,8 @@ class QueryHandlerSQLite(QueryHandler):
         if self.open_connexion():
             if sql_:
                 self.connexion.execute(
-                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""", params_
+                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""",
+                    params_,
                 )
             else:
                 self.connexion.execute(
@@ -401,7 +440,8 @@ class QueryHandlerSQLite(QueryHandler):
         if self.open_connexion():
             if sql_:
                 self.connexion.execute(
-                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""", params_
+                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""",
+                    params_,
                 )
             else:
                 self.connexion.execute(
@@ -461,7 +501,9 @@ class DbWrapper(ABC):
         pass
 
     @abstractmethod
-    def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(
+        self, db_qualified_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+    ):
         pass
 
     def _init_progress(self, total: int, desc: str = "") -> None:
@@ -486,7 +528,9 @@ class DbWrapper(ABC):
             return -1
         if self.open_connexion():
             try:
-                res = self.connexion.execute("SELECT table_name FROM information_schema.tables")
+                res = self.connexion.execute(
+                    "SELECT table_name FROM information_schema.tables"
+                )
                 table_list = [item[0] for item in res]
                 print("\n".join(table_list))
             finally:
@@ -501,7 +545,7 @@ class DbWrapper(ABC):
 
     @property
     def db_url(self):
-        return f"{self.url}/{self.db_file_name.lower()}"
+        return f"{self.url}/{self.db_qualified_name.lower()}"
 
     @abstractproperty
     def type(self) -> list:
@@ -516,12 +560,12 @@ class DbWrapper(ABC):
         self.db_info.display_name = value
 
     @property
-    def db_file_name(self):
-        return self.db_info.db_file_name
+    def db_qualified_name(self):
+        return self.db_info.db_qualified_name
 
-    @db_file_name.setter
-    def db_file_name(self, value):
-        self.db_info.db_file_name = value
+    @db_qualified_name.setter
+    def db_qualified_name(self, value):
+        self.db_info.db_qualified_name = value
 
     @property
     def src_files_path(self):
@@ -558,9 +602,13 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             engine = create_engine("postgres://postgres@/postgres")
             conn = engine.connect()
             conn.execute("commit")
-            conn.execute(f"create database {self.db_file_name.lower()}")
-            conn.execute(f"GRANT ALL ON DATABASE {self.db_file_name.lower()} TO {self.user};")
-            conn.execute(f"ALTER DATABASE {self.db_file_name.lower()} OWNER TO {self.user};")
+            conn.execute(f"create database {self.db_qualified_name.lower()}")
+            conn.execute(
+                f"GRANT ALL ON DATABASE {self.db_qualified_name.lower()} TO {self.user};"
+            )
+            conn.execute(
+                f"ALTER DATABASE {self.db_qualified_name.lower()} OWNER TO {self.user};"
+            )
             conn.close()
             missing_data = True
 
@@ -594,7 +642,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 logger.exception(f"Failed to create table because {repr(e)}")
                 return False
 
-        if missing_data and auto_update and self.db_file_name:
+        if missing_data and auto_update and self.db_qualified_name:
             self.update()
 
         return True
@@ -611,7 +659,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         trans_ = conn_.begin()
         try:
             conn_.execute("commit")
-            conn_.execute(f"drop database if exists {self.db_file_name.lower()}")
+            conn_.execute(f"drop database if exists {self.db_qualified_name.lower()}")
             trans_.commit()
             conn_.close()
         except Exception as e:
@@ -621,7 +669,9 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         else:
             return True
 
-    def update(self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(
+        self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+    ):
         if not self.connect(auto_update=False):
             return -1
 
@@ -665,11 +715,15 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                     else:
                         files_added += 1
                     self._callback(
-                        step=i, total=total_, msg=f'Updating database "{self.db_file_name}"'
+                        step=i,
+                        total=total_,
+                        msg=f'Updating database "{self.db_qualified_name}"',
                     )
                 self.close_connexion()
                 self._callback(
-                    step=total_, total=total_, msg=f'Updated database "{self.db_file_name}"'
+                    step=total_,
+                    total=total_,
+                    msg=f'Updated database "{self.db_qualified_name}"',
                 )
                 self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
@@ -679,7 +733,9 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 df.to_sql(name="snapshots", con=self.engine, if_exists="replace")
                 if self.open_connexion():
                     try:
-                        self.connexion.execute("alter table snapshots add primary key (luid)")
+                        self.connexion.execute(
+                            "alter table snapshots add primary key (luid)"
+                        )
                         self.connexion.execute("alter table snapshots drop column index")
                     finally:
                         self.close_connexion()
@@ -721,7 +777,9 @@ class ReadOnlyDbWrapper(DbWrapper, QueryHandlerPostgres):
     def drop(self, super_user, password):
         return False
 
-    def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(
+        self, db_qualified_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+    ):
         return -1
 
     @property
@@ -733,13 +791,13 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
     def connect(self, auto_update: bool = True):
         if self.engine is None:
             needs_creating = not self.is_exists()
-            if self.db_file_name == ":memory:":
-                db_file_name = ":memory:"
+            if self.db_qualified_name == ":memory:":
+                db_qualified_name = ":memory:"
             else:
-                db_file_name = self.db_info.db_full_file_path
+                db_qualified_name = self.db_info.db_full_file_path
                 force_directories(self.db_folder_name)
             self.engine = sqlite3.connect(
-                database=db_file_name,
+                database=db_qualified_name,
                 detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
             )
             if needs_creating:
@@ -772,7 +830,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             self.connexion = None
 
     def is_exists(self):
-        if self.db_file_name == ":memory:":
+        if self.db_qualified_name == ":memory:":
             return self.engine is not None
         else:
             return os.path.isfile(self.db_info.db_full_file_path)
@@ -780,7 +838,9 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
     def drop(self, super_user, password):
         return False
 
-    def update(self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(
+        self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+    ):
         if not self.connect(auto_update=False):
             return -1
 
@@ -823,10 +883,14 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                     else:
                         files_added += 1
                     self._callback(
-                        step=i, total=total_, msg=f'Updating database "{self.src_files_path}"'
+                        step=i,
+                        total=total_,
+                        msg=f'Updating database "{self.src_files_path}"',
                     )
                 self._callback(
-                    step=total_, total=total_, msg=f'Updated database "{self.src_files_path}"'
+                    step=total_,
+                    total=total_,
+                    msg=f'Updated database "{self.src_files_path}"',
                 )
                 self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
@@ -853,7 +917,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
 
     @property
     def type(self) -> list:
-        if self.db_file_name == ":memory:":
+        if self.db_qualified_name == ":memory:":
             return [DB_TYPE_MEMORY, DB_TYPE_SQLITE, DB_TYPE_RW]
         else:
             return [DB_TYPE_SQLITE, DB_TYPE_RW]
