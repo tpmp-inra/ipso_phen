@@ -41,6 +41,7 @@ DB_TYPE_RW = "DB_TYPE_RW"
 
 
 g_storage_path = ""
+g_local_path = ""
 
 
 def get_mass_storage_path():
@@ -62,12 +63,15 @@ def get_mass_storage_path():
 
 
 def get_local_storage_path():
-    return os.path.join(
-        os.path.expanduser("~"),
-        "Pictures",
-        "ipso_phen_cache",
-        "",
-    )
+    global g_local_path
+    if not g_local_path and is_winapi:
+        g_local_path = os.path.join(
+            os.path.expanduser("~"),
+            "Pictures",
+            "ipso_phen_cache",
+            "",
+        )
+    return g_local_path
 
 
 class DbInfo:
@@ -118,15 +122,18 @@ class DbInfo:
         return os.path.join(self.db_folder_name, self.db_qualified_name)
 
 
-DB_LOCAL_STORAGE = [
-    DbInfo(
-        display_name=name,
-        src_files_path=os.path.join(get_local_storage_path(), name),
-        dbms="psql",
-    )
-    for name in os.listdir(get_local_storage_path())
-    if os.path.isdir(os.path.join(get_local_storage_path(), name))
-]
+if get_local_storage_path():
+    DB_LOCAL_STORAGE = [
+        DbInfo(
+            display_name=name,
+            src_files_path=os.path.join(get_local_storage_path(), name),
+            dbms="psql",
+        )
+        for name in os.listdir(get_local_storage_path())
+        if os.path.isdir(os.path.join(get_local_storage_path(), name))
+    ]
+else:
+    DB_LOCAL_STORAGE = []
 
 
 if get_mass_storage_path():

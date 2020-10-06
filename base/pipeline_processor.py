@@ -149,8 +149,10 @@ class PipelineProcessor:
         else:
             self.update_progress()
 
-    def init_progress(self, total: int, desc: str = "") -> None:
-        if self.progress_callback is None:
+    def init_progress(self, total: int, desc: str = "", yield_mode: bool = False) -> None:
+        if yield_mode is True:
+            pass
+        elif self.progress_callback is None:
             self._tqdm = tqdm(total=total, desc=desc)
         else:
             self.progress_callback(step=0, total=total)
@@ -191,11 +193,11 @@ class PipelineProcessor:
 
     def group_by_series(self, time_delta: int, yield_mode: bool = False):
         # Build dictionary
-        if yield_mode is False:
-            self.init_progress(
-                total=len(self.accepted_files),
-                desc="Building plants dictionaries",
-            )
+        self.init_progress(
+            total=len(self.accepted_files),
+            desc="Building plants dictionaries",
+            yield_mode=yield_mode,
+        )
         plants_ = defaultdict(list)
         total = len(self.accepted_files)
         for i, item in enumerate(self.accepted_files):
@@ -209,8 +211,11 @@ class PipelineProcessor:
             self.close_progress()
 
         # Sort all lists by timestamp
-        if yield_mode is False:
-            self.init_progress(total=len(plants_), desc="Sorting observations")
+        self.init_progress(
+            total=len(plants_),
+            desc="Sorting observations",
+            yield_mode=yield_mode,
+        )
         total = len(plants_.values())
         for i, v in enumerate(plants_.values()):
             if yield_mode is True:
@@ -223,8 +228,11 @@ class PipelineProcessor:
 
         # Consume
         files_to_process = []
-        if yield_mode is False:
-            self.init_progress(total=len(plants_.values()), desc="Grouping by series")
+        self.init_progress(
+            total=len(plants_.values()),
+            desc="Grouping by series",
+            yield_mode=yield_mode,
+        )
         total = len(plants_.values())
         for i, v in enumerate(plants_.values()):
             if yield_mode is True:
@@ -261,8 +269,11 @@ class PipelineProcessor:
     ) -> Union[None, pd.DataFrame]:
         logger.info("   --- Starting file merging ---")
         csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
-        if yield_mode is not True:
-            self.init_progress(total=len(csv_lst), desc="Merging CSV files")
+        self.init_progress(
+            total=len(csv_lst),
+            desc="Merging CSV files",
+            yield_mode=yield_mode,
+        )
 
         df = pd.DataFrame()
         total = len(csv_lst)
@@ -334,8 +345,11 @@ class PipelineProcessor:
         if groups_list:
             force_directories(self.options.partials_path)
             logger.info(f"   --- Processing {len(groups_list)} files ---")
-            if yield_mode is not True:
-                self.init_progress(total=len(groups_list), desc="Processing images")
+            self.init_progress(
+                total=len(groups_list),
+                desc="Processing images",
+                yield_mode=yield_mode,
+            )
 
             max_cores = min([10, mp.cpu_count()])
             if isinstance(self.multi_thread, int):
