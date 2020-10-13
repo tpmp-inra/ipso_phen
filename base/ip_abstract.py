@@ -22,7 +22,6 @@ from ipapi.tools.regions import (
     AbstractRegion,
 )
 from ipapi.tools.common_functions import time_method, force_directories
-from ipapi.tools.db_wrapper import DB_TYPE_MEMORY
 import sys
 
 matplotlib.use("agg")
@@ -187,7 +186,7 @@ class AbstractImageProcessor(ImageWrapper):
         if (
             (self.msp_images_holder is None)
             and (self.target_database is not None)
-            and (DB_TYPE_MEMORY not in self.target_database.type)
+            and (self.target_database.type.db_qualified_name != ":memory:")
         ):
             current_date_time = self.date_time
             ret = self.target_database.query(
@@ -325,17 +324,13 @@ class AbstractImageProcessor(ImageWrapper):
             if normalize_before:
                 c = cv2.equalizeHist(c)
             foreground_img = cv2.applyColorMap(c, color_map)
-        elif foreground == "black":
-            foreground_img = np.full(src.shape, ipc.C_BLACK, np.uint8)
-        elif foreground == "silver":
-            foreground_img = np.full(src.shape, ipc.C_SILVER, np.uint8)
-        elif foreground == "white":
-            foreground_img = np.full(src.shape, ipc.C_WHITE, np.uint8)
-        elif isinstance(foreground, tuple):
-            foreground_img = np.full(src.shape, foreground, np.uint8)
         elif foreground == "bw":
             foreground_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
             foreground_img = np.dstack((foreground_img, foreground_img, foreground_img))
+        elif isinstance(foreground, tuple):
+            foreground_img = np.full(src.shape, foreground, np.uint8)
+        elif isinstance(foreground, str):
+            foreground_img = np.full(src.shape, ipc.all_colors_dict[foreground], np.uint8)
         else:
             logger.error(f"Unknown foreground {background}")
             return np.full(src.shape, ipc.C_FUCHSIA, np.uint8)
@@ -2158,7 +2153,7 @@ class AbstractImageProcessor(ImageWrapper):
     def extract_image_data(
         self,
         mask: Any,
-        source_image: [None, str, Any] = None,
+        source_image: Union[None, str, Any] = None,
         pseudo_color_channel: str = "v",
         pseudo_color_map: int = 2,
         boundary_position: int = -1,

@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 from ipapi.base.ipt_abstract import IptBase
 import ipapi.base.ip_common as ipc
+import ipapi.tools.regions as regions
 
 
 class IptApplyRoi(IptBase):
@@ -86,6 +87,9 @@ class IptApplyRoi(IptBase):
                     wrapper.store_image(image=img, text=f"image_after{roi.name}")
                 self.result = img
                 wrapper.store_image(img, "roi_applied")
+                self.demo_image = regions.draw_rois(
+                    rois=rois, image=img.copy(), line_width=wrapper.width // 400
+                )
                 res = True
             else:
                 wrapper.store_image(wrapper.current_image, "current_image")
