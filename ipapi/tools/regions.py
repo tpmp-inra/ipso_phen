@@ -291,7 +291,12 @@ class EmptyRegion(AbstractRegion):
 
     def as_circle(self):
         return CircleRegion(
-            cx=0, cy=0, radius=0, tag=self.tag, color=self.color, target=self.target,
+            cx=0,
+            cy=0,
+            radius=0,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
         )
 
     def as_annulus(self):
@@ -430,7 +435,11 @@ class RectangleRegion(AbstractRegion):
     def to_mask(self, width, height):
         mask = np.zeros((height, width), dtype=np.uint8)
         return cv2.rectangle(
-            mask, (self.left, self.top), (self.right, self.bottom), (255,), -1,
+            mask,
+            (self.left, self.top),
+            (self.right, self.bottom),
+            (255,),
+            -1,
         )
 
     def draw_to(self, dst_img, line_width=-1, color=None):
@@ -666,7 +675,10 @@ class RotatedRectangle(AbstractRegion):
         return points
 
     def to_contour(self) -> np.array:
-        return np.array([point.as_list() for point in self.as_poly()], dtype=np.int32,)
+        return np.array(
+            [point.as_list() for point in self.as_poly()],
+            dtype=np.int32,
+        )
 
     def to_mask(self, width, height):
         mask = np.zeros((height, width), dtype=np.uint8)
@@ -676,7 +688,11 @@ class RotatedRectangle(AbstractRegion):
     def draw_to(self, dst_img, line_width=-1, color=None):
         res = dst_img.copy()
         cv2.drawContours(
-            res, [self.to_contour()], 0, self.color if color is None else color, line_width
+            res,
+            [self.to_contour()],
+            0,
+            self.color if color is None else color,
+            line_width,
         )
         return res
 
@@ -749,12 +765,20 @@ class CircleRegion(AbstractRegion):
         if color is None:
             color = self.color
         return cv2.circle(
-            dst_img.copy(), (self.center.x, self.center.y), self.radius, self.color, line_width
+            dst_img.copy(),
+            (self.center.x, self.center.y),
+            self.radius,
+            self.color,
+            line_width,
         )
 
     def fill(self, dst_img, color):
         return cv2.circle(
-            dst_img.copy(), (self.center.x, self.center.y), self.radius, color, -1
+            dst_img.copy(),
+            (self.center.x, self.center.y),
+            self.radius,
+            color,
+            -1,
         )
 
     def is_empty(self) -> bool:
@@ -898,17 +922,31 @@ class AnnulusRegion(CircleRegion):
             (255,),
             -1,
         )
-        return cv2.circle(mask, (self.center.x, self.center.y), self.in_radius, (0,), -1)
+        return cv2.circle(
+            mask,
+            (self.center.x, self.center.y),
+            self.in_radius,
+            (0,),
+            -1,
+        )
 
     def draw_to(self, dst_img, line_width=-1, color=None):
         if color is None:
             color = self.color
         if line_width > 0:
             img_ = cv2.circle(
-                dst_img.copy(), (self.center.x, self.center.y), self.radius, color, line_width,
+                dst_img.copy(),
+                (self.center.x, self.center.y),
+                self.radius,
+                color,
+                line_width,
             )
             return cv2.circle(
-                img_, (self.center.x, self.center.y), self.in_radius, color, line_width,
+                img_,
+                (self.center.x, self.center.y),
+                self.in_radius,
+                color,
+                line_width,
             )
         else:
             return self.fill(dst_img=dst_img, color=color)
@@ -939,7 +977,10 @@ class AnnulusRegion(CircleRegion):
 
     def as_annulus(self):
         return AnnulusRegion(
-            cx=self.center.x, cy=self.center.y, radius=self.radius, in_radius=self.in_radius
+            cx=self.center.x,
+            cy=self.center.y,
+            radius=self.radius,
+            in_radius=self.in_radius,
         )
 
     @property
@@ -1015,7 +1056,12 @@ class CompositeRegion(AbstractRegion):
         cnt = ipc.group_contours(mask=self.to_mask(self.width, self.height))
         (x, y), radius = cv2.minEnclosingCircle(cnt)
         return CircleRegion(
-            cx=x, cy=y, radius=radius, tag=self.tag, color=self.color, target=self.target
+            cx=x,
+            cy=y,
+            radius=radius,
+            tag=self.tag,
+            color=self.color,
+            target=self.target,
         )
 
     def as_annulus(self):
@@ -1043,17 +1089,29 @@ class CompositeRegion(AbstractRegion):
 
 
 def copy_rois(rois: list, src, dst):
-    return cv2.bitwise_or(delete_rois(rois=rois, image=dst), keep_rois(rois=rois, image=src))
+    return cv2.bitwise_or(
+        delete_rois(rois=rois, image=dst),
+        keep_rois(rois=rois, image=src),
+    )
 
 
 def draw_rois(rois: list, image, line_width=-1, color=None):
     for roi in rois:
-        image = roi.draw_to(dst_img=image, line_width=line_width, color=color)
+        image = roi.draw_to(
+            dst_img=image,
+            line_width=line_width,
+            color=color,
+        )
     return image
 
 
 def fill_rois(rois: list, image, color):
-    return draw_rois(rois=rois, image=image, line_width=-1, color=color)
+    return draw_rois(
+        rois=rois,
+        image=image,
+        line_width=-1,
+        color=color,
+    )
 
 
 def keep_rois(rois: list, image):

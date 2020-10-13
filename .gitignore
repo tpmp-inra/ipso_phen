@@ -191,3 +191,5 @@ IPSO_Phen.egg-info/
 /ui_qt/main_form.py
 logs/
 saved_data/
+ipapi/database/phenoserre_access.py
+ipapi/database/db_connect_data.py

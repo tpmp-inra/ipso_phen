@@ -22,10 +22,10 @@ from ipapi import __init__
 
 from ipapi.tools.common_functions import force_directories, make_safe_name
 
-import ipapi.tools.db_wrapper as dbw
+import ipapi.database.db_initializer as dbi
+import ipapi.database.db_factory as dbf
 from ipapi.base.ip_abstract import AbstractImageProcessor
 from ipapi.base.ipt_functional import chain_ipt, call_ipt
-from ipapi.tools.common_functions import print_progress_bar
 
 # import ptvsd
 
@@ -316,7 +316,7 @@ video_width = int(video_height * eval(video_aspect_ratio))
 db_name = st.selectbox(
     label="Select source experiment",
     options=["Please make your choice..."]
-    + [db.display_name for db in dbw.DB_MASS_STORAGE],
+    + [db.display_name for db in dbi.available_db_dicts[dbi.DbType.MASS_DB]],
 )
 
 job_choice = st.selectbox(
@@ -327,10 +327,11 @@ job_choice = st.selectbox(
 if job_choice != "Please make your choice..." and db_name != "Please make your choice...":
     st.subheader("Building database")
     current_progress = st.progress(0)
-    for db in dbw.DB_MASS_STORAGE:
+    for db in dbi.available_db_dicts[dbi.DbType.MASS_DB]:
         if db.display_name == db_name:
-            current_database = dbw.db_info_to_database(
-                db, progress_call_back=progress_update,
+            current_database = dbf.db_info_to_database(
+                db,
+                progress_call_back=progress_update,
             )
             break
     current_progress.progress(1 / 1)
