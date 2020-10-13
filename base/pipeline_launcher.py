@@ -97,7 +97,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def launch(**kwargs):
+def prepare(**kwargs):
     start = timer()
 
     # Script
