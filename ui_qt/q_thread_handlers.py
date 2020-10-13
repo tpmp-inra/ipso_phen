@@ -1,6 +1,5 @@
 import os
 from timeit import default_timer as timer
-import csv
 import logging
 
 import numpy as np
@@ -38,7 +37,9 @@ class IpsoRunnable(QRunnable):
         self.signals_holder.on_ended.connect(kwargs.get("on_ended", None))
         self.signals_holder.on_update_images.connect(kwargs.get("on_update_images", None))
         self.signals_holder.on_update_data.connect(kwargs.get("on_update_data", None))
-        self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
+        self.signals_holder.on_feedback_log_str.connect(
+            kwargs.get("on_feedback_log_str", None)
+        )
         self.signals_holder.on_pipeline_progress.connect(
             kwargs.get("on_pipeline_progress", None)
         )
@@ -126,11 +127,15 @@ class IpsoRunnable(QRunnable):
             before = timer()
             wrapper = self._get_wrapper(image_dict=image_dict)
             if wrapper is None:
-                logger.critical("No image selected: Missing wrapper",)
+                logger.critical(
+                    "No image selected: Missing wrapper",
+                )
                 status_message = "No image selected: Missing wrapper"
                 return False
             if self.ipt is None:
-                logger.error("No ipt selected: Missing IPT",)
+                logger.error(
+                    "No ipt selected: Missing IPT",
+                )
                 status_message = "No ipt selected: Missing IPT"
                 return False
 
@@ -143,9 +148,7 @@ class IpsoRunnable(QRunnable):
 
             after = timer()
             if res:
-                status_message = (
-                    f"Successfully processed {self.ipt.name} in {format_time(after - before)}"
-                )
+                status_message = f"Successfully processed {self.ipt.name} in {format_time(after - before)}"
                 log_message = f"""Successfully processed {self.ipt.name}
                 for "{wrapper.name}" in {format_time(after - before)}"""
             else:
@@ -244,6 +247,9 @@ class IpsoGroupProcessor(QRunnable):
         self.options = kwargs.get("options")
         self.script: LoosePipeline = kwargs.get("script")
 
+        self.index = kwargs.get("index", -1)
+        self.total = kwargs.get("total", -1)
+
     def _run_process(self, file_name, luid: str = ""):
         start_time = timer()
 
@@ -259,6 +265,8 @@ class IpsoGroupProcessor(QRunnable):
                 store_images=False,
                 options=self.options,
                 call_back=None,
+                index=self.index,
+                total=self.total,
             )
         except Exception as e:
             logger.exception(f"Failed to process {file_name} because {repr(e)}")
@@ -269,6 +277,8 @@ class IpsoGroupProcessor(QRunnable):
             else:
                 self.signals_holder.on_image_ready.emit(self.script.wrapper.current_image)
         else:
+            if self.script is not None:
+                self.signals_holder.on_image_ready.emit(self.script.mosaic)
             if res:
                 self.signals_holder.on_log_event.emit(
                     self.script.wrapper.luid,
@@ -319,7 +329,9 @@ class IpsoMassRunner(QRunnable):
         self.signals_holder.on_launching.connect(kwargs.get("on_launching", None))
         self.signals_holder.on_started.connect(kwargs.get("on_started", None))
         self.signals_holder.on_progress.connect(kwargs.get("on_progress", None))
-        self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
+        self.signals_holder.on_feedback_log_str.connect(
+            kwargs.get("on_feedback_log_str", None)
+        )
         # Callbacks
         self.check_stop = kwargs.get("check_stop", None)
         # States
@@ -374,6 +386,8 @@ class IpsoMassRunner(QRunnable):
                             script=None
                             if self.pipeline.script is None
                             else self.pipeline.script.copy(),
+                            index=i,
+                            total=groups_to_process_count,
                         )
                         if not self.is_continue():
                             launch_state = "abort"
@@ -385,7 +399,9 @@ class IpsoMassRunner(QRunnable):
                             item_worker.run()
             else:
                 self.signals_holder.on_feedback_log_str.emit(
-                    "No images to process", "No images to process", log_level=logging.WARNING
+                    "No images to process",
+                    "No images to process",
+                    log_level=logging.WARNING,
                 )
         except Exception as e:
             logger.exception(f'Exception "{repr(e)}" while mass processing')
@@ -414,8 +430,15 @@ class IpsoMassRunner(QRunnable):
         self.signals_holder.on_progress.emit(step, total)
         return self.is_continue()
 
-    def do_feedback(self, status_msg: str, log_msg: str, use_status_as_log: bool) -> bool:
-        self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg, use_status_as_log)
+    def do_feedback(
+        self,
+        status_msg: str,
+        log_msg: str,
+        use_status_as_log: bool,
+    ) -> bool:
+        self.signals_holder.on_feedback_log_str.emit(
+            status_msg, log_msg, use_status_as_log
+        )
         return self.is_continue()
 
 
@@ -434,7 +457,9 @@ class IpsoCsvBuilder(QRunnable):
         self.signals_holder = IpsoCsvBuilderSignals()
         self.signals_holder.on_start.connect(kwargs.get("on_start", None))
         self.signals_holder.on_progress.connect(kwargs.get("on_progress", None))
-        self.signals_holder.on_feedback_log_str.connect(kwargs.get("on_feedback_log_str", None))
+        self.signals_holder.on_feedback_log_str.connect(
+            kwargs.get("on_feedback_log_str", None)
+        )
         self.signals_holder.on_end.connect(kwargs.get("on_end", None))
         # Callbacks
         self.check_stop = kwargs.get("check_stop", None)
@@ -471,7 +496,9 @@ class IpsoCsvBuilder(QRunnable):
         return self.is_continue()
 
     def do_feedback(self, status_msg: str, log_msg: str, use_status_as_log: bool) -> bool:
-        self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg, use_status_as_log)
+        self.signals_holder.on_feedback_log_str.emit(
+            status_msg, log_msg, use_status_as_log
+        )
         return self.is_continue()
 
     def run(self):
@@ -482,7 +509,9 @@ class IpsoCsvBuilder(QRunnable):
                 self.pipeline.options.write_result_text
                 and not self.pipeline.options.threshold_only
             ):
-                df = self.pipeline.merge_result_files(csv_file_name=self.root_csv_name + ".csv")
+                df = self.pipeline.merge_result_files(
+                    csv_file_name=self.root_csv_name + ".csv"
+                )
             if df is None:
                 return
             # Get the total number of steps
@@ -535,7 +564,8 @@ class IpsoCsvBuilder(QRunnable):
                             ["series_id"]
                         ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
                             os.path.join(
-                                self.pipeline.options.dst_path, f"{csv_sid_root_name}_mean.csv"
+                                self.pipeline.options.dst_path,
+                                f"{csv_sid_root_name}_mean.csv",
                             )
                         )
                         step_ += 1
@@ -568,7 +598,8 @@ class IpsoCsvBuilder(QRunnable):
                             by=["plant", "date"]
                         ).to_csv(
                             os.path.join(
-                                self.pipeline.options.dst_path, f"{csv_day_root_name}_mean.csv"
+                                self.pipeline.options.dst_path,
+                                f"{csv_day_root_name}_mean.csv",
                             )
                         )
                         step_ += 1

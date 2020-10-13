@@ -129,18 +129,18 @@ class PipelineProcessor:
             self._process_errors += 1
         else:
             spaces_ = len(str(total))
-            msg_prefix = (
-                f">>>> "
-                + f'{"OK" if wrapper_res.result is True else "FAIL"}'
+            msg = (
+                f'{"OK" if wrapper_res.result is True else "FAIL"}'
                 + " - "
                 + f"{(wrapper_index + 1):{spaces_}d}/{total} >>> "
+                + wrapper_res.name
+                + f" - {wrapper_res.message}"
+                if wrapper_res.message
+                else ""
             )
-            msg_suffix = f" - {wrapper_res.message}" if wrapper_res.message else ""
-            logger.info(f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
+            logger.info(msg)
             if wrapper_res.result is not True:
-                self.report_error(
-                    logging.ERROR, f"{msg_prefix}{wrapper_res.name}{msg_suffix}"
-                )
+                self.report_error(logging.ERROR, msg)
             if wrapper_res.result is not True:
                 self._process_errors += 1
         self.update_progress()
@@ -229,10 +229,10 @@ class PipelineProcessor:
         csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
         self.init_progress(total=len(csv_lst), desc="Merging CSV files")
 
-        df = pd.DataFrame()
+        dataframe = pd.DataFrame()
         for csv_file in csv_lst:
             try:
-                df = df.append(pd.read_csv(csv_file))
+                dataframe = dataframe.append(pd.read_csv(csv_file))
             except Exception as e:
                 logger.exception("Merge error")
             self.update_progress()
@@ -244,33 +244,35 @@ class PipelineProcessor:
             df_cols.pop(df_cols.index(col_name))
             return dataframe.reindex(columns=[col_name] + df_cols)
 
-        df = put_column_in_front(col_name="area", dataframe=df)
-        df = put_column_in_front(col_name="source_path", dataframe=df)
-        df = put_column_in_front(col_name="luid", dataframe=df)
-        df = put_column_in_front(col_name="view_option", dataframe=df)
-        df = put_column_in_front(col_name="camera", dataframe=df)
-        df = put_column_in_front(col_name="date_time", dataframe=df)
-        df = put_column_in_front(col_name="condition", dataframe=df)
-        df = put_column_in_front(col_name="genotype", dataframe=df)
-        df = put_column_in_front(col_name="plant", dataframe=df)
-        df = put_column_in_front(col_name="experiment", dataframe=df)
+        dataframe = put_column_in_front(col_name="area", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="source_path", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="luid", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="view_option", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="camera", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="date_time", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="condition", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="genotype", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="plant", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="experiment", dataframe=dataframe)
 
-        sort_list = ["plant"] if "plant" in list(df.columns) else []
+        sort_list = ["plant"] if "plant" in list(dataframe.columns) else []
         sort_list = (
-            sort_list + ["date_time"] if "date_time" in list(df.columns) else sort_list
+            sort_list + ["date_time"]
+            if "date_time" in list(dataframe.columns)
+            else sort_list
         )
         if sort_list:
-            df.sort_values(by=sort_list, axis=0, inplace=True, na_position="first")
+            dataframe = dataframe.sort_values(by=sort_list, axis=0, na_position="first")
 
-        df.reset_index(drop=True, inplace=True)
+        dataframe = dataframe.reset_index(drop=True)
 
-        df.to_csv(
+        dataframe.to_csv(
             path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False
         )
         self.close_progress()
         logger.info("   --- Merged partial outputs ---<br>")
 
-        return df
+        return dataframe
 
     def prepare_groups(self, time_delta: int):
         if self.options.group_by_series:

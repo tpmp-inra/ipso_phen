@@ -883,7 +883,9 @@ class GroupNode(Node):
                     call_back=call_back,
                     res=logging.INFO,
                     msg=f"Processed {wrapper.luid} in {format_time(timer() - before)}",
-                    data=self if self.root.parent.show_group_result or self.root.parent.silent else None,
+                    data=self
+                    if self.root.parent.show_group_result or self.root.parent.silent
+                    else None,
                     force_call_back=True,
                     is_progress=False,
                 )
@@ -1364,6 +1366,19 @@ class LoosePipeline(object):
                     wr.writerow(self.wrapper.csv_data_holder.data_to_list())
             except Exception as e:
                 logger.exception(f"Failed to write image data because {repr(e)}")
+
+        index = kwargs.get("index", -1)
+        total = kwargs.get("total", -1)
+        if index >= 0 and total >= 0:
+            eh.log_data(
+                log_msg=(
+                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
+                    + self.wrapper.name
+                ),
+                log_level=self.error_level,
+                target_logger=logger,
+            )
 
         return self.error_level < self.stop_on
 
