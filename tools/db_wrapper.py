@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod, abstractproperty
 from typing import Union
 import logging
 from tqdm import tqdm
+
 try:
     import win32api
 except:
@@ -23,6 +24,8 @@ from ipapi.file_handlers.fh_base import file_handler_factory
 from ipapi.tools.common_functions import force_directories, make_safe_name
 
 logger = logging.getLogger(__name__)
+
+g_conn_count = 0
 
 DB_USER = "fmavianemac"
 DB_PREFIX = "ipso_local_db_"
@@ -60,6 +63,25 @@ def get_mass_storage_path():
     return g_storage_path
 
 
+def ensure_db_connexion(f):
+    def wrapper(*args, **kwargs):
+        me = args[0]
+        assert me.connexion is None, "Connexion should be closed by now"
+        me.connect()
+        if hasattr(me.engine, "cursor"):
+            me.connexion = me.engine.cursor()
+        else:
+            me.connexion = me.engine.connect()
+        res = f(*args, **kwargs)
+        if hasattr(me.engine, "commit"):
+            me.engine.commit()
+        me.connexion.close()
+        me.connexion = None
+        return res
+
+    return wrapper
+
+
 class DbInfo:
     def __init__(self, **kwargs):
         self.display_name = kwargs.get("display_name", "unknown")
@@ -93,7 +115,12 @@ class DbInfo:
 
 DB_INFO_LOCAL_SAMPLES = DbInfo(
     display_name="local_samples",
-    src_files_path=os.path.join(os.path.expanduser("~"), "Pictures", "ipso_phen_cache", ""),
+    src_files_path=os.path.join(
+        os.path.expanduser("~"),
+        "Pictures",
+        "ipso_phen_cache",
+        "",
+    ),
     dbms="psql",
 )
 
@@ -112,7 +139,9 @@ else:
 
 
 DB_INFO_EXT_HD = DbInfo(
-    display_name="external_hard_drive", src_files_path="G:/images", dbms="psql",
+    display_name="external_hard_drive",
+    src_files_path="G:/images",
+    dbms="psql",
 )
 
 
@@ -152,7 +181,7 @@ class QueryHandler(ABC):
         additional: str = "",
         **kwargs,
     ):
-        pass
+        raise NotImplementedError("")
 
     @staticmethod
     def query_to_pandas(
@@ -174,12 +203,19 @@ class QueryHandler(ABC):
         **kwargs,
     ):
         ret = self.query(
-            command=command, columns=columns, table=table, additional=additional, **kwargs
+            command=command,
+            columns=columns,
+            table=table,
+            additional=additional,
+            **kwargs,
         )
         if (ret is not None) and (len(ret) > 0):
             return ret[0]
         else:
             return None
+
+    def log_connexion_state(self) -> None:
+        logger.warning("Implement please")
 
     @property
     def dbms(self) -> str:
@@ -187,6 +223,17 @@ class QueryHandler(ABC):
 
 
 class QueryHandlerPostgres(QueryHandler):
+
+    get_connexion_status = """
+    select max_conn,used,res_for_super,max_conn-used-res_for_super res_for_normal 
+    from 
+    (select count(*) used from pg_stat_activity) t1,
+    (select setting::int res_for_super from pg_settings where name=$$superuser_reserved_connections$$) t2,
+    (select setting::int max_conn from pg_settings where name=$$max_connections$$) t3
+    """
+
+    get_connection_idle_status = "SELECT count(*),state FROM pg_stat_activity GROUP BY 2;"
+
     @staticmethod
     def format_key(key, value):
         if isinstance(value, dict):
@@ -216,7 +263,9 @@ class QueryHandlerPostgres(QueryHandler):
             [f"{self.format_key(key=k, value=v)}" for k, v in kwargs.items()]
         )
         if constraints_:
-            s = text(f'{command} {columns} FROM "{table}" WHERE {constraints_} {additional}')
+            s = text(
+                f'{command} {columns} FROM "{table}" WHERE {constraints_} {additional}'
+            )
         else:
             s = text(f'{command} {columns} FROM "{table}" {additional}')
 
@@ -227,10 +276,13 @@ class QueryHandlerPostgres(QueryHandler):
                 if op.lower() == "between":
                     param_dict.update(v)
                 elif op.lower() == "in":
-                    param_dict.update({f"val_{i}": val for i, val in enumerate(v["values"])})
+                    param_dict.update(
+                        {f"val_{i}": val for i, val in enumerate(v["values"])}
+                    )
 
         return s, param_dict
 
+    @ensure_db_connexion
     def query_to_pandas(
         self,
         command: str,
@@ -239,35 +291,33 @@ class QueryHandlerPostgres(QueryHandler):
         additional: str = "",
         **kwargs,
     ):
-        if self.connect() is False:
-            return None
-
         s, param_dict = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
-        if self.open_connexion():
-            try:
-                # Get columns
-                if columns == "*":
-                    cols = self.connexion.execute(
-                        f"select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='{table}'"
-                    ).fetchall()
-                    cols = [c[0] for c in cols]
-                else:
-                    cols = columns.replace(" ", "").split(",")
-                df = pd.DataFrame(
-                    self.connexion.execute(s, param_dict).fetchall(), columns=cols
-                )
-            except Exception as e:
-                logger.exception(f"Query failed because: {repr(e)}")
-                df = None
-            finally:
-                self.close_connexion()
-        else:
+        try:
+            # Get columns
+            if columns == "*":
+                cols = self.connexion.execute(
+                    f"select column_name from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='{table}'"
+                ).fetchall()
+                cols = [c[0] for c in cols]
+            else:
+                cols = columns.replace(" ", "").split(",")
+            df = pd.DataFrame(
+                self.connexion.execute(s, param_dict).fetchall(), columns=cols
+            )
+        except Exception as e:
+            logger.exception(f"Query failed because: {repr(e)}")
             df = None
+
         return df
 
+    @ensure_db_connexion
     def query(
         self,
         command: str,
@@ -276,24 +326,40 @@ class QueryHandlerPostgres(QueryHandler):
         additional: str = "",
         **kwargs,
     ):
-        if self.connect() is False:
-            return None
-
         s, param_dict = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
-        if self.open_connexion():
-            try:
-                ret = self.connexion.execute(s, param_dict).fetchall()
-            except Exception as e:
-                logger.exception(f"Query failed because: {repr(e)}")
-                ret = None
-            finally:
-                self.close_connexion()
-        else:
+        try:
+            ret = self.connexion.execute(s, param_dict).fetchall()
+        except Exception as e:
+            logger.exception(f"Query failed because: {repr(e)}")
             ret = None
         return ret
+
+    @ensure_db_connexion
+    def log_connexion_state(self) -> None:
+        try:
+            log = self.connexion.execute(self.get_connexion_status).fetchall()[0]
+            idle_status = self.connexion.execute(
+                self.get_connection_idle_status
+            ).fetchall()
+            msg = f"DB connections => used: {log[1]} | "
+            msg += f"max: {log[0]} | "
+            msg += f"rfsu: {log[2]} | "
+            msg += f"rfn: {log[3]}"
+            logger.info(msg)
+            details = ", ".join([f"{u[1]}: {u[0]}" for u in idle_status]).replace(
+                "None", "Unknown"
+            )
+            logger.info(f"               => details: [{details}]|")
+
+        except Exception as e:
+            logger.exception(f"Failed to log connection state because: {repr(e)}")
 
     @property
     def dbms(self) -> str:
@@ -346,6 +412,7 @@ class QueryHandlerSQLite(QueryHandler):
 
         return sql_, params_
 
+    @ensure_db_connexion
     def query_to_pandas(
         self,
         command: str,
@@ -358,17 +425,23 @@ class QueryHandlerSQLite(QueryHandler):
             return None
 
         sql_, params_ = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
-        if self.open_connexion():
+        try:
             if sql_:
                 self.connexion.execute(
-                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""", params_
+                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""",
+                    params_,
                 )
             else:
                 self.connexion.execute(
-                    f"""{command} {columns} FROM {table} {additional}""", params_
+                    f"""{command} {columns} FROM {table} {additional}""",
+                    params_,
                 )
 
             # Get columns
@@ -378,11 +451,13 @@ class QueryHandlerSQLite(QueryHandler):
             else:
                 cols = columns.replace(" ", "").split(",")
             df = pd.DataFrame(self.connexion.fetchall(), columns=cols)
-            self.close_connexion()
-        else:
+        except Exception as e:
+            logger.exception(f"Query to pandas failed because: {repr(e)}")
             df = None
+
         return df
 
+    @ensure_db_connexion
     def query(
         self,
         command: str,
@@ -391,26 +466,30 @@ class QueryHandlerSQLite(QueryHandler):
         additional: str = "",
         **kwargs,
     ):
-        if self.connect() is False:
-            return None
-
         sql_, params_ = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
-        if self.open_connexion():
+        try:
             if sql_:
                 self.connexion.execute(
-                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""", params_
+                    f"""{command} {columns} FROM {table} WHERE {sql_} {additional}""",
+                    params_,
                 )
             else:
                 self.connexion.execute(
-                    f"""{command} {columns} FROM {table} {additional}""", params_
+                    f"""{command} {columns} FROM {table} {additional}""",
+                    params_,
                 )
             ret = self.connexion.fetchall()
-            self.close_connexion()
-        else:
+        except Exception as e:
+            logger.exception(f"Query failed because: {repr(e)}")
             ret = None
+
         return ret
 
     @property
@@ -431,7 +510,7 @@ class DbWrapper(ABC):
         self.db_info = kwargs.get("db_info", None)
 
     def __del__(self):
-        self.close_connexion()
+        assert self.connexion is None, "Connexion should be closed by now"
         self.engine = None
 
     def copy(self):
@@ -448,20 +527,15 @@ class DbWrapper(ABC):
         pass
 
     @abstractmethod
-    def open_connexion(self) -> bool:
-        return False
-
-    def close_connexion(self):
-        if self.connexion is not None:
-            self.connexion.close()
-            self.connexion = None
-
-    @abstractmethod
     def drop(self, super_user, password):
         pass
 
     @abstractmethod
-    def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(
+        self,
+        db_file_name="",
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
+    ):
         pass
 
     def _init_progress(self, total: int, desc: str = "") -> None:
@@ -480,17 +554,6 @@ class DbWrapper(ABC):
         if self._tqdm is not None:
             logger.info(f'Ended "{desc}"')
             self._tqdm.close()
-
-    def print_table_names(self):
-        if not self.connect():
-            return -1
-        if self.open_connexion():
-            try:
-                res = self.connexion.execute("SELECT table_name FROM information_schema.tables")
-                table_list = [item[0] for item in res]
-                print("\n".join(table_list))
-            finally:
-                self.close_connexion()
 
     def is_exists(self):
         return database_exists(self.db_url)
@@ -549,18 +612,48 @@ class DbWrapper(ABC):
 
 
 class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
+    @ensure_db_connexion
+    def create_table(self):
+        try:
+            self.connexion.execute(
+                f"""CREATE TABLE {self.main_table} (Luid TEXT NOT NULL PRIMARY KEY,
+                                                    Name TEXT NOT NULL,
+                                                    FilePath TEXT NOT NULL,
+                                                    Experiment TEXT,
+                                                    Plant TEXT,
+                                                    Date DATE,
+                                                    Time TIME,
+                                                    date_time TIMESTAMP,
+                                                    Camera TEXT,
+                                                    view_option TEXT )"""
+            )
+            missing_data = True
+        except Exception as e:
+            logger.exception(f"Failed to create table because {repr(e)}")
+            return False
+
     def connect(self, auto_update: bool = True):
         missing_data = False
 
         # Check database exists
         db_url = self.db_url
         if not database_exists(db_url):
-            engine = create_engine("postgres://postgres@/postgres")
+            engine = create_engine(
+                "postgres://postgres@/postgres",
+                echo=True,
+                echo_pool=True,
+                execution_options={"autocommit": True},
+                pool_recycle=6,
+            )
             conn = engine.connect()
             conn.execute("commit")
             conn.execute(f"create database {self.db_file_name.lower()}")
-            conn.execute(f"GRANT ALL ON DATABASE {self.db_file_name.lower()} TO {self.user};")
-            conn.execute(f"ALTER DATABASE {self.db_file_name.lower()} OWNER TO {self.user};")
+            conn.execute(
+                f"GRANT ALL ON DATABASE {self.db_file_name.lower()} TO {self.user};"
+            )
+            conn.execute(
+                f"ALTER DATABASE {self.db_file_name.lower()} OWNER TO {self.user};"
+            )
             conn.close()
             missing_data = True
 
@@ -571,39 +664,13 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             return False
 
         # Check table exists
-        if (
-            not self.engine.dialect.has_table(self.engine, self.main_table)
-            and self.open_connexion()
-        ):
-            try:
-                self.connexion.execute(
-                    f"""CREATE TABLE {self.main_table} (Luid TEXT NOT NULL PRIMARY KEY,
-                                                        Name TEXT NOT NULL,
-                                                        FilePath TEXT NOT NULL,
-                                                        Experiment TEXT,
-                                                        Plant TEXT,
-                                                        Date DATE,
-                                                        Time TIME,
-                                                        date_time TIMESTAMP,
-                                                        Camera TEXT,
-                                                        view_option TEXT )"""
-                )
-                missing_data = True
-            except Exception as e:
-                self.close_connexion()
-                logger.exception(f"Failed to create table because {repr(e)}")
-                return False
+        if not self.engine.dialect.has_table(self.engine, self.main_table):
+            self.create_table()
 
         if missing_data and auto_update and self.db_file_name:
             self.update()
 
         return True
-
-    def open_connexion(self) -> bool:
-        if self.connexion is not None:
-            self.close_connexion()
-        self.connexion = self.engine.connect()
-        return self.connexion is not None
 
     def drop(self, super_user, password):
         engine = create_engine(f"postgres://{super_user}@/postgres")
@@ -613,15 +680,20 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             conn_.execute("commit")
             conn_.execute(f"drop database if exists {self.db_file_name.lower()}")
             trans_.commit()
-            conn_.close()
         except Exception as e:
             trans_.rollback()
             logger.exception(f'Something went wrong: "{repr(e)}"')
-            return False
+            res = False
         else:
-            return True
+            res = True
+        finally:
+            conn_.close()
+        return res
 
-    def update(self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    @ensure_db_connexion
+    def update(
+        self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+    ):
         if not self.connect(auto_update=False):
             return -1
 
@@ -634,7 +706,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             img_lst.add_folder(self.src_files_path)
             file_list = img_lst.filter(())
             # Fill database
-            if self.open_connexion():
+            try:
                 total_ = len(file_list)
                 self._init_progress(total=total_, desc="Updating database")
                 for i, file in enumerate(file_list):
@@ -665,24 +737,34 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                     else:
                         files_added += 1
                     self._callback(
-                        step=i, total=total_, msg=f'Updating database "{self.db_file_name}"'
+                        step=i,
+                        total=total_,
+                        msg=f'Updating database "{self.db_file_name}"',
                     )
-                self.close_connexion()
                 self._callback(
-                    step=total_, total=total_, msg=f'Updated database "{self.db_file_name}"'
+                    step=total_,
+                    total=total_,
+                    msg=f'Updated database "{self.db_file_name}"',
                 )
-                self._close_progress(desc="Updating database")
+            except Exception as e:
+                logger.exception(f'Something went wrong: "{repr(e)}"')
+
+            self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
             df = pd.read_csv(self.src_files_path, parse_dates=[3])
             try:
-                df.drop_duplicates(subset="luid", keep="first", inplace=True)
-                df.to_sql(name="snapshots", con=self.engine, if_exists="replace")
-                if self.open_connexion():
-                    try:
-                        self.connexion.execute("alter table snapshots add primary key (luid)")
-                        self.connexion.execute("alter table snapshots drop column index")
-                    finally:
-                        self.close_connexion()
+                df.drop_duplicates(
+                    subset="luid",
+                    keep="first",
+                    inplace=True,
+                )
+                df.to_sql(
+                    name="snapshots",
+                    con=self.engine,
+                    if_exists="replace",
+                )
+                self.connexion.execute("alter table snapshots add primary key (luid)")
+                self.connexion.execute("alter table snapshots drop column index")
             except Exception as e:
                 logger.exception(f"Failed to create table because {repr(e)}")
                 files_added = -1
@@ -714,14 +796,14 @@ class ReadOnlyDbWrapper(DbWrapper, QueryHandlerPostgres):
 
         return True
 
-    def open_connexion(self):
-        self.connexion = self.engine.connect()
-        return self.connexion
-
     def drop(self, super_user, password):
         return False
 
-    def update(self, db_file_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    def update(
+        self,
+        db_file_name="",
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
+    ):
         return -1
 
     @property
@@ -759,18 +841,6 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                     self.update()
         return True
 
-    def open_connexion(self):
-        if self.connexion is not None:
-            self.close_connexion()
-        self.connexion = self.engine.cursor()
-        return self.connexion
-
-    def close_connexion(self):
-        if self.connexion is not None:
-            self.engine.commit()
-            self.connexion.close()
-            self.connexion = None
-
     def is_exists(self):
         if self.db_file_name == ":memory:":
             return self.engine is not None
@@ -780,7 +850,12 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
     def drop(self, super_user, password):
         return False
 
-    def update(self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")):
+    @ensure_db_connexion
+    def update(
+        self,
+        src_files_path="",
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
+    ):
         if not self.connect(auto_update=False):
             return -1
 
@@ -792,8 +867,6 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             img_lst = ImageList(extensions)
             img_lst.add_folder(self.src_files_path)
             file_list = img_lst.filter(())
-            # Fill database
-            self.close_connexion()
             total_ = len(file_list)
             self._init_progress(total=total_, desc="Updating database")
             with self.engine as conn_:
@@ -823,10 +896,14 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                     else:
                         files_added += 1
                     self._callback(
-                        step=i, total=total_, msg=f'Updating database "{self.src_files_path}"'
+                        step=i,
+                        total=total_,
+                        msg=f'Updating database "{self.src_files_path}"',
                     )
                 self._callback(
-                    step=total_, total=total_, msg=f'Updated database "{self.src_files_path}"'
+                    step=total_,
+                    total=total_,
+                    msg=f'Updated database "{self.src_files_path}"',
                 )
                 self._close_progress(desc="Updating database")
         elif self.src_files_path.lower().endswith((".csv",)):
@@ -834,12 +911,8 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             try:
                 df.drop_duplicates(subset="luid", keep="first", inplace=True)
                 df.to_sql(name="snapshots", con=self.engine, if_exists="replace")
-                conn_ = self.open_connexion()
-                try:
-                    conn_.execute("alter table snapshots add primary key (luid)")
-                    conn_.execute("alter table snapshots drop column index")
-                finally:
-                    self.close_connexion()
+                self.connexion.execute("alter table snapshots add primary key (luid)")
+                self.connexion.execute("alter table snapshots drop column index")
             except Exception as e:
                 logger.exception(f"Failed to create table because {repr(e)}")
                 files_added = -1

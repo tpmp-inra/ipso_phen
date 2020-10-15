@@ -30,7 +30,9 @@ class MosaicData(object):
         self.enabled = enabled
         self.images = images
         if isinstance(self.images, str):
-            self.images = [[i for i in line.split(",")] for line in self.images.split("\n")]
+            self.images = [
+                [i for i in line.split(",")] for line in self.images.split("\n")
+            ]
         self.pipeline = pipeline
 
 
@@ -124,11 +126,15 @@ class Node(object):
                 "image", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
             )
         elif self.output_type == ipc.IO_MASK:
-            return self.last_result.get("mask", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8))
+            return self.last_result.get(
+                "mask", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+            )
         elif self.output_type in [ipc.IO_DATA, ipc.IO_ROI, ipc.IO_NONE]:
             return self.last_result.get(
                 "image",
-                self.last_result.get("mask", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)),
+                self.last_result.get(
+                    "mask", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+                ),
             )
         else:
             return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
@@ -145,7 +151,9 @@ class Node(object):
             w = max(mask.shape[1], image.shape[1])
             canvas = ipc.enclose_image(
                 a_cnv=np.full(
-                    shape=(h + 4, w * 2 + 6, 3), fill_value=ipc.C_SILVER, dtype=np.uint8,
+                    shape=(h + 4, w * 2 + 6, 3),
+                    fill_value=ipc.C_SILVER,
+                    dtype=np.uint8,
                 ),
                 img=image,
                 rect=RectangleRegion(left=2, top=2, width=w, height=h),
@@ -171,7 +179,8 @@ class Node(object):
                 eh.error_level_to_str(res),
                 msg,
                 data
-                if call_back is not None and (force_call_back or not self.root.parent.silent)
+                if call_back is not None
+                and (force_call_back or not self.root.parent.silent)
                 else None,
                 self.absolute_index + 1 if is_progress else -1,
                 self.absolute_count if is_progress else -1,
@@ -188,7 +197,9 @@ class Node(object):
                 self.root.parent.stored_mosaic_images[dn] = self.get_relevant_image()
             if dn in needed_images:
                 wrapper.store_image(
-                    image=self.get_relevant_image(exclude_demo=True), text=dn, force_store=True
+                    image=self.get_relevant_image(exclude_demo=True),
+                    text=dn,
+                    force_store=True,
                 )
         elif isinstance(data, AbstractImageProcessor):
             for d in data.image_list:
@@ -327,7 +338,9 @@ class ModuleNode(Node):
             ):
                 res["image"] = tool.demo_image
             elif self.output_type == ipc.IO_ROI:
-                res["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=[res["roi"]])
+                res["image"] = wrapper.draw_rois(
+                    img=wrapper.current_image, rois=[res["roi"]]
+                )
             elif self.output_type == ipc.IO_DATA:
                 if tool.demo_image is not None:
                     res["image"] = tool.demo_image
@@ -345,7 +358,11 @@ class ModuleNode(Node):
         def inner_call_back(res, msg, data, step, total):
             if call_back is not None:
                 call_back(
-                    res, msg, data, step, total,
+                    res,
+                    msg,
+                    data,
+                    step,
+                    total,
                 )
 
         param_settings_list = [p.decode_grid_search_options() for p in self.tool.gizmos]
@@ -354,7 +371,11 @@ class ModuleNode(Node):
             if len(ps) > 0:
                 size *= len(ps)
         inner_call_back(
-            res="GRID_SEARCH_START", msg="", data=None, step=0, total=size,
+            res="GRID_SEARCH_START",
+            msg="",
+            data=None,
+            step=0,
+            total=size,
         )
 
         procs = list(itertools.product(*param_settings_list))
@@ -382,7 +403,11 @@ class ModuleNode(Node):
             )
 
         inner_call_back(
-            res="GRID_SEARCH_END", msg="", data=None, step=size, total=size,
+            res="GRID_SEARCH_END",
+            msg="",
+            data=None,
+            step=size,
+            total=size,
         )
 
     def execute(self, **kwargs):
@@ -393,14 +418,18 @@ class ModuleNode(Node):
 
         if not self.last_result:
             if self.tool.has_param("path") and self.root.parent.image_output_path:
-                self.tool.set_value_of(key="path", value=self.root.parent.image_output_path)
+                self.tool.set_value_of(
+                    key="path", value=self.root.parent.image_output_path
+                )
             if target_module == self.uuid and grid_search_mode:
                 self._execute_grid_search(call_back=call_back)
                 self.last_result = {}
             else:
                 before = timer()
                 self.last_result = self._execute_standard(
-                    tool=self.tool, call_back=call_back, target_module=target_module,
+                    tool=self.tool,
+                    call_back=call_back,
+                    target_module=target_module,
                 )
                 if self.last_result:
                     self.do_call_back(
@@ -435,7 +464,12 @@ class ModuleNode(Node):
         self.last_result = {}
 
     def copy(self, parent):
-        return ModuleNode(parent=parent, tool=self.tool, enabled=self.enabled, uuid=self.uuid,)
+        return ModuleNode(
+            parent=parent,
+            tool=self.tool,
+            enabled=self.enabled,
+            uuid=self.uuid,
+        )
 
     def to_code(self, indent: int):
         pass
@@ -461,7 +495,10 @@ class ModuleNode(Node):
             )
         elif isinstance(tool, IptBase):
             return ModuleNode(
-                tool=tool, parent=parent, enabled=json_data["enabled"], uuid=json_data["uuid"]
+                tool=tool,
+                parent=parent,
+                enabled=json_data["enabled"],
+                uuid=json_data["uuid"],
             )
 
     def sugar_name(self):
@@ -514,7 +551,10 @@ class GroupNode(Node):
         self.nodes = kwargs.get("nodes", [])
         self.source = kwargs.get("source", "source")
         self.no_delete = kwargs.get("no_delete", False)
-        self.execute_filters = kwargs.get("execute_filters", self.default_execution_filters,)
+        self.execute_filters = kwargs.get(
+            "execute_filters",
+            self.default_execution_filters,
+        )
         self.last_result = {}
 
     def add_module(self, tool, enabled=1, uuid: str = "") -> ModuleNode:
@@ -584,7 +624,11 @@ class GroupNode(Node):
                 return wrapper.current_image
         else:
             node = self.root.find_by_uuid(source)
-            if node is None or node.last_result.get("image", None) is None or node.enabled == 0:
+            if (
+                node is None
+                or node.last_result.get("image", None) is None
+                or node.enabled == 0
+            ):
                 self.last_result = {}
                 self.do_call_back(
                     call_back=call_back,
@@ -603,7 +647,9 @@ class GroupNode(Node):
         target_module = kwargs.get("target_module", "")
         wrapper = self.root.parent.wrapper
 
-        wrapper.current_image = self.get_source_image(source=self.source, call_back=call_back)
+        wrapper.current_image = self.get_source_image(
+            source=self.source, call_back=call_back
+        )
 
         rois = []
         only_rois = False
@@ -649,7 +695,10 @@ class GroupNode(Node):
                         wrapper.csv_data_holder.data_list.update(res["data"])
                     elif node.output_type == ipc.IO_ROI:
                         add_roi(
-                            wrapper=wrapper, roi_list=rois, roi=res.get("roi", None), node=node
+                            wrapper=wrapper,
+                            roi_list=rois,
+                            roi=res.get("roi", None),
+                            node=node,
                         )
                 else:
                     self.last_result["outcome"] = False
@@ -682,7 +731,10 @@ class GroupNode(Node):
                         wrapper.csv_data_holder.data_list.update(res["data"])
                     elif node.output_type == ipc.IO_ROI:
                         add_roi(
-                            wrapper=wrapper, roi_list=rois, roi=res.get("roi", None), node=node
+                            wrapper=wrapper,
+                            roi_list=rois,
+                            roi=res.get("roi", None),
+                            node=node,
                         )
                 else:
                     self.last_result["outcome"] = False
@@ -713,7 +765,10 @@ class GroupNode(Node):
                         images.append(res["mask"])
                     elif node.output_type == ipc.IO_ROI:
                         add_roi(
-                            wrapper=wrapper, roi_list=rois, roi=res.get("roi", None), node=node
+                            wrapper=wrapper,
+                            roi_list=rois,
+                            roi=res.get("roi", None),
+                            node=node,
                         )
                 else:
                     self.last_result["outcome"] = False
@@ -743,7 +798,9 @@ class GroupNode(Node):
 
         if only_rois and rois:
             self.last_result["roi"] = rois
-            self.last_result["image"] = wrapper.draw_rois(img=wrapper.current_image, rois=rois)
+            self.last_result["image"] = wrapper.draw_rois(
+                img=wrapper.current_image, rois=rois
+            )
         elif is_current_image_changed or (len(wrapper.image_list) == 0):
             self.last_result["image"] = wrapper.current_image
         else:
@@ -836,7 +893,9 @@ class GroupNode(Node):
             uuid=json_data["uuid"],
             no_delete=json_data["no_delete"],
             source=json_data["source"],
-            execute_filters=json_data.get("execute_filters", cls.default_execution_filters),
+            execute_filters=json_data.get(
+                "execute_filters", cls.default_execution_filters
+            ),
         )
         for node in json_data["nodes"]:
             if node["node_type"] == "module":
@@ -889,9 +948,9 @@ class GroupNode(Node):
 
     def as_pivot_list(self, index, types: tuple = ("groups", "modules")) -> dict:
         """Splits all nodes in three classes
-            * before: all nodes before index
-            * pivot: index
-            * after: all nodes after index
+        * before: all nodes before index
+        * pivot: index
+        * after: all nodes after index
         """
         nodes = [node for node in self.iter_items(types)]
         if index not in nodes:
@@ -918,7 +977,7 @@ class GroupNode(Node):
             return None
 
     def find_by_name(self, name):
-        """ Returns the node that matches exactly the name
+        """Returns the node that matches exactly the name
         There's no warranty that names are unique"""
         for node in self.iter_items():
             if node.name == name:
@@ -1195,6 +1254,7 @@ class LoosePipeline(object):
         self.error_level = logging.INFO
         self.stop_processing = False
         self.silent = silent_mode
+        self.text_result = ""
 
         # Build/retrieve wrapper
         if isinstance(src_image, str):
@@ -1204,6 +1264,7 @@ class LoosePipeline(object):
         else:
             logger.error(f"Unknown source {str(src_image)}")
             self.error_level = logging.ERROR
+            self.text_result = "Source error"
             return False
 
         # Check wrapper
@@ -1213,17 +1274,19 @@ class LoosePipeline(object):
             else:
                 logger.error("Unable to retrieve wrapper.")
             self.error_level = logging.ERROR
+            self.text_result = "Wrapper error"
             return False
         elif not self.wrapper.check_source_image():
             if isinstance(src_image, str):
                 logger.error(f"Image seems to be corrupted '{src_image}''")
             else:
                 logger.error("Image seems to be corrupted.")
+            self.text_result = "Corrupted image"
             self.error_level = logging.ERROR
             return False
         elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
-            logger.info(f"Skipped {self.wrapper.name}, already exists")
             self.error_level = logging.INFO
+            self.text_result = "Skipped"
             return True
 
         # Override wrapper settings
@@ -1283,7 +1346,9 @@ class LoosePipeline(object):
             with open(file_name, "w") as f:
                 json.dump(self.to_json(), f, indent=2)
         except Exception as e:
-            logger.exception(f'Failed to save pipeline "{repr(e)}"',)
+            logger.exception(
+                f'Failed to save pipeline "{repr(e)}"',
+            )
             return False
         else:
             return True
@@ -1370,12 +1435,17 @@ class LoosePipeline(object):
                         uuid=tool_dict["uuid"],
                     )
             res.root.find_by_uuid(uuid="build_mask").merge_mode = (
-                ipc.MERGE_MODE_AND if tmp.merge_method == "multi_and" else ipc.MERGE_MODE_OR
+                ipc.MERGE_MODE_AND
+                if tmp.merge_method == "multi_and"
+                else ipc.MERGE_MODE_OR
             )
 
             rois = tmp.get_operators(
                 constraints={
-                    "kind": [ipc.ToolFamily.ROI_PP_IMAGE_STR, ipc.ToolFamily.ROI_RAW_IMAGE_STR,]
+                    "kind": [
+                        ipc.ToolFamily.ROI_PP_IMAGE_STR,
+                        ipc.ToolFamily.ROI_RAW_IMAGE_STR,
+                    ]
                 }
             )
             dst_group = res.root.find_by_uuid(uuid="apply_roi")
@@ -1408,7 +1478,8 @@ class LoosePipeline(object):
                     continue
                 dst_group.add_module(
                     tool=get_ipt_class(class_name="IptAssertMaskPosition")(
-                        roi_names=ipt.get_value_of("roi_name"), roi_selection_mode="all_named",
+                        roi_names=ipt.get_value_of("roi_name"),
+                        roi_selection_mode="all_named",
                     )
                 )
 
@@ -1430,7 +1501,9 @@ class LoosePipeline(object):
                     )
         else:
             res = cls()
-            res.name = f'Failed to load unknown pipeline type "{json_data["title"].lower()}"'
+            res.name = (
+                f'Failed to load unknown pipeline type "{json_data["title"].lower()}"'
+            )
 
         if res.stop_on < 10:
             res.stop_on = 35
