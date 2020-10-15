@@ -1380,6 +1380,19 @@ class LoosePipeline(object):
                 target_logger=logger,
             )
 
+        index = kwargs.get("index", -1)
+        total = kwargs.get("total", -1)
+        if index >= 0 and total >= 0:
+            eh.log_data(
+                log_msg=(
+                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
+                    + self.wrapper.name
+                ),
+                log_level=self.error_level,
+                target_logger=logger,
+            )
+
         return self.error_level < self.stop_on
 
     def targeted_callback(self, param: IptParam):
