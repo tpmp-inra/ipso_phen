@@ -265,7 +265,7 @@ class PipelineProcessor:
             return files_to_process
 
     def merge_result_files(
-        self, csv_file_name: str, yield_mode: bool = True
+        self, csv_file_name: str, yield_mode: bool = False
     ) -> Union[None, pd.DataFrame]:
         logger.info("   --- Starting file merging ---")
         csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
@@ -325,6 +325,7 @@ class PipelineProcessor:
         return dataframe
 
     def prepare_groups(self, time_delta: int, yield_mode: bool = False):
+        # return self.accepted_files[:]
         if yield_mode is True:
             if self.options.group_by_series:
                 yield from self.group_by_series(time_delta, True)
