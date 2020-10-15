@@ -123,7 +123,7 @@ class PipelineProcessor:
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
 
-    def handle_result(self, wrapper_res, wrapper_index, total, yield_mode: bool = False):
+    def handle_result(self, wrapper_res, wrapper_index, total):
         if not wrapper_res:
             logger.error("Process error - UNKNOWN ERROR")
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
@@ -146,11 +146,33 @@ class PipelineProcessor:
                 self.report_error(logging.ERROR, msg)
             if wrapper_res.result is not True:
                 self._process_errors += 1
-        if yield_mode is True:
-            yield {"step": self._progress_step, "total": self._progress_total}
-            self._progress_step += 1
+        self.update_progress()
+
+    def yield_handle_result(self, wrapper_res, wrapper_index, total):
+        if not wrapper_res:
+            logger.error("Process error - UNKNOWN ERROR")
+            self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
+            self._process_errors += 1
         else:
-            self.update_progress()
+            if self._target_database is not None and not wrapper_res.text_result:
+                self._target_database.log_connexion_state()
+            spaces_ = len(str(total))
+            msg = (
+                f'{"OK" if wrapper_res.result is True else "FAIL"}'
+                + " - "
+                + f"{(wrapper_index + 1):{spaces_}d}/{total} >>> "
+                + wrapper_res.name
+                + f" - {wrapper_res.message}"
+                if wrapper_res.message
+                else ""
+            )
+            logger.info(msg)
+            if wrapper_res.result is not True:
+                self.report_error(logging.ERROR, msg)
+            if wrapper_res.result is not True:
+                self._process_errors += 1
+        yield {"step": self._progress_step, "total": self._progress_total}
+        self._progress_step += 1
 
     def init_progress(self, total: int, desc: str = "", yield_mode: bool = False) -> None:
         if yield_mode is True:
@@ -194,54 +216,28 @@ class PipelineProcessor:
         else:
             return self.abort_callback()
 
-    def group_by_series(self, time_delta: int, yield_mode: bool = False):
+    def group_by_series(self, time_delta: int):
         # Build dictionary
         self.init_progress(
-            total=len(self.accepted_files),
-            desc="Building plants dictionaries",
-            yield_mode=yield_mode,
+            total=len(self.accepted_files), desc="Building plants dictionaries"
         )
         plants_ = defaultdict(list)
-        total = len(self.accepted_files)
-        for i, item in enumerate(self.accepted_files):
-            if yield_mode is True:
-                yield {"step": i, "total": total}
-            else:
-                self.update_progress()
+        for item in self.accepted_files:
+            self.update_progress()
             fh = file_handler_factory(item)
             plants_[fh.plant].append(fh)
-        if yield_mode is False:
-            self.close_progress()
 
         # Sort all lists by timestamp
-        self.init_progress(
-            total=len(plants_),
-            desc="Sorting observations",
-            yield_mode=yield_mode,
-        )
-        total = len(plants_.values())
-        for i, v in enumerate(plants_.values()):
-            if yield_mode is True:
-                yield {"step": i, "total": total}
-            else:
-                self.update_progress()
+        self.init_progress(total=len(plants_), desc="Sorting observations")
+        for v in plants_.values():
+            self.update_progress()
             v.sort(key=lambda x: x.date_time)
-        if yield_mode is False:
-            self.close_progress()
 
         # Consume
         files_to_process = []
-        self.init_progress(
-            total=len(plants_.values()),
-            desc="Grouping by series",
-            yield_mode=yield_mode,
-        )
-        total = len(plants_.values())
-        for i, v in enumerate(plants_.values()):
-            if yield_mode is True:
-                yield {"step": i, "total": total}
-            else:
-                self.update_progress()
+        self.init_progress(total=len(plants_.values()), desc="Grouping by series")
+        for v in plants_.values():
+            self.update_progress()
             while len(v) > 0:
                 main = v.pop(0)
                 main_luid = main.luid
@@ -250,8 +246,6 @@ class PipelineProcessor:
                     (v[0].date_time - main.date_time).total_seconds() / 60 < time_delta
                 ):
                     files_to_process.append((v.pop(0).file_path, main_luid))
-        if yield_mode is False:
-            self.close_progress()
 
         # Print stats
         stat_lst = [len(i) for i in files_to_process]
@@ -262,33 +256,80 @@ class PipelineProcessor:
             logger.info(f"Qtt: {k}, Mode frequency: {v}")
             logger.info(f"Min: {min(stat_lst)}, Max: {max(stat_lst)}")
 
-        if yield_mode:
-            self.groups_to_process = files_to_process
-        else:
-            return files_to_process
+        return files_to_process
 
-    def merge_result_files(
-        self, csv_file_name: str, yield_mode: bool = False
-    ) -> Union[None, pd.DataFrame]:
+    def yield_group_by_series(self, time_delta: int):
+        # Build dictionary
+        self.init_progress(
+            total=len(self.accepted_files),
+            desc="Building plants dictionaries",
+            yield_mode=True,
+        )
+        plants_ = defaultdict(list)
+        total = len(self.accepted_files)
+        for i, item in enumerate(self.accepted_files):
+            yield {"step": i, "total": total}
+            fh = file_handler_factory(item)
+            plants_[fh.plant].append(fh)
+
+        self.close_progress()
+
+        # Sort all lists by timestamp
+        self.init_progress(
+            total=len(plants_),
+            desc="Sorting observations",
+            yield_mode=True,
+        )
+        total = len(plants_.values())
+        for i, v in enumerate(plants_.values()):
+            yield {"step": i, "total": total}
+            v.sort(key=lambda x: x.date_time)
+
+        self.close_progress()
+
+        # Consume
+        files_to_process = []
+        self.init_progress(
+            total=len(plants_.values()),
+            desc="Grouping by series",
+            yield_mode=True,
+        )
+        total = len(plants_.values())
+        for i, v in enumerate(plants_.values()):
+            yield {"step": i, "total": total}
+            while len(v) > 0:
+                main = v.pop(0)
+                main_luid = main.luid
+                files_to_process.append((main.file_path, main_luid))
+                while (len(v) > 0) and (
+                    (v[0].date_time - main.date_time).total_seconds() / 60 < time_delta
+                ):
+                    files_to_process.append((v.pop(0).file_path, main_luid))
+        self.close_progress()
+
+        # Print stats
+        stat_lst = [len(i) for i in files_to_process]
+        logger.info("-- Series statistics  --")
+        logger.info(f"Originale file count: {sum(stat_lst)}")
+        logger.info(f"Group count: {len(stat_lst)}")
+        for k, v in Counter(stat_lst).items():
+            logger.info(f"Qtt: {k}, Mode frequency: {v}")
+            logger.info(f"Min: {min(stat_lst)}, Max: {max(stat_lst)}")
+
+        self.groups_to_process = files_to_process
+
+    def merge_result_files(self, csv_file_name: str) -> Union[None, pd.DataFrame]:
         logger.info("   --- Starting file merging ---")
         csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
-        self.init_progress(
-            total=len(csv_lst),
-            desc="Merging CSV files",
-            yield_mode=yield_mode,
-        )
+        self.init_progress(total=len(csv_lst), desc="Merging CSV files")
 
         dataframe = pd.DataFrame()
-        total = len(csv_lst)
-        for i, csv_file in enumerate(csv_lst):
+        for csv_file in csv_lst:
             try:
                 dataframe = dataframe.append(pd.read_csv(csv_file))
             except Exception as e:
                 logger.exception("Merge error")
-            if yield_mode is True:
-                yield {"step": i, "total": total}
-            else:
-                self.update_progress()
+            self.update_progress()
 
         def put_column_in_front(col_name: str, dataframe):
             df_cols = list(dataframe.columns)
@@ -327,26 +368,133 @@ class PipelineProcessor:
 
         return dataframe
 
-    def prepare_groups(self, time_delta: int, yield_mode: bool = False):
-        # return self.accepted_files[:]
-        if yield_mode is True:
-            if self.options.group_by_series:
-                yield from self.group_by_series(time_delta, True)
-            else:
-                yield {"step": 1, "total": 1}
-                self.groups_to_process = self.accepted_files[:]
-        else:
-            if self.options.group_by_series:
-                return self.group_by_series(time_delta, False)
-            else:
-                return self.accepted_files[:]
+    def yield_merge_result_files(self, csv_file_name: str) -> Union[None, pd.DataFrame]:
+        logger.info("   --- Starting file merging ---")
+        csv_lst = ImageList.match_end(self.options.partials_path, "_result.csv")
+        self.init_progress(
+            total=len(csv_lst),
+            desc="Merging CSV files",
+            yield_mode=True,
+        )
 
-    def process_groups(
-        self,
-        groups_list,
-        target_database=None,
-        yield_mode: bool = False,
-    ):
+        dataframe = pd.DataFrame()
+        total = len(csv_lst)
+        for i, csv_file in enumerate(csv_lst):
+            try:
+                dataframe = dataframe.append(pd.read_csv(csv_file))
+            except Exception as e:
+                logger.exception("Merge error")
+            yield {"step": i, "total": total}
+
+        def put_column_in_front(col_name: str, dataframe):
+            df_cols = list(dataframe.columns)
+            if col_name not in df_cols:
+                return dataframe
+            df_cols.pop(df_cols.index(col_name))
+            return dataframe.reindex(columns=[col_name] + df_cols)
+
+        dataframe = put_column_in_front(col_name="area", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="source_path", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="luid", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="view_option", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="camera", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="date_time", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="condition", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="genotype", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="plant", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="experiment", dataframe=dataframe)
+
+        sort_list = ["plant"] if "plant" in list(dataframe.columns) else []
+        sort_list = (
+            sort_list + ["date_time"]
+            if "date_time" in list(dataframe.columns)
+            else sort_list
+        )
+        if sort_list:
+            dataframe = dataframe.sort_values(by=sort_list, axis=0, na_position="first")
+
+        dataframe = dataframe.reset_index(drop=True)
+
+        dataframe.to_csv(
+            path_or_buf=os.path.join(self.options.dst_path, csv_file_name), index=False
+        )
+        self.close_progress()
+        logger.info("   --- Merged partial outputs ---<br>")
+
+        return dataframe
+
+    def prepare_groups(self, time_delta: int):
+        if self.options.group_by_series:
+            return self.group_by_series(time_delta, False)
+        else:
+            return self.accepted_files[:]
+
+    def yield_groups(self, time_delta: int):
+        if self.options.group_by_series:
+            yield from self.group_by_series(time_delta, True)
+        else:
+            yield {"step": 1, "total": 1}
+        self.groups_to_process = self.accepted_files[:]
+
+    def process_groups(self, groups_list, target_database=None):
+        # Build images and data
+        if groups_list:
+            force_directories(self.options.partials_path)
+            logger.info(f"   --- Processing {len(groups_list)} files ---")
+            self.init_progress(total=len(groups_list), desc="Processing images")
+
+            max_cores = min([10, mp.cpu_count()])
+            if isinstance(self.multi_thread, int):
+                num_cores = min(self.multi_thread, max_cores)
+            elif isinstance(self.multi_thread, bool):
+                if self.multi_thread:
+                    num_cores = max_cores
+                else:
+                    num_cores = 1
+            else:
+                num_cores = 1
+            if (num_cores > 1) and len(groups_list) > 1:
+                pool = mp.Pool(num_cores)
+                chunky_size_ = num_cores
+                for i, res in enumerate(
+                    pool.imap_unordered(
+                        _pipeline_worker,
+                        (
+                            (
+                                fl,
+                                self.options,
+                                self.script,
+                                None
+                                if target_database is None
+                                else target_database.copy(),
+                            )
+                            for fl in groups_list
+                        ),
+                        chunky_size_,
+                    )
+                ):
+                    if self.check_abort():
+                        logger.info("User stopped process")
+                        break
+                    self.handle_result(res, i, len(groups_list))
+            else:
+                for i, fl in enumerate(groups_list):
+                    res = _pipeline_worker(
+                        [
+                            fl,
+                            self.options,
+                            self.script,
+                            None if target_database is None else target_database.copy(),
+                        ]
+                    )
+                    if self.check_abort():
+                        logger.info("User stopped process")
+                        break
+                    self.handle_result(res, i, len(groups_list))
+            self.close_progress()
+            logger.info("   --- Files processed ---")
+
+    def yield_process_groups(self, groups_list, target_database=None):
         # Build images and data
         if groups_list:
             force_directories(self.options.partials_path)
@@ -354,7 +502,7 @@ class PipelineProcessor:
             self.init_progress(
                 total=len(groups_list),
                 desc="Processing images",
-                yield_mode=yield_mode,
+                yield_mode=True,
             )
 
             max_cores = min([10, mp.cpu_count()])
@@ -390,15 +538,12 @@ class PipelineProcessor:
                     if self.check_abort():
                         logger.info("User stopped process")
                         break
-                    if yield_mode is True:
-                        yield from self.handle_result(
-                            res,
-                            i,
-                            len(groups_list),
-                            yield_mode=True,
-                        )
-                    else:
-                        self.handle_result(res, i, len(groups_list))
+                    yield from self.handle_result(
+                        res,
+                        i,
+                        len(groups_list),
+                        yield_mode=True,
+                    )
             else:
                 for i, fl in enumerate(groups_list):
                     res = _pipeline_worker(
@@ -412,15 +557,12 @@ class PipelineProcessor:
                     if self.check_abort():
                         logger.info("User stopped process")
                         break
-                    if yield_mode is True:
-                        yield from self.handle_result(
-                            res,
-                            i,
-                            len(groups_list),
-                            yield_mode=True,
-                        )
-                    else:
-                        self.handle_result(res, i, len(groups_list))
+                    yield from self.handle_result(
+                        res,
+                        i,
+                        len(groups_list),
+                        yield_mode=True,
+                    )
             self.close_progress()
             logger.info("   --- Files processed ---")
 
