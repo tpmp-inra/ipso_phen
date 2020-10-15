@@ -1358,14 +1358,14 @@ class LoosePipeline(object):
         for k, v in additional_data.items():
             self.wrapper.csv_data_holder.update_csv_value(key=k, value=v, force_pair=True)
 
-        if (self.error_level < self.stop_on) and (write_data is True):
-            try:
-                with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
-                    wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
-                    wr.writerow(self.wrapper.csv_data_holder.header_to_list())
-                    wr.writerow(self.wrapper.csv_data_holder.data_to_list())
-            except Exception as e:
-                logger.exception(f"Failed to write image data because {repr(e)}")
+        # if (self.error_level < self.stop_on) and (write_data is True):
+        try:
+            with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
+                wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
+                wr.writerow(self.wrapper.csv_data_holder.header_to_list())
+                wr.writerow(self.wrapper.csv_data_holder.data_to_list())
+        except Exception as e:
+            logger.exception(f"Failed to write image data because {repr(e)}")
 
         index = kwargs.get("index", -1)
         total = kwargs.get("total", -1)
