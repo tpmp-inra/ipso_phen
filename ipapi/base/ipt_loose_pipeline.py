@@ -1306,6 +1306,7 @@ class LoosePipeline(object):
         self.error_level = logging.INFO
         self.stop_processing = False
         self.silent = silent_mode
+        self.text_result = ""
 
         # Build/retrieve wrapper
         if isinstance(src_image, str):
@@ -1315,6 +1316,7 @@ class LoosePipeline(object):
         else:
             logger.error(f"Unknown source {str(src_image)}")
             self.error_level = logging.ERROR
+            self.text_result = "Source error"
             return False
 
         # Check wrapper
@@ -1324,17 +1326,19 @@ class LoosePipeline(object):
             else:
                 logger.error("Unable to retrieve wrapper.")
             self.error_level = logging.ERROR
+            self.text_result = "Wrapper error"
             return False
         elif not self.wrapper.check_source_image():
             if isinstance(src_image, str):
                 logger.error(f"Image seems to be corrupted '{src_image}''")
             else:
                 logger.error("Image seems to be corrupted.")
+            self.text_result = "Corrupted image"
             self.error_level = logging.ERROR
             return False
         elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
-            logger.info(f"Skipped {self.wrapper.name}, already exists")
             self.error_level = logging.INFO
+            self.text_result = "Skipped"
             return True
 
         # Override wrapper settings

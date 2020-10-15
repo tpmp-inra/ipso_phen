@@ -17,7 +17,7 @@ from ipapi.tools.image_list import ImageList
 
 logger = logging.getLogger(__name__)
 
-WorkerResult = namedtuple("WorkerResult", "result, name, message")
+WorkerResult = namedtuple("WorkerResult", "result, text_result, name, message")
 
 
 def _pipeline_worker(arg):
@@ -51,12 +51,12 @@ def _pipeline_worker(arg):
             call_back=None,
         )
     except Exception as e:
-        return WorkerResult(False, file_path, repr(e))
+        return WorkerResult(False, "", file_path, repr(e))
     else:
         if script.wrapper is not None:
-            return WorkerResult(bool_res, str(script.wrapper), "")
+            return WorkerResult(bool_res, script.text_result, str(script.wrapper), "")
         else:
-            return WorkerResult(bool_res, "Unknown", "")
+            return WorkerResult(bool_res, script.text_result, "Unknown", "")
 
 
 class PipelineProcessor:
@@ -91,6 +91,7 @@ class PipelineProcessor:
         self._tqdm = None
         self._progress_total = 0
         self._progress_step = 0
+        self._target_database = None
 
     def build_files_list(self, src_path: str, flatten_list=True, **kwargs):
         """Build a list containing all the files that will be parsed
@@ -128,6 +129,8 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
+            if self._target_database is not None and not wrapper_res.text_result:
+                self._target_database.log_connexion_state()
             spaces_ = len(str(total))
             msg = (
                 f'{"OK" if wrapper_res.result is True else "FAIL"}'
