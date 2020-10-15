@@ -22,7 +22,6 @@ from ipapi.tools.regions import (
     AbstractRegion,
 )
 from ipapi.tools.common_functions import time_method, force_directories
-from ipapi.tools.db_wrapper import DB_TYPE_MEMORY
 import sys
 
 matplotlib.use("agg")
@@ -48,7 +47,7 @@ class ImageListHolder:
         return len(self.image_list)
 
     def retrieve_image(self, key, value):
-        """ Return an image wrapper based on key value
+        """Return an image wrapper based on key value
 
         :param key: one of the wrapper properties
         :param value: value
@@ -121,7 +120,7 @@ class AbstractImageProcessor(ImageWrapper):
         self._current_image = self.source_image
 
     def init_csv_writer(self):
-        """ Creates a csv writer with the variables specified in the class
+        """Creates a csv writer with the variables specified in the class
         child classes should override this method
 
         :return: Csv writer
@@ -173,7 +172,9 @@ class AbstractImageProcessor(ImageWrapper):
             self.store_image(src_img, "source")
 
         if not self.good_image:
-            logger.error("Unable to load source image",)
+            logger.error(
+                "Unable to load source image",
+            )
 
         return src_img
 
@@ -185,7 +186,7 @@ class AbstractImageProcessor(ImageWrapper):
         if (
             (self.msp_images_holder is None)
             and (self.target_database is not None)
-            and (DB_TYPE_MEMORY not in self.target_database.type)
+            and (self.target_database.type.db_qualified_name != ":memory:")
         ):
             current_date_time = self.date_time
             ret = self.target_database.query(
@@ -209,10 +210,14 @@ class AbstractImageProcessor(ImageWrapper):
             return len(self.msp_images_holder)
 
     @staticmethod
-    def _draw_text(
-        img: Any, text: str, fnt_color: tuple = ipc.C_RED, position: str = "BOTTOM"
-    ):
+    def draw_text(
+        img: Any,
+        text: str,
+        fnt_color: tuple = ipc.C_RED,
+        background_color: Union[None, tuple] = None,
+    ) -> None:
         """Draw text into img, always draws on bottom left portion of the image
+        Modifies source image
 
         :param img: target image
         :param text: text
@@ -220,37 +225,28 @@ class AbstractImageProcessor(ImageWrapper):
         fnt_face = cv2.FONT_HERSHEY_DUPLEX
         fnt_scale = img.shape[0] / 1000
         fnt_thickness = max(round(img.shape[0] / 1080), 1)
-        if position.lower() == "bottom":
-            y = img.shape[0] - 20
-            for line in reversed(list(text.split("\n"))):
-                cv2.putText(
+        y = img.shape[0] - 20
+        for line in reversed(list(text.split("\n"))):
+            text_size, _ = cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)
+            if background_color is not None:
+                cv2.rectangle(
                     img,
-                    line,
-                    (10, y),
-                    fnt_face,
-                    fnt_scale,
-                    fnt_color,
-                    fnt_thickness,
-                    cv2.LINE_AA,
+                    (10, y - text_size[1] - 4),
+                    (text_size[0], y + 4),
+                    background_color,
+                    -1,
                 )
-                y -= cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
-        elif position.lower() == "top":
-            lines = list(text.split("\n"))
-            y = cv2.getTextSize(lines[0], fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
-            for line in lines:
-                cv2.putText(
-                    img,
-                    line,
-                    (10, y),
-                    fnt_face,
-                    fnt_scale,
-                    fnt_color,
-                    fnt_thickness,
-                    cv2.LINE_AA,
-                )
-                y += cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)[0][1] + 8
-        else:
-            logger.error(f'Unknown position: "{position}"')
+            cv2.putText(
+                img,
+                line,
+                (10, y),
+                fnt_face,
+                fnt_scale,
+                fnt_color,
+                fnt_thickness,
+                cv2.LINE_AA,
+            )
+            y -= text_size[1] + 8
 
     def draw_image(self, **kwargs):
         """Build pseudo color image
@@ -328,17 +324,13 @@ class AbstractImageProcessor(ImageWrapper):
             if normalize_before:
                 c = cv2.equalizeHist(c)
             foreground_img = cv2.applyColorMap(c, color_map)
-        elif foreground == "black":
-            foreground_img = np.full(src.shape, ipc.C_BLACK, np.uint8)
-        elif foreground == "silver":
-            foreground_img = np.full(src.shape, ipc.C_SILVER, np.uint8)
-        elif foreground == "white":
-            foreground_img = np.full(src.shape, ipc.C_WHITE, np.uint8)
-        elif isinstance(foreground, tuple):
-            foreground_img = np.full(src.shape, foreground, np.uint8)
         elif foreground == "bw":
             foreground_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
             foreground_img = np.dstack((foreground_img, foreground_img, foreground_img))
+        elif isinstance(foreground, tuple):
+            foreground_img = np.full(src.shape, foreground, np.uint8)
+        elif isinstance(foreground, str):
+            foreground_img = np.full(src.shape, ipc.all_colors_dict[foreground], np.uint8)
         else:
             logger.error(f"Unknown foreground {background}")
             return np.full(src.shape, ipc.C_FUCHSIA, np.uint8)
@@ -504,7 +496,7 @@ class AbstractImageProcessor(ImageWrapper):
         text_overlay: Any = False,
         force_store: bool = False,
         font_color: tuple = ipc.C_RED,
-        position: str = "BOTTOM",
+        **kwargs,
     ) -> dict:
         """
         Store image for debug or result
@@ -554,15 +546,16 @@ class AbstractImageProcessor(ImageWrapper):
 
             # Print text if needed
             if isinstance(text_overlay, str):
-                self._draw_text(
-                    img=cp, text=text_overlay, fnt_color=font_color, position=position
+                self.draw_text(
+                    img=cp,
+                    text=text_overlay,
+                    fnt_color=font_color,
                 )
             elif text_overlay:
-                self._draw_text(
+                self.draw_text(
                     img=cp,
                     text=text.replace(", ", "\n"),
                     fnt_color=font_color,
-                    position=position,
                 )
 
             new_dict = dict(name=text, image=cp, written=False)
@@ -2160,7 +2153,7 @@ class AbstractImageProcessor(ImageWrapper):
     def extract_image_data(
         self,
         mask: Any,
-        source_image: [None, str, Any] = None,
+        source_image: Union[None, str, Any] = None,
         pseudo_color_channel: str = "v",
         pseudo_color_map: int = 2,
         boundary_position: int = -1,
@@ -2406,15 +2399,11 @@ class AbstractImageProcessor(ImageWrapper):
                     break
 
     def init_rois(self):
-        """Builds image ROIs
-
-        """
+        """Builds image ROIs"""
         pass
 
     def init_standard_rois(self):
-        """Builds ROIs for selected experiments, do not use if not sure
-
-        """
+        """Builds ROIs for selected experiments, do not use if not sure"""
         if self.is_vis:
             if self.is_wide_angle:
                 self.add_rect_roi(234, 1588, 258, 1034, "main_roi", "keep")
@@ -3095,7 +3084,7 @@ class AbstractImageProcessor(ImageWrapper):
         normalize: bool = False,
         median_filter_size: int = 0,
     ) -> tuple:
-        """ Returns channel mask
+        """Returns channel mask
 
         :param src_img: source image
         :param channel: target channel, if empty, src_img is grayscales
@@ -3103,7 +3092,7 @@ class AbstractImageProcessor(ImageWrapper):
         :param max_t: max value for threshold
         :param normalize: normalization option (default: {False})
         :param median_filter_size: median filter size (default: {0})
-        
+
         :return: tuple (mask, stored_string)
         """
         median_filter_size = (
@@ -3119,7 +3108,9 @@ class AbstractImageProcessor(ImageWrapper):
             ):
                 c = src_img.copy()
             else:
-                logger.error("If no channel is selected source must be grayscale image",)
+                logger.error(
+                    "If no channel is selected source must be grayscale image",
+                )
                 return None, ""
 
         if c is None:
@@ -3198,7 +3189,7 @@ class AbstractImageProcessor(ImageWrapper):
               with ROIs on top
             * exp_fixed_roi: Image with stored ROIs on top
             * exp_fixed_pseudo_on_bw: Returns image as black and white background with
-              pseudo colored parts where the mask is active.        
+              pseudo colored parts where the mask is active.
 
         Returns:
             boolean -- True if successful
@@ -3254,7 +3245,10 @@ class AbstractImageProcessor(ImageWrapper):
                         rois=self.rois_list,
                     )
                 elif img_name.lower() == "exp_fixed_roi":
-                    return self.draw_rois(img=foreground, rois=self.rois_list,)
+                    return self.draw_rois(
+                        img=foreground,
+                        rois=self.rois_list,
+                    )
                 elif img_name.lower() == "exp_fixed_pseudo_on_bw":
                     return self.draw_image(
                         src_image=foreground,
@@ -3411,14 +3405,18 @@ class AbstractImageProcessor(ImageWrapper):
 
         except Exception as e:
             res = False
-            logger.exception(f'Failed default process {mode}, exception: "{repr(e)}"',)
+            logger.exception(
+                f'Failed default process {mode}, exception: "{repr(e)}"',
+            )
         finally:
             self.print_images()
             return res
 
     def check_source(self):
         if self.is_color_checker:
-            logger.error("HANDLED FAILURE color checker",)
+            logger.error(
+                "HANDLED FAILURE color checker",
+            )
             return False
 
         if self.is_msp and (self.retrieve_msp_images() != 8):
@@ -3427,7 +3425,9 @@ class AbstractImageProcessor(ImageWrapper):
             )
 
         if self.is_corrupted:
-            logger.error("Image has been tagged as corrupted",)
+            logger.error(
+                "Image has been tagged as corrupted",
+            )
             return False
 
         return True
@@ -3468,7 +3468,7 @@ class AbstractImageProcessor(ImageWrapper):
     def update_analysis_params(self, **kwargs) -> dict:
         """Updates analysis params from keyword arguments
         Children may override this function
-        
+
         Returns:
             dict -- dictionnary containing analysis options
         """
@@ -3500,7 +3500,9 @@ class AbstractImageProcessor(ImageWrapper):
 
             img = self.current_image
             if not self.good_image:
-                logger.error("Image failed to load",)
+                logger.error(
+                    "Image failed to load",
+                )
                 return
 
             img = self.preprocess_source_image(src_img=img)
@@ -3514,12 +3516,16 @@ class AbstractImageProcessor(ImageWrapper):
 
             res = self.build_channel_mask(img, **kwargs)
             if not res:
-                logger.error("Failed to build channel mask",)
+                logger.error(
+                    "Failed to build channel mask",
+                )
                 return
 
             res = self.crop_mask()
             if not res:
-                logger.error("Failed to crop mask for",)
+                logger.error(
+                    "Failed to crop mask for",
+                )
                 return
 
             res = self.clean_mask(source_image=img.copy())
@@ -3529,7 +3535,9 @@ class AbstractImageProcessor(ImageWrapper):
 
             res = self.ensure_mask_zone()
             if not res:
-                logger.error("Mask not where expected to b",)
+                logger.error(
+                    "Mask not where expected to b",
+                )
                 return
 
             analysis_options = self.update_analysis_params(**kwargs)
@@ -3649,7 +3657,7 @@ class AbstractImageProcessor(ImageWrapper):
     def add_roi(self, new_roi):
         """
         Add an already existing ROI object
-        
+
         Arguments:
             new_roi {Region} -- Any ROI
         """
@@ -3661,7 +3669,7 @@ class AbstractImageProcessor(ImageWrapper):
     def add_rois(self, roi_list):
         """
         Add ROIs to collection
-        
+
         Arguments:
             roi_list {List} -- List of ROIs
         """

@@ -2,14 +2,13 @@ import os
 import json
 from typing import Union
 import logging
-
-
 from timeit import default_timer as timer
-from typing import Union
+
 import pandas as pd
 from tqdm import tqdm
 
-import ipapi.tools.db_wrapper as dbw
+import ipapi.database.base as dbb
+import ipapi.database.db_factory as dbf
 from ipapi.tools.common_functions import force_directories, format_time
 from ipapi.base.pipeline_processor import PipelineProcessor
 from ipapi.base.ipt_loose_pipeline import LoosePipeline
@@ -98,7 +97,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def launch(**kwargs):
+def prepare(**kwargs):
     start = timer()
 
     # Script
@@ -134,7 +133,7 @@ def launch(**kwargs):
 
     # Build database
     db_data = res.get("database_data", None)
-    db = dbw.db_info_to_database(dbw.DbInfo(**db_data)) if db_data is not None else None
+    db = dbf.db_info_to_database(dbb.DbInfo(**db_data)) if db_data is not None else None
 
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
@@ -153,7 +152,7 @@ def launch(**kwargs):
     if IS_USE_MULTI_THREAD and "thread_count" in res:
         try:
             mpc = int(res["thread_count"])
-        except:
+        except Exception as e:
             mpc = False
     else:
         mpc = False
@@ -164,7 +163,7 @@ def launch(**kwargs):
         elif isinstance(res["script"], dict):
             script = LoosePipeline.from_json(json_data=res["script"])
         else:
-            exit_error_message(f"Failed to load script: Unknown error")
+            exit_error_message("Failed to load script: Unknown error")
             return 1
     except Exception as e:
         exit_error_message(f"Failed to load script: {repr(e)}")
@@ -228,7 +227,7 @@ def launch(**kwargs):
             )
         except Exception as e:
             preffix = "FAIL"
-            logger.exception(f"Unable to build disease index file")
+            logger.exception("Unable to build disease index file")
         else:
             preffix = "SUCCESS"
             logger.info("Built disease index file")
