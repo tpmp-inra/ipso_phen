@@ -17,7 +17,7 @@ from ipapi.tools.image_list import ImageList
 
 logger = logging.getLogger(__name__)
 
-WorkerResult = namedtuple("WorkerResult", "result, name, message")
+WorkerResult = namedtuple("WorkerResult", "result, text_result, name, message")
 
 
 def _pipeline_worker(arg):
@@ -51,12 +51,12 @@ def _pipeline_worker(arg):
             call_back=None,
         )
     except Exception as e:
-        return WorkerResult(False, file_path, repr(e))
+        return WorkerResult(False, "", file_path, repr(e))
     else:
         if script.wrapper is not None:
-            return WorkerResult(bool_res, str(script.wrapper), "")
+            return WorkerResult(bool_res, script.text_result, str(script.wrapper), "")
         else:
-            return WorkerResult(bool_res, "Unknown", "")
+            return WorkerResult(bool_res, script.text_result, "Unknown", "")
 
 
 class PipelineProcessor:
@@ -91,6 +91,7 @@ class PipelineProcessor:
         self._tqdm = None
         self._progress_total = 0
         self._progress_step = 0
+        self._target_database = None
 
     def build_files_list(self, src_path: str, flatten_list=True, **kwargs):
         """Build a list containing all the files that will be parsed
@@ -128,13 +129,15 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
+            if self._target_database is not None and not wrapper_res.text_result:
+                self._target_database.log_connexion_state()
             spaces_ = len(str(total))
-            msg_prefix = (
-                f">>>> "
-                + f'{"OK" if wrapper_res.result is True else "FAIL"}'
-                + " - "
-                + f"{(wrapper_index + 1):{spaces_}d}/{total} >>> "
-            )
+            msg_prefix = ">>>> "
+            if wrapper_res.text_result:
+                msg_prefix += wrapper_res.text_result.upper()
+            else:
+                msg_prefix += "OK" if wrapper_res.result is True else "FAIL"
+            msg_prefix += f" - {(wrapper_index + 1):{spaces_}d}/{total} >>> "
             msg_suffix = f" - {wrapper_res.message}" if wrapper_res.message else ""
             logger.info(f"{msg_prefix}{wrapper_res.name}{msg_suffix}")
             if wrapper_res.result is not True:
@@ -169,10 +172,7 @@ class PipelineProcessor:
     ):
         if self.progress_and_log_callback is not None:
             self.progress_and_log_callback(
-                error_level,
-                message,
-                step,
-                total,
+                error_level, message, step, total,
             )
 
     def close_progress(self):
@@ -279,7 +279,7 @@ class PipelineProcessor:
             return self.accepted_files[:]
 
     def process_groups(self, groups_list, target_database):
-        # Build images and data
+        self._target_database = target_database
         if groups_list:
             force_directories(self.options.partials_path)
             logger.info(f"   --- Processing {len(groups_list)} files ---")
