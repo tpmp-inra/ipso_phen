@@ -49,12 +49,15 @@ class PipelineSettings(IptParamHolder):
         )
 
     def build_params(self):
-        self.add_text_output(
-            is_single_line=True,
-            name="image_output_path",
-            desc="Images output folder",
-            default_value="",
-            hint="Path where images will be copied, if not absolute, will be relative to output CSV data file",
+        self.add_checkbox(
+            name="show_tool_result",
+            desc="Show a result image for each tool",
+            default_value=1,
+        )
+        self.add_checkbox(
+            name="show_group_result",
+            desc="Show a result image for each group",
+            default_value=0,
         )
         self.add_checkbox(
             name="debug_mode",
@@ -73,12 +76,24 @@ class PipelineSettings(IptParamHolder):
             desc="Show source image/mask for each tool",
             default_value=0,
         )
+        self.add_checkbox(
+            name="tool_group_name_watermark",
+            desc="Add a watermark with the name of the generating source to each output image",
+            default_value=0,
+        )
         self.add_combobox(
             name="stop_on",
             desc="Stop processing on error level",
             default_value=eh.ERR_LVL_EXCEPTION,
             values={i: eh.error_level_to_str(i) for i in [0, 10, 20, 30, 35, 40, 50]},
             hint="If any error of the selected level or higher happens the process will halt",
+        )
+        self.add_text_output(
+            is_single_line=True,
+            name="image_output_path",
+            desc="Images output folder",
+            default_value="",
+            hint="Path where images will be copied, if not absolute, will be relative to output CSV data file",
         )
 
     def params_to_dict(
@@ -119,30 +134,41 @@ class Node(object):
         if not exclude_demo:
             demo_image = self.last_result.get("demo_image", None)
             if demo_image is not None:
-                return demo_image
+                ri = demo_image
 
         if self.output_type == ipc.IO_IMAGE:
-            return self.last_result.get(
+            ri = self.last_result.get(
                 "image", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
             )
         elif self.output_type == ipc.IO_MASK:
-            return self.last_result.get(
+            ri = self.last_result.get(
                 "mask", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
             )
         elif self.output_type in [ipc.IO_DATA, ipc.IO_ROI, ipc.IO_NONE]:
-            return self.last_result.get(
+            ri = self.last_result.get(
                 "image",
                 self.last_result.get(
                     "mask", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
                 ),
             )
         else:
-            return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+            ri = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+
+        if self.root.parent.tool_group_name_watermark:
+            ri = ri.copy()
+            AbstractImageProcessor.draw_text(
+                img=ri,
+                text=self.name,
+                fnt_color=ipc.C_WHITE,
+                background_color=ipc.C_BLACK,
+            )
+
+        return ri
 
     def get_feedback_image(self, data: dict):
         demo_image = data.get("demo_image", None)
         if demo_image is not None:
-            return demo_image
+            fi = demo_image
 
         mask = data.get("mask", None)
         image = data.get("image", None)
@@ -158,21 +184,39 @@ class Node(object):
                 img=image,
                 rect=RectangleRegion(left=2, top=2, width=w, height=h),
             )
-            return ipc.enclose_image(
+            fi = ipc.enclose_image(
                 a_cnv=canvas,
                 img=np.dstack((mask, mask, mask)),
                 rect=RectangleRegion(left=w + 4, top=2, width=w, height=h),
             )
 
         elif mask is not None:
-            return mask
+            fi = mask
         elif image is not None:
-            return image
+            fi = image
         else:
-            return np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+            fi = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+
+        if self.root.parent.tool_group_name_watermark:
+            fi = fi.copy()
+            AbstractImageProcessor.draw_text(
+                img=fi,
+                text=self.name,
+                fnt_color=ipc.C_WHITE,
+                background_color=ipc.C_BLACK,
+            )
+
+        return fi
 
     def do_call_back(
-        self, call_back, res, msg, data, is_progress=True, force_call_back=False, **kwargs
+        self,
+        call_back,
+        res,
+        msg,
+        data,
+        is_progress=True,
+        force_call_back=False,
+        **kwargs,
     ):
         if call_back is not None:
             call_back(
@@ -431,12 +475,18 @@ class ModuleNode(Node):
                     call_back=call_back,
                     target_module=target_module,
                 )
+                if self.root.parent.debug_mode:
+                    data = wrapper
+                elif self.root.parent.show_tool_result:
+                    data = self
+                else:
+                    data = None
                 if self.last_result:
                     self.do_call_back(
                         call_back=call_back,
                         res=logging.INFO,
                         msg=f"Successfully processed {self.name} in {format_time(timer() - before)}",
-                        data=wrapper if self.root.parent.debug_mode else self,
+                        data=data,
                     )
                 else:
                     if ipc.ToolFamily.ASSERT in self.tool.use_case:
@@ -833,7 +883,9 @@ class GroupNode(Node):
                     call_back=call_back,
                     res=logging.INFO,
                     msg=f"Processed {wrapper.luid} in {format_time(timer() - before)}",
-                    data=self,
+                    data=self
+                    if self.root.parent.show_group_result or self.root.parent.silent
+                    else None,
                     force_call_back=True,
                     is_progress=False,
                 )
@@ -842,7 +894,7 @@ class GroupNode(Node):
                 call_back=call_back,
                 res=logging.INFO,
                 msg=f"Successfully processed {self.name}, merge mode: {self.merge_mode} in {format_time(timer() - before)}",
-                data=self,
+                data=self if self.root.parent.show_group_result else None,
                 is_progress=False,
             )
 
@@ -1310,14 +1362,40 @@ class LoosePipeline(object):
         for k, v in additional_data.items():
             self.wrapper.csv_data_holder.update_csv_value(key=k, value=v, force_pair=True)
 
-        if (self.error_level < self.stop_on) and (write_data is True):
-            try:
-                with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
-                    wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
-                    wr.writerow(self.wrapper.csv_data_holder.header_to_list())
-                    wr.writerow(self.wrapper.csv_data_holder.data_to_list())
-            except Exception as e:
-                logger.exception(f"Failed to write image data because {repr(e)}")
+        # if (self.error_level < self.stop_on) and (write_data is True):
+        try:
+            with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
+                wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
+                wr.writerow(self.wrapper.csv_data_holder.header_to_list())
+                wr.writerow(self.wrapper.csv_data_holder.data_to_list())
+        except Exception as e:
+            logger.exception(f"Failed to write image data because {repr(e)}")
+
+        index = kwargs.get("index", -1)
+        total = kwargs.get("total", -1)
+        if index >= 0 and total >= 0:
+            eh.log_data(
+                log_msg=(
+                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
+                    + self.wrapper.name
+                ),
+                log_level=self.error_level,
+                target_logger=logger,
+            )
+
+        index = kwargs.get("index", -1)
+        total = kwargs.get("total", -1)
+        if index >= 0 and total >= 0:
+            eh.log_data(
+                log_msg=(
+                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
+                    + self.wrapper.name
+                ),
+                log_level=self.error_level,
+                target_logger=logger,
+            )
 
         return self.error_level < self.stop_on
 
@@ -1535,6 +1613,38 @@ class LoosePipeline(object):
     def debug_mode(self, value):
         self.settings.set_value_of(
             key="debug_mode", value=1 if value is True else 0, update_widgets=False
+        )
+
+    @property
+    def show_tool_result(self):
+        return self.settings.get_value_of("show_tool_result") == 1
+
+    @show_tool_result.setter
+    def show_tool_result(self, value):
+        self.settings.set_value_of(
+            key="show_tool_result", value=1 if value is True else 0, update_widgets=False
+        )
+
+    @property
+    def show_group_result(self):
+        return self.settings.get_value_of("show_group_result") == 1
+
+    @show_group_result.setter
+    def show_group_result(self, value):
+        self.settings.set_value_of(
+            key="show_group_result", value=1 if value is True else 0, update_widgets=False
+        )
+
+    @property
+    def tool_group_name_watermark(self):
+        return self.settings.get_value_of("tool_group_name_watermark") == 1
+
+    @tool_group_name_watermark.setter
+    def tool_group_name_watermark(self, value):
+        self.settings.set_value_of(
+            key="tool_group_name_watermark",
+            value=1 if value is True else 0,
+            update_widgets=False,
         )
 
     @property
