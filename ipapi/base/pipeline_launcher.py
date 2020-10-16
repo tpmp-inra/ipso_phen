@@ -5,7 +5,7 @@ import logging
 from timeit import default_timer as timer
 
 import pandas as pd
-from tqdm import tqdm
+import tqdm
 
 import ipapi.database.base as dbb
 import ipapi.database.db_factory as dbf
@@ -97,7 +97,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def prepare(**kwargs):
+def launch(**kwargs):
     start = timer()
 
     # Script
@@ -212,7 +212,10 @@ def prepare(**kwargs):
                     for i in [luids.index(x) for x in set(luids)]
                 ]
             else:
-                wrappers = [file_handler_factory(f) for f in groups_to_process]
+                wrappers = [
+                    file_handler_factory(f)
+                    for f in tqdm.tqdm(groups_to_process, desc="Building annotation CSV")
+                ]
             pd.DataFrame.from_dict(
                 {
                     "plant": [i.plant for i in wrappers],
@@ -234,9 +237,9 @@ def prepare(**kwargs):
         print(f"{preffix} - Disease index file")
 
     groups_to_process_count = len(groups_to_process)
-    if groups_to_process_count > 0:
-        pp.multi_thread = mpc
-        pp.process_groups(groups_list=groups_to_process, target_database=db)
+    # if groups_to_process_count > 0:
+    #     pp.multi_thread = mpc
+    #     pp.process_groups(groups_list=groups_to_process, target_database=db)
 
     # Merge dataframe
     pp.merge_result_files(csv_file_name=csv_file_name + ".csv")
