@@ -95,13 +95,17 @@ class IptThreshold(IptBase):
                         ).replace(", ", "\n"),
                     )
                 else:
-                    wrapper.store_image(main_image, main_result_name, text_overlay=text_overlay)
+                    wrapper.store_image(
+                        main_image, main_result_name, text_overlay=text_overlay
+                    )
 
                 if self.get_value_of("build_mosaic") == 1:
-                    canvas = wrapper.build_mosaic(
+                    self.demo_image = wrapper.build_mosaic(
                         image_names=np.array(["current_image", main_result_name])
                     )
-                    wrapper.store_image(canvas, "mosaic")
+                    wrapper.store_image(self.demo_image, "mosaic")
+                else:
+                    self.demo_image = main_image
             res = True
         except Exception as e:
             res = False

@@ -169,33 +169,37 @@ class Node(object):
         demo_image = data.get("demo_image", None)
         if demo_image is not None:
             fi = demo_image
-
-        mask = data.get("mask", None)
-        image = data.get("image", None)
-        if mask is not None and image is not None and self.root.parent.allow_step_mosaics:
-            h = max(mask.shape[0], image.shape[0])
-            w = max(mask.shape[1], image.shape[1])
-            canvas = ipc.enclose_image(
-                a_cnv=np.full(
-                    shape=(h + 4, w * 2 + 6, 3),
-                    fill_value=ipc.C_SILVER,
-                    dtype=np.uint8,
-                ),
-                img=image,
-                rect=RectangleRegion(left=2, top=2, width=w, height=h),
-            )
-            fi = ipc.enclose_image(
-                a_cnv=canvas,
-                img=np.dstack((mask, mask, mask)),
-                rect=RectangleRegion(left=w + 4, top=2, width=w, height=h),
-            )
-
-        elif mask is not None:
-            fi = mask
-        elif image is not None:
-            fi = image
         else:
-            fi = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+            mask = data.get("mask", None)
+            image = data.get("image", None)
+            if (
+                mask is not None
+                and image is not None
+                and self.root.parent.allow_step_mosaics
+            ):
+                h = max(mask.shape[0], image.shape[0])
+                w = max(mask.shape[1], image.shape[1])
+                canvas = ipc.enclose_image(
+                    a_cnv=np.full(
+                        shape=(h + 4, w * 2 + 6, 3),
+                        fill_value=ipc.C_SILVER,
+                        dtype=np.uint8,
+                    ),
+                    img=image,
+                    rect=RectangleRegion(left=2, top=2, width=w, height=h),
+                )
+                fi = ipc.enclose_image(
+                    a_cnv=canvas,
+                    img=np.dstack((mask, mask, mask)),
+                    rect=RectangleRegion(left=w + 4, top=2, width=w, height=h),
+                )
+
+            elif mask is not None:
+                fi = mask
+            elif image is not None:
+                fi = image
+            else:
+                fi = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
 
         if self.root.parent.tool_group_name_watermark:
             fi = fi.copy()
@@ -1362,14 +1366,14 @@ class LoosePipeline(object):
         for k, v in additional_data.items():
             self.wrapper.csv_data_holder.update_csv_value(key=k, value=v, force_pair=True)
 
-        # if (self.error_level < self.stop_on) and (write_data is True):
-        try:
-            with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
-                wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
-                wr.writerow(self.wrapper.csv_data_holder.header_to_list())
-                wr.writerow(self.wrapper.csv_data_holder.data_to_list())
-        except Exception as e:
-            logger.exception(f"Failed to write image data because {repr(e)}")
+        if write_data is True:
+            try:
+                with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
+                    wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
+                    wr.writerow(self.wrapper.csv_data_holder.header_to_list())
+                    wr.writerow(self.wrapper.csv_data_holder.data_to_list())
+            except Exception as e:
+                logger.exception(f"Failed to write image data because {repr(e)}")
 
         index = kwargs.get("index", -1)
         total = kwargs.get("total", -1)
