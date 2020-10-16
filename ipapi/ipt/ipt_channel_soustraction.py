@@ -39,10 +39,18 @@ class IptChannelSubtraction(IptBase):
             hint="Action to perform after subtraction to return an image",
         )
         self.add_slider(
-            name="min", desc="Threshold min value", default_value=0, minimum=0, maximum=255
+            name="min",
+            desc="Threshold min value",
+            default_value=0,
+            minimum=0,
+            maximum=255,
         )
         self.add_slider(
-            name="max", desc="Threshold max value", default_value=255, minimum=0, maximum=255
+            name="max",
+            desc="Threshold max value",
+            default_value=255,
+            minimum=0,
+            maximum=255,
         )
         self.add_slider(
             name="median_filter_size",
@@ -84,7 +92,9 @@ class IptChannelSubtraction(IptBase):
         min_ = self.get_value_of("min")
         max_ = self.get_value_of("max")
         median_filter_size = self.get_value_of("median_filter_size")
-        median_filter_size = 0 if median_filter_size == 1 else ensure_odd(median_filter_size)
+        median_filter_size = (
+            0 if median_filter_size == 1 else ensure_odd(median_filter_size)
+        )
 
         res = False
         try:
