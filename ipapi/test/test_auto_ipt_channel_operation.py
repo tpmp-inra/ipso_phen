@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_channel_operation import IptChannelOperation
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.base.ip_common as ipc
 
 
@@ -43,7 +43,7 @@ class TestIptChannelOperation(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptChannelOperation()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
@@ -54,9 +54,7 @@ class TestIptChannelOperation(unittest.TestCase):
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Channel operation")
-        self.assertIsInstance(
-            op.result, np.ndarray, "Empty result for Channel operation"
-        )
+        self.assertIsInstance(op.result, np.ndarray, "Empty result for Channel operation")
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""

@@ -12,7 +12,7 @@ import os
 import cv2
 import numpy as np
 
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.tools.common_functions import make_safe_name
 import ipapi.base.ip_common as ipc
 
@@ -39,7 +39,9 @@ class IptParam(object):
         self._value = kwargs.get("_value", self.default_value)
         self.on_change = None
         self._widgets = {}
-        self._grid_search_options = kwargs.get("_grid_search_options", str(self.default_value))
+        self._grid_search_options = kwargs.get(
+            "_grid_search_options", str(self.default_value)
+        )
         self.grid_search_mode = False
 
         self.ui_update_callbacks = {}
@@ -88,7 +90,9 @@ class IptParam(object):
         self.ui_update_callbacks = dict(**kwargs)
 
         self.update_ui(
-            callback="set_name", widget=widget, new_name=f"ipt_param_{tool_name}_{self.name}"
+            callback="set_name",
+            widget=widget,
+            new_name=f"ipt_param_{tool_name}_{self.name}",
         )
         self.update_ui(
             callback="set_name",
@@ -105,7 +109,9 @@ class IptParam(object):
                 return False
             elif grid_search_mode:
                 self.update_ui(
-                    callback="set_text", widget=self.gs_input, text=self.grid_search_options
+                    callback="set_text",
+                    widget=self.gs_input,
+                    text=self.grid_search_options,
                 )
             elif isinstance(self.allowed_values, dict):
                 self.update_ui(
@@ -117,7 +123,9 @@ class IptParam(object):
             elif isinstance(self.allowed_values, tuple):
                 if self.allowed_values == (0, 1):
                     self.update_ui(
-                        callback="set_checked", widget=widget, new_check_state=self.value == 1
+                        callback="set_checked",
+                        widget=widget,
+                        new_check_state=self.value == 1,
                     )
                     self.update_ui(callback="set_text", widget=widget, text=self.desc)
                 elif len(self.allowed_values) == 2:
@@ -161,7 +169,9 @@ class IptParam(object):
         ):
             self.update_ui(callback="set_text", widget=lbl, text=self.desc)
         elif isinstance(self.allowed_values, tuple) and (len(self.allowed_values) == 2):
-            self.update_ui(callback="set_text", widget=lbl, text=f"{self.desc}: {self.value}")
+            self.update_ui(
+                callback="set_text", widget=lbl, text=f"{self.desc}: {self.value}"
+            )
         else:
             return False
         self.update_ui(callback="set_tool_tip", widget=lbl, tool_tip=self.hint)
@@ -197,7 +207,9 @@ class IptParam(object):
             else:
                 for i, key in enumerate(self.allowed_values):
                     if self.value == key:
-                        self.update_ui(callback="set_current_index", widget=widget, index=i)
+                        self.update_ui(
+                            callback="set_current_index", widget=widget, index=i
+                        )
                         break
         elif isinstance(self.allowed_values, tuple):
             if self.allowed_values == (0, 1):
@@ -270,7 +282,9 @@ class IptParam(object):
                 if ("-" in opt_) and (";" in opt_):
                     bd, step = opt_.split(";")
                     left, right = bd.split("-")
-                    left, right = min(int(left), int(right) + 1), max(int(left), int(right) + 1)
+                    left, right = min(int(left), int(right) + 1), max(
+                        int(left), int(right) + 1
+                    )
                     res.extend([i for i in range(left, right, int(step))])
                 else:
                     res.append(opt_)
@@ -400,11 +414,15 @@ class IptParam(object):
 
     @property
     def is_input(self):
-        return not isinstance(self.allowed_values, str) or ("input" in self.allowed_values)
+        return not isinstance(self.allowed_values, str) or (
+            "input" in self.allowed_values
+        )
 
     @property
     def is_output(self):
-        return isinstance(self.allowed_values, str) and not ("input" in self.allowed_values)
+        return isinstance(self.allowed_values, str) and not (
+            "input" in self.allowed_values
+        )
 
     @property
     def is_neutral(self):
@@ -464,7 +482,12 @@ class IptParamHolder(object):
             return new_item
 
     def add_combobox(
-        self, name: str, desc: str, default_value: str = "", values: dict = {}, hint: str = ""
+        self,
+        name: str,
+        desc: str,
+        default_value: str = "",
+        values: dict = {},
+        hint: str = "",
     ) -> IptParam:
         try:
             param = IptParam(
@@ -513,7 +536,11 @@ class IptParamHolder(object):
             IptParam -- built param
         """
         param = IptParam(
-            name=name, desc=desc, default_value=default_value, allowed_values=(0, 1), hint=hint
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values=(0, 1),
+            hint=hint,
         )
         param.widget_type = "checkbox"
         return self.add(param)
@@ -531,7 +558,11 @@ class IptParamHolder(object):
         else:
             mode_ = "multi_line_text_input"
         param = IptParam(
-            name=name, desc=desc, default_value=default_value, allowed_values=mode_, hint=hint,
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values=mode_,
+            hint=hint,
         )
         param.widget_type = mode_
         return self.add(param)
@@ -549,7 +580,11 @@ class IptParamHolder(object):
         else:
             mode_ = "multi_line_text_output"
         param = IptParam(
-            name=name, desc=desc, default_value=default_value, allowed_values=mode_, hint=hint
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values=mode_,
+            hint=hint,
         )
         param.widget_type = mode_
         return self.add(param)
@@ -587,7 +622,9 @@ class IptParamHolder(object):
         return self.add(param)
 
     def add_separator(self, name: str) -> IptParam:
-        param = IptParam(name=name, desc="", default_value="", allowed_values="label", hint="")
+        param = IptParam(
+            name=name, desc="", default_value="", allowed_values="label", hint=""
+        )
         param.widget_type = "label"
         return self.add(param)
 
@@ -605,7 +642,11 @@ class IptParamHolder(object):
             values = {}
         values = {**values, **{k: k for k in ipc.all_colors_dict}}
         param = IptParam(
-            name=name, desc=desc, default_value=default_value, allowed_values=values, hint=hint
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values=values,
+            hint=hint,
         )
         param.widget_type = "combo_box"
         param.kind = "color_selector"
@@ -643,7 +684,9 @@ class IptParamHolder(object):
             ),
         )
         self.add_text_input(
-            name="prefix_suffix", desc="Prefix or suffix", default_value=prefix_suffix,
+            name="prefix_suffix",
+            desc="Prefix or suffix",
+            default_value=prefix_suffix,
         )
 
     def add_channel_selector(
@@ -666,7 +709,11 @@ class IptParamHolder(object):
             },
         }
         param = IptParam(
-            name=name, desc=desc, default_value=default_value, allowed_values=values, hint=hint
+            name=name,
+            desc=desc,
+            default_value=default_value,
+            allowed_values=values,
+            hint=hint,
         )
         if enable_none:
             param.options["enable_none"] = True
@@ -717,7 +764,11 @@ class IptParamHolder(object):
         return self.add(param)
 
     def add_color_map_selector(
-        self, name="color_map", default_value="c_2", desc="Select pseudo color map", hint=""
+        self,
+        name="color_map",
+        default_value="c_2",
+        desc="Select pseudo color map",
+        hint="",
     ) -> IptParam:
         param = IptParam(
             name=name,
@@ -882,10 +933,18 @@ class IptParamHolder(object):
 
     def add_binary_threshold(self, add_morphology: bool = True):
         self.add_spin_box(
-            name="min_t", desc="Threshold min value", default_value=0, minimum=0, maximum=255
+            name="min_t",
+            desc="Threshold min value",
+            default_value=0,
+            minimum=0,
+            maximum=255,
         )
         self.add_spin_box(
-            name="max_t", desc="Threshold max value", default_value=255, minimum=0, maximum=255
+            name="max_t",
+            desc="Threshold max value",
+            default_value=255,
+            minimum=0,
+            maximum=255,
         )
         self.add_slider(
             name="median_filter_size",
@@ -925,7 +984,11 @@ class IptParamHolder(object):
             ),
         )
         self.add_spin_box(
-            name="kernel_size", desc="Kernel size", default_value=3, minimum=3, maximum=101
+            name="kernel_size",
+            desc="Kernel size",
+            default_value=3,
+            minimum=3,
+            maximum=101,
         )
         self.add_combobox(
             name="kernel_shape",
@@ -939,12 +1002,20 @@ class IptParamHolder(object):
 
     def add_exposure_viewer_switch(self):
         self.add_checkbox(
-            name="show_over_under", desc="Show over an under exposed parts", default_value=0
+            name="show_over_under",
+            desc="Show over an under exposed parts",
+            default_value=0,
         )
 
-    def add_button(self, name: str, desc: str, index: int = 0, hint: str = "") -> IptParam:
+    def add_button(
+        self, name: str, desc: str, index: int = 0, hint: str = ""
+    ) -> IptParam:
         param = IptParam(
-            name=name, desc=desc, default_value=index, allowed_values="input_button", hint=hint
+            name=name,
+            desc=desc,
+            default_value=index,
+            allowed_values="input_button",
+            hint=hint,
         )
         param.kind = "button"
         self.add(param)
@@ -968,7 +1039,9 @@ class IptParamHolder(object):
         param.widget_type = "spin_box"
         self.add(param)
 
-    def add_date_picker(self, name: str, desc: str, default_value: int = 0, hint: str = ""):
+    def add_date_picker(
+        self, name: str, desc: str, default_value: int = 0, hint: str = ""
+    ):
         pass
 
     def build_output_filename(self) -> str:
@@ -1013,17 +1086,23 @@ class IptParamHolder(object):
             p.grid_search_options = str(p.default_value)
             gsw = p.gs_input
             if gsw is not None:
-                self.update_ui(callback="set_text", widget=gsw, text=p.grid_search_options)
+                self.update_ui(
+                    callback="set_text", widget=gsw, text=p.grid_search_options
+                )
 
     def update_grid_search(self, ignore_composite: bool = True) -> None:
         for p in self._param_list:
             values = p.grid_search_options
-            if ignore_composite and ((";" in values) or ("-" in values) or ("," in values)):
+            if ignore_composite and (
+                (";" in values) or ("-" in values) or ("," in values)
+            ):
                 continue
             p.grid_search_options = str(p.value)
             gsw = p.gs_input
             if gsw is not None:
-                self.update_ui(callback="set_text", widget=gsw, text=p.grid_search_options)
+                self.update_ui(
+                    callback="set_text", widget=gsw, text=p.grid_search_options
+                )
 
     def reset_input(self) -> None:
         for p in self._param_list:
@@ -1098,7 +1177,9 @@ class IptParamHolder(object):
     def set_or_add_value(self, key, value):
         p = self.find_by_name(key)
         if p is None:
-            self.add(IptParam(name=key, desc="", default_value=value, allowed_values=None))
+            self.add(
+                IptParam(name=key, desc="", default_value=value, allowed_values=None)
+            )
         else:
             if value is not None:
                 p.value = value
@@ -1172,7 +1253,10 @@ class IptParamHolder(object):
         return [
             p
             for p in self.gizmos
-            if (not (exclude_defaults and p.is_default) and (p.name not in excluded_params))
+            if (
+                not (exclude_defaults and p.is_default)
+                and (p.name not in excluded_params)
+            )
             or (p.name in forced_params)
         ]
 
@@ -1281,7 +1365,9 @@ class IptBase(IptParamHolder, ABC):
             CLASS_NAME_KEY: type(self).__name__,
             MODULE_NAME_KEY: type(self).__module__,
             PARAMS_NAME_KEY: self.params_to_dict(),
-            GRID_SEARCH_PARAMS_NAME_KEY: {p.name: p.grid_search_options for p in self.gizmos},
+            GRID_SEARCH_PARAMS_NAME_KEY: {
+                p.name: p.grid_search_options for p in self.gizmos
+            },
         }
 
     @classmethod
@@ -1313,11 +1399,11 @@ class IptBase(IptParamHolder, ABC):
     def execute(self, param, **kwargs):
         pass
 
-    def init_wrapper(self, **kwargs) -> AbstractImageProcessor:
+    def init_wrapper(self, **kwargs) -> BaseImageProcessor:
         """Initializes wrapper according to key arguments
 
         Returns:
-            AbstractImageProcessor -- Wrapper
+            BaseImageProcessor -- Wrapper
         """
         self._kwargs = kwargs
         wrapper = self._get_wrapper()
@@ -1349,7 +1435,9 @@ class IptBase(IptParamHolder, ABC):
         if self.wrapper is None:
             return False
 
-        procs = list(itertools.product(*[p.decode_grid_search_options() for p in self.gizmos]))
+        procs = list(
+            itertools.product(*[p.decode_grid_search_options() for p in self.gizmos])
+        )
         if random_grid_search:
             random.shuffle(procs)
         tot_ = len(procs)
@@ -1404,14 +1492,16 @@ class IptBase(IptParamHolder, ABC):
             self.wrapper.current_image, f"Missing {channel} channel", text_overlay=True
         )
         self.wrapper.error_holder.add_error(
-            f"Missing {channel} channel", new_error_kind="source_issue", target_logger=logger
+            f"Missing {channel} channel",
+            new_error_kind="source_issue",
+            target_logger=logger,
         )
 
     def _get_wrapper(self):
         if "wrapper" in self.kwargs:
             value = self.kwargs.get("wrapper", None)
             if isinstance(value, str):
-                self.wrapper = AbstractImageProcessor(value)
+                self.wrapper = BaseImageProcessor(value)
             else:
                 self._wrapper = value
         return self._wrapper
@@ -1438,7 +1528,9 @@ class IptBase(IptParamHolder, ABC):
         elif str(img.dtype) == "uint8":
             if normalize:
                 if len(img.shape) == 2:
-                    return ((img - img.min()) / (img.max() - img.min()) * 255).astype(np.uint8)
+                    return ((img - img.min()) / (img.max() - img.min()) * 255).astype(
+                        np.uint8
+                    )
                 else:
                     c1, c2, c3 = cv2.split(img)
                     c1, c2, c3 = (
@@ -1607,7 +1699,9 @@ class IptBase(IptParamHolder, ABC):
 
         func = getattr(self._wrapper, self.get_value_of("morph_op"), None)
         if func:
-            mask = func(mask, kernel_size=kernel_size, proc_times=iter_, kernel_shape=k_shape)
+            mask = func(
+                mask, kernel_size=kernel_size, proc_times=iter_, kernel_shape=k_shape
+            )
 
         if store_result:
             self.wrapper.store_image(image=mask, text="morphology_applied")
@@ -1739,7 +1833,7 @@ class IptBase(IptParamHolder, ABC):
     def code_imports(self, **kwargs):
         ret = [f"from {self.__module__} import {type(self).__name__}"]
         if kwargs.get("build_wrapper", "yes") is not False:
-            ret.append("from ipapi.base.ip_abstract import AbstractImageProcessor")
+            ret.append("from ipapi.base.ip_abstract import BaseImageProcessor")
         return ret
 
     def code_apply_roi(self, print_result=None, white_spaces=""):
@@ -1754,9 +1848,7 @@ class IptBase(IptParamHolder, ABC):
         code_ += f"{white_spaces}ipt = {type(self).__name__}({params_})\n"
         code_ += f'{white_spaces}if callable(getattr(ipt, "apply_roy")):\n'
         add_ws = "    "
-        code_ += (
-            f"{white_spaces}{add_ws}wrapper.current_image = ipt.apply_roy(wrapper=wrapper)\n"
-        )
+        code_ += f"{white_spaces}{add_ws}wrapper.current_image = ipt.apply_roy(wrapper=wrapper)\n"
 
         return code_
 
@@ -1779,7 +1871,12 @@ class IptBase(IptParamHolder, ABC):
             )
         else:
             ws = "".join(
-                [" " for _ in range(0, len(f"{white_spaces}ipt_res = ipt.process_wrapper("))]
+                [
+                    " "
+                    for _ in range(
+                        0, len(f"{white_spaces}ipt_res = ipt.process_wrapper(")
+                    )
+                ]
             )
         params_ = f",\n{ws}".join(
             [f"{p.name}={p.str_value}" for p in self.input_params(exclude_defaults=True)]
@@ -1795,7 +1892,7 @@ class IptBase(IptParamHolder, ABC):
                 params_ = f"wrapper={wrapper_param}"
 
         if (build_wrapper is True) or (build_wrapper == "yes"):
-            code_ = f"{white_spaces}wrapper = AbstractImageProcessor({wrapper_})\n"
+            code_ = f"{white_spaces}wrapper = BaseImageProcessor({wrapper_})\n"
             if target_data_base:
                 code_ += f"{white_spaces}wrapper.target_database = target_data_base\n"
             code_ += f"{white_spaces}wrapper.lock = True\n"
@@ -1805,7 +1902,9 @@ class IptBase(IptParamHolder, ABC):
             code_ = ""
 
         if use_with_clause:
-            code_ += f"{white_spaces}with {type(self).__name__}({params_}) as (res, ed):\n"
+            code_ += (
+                f"{white_spaces}with {type(self).__name__}({params_}) as (res, ed):\n"
+            )
             add_ws = "    "
             code_ += f"{white_spaces}{add_ws}if res:\n"
             code_ += f"{white_spaces}{add_ws}{add_ws}return ed.result\n"
@@ -1830,7 +1929,9 @@ class IptBase(IptParamHolder, ABC):
         return code_
 
     def code(self, **kwargs):
-        return "\n".join(self.code_imports(**kwargs)) + "\n\n\n" + self.code_body(**kwargs)
+        return (
+            "\n".join(self.code_imports(**kwargs)) + "\n\n\n" + self.code_body(**kwargs)
+        )
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
         pass
@@ -1859,7 +1960,7 @@ class IptBase(IptParamHolder, ABC):
         return False
 
     @property
-    def wrapper(self) -> AbstractImageProcessor:
+    def wrapper(self) -> BaseImageProcessor:
         return self._wrapper
 
     @wrapper.setter

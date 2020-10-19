@@ -1,18 +1,14 @@
-import datetime
 import os
 from datetime import datetime as dt
 
 import ipapi.file_handlers.fh_base as fh
 
-# from ipapi.file_handlers.fh_base import file_handler_factory
-
 
 class ImageWrapper:
-    """Class wrapping an image item importing using the TPMP standard name
-    """
+    """Class wrapping an image item importing using the TPMP standard name"""
 
-    def __init__(self, file_path):
-        self._file_handler = fh.file_handler_factory(file_path)
+    def __init__(self, file_path, database=None):
+        self._file_handler = fh.file_handler_factory(file_path, database)
 
     def __repr__(self):  # Serialization
         return self.file_path
@@ -441,7 +437,12 @@ class ImageWrapper:
             or (
                 self.experiment in ["011s1801_sym", "013s1801_sym"]
                 and self.is_before_date_time(
-                    year="2018", month="02", day="01", hour="12", minute="00", seconds="00"
+                    year="2018",
+                    month="02",
+                    day="01",
+                    hour="12",
+                    minute="00",
+                    seconds="00",
                 )
             )
             or (

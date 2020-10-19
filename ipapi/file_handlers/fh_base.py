@@ -2,11 +2,13 @@ import os
 import datetime
 from datetime import datetime as dt
 import inspect
-import sys
 from abc import ABC, abstractclassmethod
-import pkgutil
+
+import cv2
+import numpy as np
 
 import ipapi.file_handlers
+import ipapi.base.ip_common as ipc
 from ipapi.tools.common_functions import get_module_classes
 
 import logging
@@ -22,28 +24,8 @@ class FileHandlerBase(ABC):
         self._camera = ""
         self._view_option = ""
         self._date_time = dt.now()
-        self.update(**kwargs)
-
-    def update(self, **kwargs):
-        if "file_path" in kwargs:
-            self._file_path = kwargs.get("file_path")
-        if "experiment" in kwargs:
-            self._exp = kwargs.get("experiment")
-        if "plant" in kwargs:
-            self._plant = kwargs.get("plant")
-        if "camera" in kwargs:
-            self._camera = kwargs.get("camera")
-        if "view_option" in kwargs:
-            self._view_option = kwargs.get("view_option")
-        if "date_time" in kwargs:
-            try:
-                ts = kwargs.get("date_time")
-                if isinstance(ts, str):
-                    self._date_time = dt.strptime(ts, "%Y-%m-%d %Hh%Mm%Ss")
-                else:
-                    self._date_time = ts
-            except Exception as e:
-                logger.exception(f'Failed to update timestamp, please check format "{str(e)}"')
+        self._linked_images = None
+        self._database = None
 
     def __repr__(self):  # Serialization
         return self.file_path
@@ -56,6 +38,39 @@ class FileHandlerBase(ABC):
             f"[camera:{self.camera}]"
             f"[view_option:{self.view_option}]"
         )
+
+    def load_source_file(self, database=None):
+        src_img = None
+        try:
+            stream = open(self.file_path, "rb")
+            bytes = bytearray(stream.read())
+            np_array = np.asarray(bytes, dtype=np.uint8)
+            src_img = cv2.imdecode(np_array, 3)
+            src_img = self.fix_image(src_image=src_img)
+        except Exception as e:
+            logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
+            return None
+        else:
+            return src_img
+
+    def update(self, **kwargs):
+        self._file_path = kwargs.get("file_path", self._file_path)
+        self._exp = kwargs.get("experiment", self._exp)
+        self._plant = kwargs.get("plant", self._plant)
+        self._camera = kwargs.get("camera", self._camera)
+        self._view_option = kwargs.get("view_option", self._view_option)
+        if "date_time" in kwargs:
+            try:
+                ts = kwargs.get("date_time")
+                if isinstance(ts, str):
+                    self._date_time = dt.strptime(ts, "%Y-%m-%d %Hh%Mm%Ss")
+                else:
+                    self._date_time = ts
+            except Exception as e:
+                logger.exception(
+                    f'Failed to update timestamp, please check format "{str(e)}"'
+                )
+        self._database = kwargs.get("database", None)
 
     def fix_image(self, src_image):
         return src_image
@@ -308,7 +323,7 @@ class FileHandlerBase(ABC):
             return self.value_of(key).lower() == value.lower()
 
     @abstractclassmethod
-    def probe(cls, file_path):
+    def probe(cls, file_path, database):
         return 0
 
     @classmethod
@@ -441,6 +456,18 @@ class FileHandlerBase(ABC):
     def is_heliasen(self):
         return False
 
+    @property
+    def channels(self):
+        return [ci[1] for ci in self.channels_data]
+
+    @property
+    def channels_data(self):
+        return [ci for ci in ipc.create_channel_generator()]
+
+    @property
+    def linked_images(self):
+        return self._linked_images
+
 
 class FileHandlerDefault(FileHandlerBase):
     def __init__(self, **kwargs):
@@ -465,14 +492,16 @@ class FileHandlerDefault(FileHandlerBase):
         self.update(**kwargs)
 
     @classmethod
-    def probe(cls, file_path):
+    def probe(cls, file_path, database):
         return 0
 
 
-def file_handler_factory(file_path: str) -> FileHandlerBase:
+def file_handler_factory(file_path: str, database=None) -> FileHandlerBase:
     # Build unique class list
     file_handlers_list = get_module_classes(
-        package=ipapi.file_handlers, class_inherits_from=FileHandlerBase, remove_abstract=True
+        package=ipapi.file_handlers,
+        class_inherits_from=FileHandlerBase,
+        remove_abstract=True,
     )
 
     # Create objects
@@ -482,12 +511,12 @@ def file_handler_factory(file_path: str) -> FileHandlerBase:
         if (
             inspect.isclass(cls)
             and callable(getattr(cls, "probe", None))
-            and (cls.probe(file_path) > best_score)
+            and (cls.probe(file_path, database) > best_score)
         ):
-            best_score = cls.probe(file_path)
+            best_score = cls.probe(file_path, database)
             best_class = cls
 
     if best_class:
-        return best_class(file_path=file_path)
+        return best_class(file_path=file_path, database=database)
     else:
-        return FileHandlerDefault(file_path=file_path)
+        return FileHandlerDefault(file_path=file_path, database=database)

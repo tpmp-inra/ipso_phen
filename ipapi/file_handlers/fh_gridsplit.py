@@ -13,16 +13,18 @@ class FileHandlerGridSplit(FileHandlerBase):
             *_, self._view_option = self._plant.split("-")
             self._camera = "scanner"
             try:
-                self._date_time = dt.fromtimestamp(os.path.getmtime(self.file_path)).replace(
-                    microsecond=0
-                )
+                self._date_time = dt.fromtimestamp(
+                    os.path.getmtime(self.file_path)
+                ).replace(microsecond=0)
             except:
                 self._date_time = dt.now().replace(microsecond=0)
 
         self.update(**kwargs)
 
     @classmethod
-    def probe(cls, file_path):
+    def probe(cls, file_path, database):
+        if not isinstance(file_path, str) or not os.path.isfile(file_path):
+            return 0
         fn, _ = os.path.splitext(os.path.basename(file_path))
         return 100 if fn.startswith("gridsplit_") else 0
 

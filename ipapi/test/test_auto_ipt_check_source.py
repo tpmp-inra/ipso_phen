@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_check_source import IptCheckSource
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.base.ip_common as ipc
 
 
@@ -42,7 +42,7 @@ class TestIptCheckSource(unittest.TestCase):
         """Test that tool returns a boolean"""
         op = IptCheckSource()
         op.apply_test_values_overrides(use_cases=("Assert...",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
@@ -53,9 +53,7 @@ class TestIptCheckSource(unittest.TestCase):
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Check source image")
-        self.assertIsInstance(
-            op.result, bool, "Check source image must return a boolean"
-        )
+        self.assertIsInstance(op.result, bool, "Check source image must return a boolean")
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""

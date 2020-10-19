@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_roi_manager import IptRoiManager
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.tools.regions as regions
 import ipapi.base.ip_common as ipc
 

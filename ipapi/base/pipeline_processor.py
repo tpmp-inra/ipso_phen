@@ -77,9 +77,10 @@ class PipelineProcessor:
     - threshold_only: if true no analysis will be performed after threshold, required=False, default=False
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, database, **kwargs):
         """ Initializes command line wrapper an properties """
         self.options = ArgWrapper(**kwargs)
+        self._target_database = database
         self._process_errors = 0
         self.accepted_files = []
         self._last_signature = ""
@@ -91,7 +92,6 @@ class PipelineProcessor:
         self._tqdm = None
         self._progress_total = 0
         self._progress_step = 0
-        self._target_database = None
 
     def build_files_list(self, src_path: str, flatten_list=True, **kwargs):
         """Build a list containing all the files that will be parsed
@@ -224,7 +224,7 @@ class PipelineProcessor:
         plants_ = defaultdict(list)
         for item in self.accepted_files:
             self.update_progress()
-            fh = file_handler_factory(item)
+            fh = file_handler_factory(itemn, self.da)
             plants_[fh.plant].append(fh)
 
         # Sort all lists by timestamp

@@ -24,7 +24,7 @@ from ipapi.tools.common_functions import force_directories, make_safe_name
 
 import ipapi.database.db_initializer as dbi
 import ipapi.database.db_factory as dbf
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ipt_functional import chain_ipt, call_ipt
 
 # import ptvsd
@@ -114,7 +114,7 @@ def build_single_plant_video(arg):
     fnt = cv2.FONT_HERSHEY_DUPLEX
 
     for main_angle_image_ in main_angle_image_list_:
-        main_angle_wrapper_side = AbstractImageProcessor(main_angle_image_)
+        main_angle_wrapper_side = BaseImageProcessor(main_angle_image_)
         try:
             img_main_angle = build_image(main_angle_wrapper_side)
             if img_main_angle is None:
@@ -144,7 +144,7 @@ def build_single_plant_video(arg):
             if secondary_angle_image_:
                 secondary_angle_image_ = secondary_angle_image_[0]
             if secondary_angle_image_ and os.path.isfile(secondary_angle_image_):
-                secondary_angle_wrapper = AbstractImageProcessor(secondary_angle_image_)
+                secondary_angle_wrapper = BaseImageProcessor(secondary_angle_image_)
                 try:
                     secondary_angle_img = build_image(secondary_angle_wrapper)
                     main_angle_wrapper_side.store_image(
@@ -214,7 +214,7 @@ def build_sbs_video():
         if not (source_vis_plant and os.path.isfile(source_vis_plant)):
             continue
         # Handle first image
-        main_wrapper = AbstractImageProcessor(source_vis_plant)
+        main_wrapper = BaseImageProcessor(source_vis_plant)
         try:
             img_main = build_image(main_wrapper)
             main_wrapper.store_image(image=img_main, text=plants[0], force_store=True)
@@ -244,7 +244,7 @@ def build_sbs_video():
             if file_name_ and os.path.isfile(file_name_):
                 try:
                     main_wrapper.store_image(
-                        image=build_image(AbstractImageProcessor(file_name_)),
+                        image=build_image(BaseImageProcessor(file_name_)),
                         text=plants[counter + 1],
                         force_store=True,
                     )
