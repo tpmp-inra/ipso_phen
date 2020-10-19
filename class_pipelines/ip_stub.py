@@ -4,19 +4,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ip_common import DefaultCsvWriter
 
 _EXPERIMENT = "".lower()  # Put the name of the experiment attached to this pipeline
 
 
-class IpStub(AbstractImageProcessor):
+class IpStub(BaseImageProcessor):
     @staticmethod
     def can_process(dict_data: dict) -> bool:
         """
-            Checks if the class can process the image
-            :param dict_data: Dictionary containing filter data
-            :return: True if current class can process data
+        Checks if the class can process the image
+        :param dict_data: Dictionary containing filter data
+        :return: True if current class can process data
         """
         return False and (dict_data["experiment"] in [_EXPERIMENT])
 
@@ -42,25 +42,25 @@ class IpStub(AbstractImageProcessor):
 
     def init_csv_data(self, source_image):
         """
-            Add all data not extracted from the image to the observation
-            ex: genotypes, treatment, ...
+        Add all data not extracted from the image to the observation
+        ex: genotypes, treatment, ...
         """
         pass
 
     def preprocess_source_image(self, **kwargs):
         """
-            Apply pre-processing to image to fix exposure, white balance, ...
-            Transformations will be taken into account when analysing image colors.
-            IPSO Phen can generate code that can be directly pasted in this section.
+        Apply pre-processing to image to fix exposure, white balance, ...
+        Transformations will be taken into account when analysing image colors.
+        IPSO Phen can generate code that can be directly pasted in this section.
         """
         pass
 
     def init_rois(self):
         """
-            Initialize ROIs
-            Depending on their tag some ROIs like crop will be automatically applied
-            cf.AbstractImageProcessor.add_roi family methods for more details.
-            IPSO Phen can generate code that can be directly pasted in this section.
+        Initialize ROIs
+        Depending on their tag some ROIs like crop will be automatically applied
+        cf.BaseImageProcessor.add_roi family methods for more details.
+        IPSO Phen can generate code that can be directly pasted in this section.
         """
         pass
 

@@ -2,14 +2,13 @@ import os
 import json
 from typing import Union
 import logging
-
-
 from timeit import default_timer as timer
-from typing import Union
-import pandas as pd
-from tqdm import tqdm
 
-import ipapi.tools.db_wrapper as dbw
+import pandas as pd
+import tqdm
+
+import ipapi.database.base as dbb
+import ipapi.database.db_factory as dbf
 from ipapi.tools.common_functions import force_directories, format_time
 from ipapi.base.pipeline_processor import PipelineProcessor
 from ipapi.base.ipt_loose_pipeline import LoosePipeline
@@ -98,7 +97,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     )
 
 
-def prepare(**kwargs):
+def launch(**kwargs):
     start = timer()
 
     # Script
@@ -134,7 +133,7 @@ def prepare(**kwargs):
 
     # Build database
     db_data = res.get("database_data", None)
-    db = dbw.db_info_to_database(dbw.DbInfo(**db_data)) if db_data is not None else None
+    db = dbf.db_info_to_database(dbb.DbInfo(**db_data)) if db_data is not None else None
 
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
@@ -153,7 +152,7 @@ def prepare(**kwargs):
     if IS_USE_MULTI_THREAD and "thread_count" in res:
         try:
             mpc = int(res["thread_count"])
-        except:
+        except Exception as e:
             mpc = False
     else:
         mpc = False
@@ -164,7 +163,7 @@ def prepare(**kwargs):
         elif isinstance(res["script"], dict):
             script = LoosePipeline.from_json(json_data=res["script"])
         else:
-            exit_error_message(f"Failed to load script: Unknown error")
+            exit_error_message("Failed to load script: Unknown error")
             return 1
     except Exception as e:
         exit_error_message(f"Failed to load script: {repr(e)}")
@@ -187,6 +186,7 @@ def prepare(**kwargs):
 
     # Build pipeline processor
     pp = PipelineProcessor(
+        database=db.copy(),
         dst_path=output_folder_,
         overwrite=res["overwrite_existing"],
         seed_output=res["append_time_stamp"],
@@ -209,11 +209,14 @@ def prepare(**kwargs):
             if pp.options.group_by_series:
                 files, luids = map(list, zip(*groups_to_process))
                 wrappers = [
-                    file_handler_factory(files[i])
+                    file_handler_factory(files[i], db)
                     for i in [luids.index(x) for x in set(luids)]
                 ]
             else:
-                wrappers = [file_handler_factory(f) for f in groups_to_process]
+                wrappers = [
+                    file_handler_factory(f, db)
+                    for f in tqdm.tqdm(groups_to_process, desc="Building annotation CSV")
+                ]
             pd.DataFrame.from_dict(
                 {
                     "plant": [i.plant for i in wrappers],
@@ -228,16 +231,16 @@ def prepare(**kwargs):
             )
         except Exception as e:
             preffix = "FAIL"
-            logger.exception(f"Unable to build disease index file")
+            logger.exception("Unable to build disease index file")
         else:
             preffix = "SUCCESS"
             logger.info("Built disease index file")
         print(f"{preffix} - Disease index file")
 
     groups_to_process_count = len(groups_to_process)
-    if groups_to_process_count > 0:
-        pp.multi_thread = mpc
-        pp.process_groups(groups_list=groups_to_process, target_database=db)
+    # if groups_to_process_count > 0:
+    #     pp.multi_thread = mpc
+    #     pp.process_groups(groups_list=groups_to_process, target_database=db)
 
     # Merge dataframe
     pp.merge_result_files(csv_file_name=csv_file_name + ".csv")

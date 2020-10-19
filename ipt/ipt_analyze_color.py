@@ -29,17 +29,27 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             maximum=100,
             hint="Removes top and bottom % values of histogram before normalization (100 -> 1%)",
         )
-        self.add_checkbox(name="color_mean", desc="Add color mean information", default_value=1)
+        self.add_checkbox(
+            name="color_mean",
+            desc="Add color mean information",
+            default_value=1,
+        )
         self.add_checkbox(
             name="color_std_dev",
             desc="Add color standard deviation information",
             default_value=1,
         )
         self.add_checkbox(
-            name="include_chlorophyll", desc="Include chlorophyll", default_value=0,
+            name="include_chlorophyll",
+            desc="Include chlorophyll",
+            default_value=0,
         )
         self.add_spin_box(
-            name="hist_bins", desc="Histogram bins", default_value=256, minimum=2, maximum=256
+            name="hist_bins",
+            desc="Histogram bins",
+            default_value=256,
+            minimum=2,
+            maximum=256,
         )
         self.add_spin_box(
             name="quantile_color",
@@ -77,21 +87,21 @@ class IptAnalyzeColor(IptBaseAnalyzer):
 
     def process_wrapper(self, **kwargs):
         """
-            Analyze color:
-            Analyses object color.
-            Needs a mask as an input.
-            Normally used in a pipeline after a clean mask is created.
-            Real time: False
+        Analyze color:
+        Analyses object color.
+        Needs a mask as an input.
+        Normally used in a pipeline after a clean mask is created.
+        Real time: False
 
-            Keyword Arguments (in parentheses, argument name):
-                * Add color mean information (color_mean):
-                * Add color standard deviation information (color_std_dev):
-                * Histogram bins (hist_bins):
-                * Select amount of quantiles for color analysis (quantile_color):
-                * Channel (channel):
-                * Debug image background (background):
-                * Select pseudo color map (color_map):
-            --------------
+        Keyword Arguments (in parentheses, argument name):
+            * Add color mean information (color_mean):
+            * Add color standard deviation information (color_std_dev):
+            * Histogram bins (hist_bins):
+            * Select amount of quantiles for color analysis (quantile_color):
+            * Channel (channel):
+            * Debug image background (background):
+            * Select pseudo color map (color_map):
+        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -120,7 +130,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 nz_pix_count = 0
 
             channel_data = {}
-            for c in wrapper.available_channels_as_tuple:
+            for c in wrapper.file_handler.channels_data:
                 if c[0] == "chla" and self.get_value_of("include_chlorophyll") == 0:
                     continue
                 channel = wrapper.get_channel(src_img=img, channel=c[1])
@@ -158,7 +168,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                         channel[channel > max_val] = max_val
 
                     # Rescale the pixels
-                    channel = cv2.normalize(channel, channel.copy(), 0, 255, cv2.NORM_MINMAX)
+                    channel = cv2.normalize(
+                        channel, channel.copy(), 0, 255, cv2.NORM_MINMAX
+                    )
                 # Build histogram
                 hist = cv2.calcHist(
                     images=[channel],
@@ -173,14 +185,21 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 tmp_tuple = cv2.meanStdDev(src=channel.flatten(), mask=mask.flatten())
                 seed_ = f"{c[0]}_{c[1]}"
                 self.add_value(
-                    key=f"{seed_}_std_dev", value=tmp_tuple[1][0][0], force_add=add_mean_info
+                    key=f"{seed_}_std_dev",
+                    value=tmp_tuple[1][0][0],
+                    force_add=add_mean_info,
                 )
                 self.add_value(
-                    key=f"{seed_}_mean", value=tmp_tuple[0][0][0], force_add=add_std_dev_info
+                    key=f"{seed_}_mean",
+                    value=tmp_tuple[0][0][0],
+                    force_add=add_std_dev_info,
                 )
 
                 channel_data[c[1]] = dict(
-                    color_space=c[0], channel_name=c[1], data=channel, hist=hist
+                    color_space=c[0],
+                    channel_name=c[1],
+                    data=channel,
+                    hist=hist,
                 )
 
             # Create Histogram Plot
@@ -194,7 +213,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     plt.title(title_)
                     fig.canvas.draw()
                     # Now we can save it to a numpy array.
-                    data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep="")
+                    data = np.fromstring(
+                        fig.canvas.tostring_rgb(), dtype=np.uint8, sep=""
+                    )
                     fig_shape = fig.canvas.get_width_height()[::-1]
                     data = data.reshape(fig_shape + (3,))
                     # Crop the image to keep only the object
@@ -202,7 +223,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     channel_img = enclose_image(
                         a_cnv=canvas,
                         img=v["data"][np.ix_(mask.any(1), mask.any(0))],
-                        rect=regions.RectangleRegion(width=fig_shape[1], height=fig_shape[0]),
+                        rect=regions.RectangleRegion(
+                            width=fig_shape[1], height=fig_shape[0]
+                        ),
                         frame_width=0,
                     )
                     wrapper.store_image(np.hstack((channel_img, data)), title_)
@@ -236,7 +259,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             if n > 0:
                 for c, v in channel_data.items():
                     if v["data"] is None:
-                        logger.error(f'Missing channel {v["color_space"]}, {v["channel_name"]}')
+                        logger.error(
+                            f'Missing channel {v["color_space"]}, {v["channel_name"]}'
+                        )
                         continue
                     seed_ = f'{v["color_space"]}_{c}'
                     hist = cv2.calcHist([v["data"]], [0], mask, [n], [0, (256 - 1)])

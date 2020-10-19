@@ -14,7 +14,7 @@ from ipapi.base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ipapi.base.ipt_functional import get_ipt_class
 from ipapi.base import ip_common as ipc
 from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.tools.error_holder as eh
 from ipapi.tools.common_functions import format_time
 from ipapi.tools.regions import RectangleRegion
@@ -156,7 +156,7 @@ class Node(object):
 
         if self.root.parent.tool_group_name_watermark:
             ri = ri.copy()
-            AbstractImageProcessor.draw_text(
+            BaseImageProcessor.draw_text(
                 img=ri,
                 text=self.name,
                 fnt_color=ipc.C_WHITE,
@@ -169,37 +169,41 @@ class Node(object):
         demo_image = data.get("demo_image", None)
         if demo_image is not None:
             fi = demo_image
-
-        mask = data.get("mask", None)
-        image = data.get("image", None)
-        if mask is not None and image is not None and self.root.parent.allow_step_mosaics:
-            h = max(mask.shape[0], image.shape[0])
-            w = max(mask.shape[1], image.shape[1])
-            canvas = ipc.enclose_image(
-                a_cnv=np.full(
-                    shape=(h + 4, w * 2 + 6, 3),
-                    fill_value=ipc.C_SILVER,
-                    dtype=np.uint8,
-                ),
-                img=image,
-                rect=RectangleRegion(left=2, top=2, width=w, height=h),
-            )
-            fi = ipc.enclose_image(
-                a_cnv=canvas,
-                img=np.dstack((mask, mask, mask)),
-                rect=RectangleRegion(left=w + 4, top=2, width=w, height=h),
-            )
-
-        elif mask is not None:
-            fi = mask
-        elif image is not None:
-            fi = image
         else:
-            fi = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
+            mask = data.get("mask", None)
+            image = data.get("image", None)
+            if (
+                mask is not None
+                and image is not None
+                and self.root.parent.allow_step_mosaics
+            ):
+                h = max(mask.shape[0], image.shape[0])
+                w = max(mask.shape[1], image.shape[1])
+                canvas = ipc.enclose_image(
+                    a_cnv=np.full(
+                        shape=(h + 4, w * 2 + 6, 3),
+                        fill_value=ipc.C_SILVER,
+                        dtype=np.uint8,
+                    ),
+                    img=image,
+                    rect=RectangleRegion(left=2, top=2, width=w, height=h),
+                )
+                fi = ipc.enclose_image(
+                    a_cnv=canvas,
+                    img=np.dstack((mask, mask, mask)),
+                    rect=RectangleRegion(left=w + 4, top=2, width=w, height=h),
+                )
+
+            elif mask is not None:
+                fi = mask
+            elif image is not None:
+                fi = image
+            else:
+                fi = np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
 
         if self.root.parent.tool_group_name_watermark:
             fi = fi.copy()
-            AbstractImageProcessor.draw_text(
+            BaseImageProcessor.draw_text(
                 img=fi,
                 text=self.name,
                 fnt_color=ipc.C_WHITE,
@@ -245,7 +249,7 @@ class Node(object):
                     text=dn,
                     force_store=True,
                 )
-        elif isinstance(data, AbstractImageProcessor):
+        elif isinstance(data, BaseImageProcessor):
             for d in data.image_list:
                 if d["name"] in md:
                     self.root.parent.stored_mosaic_images[d["name"]] = d["image"]
@@ -713,7 +717,7 @@ class GroupNode(Node):
 
         is_current_image_changed = False
 
-        def add_roi(wrapper: AbstractImageProcessor, roi_list: list, roi, node):
+        def add_roi(wrapper: BaseImageProcessor, roi_list: list, roi, node):
             if roi is None:
                 logger.warning(f"Missing ROI for {node.name}")
             else:
@@ -883,7 +887,9 @@ class GroupNode(Node):
                     call_back=call_back,
                     res=logging.INFO,
                     msg=f"Processed {wrapper.luid} in {format_time(timer() - before)}",
-                    data=self if self.root.parent.show_group_result or self.root.parent.silent else None,
+                    data=self
+                    if self.root.parent.show_group_result or self.root.parent.silent
+                    else None,
                     force_call_back=True,
                     is_progress=False,
                 )
@@ -1172,7 +1178,7 @@ class LoosePipeline(object):
         self.set_template(kwargs.get("template", None))
         self.silent = False
         self.mosaic = None
-        self.wrapper: AbstractImageProcessor = None
+        self.wrapper: BaseImageProcessor = None
         self.error_level = logging.INFO
 
         self.set_callbacks()
@@ -1290,7 +1296,7 @@ class LoosePipeline(object):
 
     def execute(
         self,
-        src_image: Union[str, AbstractImageProcessor],
+        src_image: Union[str, BaseImageProcessor],
         silent_mode: bool = False,
         additional_data: dict = {},
         write_data: bool = False,
@@ -1304,15 +1310,17 @@ class LoosePipeline(object):
         self.error_level = logging.INFO
         self.stop_processing = False
         self.silent = silent_mode
+        self.text_result = ""
 
         # Build/retrieve wrapper
         if isinstance(src_image, str):
-            self.wrapper = AbstractImageProcessor(src_image, options=options)
-        elif isinstance(src_image, AbstractImageProcessor):
+            self.wrapper = BaseImageProcessor(src_image, options=options)
+        elif isinstance(src_image, BaseImageProcessor):
             self.wrapper = src_image
         else:
             logger.error(f"Unknown source {str(src_image)}")
             self.error_level = logging.ERROR
+            self.text_result = "Source error"
             return False
 
         # Check wrapper
@@ -1322,17 +1330,19 @@ class LoosePipeline(object):
             else:
                 logger.error("Unable to retrieve wrapper.")
             self.error_level = logging.ERROR
+            self.text_result = "Wrapper error"
             return False
         elif not self.wrapper.check_source_image():
             if isinstance(src_image, str):
                 logger.error(f"Image seems to be corrupted '{src_image}''")
             else:
                 logger.error("Image seems to be corrupted.")
+            self.text_result = "Corrupted image"
             self.error_level = logging.ERROR
             return False
         elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
-            logger.info(f"Skipped {self.wrapper.name}, already exists")
             self.error_level = logging.INFO
+            self.text_result = "Skipped"
             return True
 
         # Override wrapper settings
@@ -1356,7 +1366,7 @@ class LoosePipeline(object):
         for k, v in additional_data.items():
             self.wrapper.csv_data_holder.update_csv_value(key=k, value=v, force_pair=True)
 
-        if (self.error_level < self.stop_on) and (write_data is True):
+        if write_data is True:
             try:
                 with open(self.wrapper.csv_file_path, "w", newline="") as csv_file_:
                     wr = csv.writer(csv_file_, quoting=csv.QUOTE_NONE)
@@ -1364,6 +1374,32 @@ class LoosePipeline(object):
                     wr.writerow(self.wrapper.csv_data_holder.data_to_list())
             except Exception as e:
                 logger.exception(f"Failed to write image data because {repr(e)}")
+
+        index = kwargs.get("index", -1)
+        total = kwargs.get("total", -1)
+        if index >= 0 and total >= 0:
+            eh.log_data(
+                log_msg=(
+                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
+                    + self.wrapper.name
+                ),
+                log_level=self.error_level,
+                target_logger=logger,
+            )
+
+        index = kwargs.get("index", -1)
+        total = kwargs.get("total", -1)
+        if index >= 0 and total >= 0:
+            eh.log_data(
+                log_msg=(
+                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
+                    + self.wrapper.name
+                ),
+                log_level=self.error_level,
+                target_logger=logger,
+            )
 
         return self.error_level < self.stop_on
 

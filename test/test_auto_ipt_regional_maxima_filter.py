@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_regional_maxima_filter import IptRegionalMaximaFiltering
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.base.ip_common as ipc
 
 
@@ -44,7 +44,7 @@ class TestIptRegionalMaximaFiltering(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptRegionalMaximaFiltering()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",

@@ -22,7 +22,9 @@ class FileHandlerIMean(FileHandlerBase):
         self.update(**kwargs)
 
     @classmethod
-    def probe(cls, file_path):
+    def probe(cls, file_path, database):
+        if not isinstance(file_path, str) or not os.path.isfile(file_path):
+            return 0
         return 100 if cls.extract_file_name(file_path).startswith("imean_") else 0
 
     @property

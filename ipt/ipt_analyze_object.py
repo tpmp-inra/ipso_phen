@@ -13,6 +13,7 @@ from ipapi.base.ip_common import ToolFamily
 class IptAnalyzeObject(IptBaseAnalyzer):
     def build_params(self):
         self.add_checkbox(desc="Area", name="area", default_value=1)
+        self.add_checkbox(desc="Perimeter", name="perimeter", default_value=1)
         self.add_checkbox(desc="Centroid x", name="centroid_x", default_value=1)
         self.add_checkbox(desc="Centroid y", name="centroid_y", default_value=1)
         self.add_checkbox(desc="Convex hull area", name="hull_area", default_value=1)
@@ -78,13 +79,35 @@ class IptAnalyzeObject(IptBaseAnalyzer):
             name="minimum_enclosing_circle_radius",
             default_value=1,
         )
-        self.add_checkbox(desc="Shape height", name="shape_height", default_value=1)
-        self.add_checkbox(desc="Shape width", name="shape_width", default_value=1)
-        self.add_checkbox(desc="Shape minimum width", name="shape_width_min", default_value=1)
-        self.add_checkbox(desc="Shape maximum width", name="shape_width_max", default_value=1)
-        self.add_checkbox(desc="Shape average width", name="shape_width_avg", default_value=1)
         self.add_checkbox(
-            desc="Shape width standard deviation", name="shape_width_std", default_value=1
+            desc="Shape height",
+            name="shape_height",
+            default_value=1,
+        )
+        self.add_checkbox(
+            desc="Shape width",
+            name="shape_width",
+            default_value=1,
+        )
+        self.add_checkbox(
+            desc="Shape minimum width",
+            name="shape_width_min",
+            default_value=1,
+        )
+        self.add_checkbox(
+            desc="Shape maximum width",
+            name="shape_width_max",
+            default_value=1,
+        )
+        self.add_checkbox(
+            desc="Shape average width",
+            name="shape_width_avg",
+            default_value=1,
+        )
+        self.add_checkbox(
+            desc="Shape width standard deviation",
+            name="shape_width_std",
+            default_value=1,
         )
         self.add_separator(name="s1")
         self.add_spin_box(
@@ -111,40 +134,40 @@ class IptAnalyzeObject(IptBaseAnalyzer):
 
     def process_wrapper(self, **kwargs):
         """
-            Analyze object:
-            Analyses object and returns morphologic data.
-            Needs a mask as an input.
-            Normally used in a pipeline after a clean mask is created.
-            Real time: False
+        Analyze object:
+        Analyses object and returns morphologic data.
+        Needs a mask as an input.
+        Normally used in a pipeline after a clean mask is created.
+        Real time: False
 
-            Keyword Arguments (in parentheses, argument name):
-                * Area (area):
-                * Centroid x (centroid_x):
-                * Centroid y (centroid_y):
-                * Convex hull area (hull_area):
-                * Shape solidity (shape_solidity):
-                * Shape extend (shape_extend):
-                * Straight bounding rectangle left (straight_bounding_rectangle_left):
-                * Straight bounding rectangle width (straight_bounding_rectangle_width):
-                * Straight bounding rectangle top (straight_bounding_rectangle_top):
-                * Straight bounding rectangle height (straight_bounding_rectangle_height):
-                * Rotated bounding rectangle cx (rotated_bounding_rectangle_cx):
-                * Rotated bounding rectangle cy (rotated_bounding_rectangle_cy):
-                * Rotated bounding rectangle width (rotated_bounding_rectangle_width):
-                * Rotated bounding rectangle height (rotated_bounding_rectangle_height):
-                * Rotated bounding rectangle rotation (rotated_bounding_rectangle_rotation):
-                * Minimum enclosing circle cx (minimum_enclosing_circle_cx):
-                * Minimum enclosing circle cy (minimum_enclosing_circle_cy):
-                * Minimum enclosing circle radius (minimum_enclosing_circle_radius):
-                * Shape height (shape_height):
-                * Shape width (shape_width):
-                * Shape minimum width (shape_width_min):
-                * Shape maximum width (shape_width_max):
-                * Shape average width (shape_width_avg):
-                * Shape width standard deviation (shape_width_std):
-                * Select amount of quantiles for width analysis (quantile_width):
-                * Draw line width (debug images) (line_width):
-                * Draw centroid width (debug images) (centroid_width):
+        Keyword Arguments (in parentheses, argument name):
+            * Area (area):
+            * Centroid x (centroid_x):
+            * Centroid y (centroid_y):
+            * Convex hull area (hull_area):
+            * Shape solidity (shape_solidity):
+            * Shape extend (shape_extend):
+            * Straight bounding rectangle left (straight_bounding_rectangle_left):
+            * Straight bounding rectangle width (straight_bounding_rectangle_width):
+            * Straight bounding rectangle top (straight_bounding_rectangle_top):
+            * Straight bounding rectangle height (straight_bounding_rectangle_height):
+            * Rotated bounding rectangle cx (rotated_bounding_rectangle_cx):
+            * Rotated bounding rectangle cy (rotated_bounding_rectangle_cy):
+            * Rotated bounding rectangle width (rotated_bounding_rectangle_width):
+            * Rotated bounding rectangle height (rotated_bounding_rectangle_height):
+            * Rotated bounding rectangle rotation (rotated_bounding_rectangle_rotation):
+            * Minimum enclosing circle cx (minimum_enclosing_circle_cx):
+            * Minimum enclosing circle cy (minimum_enclosing_circle_cy):
+            * Minimum enclosing circle radius (minimum_enclosing_circle_radius):
+            * Shape height (shape_height):
+            * Shape width (shape_width):
+            * Shape minimum width (shape_width_min):
+            * Shape maximum width (shape_width_max):
+            * Shape average width (shape_width_avg):
+            * Shape width standard deviation (shape_width_std):
+            * Select amount of quantiles for width analysis (quantile_width):
+            * Draw line width (debug images) (line_width):
+            * Draw centroid width (debug images) (centroid_width):
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -157,16 +180,23 @@ class IptAnalyzeObject(IptBaseAnalyzer):
             img = wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(f"FAIL {self.name}: mask must be initialized")
+                wrapper.error_holder.add_error(
+                    f"FAIL {self.name}: mask must be initialized"
+                )
                 return
 
             obj, mask = wrapper.prepare_analysis(
-                wrapper.draw_image(src_mask=mask, background="silver", foreground="source"),
+                wrapper.draw_image(
+                    src_mask=mask,
+                    background="silver",
+                    foreground="source",
+                ),
                 mask,
             )
 
             # Valid objects can only be analyzed if they have >= 5 vertices
             if len(obj) < 5:
+                logger.error(f"Object has only {len(obj)} vertices, most probably noise")
                 res = False
                 return
             res = True
@@ -186,6 +216,7 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                 self.add_value("area", area)
                 self.add_value("centroid_x", cmx)
                 self.add_value("centroid_y", cmy)
+                self.add_value("perimeter", cv2.arcLength(obj, True))
 
                 hull_area = cv2.contourArea(hull)
                 self.add_value("hull_area", hull_area)
@@ -215,7 +246,9 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                 self.add_value("shape_height", height)
                 # Some new f(r)iends
                 mask_data = MaskData(mask)
-                _, _, _, min_, max_, avg_, std_ = mask_data.width_quantile_stats(1, 0, tag=0)
+                _, _, _, min_, max_, avg_, std_ = mask_data.width_quantile_stats(
+                    1, 0, tag=0
+                )
                 self.add_value("shape_width", width)
                 self.add_value("shape_width_min", min_)
                 self.add_value("shape_width_max", max_)
@@ -240,7 +273,8 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                     centroid_line_width=line_width,
                 )
                 wrapper.store_image(
-                    image=self.demo_image, text="shapes",
+                    image=self.demo_image,
+                    text="shapes",
                 )
                 wrapper.store_image(
                     image=wrapper.draw_image(
@@ -251,9 +285,15 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                         foreground="source",
                         contour_thickness=line_width,
                         hull_thickness=line_width if self.has_param("hull_area") else 0,
-                        width_thickness=line_width if self.has_param("shape_width") else 0,
-                        height_thickness=line_width if self.has_param("shape_height") else 0,
-                        centroid_width=centroid_width if self.has_param("centroid_x") else 0,
+                        width_thickness=line_width
+                        if self.has_param("shape_width")
+                        else 0,
+                        height_thickness=line_width
+                        if self.has_param("shape_height")
+                        else 0,
+                        centroid_width=centroid_width
+                        if self.has_param("centroid_x")
+                        else 0,
                         centroid_line_width=line_width,
                     ),
                     text="shapes_on_mask",
@@ -272,7 +312,9 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                             foreground="source",
                             enclosing_circle_thickness=line_width if draw_circle else 0,
                             bounding_rec_thickness=line_width if draw_bd_rect else 0,
-                            straight_bounding_rec_thickness=line_width if draw_st_rect else 0,
+                            straight_bounding_rec_thickness=line_width
+                            if draw_st_rect
+                            else 0,
                         ),
                         text="more_shapes",
                     )
@@ -285,7 +327,9 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                             foreground="source",
                             enclosing_circle_thickness=line_width if draw_circle else 0,
                             bounding_rec_thickness=line_width if draw_bd_rect else 0,
-                            straight_bounding_rec_thickness=line_width if draw_st_rect else 0,
+                            straight_bounding_rec_thickness=line_width
+                            if draw_st_rect
+                            else 0,
                         ),
                         text="more_shapes_on_mask",
                     )
@@ -309,17 +353,29 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                         ) = msk_dt.width_quantile_stats(n, i, tag=i)
                         self.add_value(f"quantile_width_{i + 1}_{n}_area", total_, True)
                         self.add_value(f"quantile_width_{i + 1}_{n}_hull", hull_, True)
-                        self.add_value(f"quantile_width_{i + 1}_{n}_solidity", solidity_, True)
-                        self.add_value(f"quantile_width_{i + 1}_{n}_min_{kind}", min_, True)
-                        self.add_value(f"quantile_width_{i + 1}_{n}_max_{kind}", max_, True)
-                        self.add_value(f"quantile_width_{i + 1}_{n}_avg_{kind}", avg_, True)
-                        self.add_value(f"quantile_width_{i + 1}_{n}_std_{kind}", std_, True)
+                        self.add_value(
+                            f"quantile_width_{i + 1}_{n}_solidity", solidity_, True
+                        )
+                        self.add_value(
+                            f"quantile_width_{i + 1}_{n}_min_{kind}", min_, True
+                        )
+                        self.add_value(
+                            f"quantile_width_{i + 1}_{n}_max_{kind}", max_, True
+                        )
+                        self.add_value(
+                            f"quantile_width_{i + 1}_{n}_avg_{kind}", avg_, True
+                        )
+                        self.add_value(
+                            f"quantile_width_{i + 1}_{n}_std_{kind}", std_, True
+                        )
                         p_qt_msk = msk_dt.height_quantile_mask(
                             total=n, index=i, colour=int((i + 1) / (n + 1) * 255)
                         )
                         qtl_img = cv2.bitwise_or(
                             qtl_img,
-                            np.dstack((np.zeros_like(mask), p_qt_msk, np.zeros_like(mask))),
+                            np.dstack(
+                                (np.zeros_like(mask), p_qt_msk, np.zeros_like(mask))
+                            ),
                         )
                     wrapper.store_image(qtl_img, f"quantiles_width_{n}")
             else:
@@ -356,4 +412,3 @@ class IptAnalyzeObject(IptBaseAnalyzer):
     @property
     def description(self):
         return "Analyses object and returns morphologic data.\nNeeds a mask as an input.\nNormally used in a pipeline after a clean mask is created."
-
