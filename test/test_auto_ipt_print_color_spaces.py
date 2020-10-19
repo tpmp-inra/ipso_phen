@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_print_color_spaces import IptPrintColorSpaces
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.base.ip_common as ipc
 
 
@@ -42,7 +42,7 @@ class TestIptPrintColorSpaces(unittest.TestCase):
         """Test that visualization tools add images to list"""
         op = IptPrintColorSpaces()
         op.apply_test_values_overrides(use_cases=("Visualization",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",

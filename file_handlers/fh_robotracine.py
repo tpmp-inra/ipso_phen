@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 
 class FileHandlerRobotRacine(FileHandlerBase):
     def __init__(self, **kwargs):
-        """ Fill plant, date, time, experiment, camera and view_option from file data
-        """
+        """Fill plant, date, time, experiment, camera and view_option from file data"""
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             tmp_str, self._plant = self.file_name_no_ext.split(" ")
@@ -31,7 +30,9 @@ class FileHandlerRobotRacine(FileHandlerBase):
         self.update(**kwargs)
 
     @classmethod
-    def probe(cls, file_path):
+    def probe(cls, file_path, database):
+        if not isinstance(file_path, str) or not os.path.isfile(file_path):
+            return 0
         return 100 if cls.extract_file_name(file_path).lower().startswith("rr_") else 0
 
     @property

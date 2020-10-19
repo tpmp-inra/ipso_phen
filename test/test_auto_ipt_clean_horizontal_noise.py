@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_clean_horizontal_noise import IptCleanHorizontalNoise
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ipt_loose_pipeline import LoosePipeline
 import ipapi.base.ip_common as ipc
 
@@ -55,7 +55,7 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
             )
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
@@ -65,9 +65,7 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
             )
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
-        self.assertTrue(
-            res, "Failed to process Clean horizontal noise with test script"
-        )
+        self.assertTrue(res, "Failed to process Clean horizontal noise with test script")
         self.assertIsInstance(
             wrapper.mask, np.ndarray, "Empty result for Range threshold"
         )
