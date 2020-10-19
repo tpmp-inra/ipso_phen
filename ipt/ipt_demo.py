@@ -12,7 +12,7 @@ class IptDemo(IptBase):
         """Normally there's no need to override the 'constructor'
 
         Keyword Arguments:
-            wrapper {[AbstractImageProcessor, str, None]} -- A wrapper, path to image or nothing (default: {None})
+            wrapper {[BaseImageProcessor, str, None]} -- A wrapper, path to image or nothing (default: {None})
         """
         super().__init__(wrapper, **kwargs)
         self.update_count = 0
@@ -49,7 +49,10 @@ class IptDemo(IptBase):
         )
         self.add_separator(name="sep0")
         self.add_checkbox(
-            name="checkbox", desc="A sample checkbox", default_value=0, hint="This is a hint"
+            name="checkbox",
+            desc="A sample checkbox",
+            default_value=0,
+            hint="This is a hint",
         )
         self.add_combobox(
             name="combobox",
@@ -133,10 +136,10 @@ class IptDemo(IptBase):
         """
         Callback for all buttons.
         Calling button is identified by its name
-        
+
         Arguments:
             param {dict} -- Any argument wanted/needed
-        
+
         Returns:
             str -- returns name of the method to execute after execution
         """
@@ -233,7 +236,9 @@ class IptDemo(IptBase):
                 )
             else:  # This how we handle errors
                 # If the error is added to the wrapper, it will be displayed in the main log
-                wrapper.error_holder.add_error("Unknown output mode", target_logger=logger)
+                wrapper.error_holder.add_error(
+                    "Unknown output mode", target_logger=logger
+                )
                 # We can also create an empty image that will generate another error when storing it
                 img = None
 
@@ -261,7 +266,7 @@ class IptDemo(IptBase):
     @property
     def name(self) -> str:
         """Name displayed for tool selection in menus and such
-       
+
         Returns:
             str -- Name
         """
@@ -272,7 +277,7 @@ class IptDemo(IptBase):
         """Handles wether or not the tool will react in real time to input modifications\n
             Return value does not have to static\n
             Warning: Some tools may take a lot of time to compute
-       
+
         Returns:
             bool -- Wether or not tool reacts in real time
         """
@@ -281,7 +286,7 @@ class IptDemo(IptBase):
     @property
     def result_name(self) -> str:
         """Result name used when generating automated scripts\n
-            In case of a tool that returns nothing (like this one) return 'none'        
+            In case of a tool that returns nothing (like this one) return 'none'
         Returns:
             str
         """
@@ -324,4 +329,3 @@ class IptDemo(IptBase):
             str -- [description]
         """
         return "IPT Demo (Image Processing Tool Demo)\nA simple showcase of some of the available widgets\nBest starting point if you want to build your own widgets"
-

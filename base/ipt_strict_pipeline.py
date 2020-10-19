@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ip_common import AVAILABLE_FEATURES, C_RED, ToolFamily
 from ipapi.base.ipt_abstract import (
     IptParam,
@@ -83,7 +83,9 @@ class SettingsHolder(IptParamHolder):
             ),
         )
         self.add_checkbox(
-            name="use_default_script", desc="Use default script if present", default_value=0
+            name="use_default_script",
+            desc="Use default script if present",
+            default_value=0,
         )
         self.add_text_output(
             is_single_line=True,
@@ -210,7 +212,9 @@ class IptStrictPipeline(object):
                         res._settings.add(copy(setting_))
                         override_updates = True
                 if override_updates:
-                    res._settings.update_feedback_items = settings_checker.update_feedback_items
+                    res._settings.update_feedback_items = (
+                        settings_checker.update_feedback_items
+                    )
 
                 # Check attributes
                 if not hasattr(res, "_last_wrapper_luid"):
@@ -358,8 +362,14 @@ class IptStrictPipeline(object):
     def update_settings_feedback(self, src_wrapper, param: IptParam, call_back):
         if (param is None) or ((param.name == "bound_level") and (param.value >= 0)):
             img = src_wrapper.current_image
-            cv2.line(img, (0, param.value), (src_wrapper.width, self.bound_position), C_RED, 3)
-        elif (param is None) or (param.name == "color_map") or (param.name == "pseudo_channel"):
+            cv2.line(
+                img, (0, param.value), (src_wrapper.width, self.bound_position), C_RED, 3
+            )
+        elif (
+            (param is None)
+            or (param.name == "color_map")
+            or (param.name == "pseudo_channel")
+        ):
             img = src_wrapper.draw_image(
                 src_mask=None,
                 foreground="false_colour",
@@ -367,7 +377,9 @@ class IptStrictPipeline(object):
                 color_map=self.pseudo_color_map,
             )
         elif (param is None) or (param.name == "pseudo_background_type"):
-            img = src_wrapper.draw_image(src_mask=None, foreground=self.pseudo_background_type)
+            img = src_wrapper.draw_image(
+                src_mask=None, foreground=self.pseudo_background_type
+            )
         else:
             img = None
 
@@ -375,7 +387,7 @@ class IptStrictPipeline(object):
             call_back(img)
 
     def is_use_last_result(
-        self, tool_dict: dict, wrapper: AbstractImageProcessor, previous_state: bool
+        self, tool_dict: dict, wrapper: BaseImageProcessor, previous_state: bool
     ) -> bool:
         if self.use_cache:
             return (
@@ -395,10 +407,10 @@ class IptStrictPipeline(object):
         current_step: int = -1,
         total_steps: int = -1,
     ):
-        """ Applies exposure fixing modules
+        """Applies exposure fixing modules
 
         Arguments:
-            wrapper {AbstractImageProcessor} -- Current wrapper
+            wrapper {BaseImageProcessor} -- Current wrapper
             use_last_result {bool} -- Wether or not result can be retrieved from the cache
 
         Keyword Arguments:
@@ -411,7 +423,8 @@ class IptStrictPipeline(object):
         """
         tools_ = self.get_operators(
             constraints=dict(
-                enabled=True, kind=[ToolFamily.EXPOSURE_FIXING, ToolFamily.WHITE_BALANCE],
+                enabled=True,
+                kind=[ToolFamily.EXPOSURE_FIXING, ToolFamily.WHITE_BALANCE],
             )
         )
         for tool in tools_:
@@ -420,7 +433,11 @@ class IptStrictPipeline(object):
             )
             if progress_callback is not None and total_steps > 0:
                 current_step = self.add_progress(
-                    progress_callback, current_step, total_steps, "Fixing exposure", wrapper
+                    progress_callback,
+                    current_step,
+                    total_steps,
+                    "Fixing exposure",
+                    wrapper,
                 )
         wrapper.store_image(wrapper.current_image, "exposure_fixed", force_store=True)
 
@@ -437,7 +454,7 @@ class IptStrictPipeline(object):
         """Fixes exposition and preprocesses image
 
         Arguments:
-            wrapper {AbstractImageProcessor} -- Current wrapper
+            wrapper {BaseImageProcessor} -- Current wrapper
             use_last_result {bool} -- Wether or not result can be retrieved from the cache
 
         Keyword Arguments:
@@ -476,7 +493,8 @@ class IptStrictPipeline(object):
             target_pp_image=True,
         )
         wrapper.store_image(
-            image=wrapper.retrieve_stored_image("exp_fixed_roi"), text="rois",
+            image=wrapper.retrieve_stored_image("exp_fixed_roi"),
+            text="rois",
         )
         use_last_result = self.build_target_tools(
             wrapper=wrapper, tools=None, use_last_result=use_last_result
@@ -496,7 +514,9 @@ class IptStrictPipeline(object):
                     "Pre-processing image",
                     wrapper,
                 )
-        wrapper.store_image(wrapper.current_image, "pre_processed_image", force_store=True)
+        wrapper.store_image(
+            wrapper.current_image, "pre_processed_image", force_store=True
+        )
         self._last_wrapper_luid = wrapper.luid
 
         return use_last_result, current_step
@@ -570,7 +590,7 @@ class IptStrictPipeline(object):
                 )
         return use_last_result, current_step
 
-    def process_tool(self, tool_dict: dict, wrapper: AbstractImageProcessor, use_last_result):
+    def process_tool(self, tool_dict: dict, wrapper: BaseImageProcessor, use_last_result):
         use_last_result = self.is_use_last_result(
             tool_dict=tool_dict, wrapper=wrapper, previous_state=use_last_result
         )
@@ -589,7 +609,8 @@ class IptStrictPipeline(object):
                     )
                 except Exception as e:
                     wrapper.error_list.add_error(
-                        f"Unable to store cached image because: {repr(e)}", target_logger=logger
+                        f"Unable to store cached image because: {repr(e)}",
+                        target_logger=logger,
                     )
             ret = tool_dict["last_result"]
         else:
@@ -686,9 +707,11 @@ class IptStrictPipeline(object):
                 if not file_path:
                     # Leave if no source
                     res = False
-                    wrapper.error_holder.add_error("Missing source image", target_logger=logger)
+                    wrapper.error_holder.add_error(
+                        "Missing source image", target_logger=logger
+                    )
                     return False
-                wrapper = AbstractImageProcessor(file_path)
+                wrapper = BaseImageProcessor(file_path)
             wrapper.lock = True
             if self._target_data_base:
                 wrapper.target_database = self._target_data_base
@@ -767,10 +790,12 @@ class IptStrictPipeline(object):
                 rois_list = [
                     roi
                     for roi in wrapper.rois_list
-                    if roi.tag in handled_rois and not (roi.target and roi.target != "none")
+                    if roi.tag in handled_rois
+                    and not (roi.target and roi.target != "none")
                 ]
                 wrapper.store_image(
-                    wrapper.retrieve_stored_image("mask_on_exp_fixed_bw_roi"), text="used_rois",
+                    wrapper.retrieve_stored_image("mask_on_exp_fixed_bw_roi"),
+                    text="used_rois",
                 )
                 wrapper.mask = wrapper.apply_roi_list(
                     img=wrapper.mask, rois=rois_list, print_dbg=self.display_images
@@ -784,7 +809,9 @@ class IptStrictPipeline(object):
                     res = True
                     for tool in tools_[ToolFamily.MASK_CLEANUP]:
                         tmp_mask, use_last_result = self.process_tool(
-                            tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result
+                            tool_dict=tool,
+                            wrapper=wrapper,
+                            use_last_result=use_last_result,
                         )
                         if tmp_mask is None:
                             res = False
@@ -829,7 +856,9 @@ class IptStrictPipeline(object):
                             )
                             img = cv2.bitwise_or(
                                 roi_img,
-                                np.dstack((background_img, background_img, background_img)),
+                                np.dstack(
+                                    (background_img, background_img, background_img)
+                                ),
                             )
                             enforcer.draw_to(img, line_width=4)
                             wrapper.store_image(img, f"enforcer_{i}_{enforcer.name}")
@@ -865,16 +894,20 @@ class IptStrictPipeline(object):
                 rois_list = [
                     roi
                     for roi in wrapper.rois_list
-                    if roi.tag in handled_rois and not (roi.target and roi.target != "none")
+                    if roi.tag in handled_rois
+                    and not (roi.target and roi.target != "none")
                 ]
                 wrapper.store_image(
                     image=wrapper.draw_rois(
-                        img=wrapper.retrieve_stored_image("exposure_fixed"), rois=rois_list,
+                        img=wrapper.retrieve_stored_image("exposure_fixed"),
+                        rois=rois_list,
                     ),
                     text="used_rois",
                 )
                 wrapper.current_image = wrapper.apply_roi_list(
-                    img=wrapper.current_image, rois=rois_list, print_dbg=self.display_images
+                    img=wrapper.current_image,
+                    rois=rois_list,
+                    print_dbg=self.display_images,
                 )
                 current_step = self.add_progress(
                     progress_callback, current_step, total_steps, "Applied ROIs", wrapper
@@ -883,7 +916,10 @@ class IptStrictPipeline(object):
 
             # Prepare data holder
             if res and (
-                (not self.threshold_only and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0)
+                (
+                    not self.threshold_only
+                    and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0
+                )
                 or (len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0)
             ):
                 wrapper.csv_data_holder = AbstractCsvWriter()
@@ -891,7 +927,9 @@ class IptStrictPipeline(object):
             if save_mask and self.image_output_path and wrapper.mask is not None:
                 force_directories(os.path.join(self.image_output_path, "masks"))
                 cv2.imwrite(
-                    filename=os.path.join(self.image_output_path, "masks", wrapper.file_name),
+                    filename=os.path.join(
+                        self.image_output_path, "masks", wrapper.file_name
+                    ),
                     img=wrapper.mask,
                 )
 
@@ -927,7 +965,9 @@ class IptStrictPipeline(object):
             if res and len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0:
                 for tool in tools_[ToolFamily.IMAGE_GENERATOR]:
                     current_data, use_last_result = self.process_tool(
-                        tool_dict=tool, wrapper=wrapper, use_last_result=use_last_result,
+                        tool_dict=tool,
+                        wrapper=wrapper,
+                        use_last_result=use_last_result,
                     )
                     if isinstance(current_data, dict):
                         wrapper.csv_data_holder.data_list.update(current_data)
@@ -938,7 +978,11 @@ class IptStrictPipeline(object):
                             target_logger=logger,
                         )
                     current_step = self.add_progress(
-                        progress_callback, current_step, total_steps, "Copying images", wrapper,
+                        progress_callback,
+                        current_step,
+                        total_steps,
+                        "Copying images",
+                        wrapper,
                     )
                 res = len(wrapper.csv_data_holder.data_list) > 0
 
@@ -988,7 +1032,10 @@ class IptStrictPipeline(object):
     def code_imports():
         # External libraries
         import_lst = list(
-            map(lambda x: f"import {x}", ["argparse", "csv", "cv2", "numpy as np", "os", "sys"])
+            map(
+                lambda x: f"import {x}",
+                ["argparse", "csv", "cv2", "numpy as np", "os", "sys"],
+            )
         )
         # Add paths
         import_lst.extend(
@@ -1004,7 +1051,7 @@ class IptStrictPipeline(object):
         # IPSO Phen libraries
         import_lst.extend(
             [
-                "from ipapi.base.ip_abstract import AbstractImageProcessor",
+                "from ipapi.base.ip_abstract import BaseImageProcessor",
                 "from ipapi.base.ipt_functional import call_ipt, call_ipt_func",
                 "from ipapi.tools.csv_writer import AbstractCsvWriter",
             ]
@@ -1049,9 +1096,11 @@ class IptStrictPipeline(object):
 
         code_ += f"{ws_ct}# Build wrapper\n"
         code_ += f"{ws_ct}# _____________\n"
-        code_ += ws_ct + "wrapper = AbstractImageProcessor(file_name)\n"
+        code_ += ws_ct + "wrapper = BaseImageProcessor(file_name)\n"
         code_ += ws_ct + "wrapper.lock = True\n"
-        code_ += ws_ct + "wrapper.store_image(wrapper.current_image, 'true_source_image')\n"
+        code_ += (
+            ws_ct + "wrapper.store_image(wrapper.current_image, 'true_source_image')\n"
+        )
         code_ += ws_ct + "if print_images or print_mosaic:\n"
         ws_ct = add_tab(ws_ct)
         code_ += ws_ct + "wrapper.store_images = True\n"
@@ -1070,7 +1119,10 @@ class IptStrictPipeline(object):
         # _________________
         if len(tools_[ToolFamily.ROI_RAW_IMAGE_STR]) > 0:
             code_ += (
-                ws_ct + "# Build ROIs using fixed image\n" + ws_ct + "# _________________\n"
+                ws_ct
+                + "# Build ROIs using fixed image\n"
+                + ws_ct
+                + "# _________________\n"
             )
             for ef_tool in tools_[ToolFamily.ROI_RAW_IMAGE_STR]:
                 code_ += call_ipt_func_code(
@@ -1099,7 +1151,9 @@ class IptStrictPipeline(object):
                 )
                 code_ += "\n"
             code_ += f"{ws_ct}# Store image name for analysis\n"
-            code_ += ws_ct + 'wrapper.store_image(wrapper.current_image, "exposure_fixed")\n'
+            code_ += (
+                ws_ct + 'wrapper.store_image(wrapper.current_image, "exposure_fixed")\n'
+            )
             code_ += ws_ct + 'analysis_image = "exposure_fixed"\n'
             code_ += "\n"
         else:
@@ -1132,7 +1186,8 @@ class IptStrictPipeline(object):
             code_ += ws_ct + "if print_mosaic:\n"
             ws_ct = add_tab(ws_ct)
             code_ += (
-                ws_ct + 'wrapper.store_image(wrapper.current_image, "pre_processed_image")\n'
+                ws_ct
+                + 'wrapper.store_image(wrapper.current_image, "pre_processed_image")\n'
             )
             ws_ct = remove_tab(ws_ct)
 
@@ -1176,7 +1231,10 @@ class IptStrictPipeline(object):
                 ws_ct
                 + "wrapper.mask = func([mask for mask in mask_list if mask is not None])\n"
             )
-            code_ += ws_ct + f'wrapper.store_image(wrapper.mask, f"mask_{self.merge_method}")\n'
+            code_ += (
+                ws_ct
+                + f'wrapper.store_image(wrapper.mask, f"mask_{self.merge_method}")\n'
+            )
             code_ += ws_ct + "if print_mosaic:\n"
             ws_ct = add_tab(ws_ct)
             code_ += ws_ct + 'wrapper.store_image(wrapper.mask, "coarse_mask")\n'
@@ -1201,7 +1259,8 @@ class IptStrictPipeline(object):
             + "# _____________________________________\n"
         )
         code_ += (
-            ws_ct + "handled_rois = ['keep', 'delete', 'erode', 'dilate', 'open', 'close']\n"
+            ws_ct
+            + "handled_rois = ['keep', 'delete', 'erode', 'dilate', 'open', 'close']\n"
         )
         code_ += (
             ws_ct
@@ -1260,13 +1319,15 @@ class IptStrictPipeline(object):
         code_ += ws_ct + "if partial_ok:\n"
         ws_ct = add_tab(ws_ct)
         code_ += (
-            ws_ct + "roi_img = np.dstack((np.zeros_like(mask), mask, np.zeros_like(mask)))\n"
+            ws_ct
+            + "roi_img = np.dstack((np.zeros_like(mask), mask, np.zeros_like(mask)))\n"
         )
         ws_ct = remove_tab(ws_ct)
         code_ += ws_ct + "else:\n"
         ws_ct = add_tab(ws_ct)
         code_ += (
-            ws_ct + "roi_img = np.dstack((np.zeros_like(mask), np.zeros_like(mask), mask))\n"
+            ws_ct
+            + "roi_img = np.dstack((np.zeros_like(mask), np.zeros_like(mask), mask))\n"
         )
         ws_ct = remove_tab(ws_ct)
         code_ += (
@@ -1302,9 +1363,9 @@ class IptStrictPipeline(object):
 
         # Prepare data holder
         # ___________________
-        if (not self.threshold_only and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0) or (
-            len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0
-        ):
+        if (
+            not self.threshold_only and len(tools_[ToolFamily.FEATURE_EXTRACTION]) > 0
+        ) or (len(tools_[ToolFamily.IMAGE_GENERATOR]) > 0):
             code_ += ws_ct + "# Prepare data holder\n"
             code_ += ws_ct + "# ___________________\n"
             code_ += ws_ct + "wrapper.csv_data_holder = AbstractCsvWriter()\n"
@@ -1328,7 +1389,9 @@ class IptStrictPipeline(object):
                 )
                 code_ += f"{ws_ct}if isinstance(current_data, dict):\n"
                 ws_ct = add_tab(ws_ct)
-                code_ += ws_ct + "wrapper.csv_data_holder.data_list.update(current_data)\n"
+                code_ += (
+                    ws_ct + "wrapper.csv_data_holder.data_list.update(current_data)\n"
+                )
                 ws_ct = remove_tab(ws_ct)
                 code_ += ws_ct + "else:\n"
                 ws_ct = add_tab(ws_ct)
@@ -1339,7 +1402,10 @@ class IptStrictPipeline(object):
                 ws_ct = remove_tab(ws_ct)
                 code_ += "\n"
             code_ += ws_ct + "# Save CSV\n"
-            code_ += ws_ct + "if dst_folder and (len(wrapper.csv_data_holder.data_list) > 0):\n"
+            code_ += (
+                ws_ct
+                + "if dst_folder and (len(wrapper.csv_data_holder.data_list) > 0):\n"
+            )
             ws_ct = add_tab(ws_ct)
             code_ += (
                 ws_ct
@@ -1379,7 +1445,9 @@ class IptStrictPipeline(object):
                 )
                 code_ += f"{ws_ct}if isinstance(current_data, dict):\n"
                 ws_ct = add_tab(ws_ct)
-                code_ += ws_ct + "wrapper.csv_data_holder.data_list.update(current_data)\n"
+                code_ += (
+                    ws_ct + "wrapper.csv_data_holder.data_list.update(current_data)\n"
+                )
                 ws_ct = remove_tab(ws_ct)
                 code_ += ws_ct + "else:\n"
                 ws_ct = add_tab(ws_ct)
@@ -1583,7 +1651,9 @@ class IptStrictPipeline(object):
             return []
 
     def delete_cache_if_tool_after(self, tool_kind: [str, None] = None):
-        for tool_dict in self.get_operators(constraints=dict(kind=self.ops_after(tool_kind))):
+        for tool_dict in self.get_operators(
+            constraints=dict(kind=self.ops_after(tool_kind))
+        ):
             tool_dict["last_result"] = None
 
     def toggle_enabled_state(self, key: str) -> None:

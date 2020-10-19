@@ -1,3 +1,4 @@
+import os
 from datetime import datetime as dt
 
 from ipapi.file_handlers.fh_base import FileHandlerBase
@@ -8,7 +9,9 @@ class FileHandlerHeliasen(FileHandlerBase):
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             if "-V-" in self.file_name_no_ext:
-                exp_name_, self._camera, _, date_time_str = self.file_name_no_ext.split("-")
+                exp_name_, self._camera, _, date_time_str = self.file_name_no_ext.split(
+                    "-"
+                )
             else:
                 exp_name_, self._camera, date_time_str = self.file_name_no_ext.split("-")
             self._exp = exp_name_[0:6]
@@ -22,7 +25,9 @@ class FileHandlerHeliasen(FileHandlerBase):
         return None if src_image is None else 255 - src_image
 
     @classmethod
-    def probe(cls, file_path):
+    def probe(cls, file_path, database):
+        if not isinstance(file_path, str) or not os.path.isfile(file_path):
+            return 0
         if "-CAM" in cls.extract_file_name(file_path):
             return 100
         else:

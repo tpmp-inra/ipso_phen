@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_slic import IptSlic
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.base.ip_common as ipc
 
 
@@ -31,9 +31,7 @@ class TestIptSlic(unittest.TestCase):
         """Test that class process_wrapper method has docstring"""
         op = IptSlic()
         if "(wip)" not in op.name.lower():
-            self.assertIsNotNone(
-                op.process_wrapper.__doc__, "Missing docstring for Slic"
-            )
+            self.assertIsNotNone(op.process_wrapper.__doc__, "Missing docstring for Slic")
 
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""
@@ -43,7 +41,7 @@ class TestIptSlic(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptSlic()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",

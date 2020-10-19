@@ -70,8 +70,7 @@ class IptHolder(object):
         self._log_callback = None
 
     def _init_holders(self):
-        """Build list containing a single instance of all available tools
-        """
+        """Build list containing a single instance of all available tools"""
         # Build unique class list
         ipt_classes_list = get_module_classes(
             package=ipt, class_inherits_from=IptBase, remove_abstract=True
@@ -119,7 +118,7 @@ class IptHolder(object):
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
         f.write(f"{spaces}script.add_module(operator=op, target_group='{group_uuid}')\n")
-        f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
+        f.write(f"{spaces}wrapper = BaseImageProcessor(\n")
         spaces = add_tab(spaces)
         f.write(
             f'{spaces}os.path.join(os.path.dirname(__file__), "..", "samples", "images", "{test_image}",)\n'
@@ -141,7 +140,7 @@ class IptHolder(object):
     ):
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}op.apply_test_values_overrides(use_cases=('{use_case}',))\n")
-        f.write(f"{spaces}wrapper = AbstractImageProcessor(\n")
+        f.write(f"{spaces}wrapper = BaseImageProcessor(\n")
         spaces = add_tab(spaces)
         f.write(
             f'{spaces}os.path.join(os.path.dirname(__file__), "..", "samples", "images", "{test_image}",)\n'
@@ -173,13 +172,17 @@ class IptHolder(object):
             'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))\n\n'
         )
         f.write("# When running tests from IPSO Phen\n")
-        f.write('sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))\n\n')
+        f.write(
+            'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))\n\n'
+        )
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
-        f.write("from ipapi.base.ip_abstract import AbstractImageProcessor\n")
+        f.write("from ipapi.base.ip_abstract import BaseImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
             f.write("from ipapi.base.ipt_loose_pipeline import LoosePipeline\n")
             if "script_in_info_out" in tests_needed:
-                f.write("from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n")
+                f.write(
+                    "from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n"
+                )
 
         if "img_in_roi_out" in tests_needed:
             f.write("import ipapi.tools.regions as regions\n")
@@ -222,7 +225,9 @@ class IptHolder(object):
     def write_test_has_test_function(self, f, op, spaces, found_fun):
         f.write(f"{spaces}def test_has_test_function(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Check that at list one test function has been generated"""\n')
+        f.write(
+            f'{spaces}"""Check that at list one test function has been generated"""\n'
+        )
         if found_fun:
             f.write(
                 f"{spaces}self.assertTrue(True, 'No compatible test function was generated')\n\n"
@@ -402,7 +407,9 @@ class IptHolder(object):
             store_images=True,
         )
         f.write(f"{spaces}res = op.process_wrapper(wrapper=wrapper)\n")
-        f.write(f'{spaces}self.assertTrue(res, "Failed to process Simple white balance")\n')
+        f.write(
+            f'{spaces}self.assertTrue(res, "Failed to process Simple white balance")\n'
+        )
         f.write(
             f'{spaces}self.assertGreater(len(wrapper.image_list), 0, "Visualizations must add images to list")\n\n'
         )
@@ -481,7 +488,9 @@ class IptHolder(object):
             )
         else:
             log_data(
-                log_msg=log_message, log_level=log_level, target_logger=logger,
+                log_msg=log_message,
+                log_level=log_level,
+                target_logger=logger,
             )
             return True
 
@@ -518,7 +527,10 @@ class IptHolder(object):
                         continue
                     op = cls_()
                     file_name = os.path.join(
-                        os.path.dirname(__file__), "..", "test", f"test_auto_{name}.py",
+                        os.path.dirname(__file__),
+                        "..",
+                        "test",
+                        f"test_auto_{name}.py",
                     )
                     if not overwrite and os.path.isfile(file_name):
                         self.log_state(
@@ -539,7 +551,9 @@ class IptHolder(object):
                         self.write_imports(f, op, needed_tests)
 
                         # Class
-                        f.write(f"class Test{op.__class__.__name__}(unittest.TestCase):\n")
+                        f.write(
+                            f"class Test{op.__class__.__name__}(unittest.TestCase):\n"
+                        )
                         spaces = add_tab("")
 
                         spaces = self.write_test_use_case(f, op, spaces=spaces)
@@ -565,10 +579,14 @@ class IptHolder(object):
                             spaces = self.write_test_mask_generation(f, op, spaces=spaces)
 
                         if "img_in_img_out" in needed_tests:
-                            spaces = self.write_test_image_transformation(f, op, spaces=spaces)
+                            spaces = self.write_test_image_transformation(
+                                f, op, spaces=spaces
+                            )
 
                         if "script_in_msk_out" in needed_tests:
-                            spaces = self.write_test_mask_transformation(f, op, spaces=spaces)
+                            spaces = self.write_test_mask_transformation(
+                                f, op, spaces=spaces
+                            )
 
                         if "script_in_info_out" in needed_tests:
                             spaces = self.write_test_feature_out(f, op, spaces=spaces)
@@ -597,7 +615,8 @@ class IptHolder(object):
             )
             for test_script in tqdm(files_to_format, desc="Formating test files"):
                 self.log_state(
-                    status_message=f"Formating {test_script}", use_status_as_log=True,
+                    status_message=f"Formating {test_script}",
+                    use_status_as_log=True,
                 )
                 subprocess.run(args=("black", "-q", test_script))
 

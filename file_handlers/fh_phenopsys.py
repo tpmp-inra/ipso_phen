@@ -1,11 +1,14 @@
 from datetime import datetime as dt
+import os
 
 from ipapi.file_handlers.fh_base import FileHandlerBase
+import ipapi.base.ip_common as ipc
 
 
 class FileHandlerPhenopsys(FileHandlerBase):
     def __init__(self, **kwargs):
         self._file_path = kwargs.get("file_path", "")
+        self.database = kwargs.get("database", None)
         if self._file_path:
             [
                 self._exp,
@@ -34,8 +37,10 @@ class FileHandlerPhenopsys(FileHandlerBase):
         self.update(**kwargs)
 
     @classmethod
-    def probe(cls, file_path):
-        if ";" in cls.extract_file_name(file_path):
+    def probe(cls, file_path, database):
+        if not isinstance(file_path, str) or not os.path.isfile(file_path):
+            return 0
+        elif ";" in cls.extract_file_name(file_path):
             return 100
         else:
             return 0
@@ -63,3 +68,17 @@ class FileHandlerPhenopsys(FileHandlerBase):
     @property
     def is_vis(self):
         return False
+
+    @property
+    def channels_data(self):
+        return [
+            ci
+            for ci in ipc.create_channel_generator(
+                include_vis=True,
+                include_msp=True,
+            )
+        ]
+
+    @property
+    def linked_images(self):
+        return self._linked_images

@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_simple_color_balance import IptSimpleWhiteBalance
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.base.ip_common as ipc
 
 
@@ -43,7 +43,7 @@ class TestIptSimpleWhiteBalance(unittest.TestCase):
         """Test that when an image is in an image goes out"""
         op = IptSimpleWhiteBalance()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",

@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_circle_roi import IptCircleRoi
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.tools.regions as regions
 import ipapi.base.ip_common as ipc
 
@@ -43,7 +43,7 @@ class TestIptCircleRoi(unittest.TestCase):
         """Test that tool generates an ROI"""
         op = IptCircleRoi()
         op.apply_test_values_overrides(use_cases=("Create an ROI",))
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",
