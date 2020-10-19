@@ -130,7 +130,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 nz_pix_count = 0
 
             channel_data = {}
-            for c in wrapper.available_channels_as_tuple:
+            for c in wrapper.file_handler.channels_data:
                 if c[0] == "chla" and self.get_value_of("include_chlorophyll") == 0:
                     continue
                 channel = wrapper.get_channel(src_img=img, channel=c[1])

@@ -14,7 +14,7 @@ from ipapi.base.ipt_abstract import IptParam, IptBase, IptParamHolder
 from ipapi.base.ipt_functional import get_ipt_class
 from ipapi.base import ip_common as ipc
 from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 import ipapi.tools.error_holder as eh
 from ipapi.tools.common_functions import format_time
 from ipapi.tools.regions import RectangleRegion
@@ -156,7 +156,7 @@ class Node(object):
 
         if self.root.parent.tool_group_name_watermark:
             ri = ri.copy()
-            AbstractImageProcessor.draw_text(
+            BaseImageProcessor.draw_text(
                 img=ri,
                 text=self.name,
                 fnt_color=ipc.C_WHITE,
@@ -203,7 +203,7 @@ class Node(object):
 
         if self.root.parent.tool_group_name_watermark:
             fi = fi.copy()
-            AbstractImageProcessor.draw_text(
+            BaseImageProcessor.draw_text(
                 img=fi,
                 text=self.name,
                 fnt_color=ipc.C_WHITE,
@@ -249,7 +249,7 @@ class Node(object):
                     text=dn,
                     force_store=True,
                 )
-        elif isinstance(data, AbstractImageProcessor):
+        elif isinstance(data, BaseImageProcessor):
             for d in data.image_list:
                 if d["name"] in md:
                     self.root.parent.stored_mosaic_images[d["name"]] = d["image"]
@@ -717,7 +717,7 @@ class GroupNode(Node):
 
         is_current_image_changed = False
 
-        def add_roi(wrapper: AbstractImageProcessor, roi_list: list, roi, node):
+        def add_roi(wrapper: BaseImageProcessor, roi_list: list, roi, node):
             if roi is None:
                 logger.warning(f"Missing ROI for {node.name}")
             else:
@@ -1178,7 +1178,7 @@ class LoosePipeline(object):
         self.set_template(kwargs.get("template", None))
         self.silent = False
         self.mosaic = None
-        self.wrapper: AbstractImageProcessor = None
+        self.wrapper: BaseImageProcessor = None
         self.error_level = logging.INFO
 
         self.set_callbacks()
@@ -1296,7 +1296,7 @@ class LoosePipeline(object):
 
     def execute(
         self,
-        src_image: Union[str, AbstractImageProcessor],
+        src_image: Union[str, BaseImageProcessor],
         silent_mode: bool = False,
         additional_data: dict = {},
         write_data: bool = False,
@@ -1314,8 +1314,8 @@ class LoosePipeline(object):
 
         # Build/retrieve wrapper
         if isinstance(src_image, str):
-            self.wrapper = AbstractImageProcessor(src_image, options=options)
-        elif isinstance(src_image, AbstractImageProcessor):
+            self.wrapper = BaseImageProcessor(src_image, options=options)
+        elif isinstance(src_image, BaseImageProcessor):
             self.wrapper = src_image
         else:
             logger.error(f"Unknown source {str(src_image)}")

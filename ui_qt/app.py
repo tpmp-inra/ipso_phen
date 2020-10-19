@@ -134,7 +134,7 @@ logging.basicConfig(
 )
 
 
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ipt_abstract import IptBase, IptParamHolder
 from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipapi.base.ipt_functional import call_ipt_code
@@ -1673,7 +1673,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         id = self.get_image_delegate()
         if id is None:
             return
-        if isinstance(tag, AbstractImageProcessor):
+        if isinstance(tag, BaseImageProcessor):
             luid = tag.luid
         elif isinstance(tag, str):
             luid = tag
@@ -2357,7 +2357,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
             if save_lst_ is True:
                 model.images.to_csv(
-                    "./saved_data/last_image_browser_state.csv", index=False
+                    "./saved_data/last_image_browser_state.csv",
+                    index=False,
                 )
                 settings_.setValue(
                     "last_image_browser_state",
@@ -2686,7 +2687,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.cb_available_outputs.setCurrentIndex(
                     self.ui.cb_available_outputs.count() - 1
                 )
-            elif isinstance(data, AbstractImageProcessor):
+            elif isinstance(data, BaseImageProcessor):
                 self.add_images_to_viewer(
                     wrapper=data,
                     data_dict=data.csv_data_holder.data_list,
@@ -3301,6 +3302,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 seed_output=self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
                 group_by_series=self.ui.cb_pp_generate_series_id.isChecked(),
                 store_images=True,
+                database=self.current_database.copy(),
             )
             self.pp_pipeline.accepted_files = image_list_
             self.pp_pipeline.script = script_
@@ -3451,7 +3453,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def add_images_to_viewer(
         self,
-        wrapper: AbstractImageProcessor,
+        wrapper: BaseImageProcessor,
         avoid_duplicates: bool = False,
         data_dict: dict = None,
     ):
@@ -3544,7 +3546,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         )
 
     def do_thread_update_images(self, batch_process: bool, sender: object):
-        if isinstance(sender, AbstractImageProcessor):
+        if isinstance(sender, BaseImageProcessor):
             wrapper = sender
         elif isinstance(sender, IptParamHolder):
             wrapper = sender.wrapper
@@ -3694,7 +3696,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def run_process(
         self,
-        wrapper: AbstractImageProcessor = None,
+        wrapper: BaseImageProcessor = None,
         ipt=None,
         exec_param=None,
         target_module: str = "",
@@ -4572,7 +4574,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if "channel_selector" in param_names_list and wrapper is not None:
             res["channels"] = {
                 ci[1]: ipc.get_hr_channel_name(ci[1])
-                for ci in ipc.create_channel_generator(wrapper.available_channels)
+                for ci in ipc.create_channel_generator(wrapper.file_handler.channels)
             }
         if "tool_target_selector" in param_names_list:
             res["ipt_list"] = {
@@ -5003,30 +5005,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_time.clear()
 
     def current_selected_image_path(self):
-        if self.current_database.dbms == "pandas":
-            return ""
-        else:
-            ret = self.query_current_database(
-                command="SELECT",
-                columns="FilePath",
-                additional="ORDER BY Time ASC",
-                experiment=self._current_exp,
-                plant=self._current_plant,
-                date=self._current_date,
-                camera=self._current_camera,
-                view_option=self._current_view_option,
-                time=self._current_time,
-            )
-            if len(ret) > 0:
-                tmp_value = ret[0]
-                return tmp_value[0]
-            else:
-                return ""
-
-    def current_selected_image_luid(self):
         ret = self.query_current_database(
             command="SELECT",
-            columns="Luid",
+            columns="FilePath",
             additional="ORDER BY Time ASC",
             experiment=self._current_exp,
             plant=self._current_plant,
@@ -5075,7 +5056,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             columns=columns,
             Luid=luid,
         )
-        if data:
+        if data is not None:
             return self.update_comboboxes(
                 {k: v for k, v in zip(columns.replace(" ", "").split(","), data)}
             )
@@ -5221,7 +5202,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         auto_text="",
                     )
 
-            if os.path.isfile(value):
+            if value:
                 self._src_image_wrapper = ipo_factory(
                     file_path=value,
                     options=self._options,
@@ -5231,12 +5212,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 try:
                     ci = self._src_image_wrapper.current_image
                     if ci is None:
-                        self.update_feedback(
-                            status_message="Failed to load image",
-                            log_message=self._src_image_wrapper.error_holder.last_error(
-                                prepend_timestamp=False
-                            ),
-                        )
+                        self.update_feedback(status_message="Failed to load image")
                         self._src_image_wrapper = None
                     else:
                         self.ui.gv_source_image.main_image = ci
@@ -5245,6 +5221,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     logger.exception(f"Failed to load image: {repr(e)}")
             else:
                 self._src_image_wrapper = None
+
             try:
                 # Restore annotation
                 self.ui.te_annotations.clear()

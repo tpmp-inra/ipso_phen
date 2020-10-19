@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipapi.ipt.ipt_analyze_observation import IptAnalyseObservation
-from ipapi.base.ip_abstract import AbstractImageProcessor
+from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ipt_loose_pipeline import LoosePipeline
 from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
@@ -55,7 +55,7 @@ class TestIptAnalyseObservation(unittest.TestCase):
             )
         )
         script.add_module(operator=op, target_group="grp_test_extractors")
-        wrapper = AbstractImageProcessor(
+        wrapper = BaseImageProcessor(
             os.path.join(
                 os.path.dirname(__file__),
                 "..",

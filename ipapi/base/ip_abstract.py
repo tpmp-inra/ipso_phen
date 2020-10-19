@@ -51,7 +51,7 @@ class ImageListHolder:
 
         :param key: one of the wrapper properties
         :param value: value
-        :return: AbstractImageProcessor
+        :return: BaseImageProcessor
         """
         for fh in self.image_list:
             if value in fh.value_of(key):
@@ -62,13 +62,17 @@ class ImageListHolder:
         return None
 
 
-class AbstractImageProcessor(ImageWrapper):
+class BaseImageProcessor(ImageWrapper):
     process_dict = None
 
     def __init__(
-        self, file_path: str, options: ArgWrapper = None, database=None, scale_factor=1
+        self,
+        file_path: str,
+        options: ArgWrapper = None,
+        database=None,
+        scale_factor=1,
     ) -> None:
-        super().__init__(file_path)
+        super().__init__(file_path, database)
 
         if options is None:
             self._options = {}
@@ -143,19 +147,8 @@ class AbstractImageProcessor(ImageWrapper):
         :param store_source: if true image will be stores in image_list
         :return:numpy array -- Fixed source image
         """
-        src_img = None
-        try:
-            stream = open(self.file_path, "rb")
-            bytes = bytearray(stream.read())
-            np_array = np.asarray(bytes, dtype=np.uint8)
-            src_img = cv2.imdecode(np_array, 3)
-            src_img = self.file_handler.fix_image(src_image=src_img)
-        except Exception as e:
-            logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
-            self.good_image = False
-            return None
-        else:
-            self.good_image = src_img is not None
+        src_img = self.file_handler.load_source_file(database=self.target_database)
+        self.good_image = src_img is not None
 
         if self.good_image:
             src_img = self._fix_source_image(src_img)
@@ -167,14 +160,10 @@ class AbstractImageProcessor(ImageWrapper):
                     keep_aspect_ratio=False,
                     output_as_bgr=False,
                 )
-
-        if self.good_image and store_source:
-            self.store_image(src_img, "source")
-
-        if not self.good_image:
-            logger.error(
-                "Unable to load source image",
-            )
+            if store_source:
+                self.store_image(src_img, "source")
+        else:
+            logger.error("Unable to load source image")
 
         return src_img
 
@@ -1355,7 +1344,7 @@ class AbstractImageProcessor(ImageWrapper):
         masked = cv2.bitwise_and(img, img, mask=mask)
 
         channel_data = {}
-        for c in self.available_channels_as_tuple:
+        for c in self.file_handler.channels_data:
             if c[0] == "chla":
                 continue
             channel_data[c[1]] = dict(
@@ -2382,7 +2371,7 @@ class AbstractImageProcessor(ImageWrapper):
         """
 
         for color_space, channel, _ in ipc.create_channel_generator(
-            self.available_channels
+            self.file_handler.channels
         ):
             fs = median_filter_size
             while True:
@@ -3300,7 +3289,7 @@ class AbstractImageProcessor(ImageWrapper):
         """
         mosaic_data_ = {}
         for color_space, channel, channel_name in ipc.create_channel_generator(
-            self.available_channels
+            self.file_handler.channels
         ):
             channel_image = self.get_channel(
                 src_img, channel, "", rois, normalize, median_filter_size
@@ -3872,37 +3861,6 @@ class AbstractImageProcessor(ImageWrapper):
             return 0
         else:
             return src.shape[0]
-
-    @property
-    def available_channels(self):
-        return [ci[1] for ci in self.available_channels_as_tuple]
-
-    @property
-    def available_channels_as_tuple(self):
-        if self.is_msp:
-            res = [
-                ci
-                for ci in ipc.create_channel_generator(
-                    include_msp=True, include_chla=True
-                )
-            ]
-        elif self.is_vis:
-            res = [ci for ci in ipc.create_channel_generator(include_chla=True)]
-        elif self.is_nir:
-            res = [("nir", "l", "nir")]
-        elif self.is_fluo:
-            res = [ci for ci in ipc.create_channel_generator()]
-        elif self.is_cf_calc:
-            res = [ci for ci in ipc.create_channel_generator()]
-        else:
-            res = [
-                ci
-                for ci in ipc.create_channel_generator(
-                    include_vis=True, include_ndvi=True, include_msp=True
-                )
-            ]
-
-        return res
 
     mask = property(_get_mask, _set_mask)
 

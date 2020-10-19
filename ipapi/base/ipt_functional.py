@@ -139,7 +139,9 @@ def call_ipt_func_code(
     if generate_imports:
         res = "from ipapi.ipt import call_ipt_func\n"
         if not file_name:
-            res += f"{white_spaces}from ipapi.base.ip_abstract import AbstractImageProcessor\n"
+            res += (
+                f"{white_spaces}from ipapi.base.ip_abstract import BaseImageProcessor\n"
+            )
         res += "\n"
     else:
         res = ""
@@ -155,7 +157,7 @@ def call_ipt_func_code(
             res_name += " = "
 
     if file_name:
-        res += f"{white_spaces}wrapper = AbstractImageProcessor({file_name})\n"
+        res += f"{white_spaces}wrapper = BaseImageProcessor({file_name})\n"
         source = f"wrapper"
     else:
         source = f"wrapper"

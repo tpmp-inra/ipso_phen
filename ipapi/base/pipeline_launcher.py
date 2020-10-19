@@ -186,6 +186,7 @@ def launch(**kwargs):
 
     # Build pipeline processor
     pp = PipelineProcessor(
+        database=db.copy(),
         dst_path=output_folder_,
         overwrite=res["overwrite_existing"],
         seed_output=res["append_time_stamp"],
@@ -208,12 +209,12 @@ def launch(**kwargs):
             if pp.options.group_by_series:
                 files, luids = map(list, zip(*groups_to_process))
                 wrappers = [
-                    file_handler_factory(files[i])
+                    file_handler_factory(files[i], db)
                     for i in [luids.index(x) for x in set(luids)]
                 ]
             else:
                 wrappers = [
-                    file_handler_factory(f)
+                    file_handler_factory(f, db)
                     for f in tqdm.tqdm(groups_to_process, desc="Building annotation CSV")
                 ]
             pd.DataFrame.from_dict(
