@@ -538,11 +538,10 @@ class PipelineProcessor:
                     if self.check_abort():
                         logger.info("User stopped process")
                         break
-                    yield from self.handle_result(
+                    yield from self.yield_handle_result(
                         res,
                         i,
                         len(groups_list),
-                        yield_mode=True,
                     )
             else:
                 for i, fl in enumerate(groups_list):
@@ -557,11 +556,10 @@ class PipelineProcessor:
                     if self.check_abort():
                         logger.info("User stopped process")
                         break
-                    yield from self.handle_result(
+                    yield from self.yield_handle_result(
                         res,
                         i,
                         len(groups_list),
-                        yield_mode=True,
                     )
             self.close_progress()
             logger.info("   --- Files processed ---")
