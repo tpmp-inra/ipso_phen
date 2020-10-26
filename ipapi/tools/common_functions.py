@@ -25,16 +25,63 @@ else:
 def format_time(seconds):
     """Transforms seconds in human readable time string
 
-        Arguments:
-            seconds {float} -- seconds to convert
+    Arguments:
+        seconds {float} -- seconds to convert
 
-        Returns:
-            string -- seconds as human readable string
-        """
+    Returns:
+        string -- seconds as human readable string
+    """
 
     mg, sg = divmod(seconds, 60)
     hg, mg = divmod(mg, 60)
     return "{:02.0f}:{:02.0f}:{:02.3f}".format(hg, mg, sg)
+
+
+class undefined_tqdm:
+    def __init__(self, desc: str, lapse: float = 0.5, bar_length=10) -> None:
+        self.desc = desc
+        self.lapse = lapse
+        self.calls_count = 0
+        self.last_print = timer()
+        self.first_call = None
+        self.dot_pos = 0
+        self.dot_dir = "right"
+        self.bar_length = bar_length
+
+    def step(self, force_print=False):
+        if self.first_call is None:
+            self.first_call = timer()
+
+        self.calls_count += 1
+        t = timer()
+        if force_print or (t - self.last_print >= self.lapse):
+            self.last_call = timer()
+            desc = f"{self.desc}: "
+            fill = (
+                "".join("_" for _ in range(self.dot_pos))
+                + ("|>" if self.dot_dir == "right" else "<|")
+                + "".join("_" for _ in range(self.dot_pos + 1, self.bar_length))
+            )
+            if self.dot_dir == "right":
+                self.dot_pos += 1
+            else:
+                self.dot_pos -= 1
+            if self.dot_pos < 0:
+                self.dot_dir = "right"
+                self.dot_pos = 0
+            elif self.dot_pos >= self.bar_length:
+                self.dot_dir = "left"
+                self.dot_pos = self.bar_length - 1
+            res = f"{self.calls_count} iter, {self.calls_count / (self.last_call - self.first_call):.2f}/s"
+            print(
+                f"\r{desc} {fill} {res} - Total: {format_time(t - self.first_call)}",
+                end="",
+            )
+            self.last_print = t
+
+    def stop(self):
+        self.step(force_print=True)
+        print()
 
 
 def print_progress_bar(iteration, total, prefix="", suffix="", bar_length=50, fill="#"):
@@ -82,7 +129,7 @@ def open_file(filename: Union[tuple, str]) -> None:
 
 
 def make_safe_name(text):
-    ret = "".join(c if c not in '*"/\[]:;|=,<>' else "_" for c in text)
+    ret = "".join(c if c not in '*"/\\[]:;|=,<>' else "_" for c in text)
     return ret.replace("'", "")
 
 
@@ -100,7 +147,10 @@ def natural_keys(text_):
 
 
 def get_module_classes(
-    package, class_inherits_from, remove_abstract: bool = True, exclude_if_contains: tuple = ()
+    package,
+    class_inherits_from,
+    remove_abstract: bool = True,
+    exclude_if_contains: tuple = (),
 ):
     res = []
     if not allow_pcv:
@@ -173,7 +223,9 @@ def time_method(f):
             before = timer()
             x = f(*args, **kwargs)
             after = timer()
-            print('"{}" process time = {}'.format(f.__name__, format_time(after - before)))
+            print(
+                '"{}" process time = {}'.format(f.__name__, format_time(after - before))
+            )
         else:
             x = f(*args, **kwargs)
         return x

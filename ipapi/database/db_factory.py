@@ -13,6 +13,13 @@ else:
     is_phenoserre = True
 
 try:
+    from ipapi.database.phenopsis_wrapper import PhenopsisDbWrapper
+except Exception as e:
+    is_phenopsis = False
+else:
+    is_phenopsis = True
+
+try:
     from ipapi.database.db_connect_data import db_connect_data as dbc
 except Exception as e:
     dbc = {}
@@ -42,6 +49,11 @@ def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
         )
     elif info.target == "phenoserre" and is_phenoserre is True:
         return PhenoserreDbWrapper(
+            db_info=info.copy(),
+            progress_call_back=kwargs.get("progress_call_back", None),
+        )
+    elif info.target == "phenopsis" and is_phenopsis is True:
+        return PhenopsisDbWrapper(
             db_info=info.copy(),
             progress_call_back=kwargs.get("progress_call_back", None),
         )

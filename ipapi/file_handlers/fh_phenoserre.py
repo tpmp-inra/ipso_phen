@@ -106,27 +106,6 @@ class DirectHandlerPhenoserre(FileHandlerPhenoserre):
         else:
             return src_img
 
-    def get_stream(self):
-        p = paramiko.SSHClient()
-        p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        p.connect(
-            conf["jump_address"],
-            port=conf["port"],
-            username=conf["user"],
-            password=conf["password"],
-        )
-        ftp = p.open_sftp()
-        with ftp.open(self._blob_path) as f:
-            img = cv2.imdecode(np.fromstring(f.read(), np.uint8), 1)
-
-        return open(self.file_path, "rb")
-
-    def fix_image(self, src_image):
-        if self.is_nir and self.view_option == "top":
-            return np.flip(np.flip(src_image, 0), 1)
-        else:
-            return super().fix_image(src_image)
-
     @classmethod
     def probe(cls, file_path, database):
         return (
@@ -134,15 +113,3 @@ class DirectHandlerPhenoserre(FileHandlerPhenoserre):
             if conf and database is not None and database.db_info.target == "phenoserre"
             else 0
         )
-
-    @property
-    def is_vis(self):
-        return "vis" in self.camera
-
-    @property
-    def is_fluo(self):
-        return "fluo" in self.camera
-
-    @property
-    def is_nir(self):
-        return "nir" in self.camera
