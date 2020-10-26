@@ -1394,7 +1394,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.mnu_connect_to_db.addAction(self.ui.mnu_db_action_group.addAction(act))
 
     def on_reset_database(self):
-        logger.warning("Not implemented yet")
+        if self.current_database is not None:
+            self.current_database.reset()
 
     def build_database_menu(self, selected: str = ""):
         self.ui.mnu_connect_to_db.clear()
@@ -1410,6 +1411,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 db_type_root = self.ui.mnu_connect_to_db.addMenu(dbt.value)
                 for ldb in self.image_databases[dbt]:
                     act = QAction(ldb.display_name, self, checkable=True)
+                    act.setData(ldb)
                     act.setEnabled(
                         not ldb.src_files_path or os.path.isdir(ldb.src_files_path)
                     )
@@ -1464,14 +1466,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.build_database_menu(selected=dlg.db_qualified_name)
 
     def on_local_database_connect(self, q):
-        for ldb in [n for v in self.image_databases.values() for n in v]:
-            if ldb.display_name == self.sender().text():
-                db = dbf.db_info_to_database(ldb)
-                if isinstance(db, str):
-                    logger.exception(f"Unknown DBMS: {db}")
-                else:
-                    self.current_database = db
-                break
+        data = self.sender().data()
+        if data is not None and isinstance(data, dbb.DbInfo):
+            db = dbf.db_info_to_database(data)
+            if isinstance(db, str):
+                logger.exception(f"Unknown DBMS: {db}")
+            else:
+                self.current_database = db
 
     def on_recent_folder_select(self):
         self.do_parse_folder(self.sender().text())
@@ -2277,8 +2278,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             settings_.setValue("skim_count", self.ui.sb_batch_count.value())
             settings_.endGroup()
 
-            if self._src_image_wrapper is not None:
-                settings_.setValue("selected_plant_luid", self._src_image_wrapper.luid)
+            settings_.setValue(
+                "selected_plant_luid",
+                self._src_image_wrapper.luid
+                if self._src_image_wrapper is not None
+                else "",
+            )
 
             if self.current_database is not None:
                 settings_.beginGroup("current_data_base")
@@ -4893,7 +4898,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if target_index < 0:
                 target_index = 0
                 self._current_date = dt.strptime(
-                    self.ui.cb_date.itemText(0), _DATE_FORMAT
+                    self.ui.cb_date.itemText(0),
+                    _DATE_FORMAT,
                 ).date()
             self.ui.cb_date.setCurrentIndex(target_index)
 
@@ -4955,7 +4961,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.chk_time.setText(f"Time ({len(time_lst)}): ")
             self.ui.cb_time.addItems(time_lst)
             self.ui.cb_time.setEnabled(self.ui.cb_time.count() > 1)
-            if self._updating_combo_boxes and self.ui.cb_time.count() > 1:
+            if self._updating_combo_boxes and self.ui.cb_time.count() > 0:
                 target_index = self.ui.cb_time.findText(
                     self._current_time.strftime(_TIME_FORMAT)
                 )
@@ -4963,7 +4969,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     target_index = 0
                     if len(time_lst) > 0:
                         self._current_time = dt.strptime(
-                            self.ui.cb_time.itemText(0), _TIME_FORMAT
+                            self.ui.cb_time.itemText(0),
+                            _TIME_FORMAT,
                         ).time()
                     self.ui.cb_time.setCurrentIndex(target_index)
         except Exception as e:
@@ -5022,34 +5029,32 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             return ""
 
-    def update_comboboxes(self, data: dict):
-        if data:
-            self._updating_combo_boxes = True
-            try:
-                self._current_exp = data["Experiment"]
-                self._current_plant = data["Plant"]
-                self._current_date = data["Date"]
-                self._current_camera = data["Camera"]
-                self._current_view_option = data["view_option"]
-                self._current_time = data["Time"]
-                self.fill_exp_combo_box()
-                self.fill_plant_combo_box()
-                self.fill_date_combo_box()
-                self.fill_camera_combo_box()
-                self.fill_view_option_combo_box()
-                self.fill_time_combo_box()
-                self.file_name = self.current_selected_image_path()
-            except Exception as e:
-                logger.exception(f"Failed to update plant selectors: {repr(e)}")
-            finally:
-                self._updating_combo_boxes = False
-            return True
-        else:
-            return False
+    def update_comboboxes(self, data: dict, reset_selection: bool = True):
+        self._updating_combo_boxes = True
+        try:
+            if data or reset_selection:
+                self._current_exp = data.get("Experiment", "")
+                self._current_plant = data.get("Plant", "")
+                self._current_date = data.get("Date", dt.now().date())
+                self._current_time = data.get("Time", dt.now().time())
+                self._current_camera = data.get("Camera", "")
+                self._current_view_option = data.get("view_option", "")
+            self.fill_exp_combo_box()
+            self.fill_plant_combo_box()
+            self.fill_date_combo_box()
+            self.fill_camera_combo_box()
+            self.fill_view_option_combo_box()
+            self.fill_time_combo_box()
+            self.file_name = self.current_selected_image_path()
+        except Exception as e:
+            logger.exception(f"Failed to update plant selectors: {repr(e)}")
+        finally:
+            self._updating_combo_boxes = False
+        return True
 
     def select_image_from_luid(self, luid):
         if not luid:
-            return self.update_comboboxes({})
+            return self.update_comboboxes({}, reset_selection=True)
         columns = "Experiment, Plant, Date, Camera, view_option, Time"
         data = self.query_one_current_database(
             command="SELECT",
@@ -5501,5 +5506,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             ).split(","),
                             ["", "", dt.now().date(), dt.now().time(), "", ""],
                         )
-                    }
+                    },
+                    reset_selection=reset_selection,
                 )

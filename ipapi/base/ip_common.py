@@ -152,9 +152,21 @@ MSP = "msp"
 NDVI = "ndvi"
 CHLA = "chla"
 
-_HSV_CHANNELS = dict(h="hue", s="saturation", v="value")
-_LAB_CHANNELS = dict(l="lightness", a="a_green-red", b="b_blue-yellow")
-_RGB_CHANNELS = dict(rd="red", gr="green", bl="blue")
+_HSV_CHANNELS = dict(
+    h="hue",
+    s="saturation",
+    v="value",
+)
+_LAB_CHANNELS = dict(
+    l="lightness",
+    a="a_green-red",
+    b="b_blue-yellow",
+)
+_RGB_CHANNELS = dict(
+    rd="red",
+    gr="green",
+    bl="blue",
+)
 _MSP_CHANNELS = dict(
     wl_520="wl_520",
     wl_550="wl_550",
@@ -164,7 +176,11 @@ _MSP_CHANNELS = dict(
     wl_800="wl_800",
     wl_905="wl_905",
 )
-_NDVI_CHANNELS = dict(ndvi_720="ndvi_720", ndvi_800="ndvi_800", ndvi_905="ndvi_905")
+_NDVI_CHANNELS = dict(
+    ndvi_720="ndvi_720",
+    ndvi_800="ndvi_800",
+    ndvi_905="ndvi_905",
+)
 _CHLA_CHANNELS = dict(chloro="chlorophyll")
 
 CHANNELS_BY_SPACE = dict(
@@ -402,7 +418,11 @@ def random_color(restrained: bool = True) -> tuple:
     if restrained:
         return ALL_COLORS[random.randrange(0, len(ALL_COLORS))]
     else:
-        return random.randrange(0, 255), random.randrange(0, 255), random.randrange(0, 255)
+        return (
+            random.randrange(0, 255),
+            random.randrange(0, 255),
+            random.randrange(0, 255),
+        )
 
 
 def scaled_rgb(mag, color_min, color_max):
@@ -427,7 +447,10 @@ def build_color_steps(step_count: int) -> list:
     if step_count <= 1:
         return [C_LIGHT_STEEL_BLUE]
     else:
-        return [scaled_rgb(mag=i, color_min=0, color_max=step_count) for i in range(step_count)]
+        return [
+            scaled_rgb(mag=i, color_min=0, color_max=step_count)
+            for i in range(step_count)
+        ]
 
 
 def ensure_odd(
@@ -608,7 +631,9 @@ def open(
                 iterations=proc_times,
             )
     else:
-        result = cv2.morphologyEx(image, cv2.MORPH_OPEN, morph_kernel, iterations=proc_times)
+        result = cv2.morphologyEx(
+            image, cv2.MORPH_OPEN, morph_kernel, iterations=proc_times
+        )
     return result
 
 
@@ -643,7 +668,9 @@ def close(
                 iterations=proc_times,
             )
     else:
-        result = cv2.morphologyEx(image, cv2.MORPH_CLOSE, morph_kernel, iterations=proc_times)
+        result = cv2.morphologyEx(
+            image, cv2.MORPH_CLOSE, morph_kernel, iterations=proc_times
+        )
     return result
 
 
@@ -718,7 +745,10 @@ def erode(
 
 
 def morphological_gradient(
-    image: Any, kernel_size: int = 3, kernel_shape: int = cv2.MORPH_ELLIPSE, rois: tuple = (),
+    image: Any,
+    kernel_size: int = 3,
+    kernel_shape: int = cv2.MORPH_ELLIPSE,
+    rois: tuple = (),
 ):
     """Morphology - Erode wrapper
 
@@ -739,7 +769,9 @@ def morphological_gradient(
             if roi is not None:
                 r = roi.as_rect()
                 result[r.top : r.bottom, r.left : r.right] = cv2.morphologyEx(
-                    result[r.top : r.bottom, r.left : r.right], cv2.MORPH_GRADIENT, morph_kernel
+                    result[r.top : r.bottom, r.left : r.right],
+                    cv2.MORPH_GRADIENT,
+                    morph_kernel,
                 )
     else:
         result = cv2.morphologyEx(image, cv2.MORPH_GRADIENT, morph_kernel)
@@ -775,7 +807,15 @@ def group_contours(mask):
 
 
 class MaskLineData(object):
-    __slots__ = ["height_pos", "nz_span", "nz_count", "solidity", "last_span", "nz_pos", "tag"]
+    __slots__ = [
+        "height_pos",
+        "nz_span",
+        "nz_count",
+        "solidity",
+        "last_span",
+        "nz_pos",
+        "tag",
+    ]
 
     def __init__(self, line_number: int, line_data: list, last_span):
         ln_dt = np.nonzero(line_data)[0]
@@ -880,7 +920,9 @@ class MaskData(object):
             ld_up = self.find_by_height(height=ht)
         ht = height + 1
         ld_down = self.find_by_height(height=ht)
-        while (ld_down is not None) and ld.is_inside(ld_down) and (ht < self.bottom_index):
+        while (
+            (ld_down is not None) and ld.is_inside(ld_down) and (ht < self.bottom_index)
+        ):
             ht += 1
             ld_down = self.find_by_height(height=ht)
         return ld_up, ld_down
@@ -925,7 +967,9 @@ class MaskData(object):
                     bottom_nok = False
                 expect = v + 1
 
-            res = [(ld.height_pos, run[0], run[-1]) for run in runs if len(run) >= min_length]
+            res = [
+                (ld.height_pos, run[0], run[-1]) for run in runs if len(run) >= min_length
+            ]
         except Exception as e:
             logger.exception(f"Raised {repr(e)}")
             res = None
@@ -975,11 +1019,15 @@ class MaskData(object):
         :param tag: update parsed lines tags with this value
         :return: numpy array
         """
-        splits = np.array_split(np.array(range(self.top_index, self.bottom_index + 1)), total)
+        splits = np.array_split(
+            np.array(range(self.top_index, self.bottom_index + 1)), total
+        )
         start, stop = splits[index][0], splits[index][-1] + 1
 
         return self.to_mask(
-            first_line=start - self.top_index, last_line=stop - self.top_index, colour=colour
+            first_line=start - self.top_index,
+            last_line=stop - self.top_index,
+            colour=colour,
         )
 
     def width_quantile_stats(self, total, index, tag=None):
@@ -990,7 +1038,9 @@ class MaskData(object):
         :param tag: update parsed lines tags with this value
         :return: total, solidity, min, max, average & standard deviation
         """
-        splits = np.array_split(np.array(range(self.top_index, self.bottom_index + 1)), total)
+        splits = np.array_split(
+            np.array(range(self.top_index, self.bottom_index + 1)), total
+        )
         start, stop = splits[index][0], splits[index][-1] + 1
 
         dt = np.array([self.width_at(idx) for idx in range(start, stop)])

@@ -24,7 +24,7 @@ class FileHandlerBase(ABC):
         self._camera = ""
         self._view_option = ""
         self._date_time = dt.now()
-        self._linked_images = None
+        self._linked_images = []
         self._database = None
 
     def __repr__(self):  # Serialization
