@@ -5,7 +5,7 @@ import logging
 from sqlalchemy_utils import database_exists
 from tqdm import tqdm
 
-from ipapi.tools.common_functions import force_directories, make_safe_name
+from ipapi.tools.common_functions import force_directories, make_safe_name, undefined_tqdm
 
 logger = logging.getLogger(__name__)
 
@@ -116,6 +116,8 @@ class DbWrapper(ABC):
         self.progress_call_back = kwargs.get("progress_call_back", None)
         self.connexion = None
         self._tqdm = None
+        self._last_step = 0
+        self.step_dir = "right"
         self.db_info = kwargs.get("db_info", None)
 
     def __del__(self):
@@ -155,7 +157,7 @@ class DbWrapper(ABC):
             logger.info(f'Starting "{desc}"')
             self._tqdm = tqdm(total=total, desc=desc)
 
-    def _callback(self, step, total, msg):
+    def _callback(self, step, total, msg=""):
         if self.progress_call_back is not None:
             return self.progress_call_back(step, total, True)
         else:
@@ -167,8 +169,38 @@ class DbWrapper(ABC):
             logger.info(f'Ended "{desc}"')
             self._tqdm.close()
 
+    def _init_progress_undefined(self, desc: str = "") -> None:
+        if self.progress_call_back is None:
+            logger.info(f'"{desc}"')
+            self._tqdm = undefined_tqdm(desc=desc, lapse=0.4, bar_length=20)
+
+    def _callback_undefined(self):
+        if self.progress_call_back is not None:
+            if self.step_dir == "right":
+                self._last_step += 1
+            else:
+                self.self._last_step -= 1
+            if self.self._last_step < 0:
+                self.step_dir = "right"
+                self.self._last_step = 0
+            elif self.self._last_step > 100:
+                self.step_dir = "left"
+                self.self._last_step = 100
+            return self.progress_call_back(self._last_step, 100, True)
+        else:
+            self._tqdm.step()
+            return True
+
+    def _close_progress_undefined(self, desc: str = ""):
+        if self._tqdm is not None:
+            logger.info(f'"{desc}"')
+            self._tqdm.stop()
+
     def is_exists(self):
         return database_exists(self.db_url)
+
+    def reset(self):
+        logger.warning(f"Not implemented for {self.__class__.__name__}")
 
     @property
     def url(self):

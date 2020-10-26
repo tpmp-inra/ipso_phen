@@ -11,7 +11,9 @@ else:
     is_winapi = True
 
 from ipapi.database.base import DbInfo
-from ipapi.database.phenoserre_wrapper import get_exp_list
+from ipapi.database.phenoserre_wrapper import get_phenoserre_exp_list
+from ipapi.database.phenopsis_wrapper import get_phenopsis_exp_list
+
 
 try:
     from ipapi.database.db_connect_data import db_connect_data as dbc
@@ -92,5 +94,16 @@ if "phenoserre" in dbc:
             target="phenoserre",
             dbms="pandas",
         )
-        for name in get_exp_list()
+        for name in get_phenoserre_exp_list()
+    ]
+
+
+if "phenopsis" in dbc:
+    available_db_dicts[DbType.PHENOPSIS] = [
+        DbInfo(
+            display_name=name,
+            target="phenopsis",
+            dbms="pandas",
+        )
+        for name in get_phenopsis_exp_list()
     ]
