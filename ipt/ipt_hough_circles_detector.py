@@ -91,8 +91,8 @@ class IptHoughCircles(IptBase):
             name="max_peaks",
             desc="Maximum number of detected circles",
             default_value=2,
-            minimum=1,
-            maximum=20,
+            minimum=-1,
+            maximum=200,
             hint="Keeps only n best circles",
         )
         self.add_spin_box(
@@ -104,7 +104,11 @@ class IptHoughCircles(IptBase):
             hint="Remove circles that are too close",
         )
         self.add_spin_box(
-            name="line_width", desc="Draw line width", default_value=4, minimum=1, maximum=20
+            name="line_width",
+            desc="Draw line width",
+            default_value=4,
+            minimum=1,
+            maximum=20,
         )
         self.add_checkbox(
             name="keep_only_one",
@@ -217,10 +221,15 @@ class IptHoughCircles(IptBase):
                 with open(pkl_file, "rb") as f:
                     self.result = pickle.load(f)
                 img = self.wrapper.current_image
-                line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
+                line_width = self.get_value_of(
+                    "line_width", scale_factor=wrapper.scale_factor
+                )
             else:
                 # Get the edge
-                with IptEdgeDetector(wrapper=wrapper, **self.params_to_dict()) as (res, ed):
+                with IptEdgeDetector(wrapper=wrapper, **self.params_to_dict()) as (
+                    res,
+                    ed,
+                ):
                     if not res:
                         return
                     edges = ed.result
@@ -230,16 +239,23 @@ class IptHoughCircles(IptBase):
                         return True
 
                 # Read params
-                min_radius = self.get_value_of("min_radius", scale_factor=wrapper.scale_factor)
-                max_radius = self.get_value_of("max_radius", scale_factor=wrapper.scale_factor)
+                min_radius = self.get_value_of(
+                    "min_radius", scale_factor=wrapper.scale_factor
+                )
+                max_radius = self.get_value_of(
+                    "max_radius", scale_factor=wrapper.scale_factor
+                )
                 step_radius = self.get_value_of(
                     "step_radius", scale_factor=wrapper.scale_factor
                 )
                 max_peaks = self.get_value_of("max_peaks")
+                max_peaks = max_peaks if max_peaks > 0 else np.inf
                 min_distance = self.get_value_of(
                     "min_distance", scale_factor=wrapper.scale_factor
                 )
-                line_width = self.get_value_of("line_width", scale_factor=wrapper.scale_factor)
+                line_width = self.get_value_of(
+                    "line_width", scale_factor=wrapper.scale_factor
+                )
                 draw_candidates = self.get_value_of("draw_candidates") == 1
 
                 roi = self.get_ipt_roi(
@@ -291,7 +307,9 @@ class IptHoughCircles(IptBase):
                     candidates = [[a, x, y, z] for a, x, y, z in zip(accu, cx, cy, radii)]
                     h, w = img.shape[:2]
                     roi = RectangleRegion(left=0, right=w, top=0, bottom=h)
-                    roi_root = roi.point_at_position(self.get_value_of("target_position"), True)
+                    roi_root = roi.point_at_position(
+                        self.get_value_of("target_position"), True
+                    )
                     min_dist = h * w
                     min_idx = -1
                     min_accu = -1
@@ -313,7 +331,10 @@ class IptHoughCircles(IptBase):
                         if (
                             (cur_dist < min_dist)
                             and (cur_dist < max_dist_to_root)
-                            and ((cur_dist / min_dist > min_accu / c_accu) or (min_accu == -1))
+                            and (
+                                (cur_dist / min_dist > min_accu / c_accu)
+                                or (min_accu == -1)
+                            )
                         ):
                             min_dist = cur_dist
                             min_idx = i

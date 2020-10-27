@@ -40,25 +40,25 @@ logger = logging.getLogger(__name__)
 
 
 class ImageListHolder:
-    def __init__(self, file_list):
-        self.image_list = [file_handler_factory(file_path_) for file_path_ in file_list]
+    def __init__(self, file_list, database):
+        self.image_list = [
+            file_handler_factory(file_path_, database=database)
+            for file_path_ in file_list
+        ]
 
     def __len__(self):
         return len(self.image_list)
 
     def retrieve_image(self, key, value):
-        """Return an image wrapper based on key value
+        """Return an image based on key value
 
         :param key: one of the wrapper properties
         :param value: value
-        :return: BaseImageProcessor
+        :return: image
         """
         for fh in self.image_list:
             if value in fh.value_of(key):
-                stream = open(fh.file_path, "rb")
-                bs = bytearray(stream.read())
-                numpy_array = np.asarray(bs, dtype=np.uint8)
-                return cv2.imdecode(numpy_array, 3)
+                return fh.load_source_file()
         return None
 
 
@@ -147,7 +147,7 @@ class BaseImageProcessor(ImageWrapper):
         :param store_source: if true image will be stores in image_list
         :return:numpy array -- Fixed source image
         """
-        src_img = self.file_handler.load_source_file(database=self.target_database)
+        src_img = self.file_handler.load_source_file()
         self.good_image = src_img is not None
 
         if self.good_image:
@@ -173,7 +173,10 @@ class BaseImageProcessor(ImageWrapper):
         :return: Number of MSP images available
         """
         if self.msp_images_holder is None:
-            self.msp_images_holder = ImageListHolder(self.file_handler.linked_images)
+            self.msp_images_holder = ImageListHolder(
+                self.file_handler.linked_images,
+                self.target_database,
+            )
         if self.msp_images_holder is None:
             return 0
         else:
