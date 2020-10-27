@@ -1,4 +1,3 @@
-import csv
 import multiprocessing as mp
 import os
 from collections import Counter, defaultdict
@@ -9,7 +8,6 @@ from typing import Union
 import pandas as pd
 from tqdm import tqdm
 
-from ipapi.class_pipelines.ip_factory import ipo_factory
 from ipapi.file_handlers.fh_base import file_handler_factory
 from ipapi.tools.comand_line_wrapper import ArgWrapper
 from ipapi.tools.common_functions import time_method, force_directories
@@ -224,7 +222,7 @@ class PipelineProcessor:
         plants_ = defaultdict(list)
         for item in self.accepted_files:
             self.update_progress()
-            fh = file_handler_factory(itemn, self.da)
+            fh = file_handler_factory(item, self._target_database)
             plants_[fh.plant].append(fh)
 
         # Sort all lists by timestamp
@@ -269,7 +267,7 @@ class PipelineProcessor:
         total = len(self.accepted_files)
         for i, item in enumerate(self.accepted_files):
             yield {"step": i, "total": total}
-            fh = file_handler_factory(item)
+            fh = file_handler_factory(item, self._target_database)
             plants_[fh.plant].append(fh)
 
         self.close_progress()
