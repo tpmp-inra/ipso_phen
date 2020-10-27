@@ -220,7 +220,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 self._init_progress(total=total_, desc="Updating database")
                 for i, file in enumerate(file_list):
                     try:
-                        fh = file_handler_factory(file)
+                        fh = file_handler_factory(file, database=None)
                         sql_ = text(
                             f"INSERT INTO {self.main_table}"
                             "(Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, view_option)"

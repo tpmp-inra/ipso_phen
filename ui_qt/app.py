@@ -1,4 +1,3 @@
-import csv
 import gc
 import glob
 import json
@@ -143,6 +142,7 @@ from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import ipapi.base.ip_common as ipc
 from ipapi.base.pipeline_launcher import save_state
 from ipapi.tools import error_holder as eh
+from ipapi.tools.folders import ipso_folders
 
 from ipapi.class_pipelines.ip_factory import ipo_factory
 
@@ -692,71 +692,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.multithread = True
         self.use_pipeline_cache = True
         self._selected_output_image_luid = None
-
-        root_ipso_folder = "ipso_phen_data"
-        self.dynamic_folders = {
-            "pipeline": os.path.join(
-                os.path.expanduser("~"), "Documents", root_ipso_folder, "pipelines", ""
-            ),
-            "csv": os.path.join(
-                os.path.expanduser("~"), "Documents", root_ipso_folder, "saved_csv", ""
-            ),
-            "image_list": os.path.join(
-                os.path.expanduser("~"), "Documents", root_ipso_folder, "image_lists", ""
-            ),
-            "pp_output": os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                root_ipso_folder,
-                "pipeline_output",
-                "",
-            ),
-            "pp_state": os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                root_ipso_folder,
-                "pipeline_state",
-                "",
-            ),
-            "db_image_folder": os.path.join(os.path.expanduser("~"), "Documents", ""),
-        }
-        force_directories(self.dynamic_folders["pipeline"])
-        force_directories(self.dynamic_folders["csv"])
-        force_directories(self.dynamic_folders["image_list"])
-        force_directories(self.dynamic_folders["pp_output"])
-        force_directories(self.dynamic_folders["pp_state"])
-        self.static_folders = {
-            "image_cache": os.path.join(
-                os.path.expanduser("~"), "Pictures", root_ipso_folder, "cache", ""
-            ),
-            "image_output": os.path.join(
-                os.path.expanduser("~"),
-                "Pictures",
-                root_ipso_folder,
-                "saved_images",
-                dt.now().strftime("%Y_%B_%d-%H%M%S"),
-                "",
-            ),
-            "script": "./script_pipelines/",
-            "saved_data": "./saved_data/",
-            "stored_data": "./stored_data/",
-            "sql_db": os.path.join(
-                os.path.expanduser("~"),
-                "Documents",
-                root_ipso_folder,
-                "sqlite_databases",
-                "",
-            ),
-        }
-        force_directories(self.static_folders["image_cache"])
-        force_directories(self.static_folders["saved_data"])
-        force_directories(self.static_folders["stored_data"])
-        force_directories(self.static_folders["script"])
-        force_directories(self.static_folders["sql_db"])
+        
         self.last_pipeline_path = ""
 
         self._options = ArgWrapper(
-            dst_path=self.static_folders["image_output"],
+            dst_path=ipso_folders.get_path("image_output"),
             store_images=True,
             write_images="none",
             write_result_text=False,
@@ -1340,12 +1280,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save image list as CSV",
-            dir=self.dynamic_folders["image_list"],
+            dir=ipso_folders.get_path("image_list"),
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
-            self.dynamic_folders["image_list"] = os.path.join(
-                os.path.dirname(file_name_), ""
+            ipso_folders.set_path(
+                "image_list", os.path.join(os.path.dirname(file_name_), "")
             )
             model = self.get_image_model()
             if model is not None and model.images.shape[0] > 0:
@@ -1355,12 +1295,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load image list from CSV",
-            dir=self.dynamic_folders["image_list"],
+            dir=ipso_folders.get_path("image_list"),
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
-            self.dynamic_folders["image_list"] = os.path.join(
-                os.path.dirname(file_name_), ""
+            ipso_folders.set_path(
+                "image_list", os.path.join(os.path.dirname(file_name_), "")
             )
             self.init_image_browser(pd.read_csv(file_name_))
 
@@ -1429,13 +1369,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 src_files_path=folder_path,
                 dbms="sqlite",
                 target="sqlite",
-                db_folder_name=self.static_folders["sql_db"],
+                db_folder_name=ipso_folders.get_path("sql_db"),
             ),
         )
 
     def on_action_parse_folder(self):
         dlg = FrmSelectFolder(self)
-        res = dlg.show_modal(default_path=self.dynamic_folders["db_image_folder"])
+        res = dlg.show_modal(default_path=ipso_folders.get_path("db_image_folder"))
         if (res == 1) and os.path.isdir(dlg.folder_path):
             if dlg.dbms == "none":
                 self.do_parse_folder(dlg.folder_path)
@@ -1453,13 +1393,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         )
                         self.current_database = dbf.db_info_to_database(ldb)
                         return
-                self.dynamic_folders["db_image_folder"] = dlg.folder_path
+                ipso_folders.set_path("db_image_folder", dlg.folder_path)
                 new_db = dbb.DbInfo(
                     display_name=dlg.db_qualified_name,
                     src_files_path=dlg.folder_path,
                     dbms=dlg.dbms,
                     target="sqlite" if dlg.dbms == "sqlite" else "psql_local",
-                    db_folder_name=self.static_folders["sql_db"],
+                    db_folder_name=ipso_folders.get_path("sql_db"),
                 )
                 self.current_database = dbf.db_info_to_database(new_db)
                 self.image_databases[dbi.DbType.CUSTOM_DB].append(new_db)
@@ -1995,8 +1935,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 int(settings_.value("toolbox_tab_index", 0))
             )
 
-            for k, v in self.dynamic_folders.items():
-                self.dynamic_folders[k] = settings_.value(k, self.dynamic_folders[k])
+            for k, v in ipso_folders.dynamic.items():
+                ipso_folders.add_dynamic(
+                    k, settings_.value(k, v.get_path(force_creation=False))
+                )
 
             # Fill main menu
             self.ui.actionEnable_annotations.setChecked(
@@ -2255,8 +2197,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
             settings_.setValue("log_geometry", self.ui.dk_log.geometry())
 
-            for k, v in self.dynamic_folders.items():
-                settings_.setValue(k, v)
+            for k, v in ipso_folders.dynamic.items():
+                settings_.setValue(k, v.get_path(force_creation=False))
 
             settings_.beginGroup("checkbox_status")
             settings_.setValue(
@@ -2763,12 +2705,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load pipeline",
-            dir=self.dynamic_folders["pipeline"],
+            dir=ipso_folders.get_path("pipeline"),
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
-            self.dynamic_folders["pipeline"] = os.path.join(
-                os.path.dirname(file_name_), ""
+            ipso_folders.set_path(
+                "pipeline", os.path.join(os.path.dirname(file_name_), "")
             )
             try:
                 self.pipeline = LoosePipeline.load(file_name=file_name_)
@@ -2781,12 +2723,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getSaveFileName(
             parent=self,
             caption="Save pipeline",
-            dir=self.dynamic_folders["pipeline"],
+            dir=ipso_folders.get_path("pipeline"),
             filter=_PIPELINE_FILE_FILTER,
         )[0]
         if file_name_:
-            self.dynamic_folders["pipeline"] = os.path.join(
-                os.path.dirname(file_name_), ""
+            ipso_folders.set_path(
+                "pipeline", os.path.join(os.path.dirname(file_name_), "")
             )
             if not file_name_.lower().endswith(".json"):
                 file_name_ += ".json"
@@ -3006,7 +2948,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
     def on_bt_pp_reset(self):
-        self.ui.le_pp_output_folder.setText(self.dynamic_folders["pp_output"])
+        self.ui.le_pp_output_folder.setText(
+            ipso_folders.get_path(
+                "pp_output",
+                force_creation=False,
+            )
+        )
         self.on_rb_pp_default_process()
         self.ui.cb_pp_overwrite.setChecked(False)
         self.ui.cb_pp_generate_series_id.setChecked(False)
@@ -3919,9 +3866,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
 
             if not image_path:
-                force_directories(self.static_folders["image_output"])
+                force_directories(ipso_folders.get_path("image_output"))
                 image_path = os.path.join(
-                    self.static_folders["image_output"], f"{text}.jpg"
+                    ipso_folders.get_path("image_output"), f"{text}.jpg"
                 )
             else:
                 force_directories(image_path)
@@ -3943,7 +3890,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(
                     status_message=f"Saved {cb.currentText()}", use_status_as_log=True
                 )
-                open_file((self.static_folders["image_output"], ""))
+                open_file((ipso_folders.get_path("image_output"), ""))
 
     def on_bt_save_all_images(self):
         cb = self.ui.cb_available_outputs
@@ -3959,7 +3906,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.update_feedback(
             status_message=f"Saved {cb.count()} images", use_status_as_log=True
         )
-        open_file((self.static_folders["image_output"], ""))
+        open_file((ipso_folders.get_path("image_output"), ""))
 
     def on_video_frame_duration_changed(self):
         self.ui.action_video_1_24_second.setChecked(
@@ -4186,11 +4133,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load dataframe as CSV",
-            dir=self.dynamic_folders["csv"],
+            dir=ipso_folders.get_path("csv"),
             filter="CSV(*.csv)",
         )[0]
         if file_name_:
-            self.dynamic_folders["csv"] = os.path.join(os.path.dirname(file_name_), "")
+            ipso_folders.set_path("csv", os.path.join(os.path.dirname(file_name_), ""))
             self.init_data_editor(pd.read_csv(file_name_))
             self.update_feedback(
                 status_message="Dataframe loaded",
@@ -4215,12 +4162,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             file_name_ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="Save dataframe as CSV",
-                dir=self.dynamic_folders["csv"],
+                dir=ipso_folders.get_path("csv"),
                 filter="CSV(*.csv)",
             )[0]
             if file_name_:
-                self.dynamic_folders["csv"] = os.path.join(
-                    os.path.dirname(file_name_), ""
+                ipso_folders.set_path(
+                    "csv", os.path.join(os.path.dirname(file_name_), "")
                 )
                 df.to_csv(file_name_, index=False)
                 self.update_feedback(
@@ -4293,8 +4240,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         selected_mode = self.current_tool
         total_ = self.ui.cb_available_outputs.count()
         vid_name = f'{make_safe_name(selected_mode.name)}_{dt.now().strftime("%Y%B%d_%H%M%S")}_{total_}.mp4'
-        force_directories(self.static_folders["image_output"])
-        v_output = os.path.join(self.static_folders["image_output"], vid_name)
+        force_directories(ipso_folders.get_path("image_output"))
+        v_output = os.path.join(ipso_folders.get_path("image_output"), vid_name)
 
         frame_rect = RectangleRegion(width=v_width, height=v_height)
 
@@ -4363,7 +4310,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.update_feedback(
                 status_message=f'Generated video "{vid_name}"', use_status_as_log=True
             )
-            open_file((self.static_folders["image_output"], ""))
+            open_file((ipso_folders.get_path("image_output"), ""))
         finally:
             out.release()
             cv2.destroyAllWindows()
@@ -4891,7 +4838,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.chk_date.setText(f"Date ({len(date_list)}): ")
         self.ui.cb_date.addItems(date_list)
         self.ui.cb_date.setEnabled(self.ui.cb_date.count() > 1)
-        if self._updating_combo_boxes:
+        if self._updating_combo_boxes and self.ui.cb_date.count() > 0:
             target_index = self.ui.cb_date.findText(
                 self._current_date.strftime(_DATE_FORMAT)
             )
@@ -5117,14 +5064,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             parent=self,
             caption="Save pipeline processor state",
             dir=os.path.join(
-                self.dynamic_folders["pp_state"],
+                ipso_folders.get_path("pp_state"),
                 f"{self._src_image_wrapper.experiment}.json",
             ),
             filter="JSON(*.json)",
         )[0]
         if file_name_:
-            self.dynamic_folders["pp_state"] = os.path.join(
-                os.path.dirname(file_name_), ""
+            ipso_folders.set_path(
+                "pp_state", os.path.join(os.path.dirname(file_name_), "")
             )
             append_experience_name = (
                 model.get_cell_data(row_number=0, column_name="Experiment")
@@ -5413,7 +5360,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if value is not None and (
             not value.image_output_path or not os.path.isdir(value.image_output_path)
         ):
-            value.image_output_path = self.static_folders["image_output"]
+            value.image_output_path = ipso_folders.get_path("image_output")
         model = PipelineModel(
             pipeline=value,
             call_backs=dict(

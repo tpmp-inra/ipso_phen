@@ -54,7 +54,15 @@ class PandasQueryHandler(QueryHandler):
                         if k.lower() == c.lower():
                             k = c
                             break
-                res_df = res_df[res_df[k].isin([v])]
+                if isinstance(v, dict):
+                    if v["operator"].lower() == "between":
+                        res_df = res_df[
+                            (res_df[k] >= v["date_min"]) & (res_df[k] <= v["date_max"])
+                        ]
+                    else:
+                        logger.error(f"Unknown operator: {v['operator']}")
+                else:
+                    res_df = res_df[res_df[k].isin([v])]
 
         if additional:
             assert "order by" in additional.lower(), f"Can't handle {additional}"

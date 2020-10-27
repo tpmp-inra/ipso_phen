@@ -72,29 +72,26 @@ class IpsoRunnable(QRunnable):
             AbstracImageWrapper -- Image wrapper
         """
         file_path = image_dict.get("path", None)
-        if os.path.isfile(file_path):
-            wrapper = ipo_factory(
-                file_path,
-                ArgWrapper(
-                    dst_path="dst",
-                    store_images=True,
-                    write_images="none",
-                    write_result_text=False,
-                    overwrite=False,
-                    seed_output=False,
-                    threshold_only=False,
-                ),
-                data_base=self.data_base.copy(),
-                scale_factor=self.scale_factor,
-            )
-            wrapper.lock = True
+        wrapper = ipo_factory(
+            file_path,
+            ArgWrapper(
+                dst_path="dst",
+                store_images=True,
+                write_images="none",
+                write_result_text=False,
+                overwrite=False,
+                seed_output=False,
+                threshold_only=False,
+            ),
+            data_base=self.data_base.copy(),
+            scale_factor=self.scale_factor,
+        )
+        wrapper.lock = True
 
-            if wrapper is None:
-                logger.critical("No image selected: Missing wrapper")
+        if wrapper is None:
+            logger.critical("No image selected: Missing wrapper")
 
-            return wrapper
-        else:
-            return None
+        return wrapper
 
     def _execute_param(self, image_dict):
         wrapper = self._get_wrapper(image_dict=image_dict)

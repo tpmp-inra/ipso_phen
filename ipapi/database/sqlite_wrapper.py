@@ -226,7 +226,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             with self.engine as conn_:
                 for i, file in enumerate(file_list):
                     try:
-                        fh = file_handler_factory(file)
+                        fh = file_handler_factory(file, database=None)
                         conn_.execute(
                             f"""INSERT INTO {self.main_table} (Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, view_option)
                                         VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :view_option)""",
