@@ -1,5 +1,6 @@
 import os
 import logging
+from sqlalchemy.inspection import _self_inspects
 from tqdm import tqdm
 
 import pandas as pd
@@ -53,7 +54,15 @@ class PandasQueryHandler(QueryHandler):
                         if k.lower() == c.lower():
                             k = c
                             break
-                res_df = res_df[res_df[k].isin([v])]
+                if isinstance(v, dict):
+                    if v["operator"].lower() == "between":
+                        res_df = res_df[
+                            (res_df[k] >= v["date_min"]) & (res_df[k] <= v["date_max"])
+                        ]
+                    else:
+                        logger.error(f"Unknown operator: {v['operator']}")
+                else:
+                    res_df = res_df[res_df[k].isin([v])]
 
         if additional:
             assert "order by" in additional.lower(), f"Can't handle {additional}"
@@ -94,8 +103,7 @@ class PandasQueryHandler(QueryHandler):
 
 class PandasDbWrapper(DbWrapper, PandasQueryHandler):
     def __init__(self, **kwargs):
-        self._tqdm = None
-        self.db_info = kwargs.get("db_info", None)
+        super().__init__(**kwargs)
         self.df_builder = None
         self.dataframe = None
 
@@ -105,19 +113,21 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
     def copy(self):
         return self.__class__(db_info=self.db_info.copy())
 
+    def connect_from_cache(self) -> pd.DataFrame:
+        cache_file_path = self.cache_file_path
+        if os.path.isfile(cache_file_path):
+            return pd.read_csv(
+                cache_file_path,
+                parse_dates=[4],
+            ).reset_index(drop=True)
+        else:
+            return None
+
     def connect(self, auto_update: bool = True):
         if self.dataframe is None:
-            cache_file_path = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "cache",
-                f"{self.db_info.display_name}.csv",
-            )
-            if os.path.isfile(cache_file_path):
-                self.dataframe = pd.read_csv(
-                    cache_file_path,
-                    parse_dates=[4],
-                ).reset_index(drop=True)
-            else:
+            self.dataframe = self.connect_from_cache()
+            cache_file_path = self.cache_file_path
+            if self.dataframe is None:
                 self.dataframe = self.df_builder(self.db_info.display_name)
                 self.dataframe.to_csv(cache_file_path)
             temp_date_time = pd.DatetimeIndex(self.dataframe["date_time"])
@@ -138,22 +148,19 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
         self.dataframe = None
         self.connect()
 
-    def _init_progress(self, total: int, desc: str = "") -> None:
-        if self.progress_call_back is None:
-            logger.info(f'Starting "{desc}"')
-            self._tqdm = tqdm(total=total, desc=desc)
-
-    def _callback(self, step, total, msg):
-        if self.progress_call_back is not None:
-            return self.progress_call_back(step, total, True)
-        else:
-            self._tqdm.update(1)
-            return True
-
-    def _close_progress(self, desc: str = ""):
-        if self._tqdm is not None:
-            logger.info(f'Ended "{desc}"')
-            self._tqdm.close()
-
     def is_exists(self):
         return True
+
+    def reset(self):
+        cache_file_path = self.cache_file_path
+        if os.path.isfile(cache_file_path):
+            os.remove(cache_file_path)
+        self.connect()
+
+    @property
+    def cache_file_path(self):
+        return os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "cache",
+            f"{self.db_info.display_name}.csv",
+        )

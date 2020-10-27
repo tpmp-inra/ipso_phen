@@ -6,10 +6,12 @@ from abc import ABC, abstractclassmethod
 
 import cv2
 import numpy as np
+import paramiko
 
 import ipapi.file_handlers
 import ipapi.base.ip_common as ipc
 from ipapi.tools.common_functions import get_module_classes
+from ipapi.tools.folders import ipso_folders
 
 import logging
 
@@ -24,7 +26,7 @@ class FileHandlerBase(ABC):
         self._camera = ""
         self._view_option = ""
         self._date_time = dt.now()
-        self._linked_images = None
+        self._linked_images = []
         self._database = None
 
     def __repr__(self):  # Serialization
@@ -39,7 +41,50 @@ class FileHandlerBase(ABC):
             f"[view_option:{self.view_option}]"
         )
 
-    def load_source_file(self, database=None):
+    def init_from_database(self, **kwargs):
+        self._file_path = kwargs.get("file_path", "")
+        self._database = kwargs.get("database", None)
+
+        (
+            self._exp,
+            self._plant,
+            self._date_time,
+            self._camera,
+            self._view_option,
+            self._blob_path,
+        ) = self._database.query_one(
+            command="SELECT",
+            columns="Experiment,Plant,date_time,Camera,view_option,blob_path",
+            additional="ORDER BY Time ASC",
+            FilePath=self._file_path,
+        )
+        self.update(**kwargs)
+
+    def load_from_database(self, address, port, user, pwd):
+        src_img = None
+        try:
+            p = paramiko.SSHClient()
+            p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+            p.connect(
+                address,
+                port=port,
+                username=user,
+                password=pwd,
+            )
+            ftp = p.open_sftp()
+            with ftp.open(self._blob_path) as file:
+                file_size = file.stat().st_size
+                file.prefetch(file_size)
+                file.set_pipelined()
+                src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
+            src_img = self.fix_image(src_image=src_img)
+        except Exception as e:
+            logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
+            return None
+        else:
+            return src_img
+
+    def load_source_file(self):
         src_img = None
         try:
             stream = open(self.file_path, "rb")
@@ -496,7 +541,7 @@ class FileHandlerDefault(FileHandlerBase):
         return 0
 
 
-def file_handler_factory(file_path: str, database=None) -> FileHandlerBase:
+def file_handler_factory(file_path: str, database) -> FileHandlerBase:
     # Build unique class list
     file_handlers_list = get_module_classes(
         package=ipapi.file_handlers,

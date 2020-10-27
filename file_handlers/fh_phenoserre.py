@@ -63,69 +63,15 @@ class FileHandlerPhenoserre(FileHandlerBase):
 class DirectHandlerPhenoserre(FileHandlerPhenoserre):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._file_path = kwargs.get("file_path", "")
-        self._database = kwargs.get("database", None)
+        self.init_from_database(**kwargs)
 
-        (
-            self._exp,
-            self._plant,
-            self._date_time,
-            self._camera,
-            self._view_option,
-            self._blob_path,
-        ) = self._database.query_one(
-            command="SELECT",
-            columns="Experiment,Plant,date_time,Camera,view_option,blob_path",
-            additional="ORDER BY Time ASC",
-            FilePath=self._file_path,
-        )
-
-        self.update(**kwargs)
-
-    def load_source_file(self, database=None):
-        src_img = None
-        try:
-            p = paramiko.SSHClient()
-            p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-            p.connect(
-                conf["jump_address"],
-                port=conf["port"],
-                username=conf["user"],
-                password=conf["password"],
-            )
-            ftp = p.open_sftp()
-            with ftp.open(self._blob_path) as file:
-                file_size = file.stat().st_size
-                file.prefetch(file_size)
-                file.set_pipelined()
-                src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
-            src_img = self.fix_image(src_image=src_img)
-        except Exception as e:
-            logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
-            return None
-        else:
-            return src_img
-
-    def get_stream(self):
-        p = paramiko.SSHClient()
-        p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        p.connect(
-            conf["jump_address"],
+    def load_source_file(self):
+        return self.load_from_database(
+            address=conf["jump_address"],
             port=conf["port"],
-            username=conf["user"],
-            password=conf["password"],
+            user=conf["user"],
+            pwd=conf["password"],
         )
-        ftp = p.open_sftp()
-        with ftp.open(self._blob_path) as f:
-            img = cv2.imdecode(np.fromstring(f.read(), np.uint8), 1)
-
-        return open(self.file_path, "rb")
-
-    def fix_image(self, src_image):
-        if self.is_nir and self.view_option == "top":
-            return np.flip(np.flip(src_image, 0), 1)
-        else:
-            return super().fix_image(src_image)
 
     @classmethod
     def probe(cls, file_path, database):
@@ -134,15 +80,3 @@ class DirectHandlerPhenoserre(FileHandlerPhenoserre):
             if conf and database is not None and database.db_info.target == "phenoserre"
             else 0
         )
-
-    @property
-    def is_vis(self):
-        return "vis" in self.camera
-
-    @property
-    def is_fluo(self):
-        return "fluo" in self.camera
-
-    @property
-    def is_nir(self):
-        return "nir" in self.camera

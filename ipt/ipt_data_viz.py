@@ -2,6 +2,7 @@ import cv2
 
 from ipapi.tools.common_functions import force_directories
 from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipapi.base import ip_common as ipc
 
 import logging
 
@@ -207,3 +208,7 @@ class IptDataViz(IptBaseAnalyzer):
     @property
     def description(self):
         return """'With the current image and a mask build a visualization for selected features"""
+
+    @property
+    def output_type(self):
+        return ipc.IO_DATA if self.get_value_of("save_image") != 0 else ipc.IO_IMAGE

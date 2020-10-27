@@ -1,14 +1,32 @@
 from datetime import datetime as dt
+import datetime
 import os
+
+import numpy as np
+import cv2
+import paramiko
 
 from ipapi.file_handlers.fh_base import FileHandlerBase
 import ipapi.base.ip_common as ipc
 
 
-class FileHandlerPhenopsys(FileHandlerBase):
+try:
+    from ipapi.database.db_connect_data import db_connect_data as dbc
+
+    conf = dbc.get("phenopsis", {})
+except Exception as e:
+    conf = {}
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class FileHandlerPhenopsis(FileHandlerBase):
     def __init__(self, **kwargs):
         self._file_path = kwargs.get("file_path", "")
         self.database = kwargs.get("database", None)
+        self._linked_images = []
         if self._file_path:
             [
                 self._exp,
@@ -81,4 +99,44 @@ class FileHandlerPhenopsys(FileHandlerBase):
 
     @property
     def linked_images(self):
+        if not self._linked_images:
+            current_date_time = self.date_time
+            ret = self.database.query(
+                command="SELECT",
+                columns="FilePath",
+                additional="ORDER BY date_time ASC",
+                experiment=self.experiment,
+                plant=self.plant,
+                camera=self.camera,
+                date_time=dict(
+                    operator="BETWEEN",
+                    date_min=current_date_time - datetime.timedelta(hours=1),
+                    date_max=current_date_time + datetime.timedelta(hours=1),
+                ),
+            )
+            self._linked_images = [
+                item[0] for item in ret if "sw755" not in item[0].lower()
+            ]
         return self._linked_images
+
+
+class DirectHandlerPhenopsis(FileHandlerPhenopsis):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.init_from_database(**kwargs)
+
+    def load_source_file(self):
+        return self.load_from_database(
+            address=conf["address"],
+            port=conf["port"],
+            user=conf["user"],
+            pwd=conf["password"],
+        )
+
+    @classmethod
+    def probe(cls, file_path, database):
+        return (
+            100
+            if conf and database is not None and database.db_info.target == "phenopsis"
+            else 0
+        )

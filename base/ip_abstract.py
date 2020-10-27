@@ -40,25 +40,25 @@ logger = logging.getLogger(__name__)
 
 
 class ImageListHolder:
-    def __init__(self, file_list):
-        self.image_list = [file_handler_factory(file_path_) for file_path_ in file_list]
+    def __init__(self, file_list, database):
+        self.image_list = [
+            file_handler_factory(file_path_, database=database)
+            for file_path_ in file_list
+        ]
 
     def __len__(self):
         return len(self.image_list)
 
     def retrieve_image(self, key, value):
-        """Return an image wrapper based on key value
+        """Return an image based on key value
 
         :param key: one of the wrapper properties
         :param value: value
-        :return: BaseImageProcessor
+        :return: image
         """
         for fh in self.image_list:
             if value in fh.value_of(key):
-                stream = open(fh.file_path, "rb")
-                bs = bytearray(stream.read())
-                numpy_array = np.asarray(bs, dtype=np.uint8)
-                return cv2.imdecode(numpy_array, 3)
+                return fh.load_source_file()
         return None
 
 
@@ -147,7 +147,7 @@ class BaseImageProcessor(ImageWrapper):
         :param store_source: if true image will be stores in image_list
         :return:numpy array -- Fixed source image
         """
-        src_img = self.file_handler.load_source_file(database=self.target_database)
+        src_img = self.file_handler.load_source_file()
         self.good_image = src_img is not None
 
         if self.good_image:
@@ -172,27 +172,11 @@ class BaseImageProcessor(ImageWrapper):
 
         :return: Number of MSP images available
         """
-        if (
-            (self.msp_images_holder is None)
-            and (self.target_database is not None)
-            and (self.target_database.type.db_qualified_name != ":memory:")
-        ):
-            current_date_time = self.date_time
-            ret = self.target_database.query(
-                command="SELECT",
-                columns="FilePath",
-                additional="ORDER BY date_time ASC",
-                experiment=self.experiment,
-                plant=self.plant,
-                camera=self.camera,
-                date_time=dict(
-                    operator="BETWEEN",
-                    date_min=current_date_time - datetime.timedelta(hours=1),
-                    date_max=current_date_time + datetime.timedelta(hours=1),
-                ),
+        if self.msp_images_holder is None:
+            self.msp_images_holder = ImageListHolder(
+                self.file_handler.linked_images,
+                self.target_database,
             )
-            file_list_ = [item[0] for item in ret if "sw755" not in item[0].lower()]
-            self.msp_images_holder = ImageListHolder(file_list_)
         if self.msp_images_holder is None:
             return 0
         else:
@@ -3249,27 +3233,42 @@ class BaseImageProcessor(ImageWrapper):
                     )
         return None
 
-    def build_msp_mosaic(self):
+    def build_msp_mosaic(self, normalize=False, median_filter_size=0):
         """Builds mosaic using all available MSP images
 
         :return:
         """
-        self.retrieve_msp_images()
+        has_main = False
+        mosaic_image_list = []
+        for c in self.file_handler.channels_data:
+            if c[0] == "chla":
+                continue
+            elif c[0] == "msp":
+                img = self.get_channel(
+                    src_img=self.current_image,
+                    channel=c[1],
+                    normalize=normalize,
+                    median_filter_size=median_filter_size,
+                )
+            elif c[0] in ["rgb", "lab", "hsv"]:
+                if has_main:
+                    continue
+                img = self.current_image
+                has_main = True
 
+            self.store_image(img, c[2])
+            mosaic_image_list.append(c[2])
+
+        size = math.sqrt(len(mosaic_image_list))
+        d, m = divmod(size, 1)
+        if m != 0:
+            d += 1
+        d = int(d)
         mosaic_image_list = np.array(
-            [wrapper.view_option for wrapper in self.msp_images_holder.image_list]
-        )
-        mosaic_image_list = np.append(
-            mosaic_image_list, ["" for _ in range(len(mosaic_image_list), 9)]
-        )
-        mosaic_image_list = mosaic_image_list.reshape((3, 3))
-
-        for wrapper in self.msp_images_holder.image_list:
-            if not ("755" in wrapper.view_option):
-                img = wrapper.get_channel()
-            else:
-                img = wrapper.current_image
-            self.store_image(img, wrapper.view_option)
+            np.append(
+                mosaic_image_list, ["" for _ in range(len(mosaic_image_list), d * d)]
+            )
+        ).reshape((d, d))
 
         return (
             mosaic_image_list,
@@ -3277,7 +3276,11 @@ class BaseImageProcessor(ImageWrapper):
         )
 
     def build_channels_mosaic(
-        self, src_img, rois=(), normalize=False, median_filter_size=0
+        self,
+        src_img,
+        rois=(),
+        normalize=False,
+        median_filter_size=0,
     ):
         """Builds mosaic of channels using parameters
 
