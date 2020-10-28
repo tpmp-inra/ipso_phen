@@ -6,6 +6,7 @@ from tqdm import tqdm
 import pandas as pd
 
 from ipapi.database.base import QueryHandler, DbWrapper
+from ipapi.tools.common_functions import force_directories
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +130,7 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
             cache_file_path = self.cache_file_path
             if self.dataframe is None:
                 self.dataframe = self.df_builder(self.db_info.display_name)
+                force_directories(self.cache_folder)
                 self.dataframe.to_csv(cache_file_path)
             temp_date_time = pd.DatetimeIndex(self.dataframe["date_time"])
             self.dataframe.insert(loc=4, column="Time", value=temp_date_time.time)
@@ -145,8 +147,7 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
         db_qualified_name="",
         extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
     ):
-        self.dataframe = None
-        self.connect()
+        self.reset()
 
     def is_exists(self):
         return True
@@ -160,7 +161,14 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
     @property
     def cache_file_path(self):
         return os.path.join(
+            self.cache_folder,
+            f"{self.db_info.display_name}.csv",
+        )
+
+    @property
+    def cache_folder(self):
+        return os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
             "cache",
-            f"{self.db_info.display_name}.csv",
+            "",
         )

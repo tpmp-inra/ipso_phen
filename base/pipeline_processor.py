@@ -3,6 +3,7 @@ import os
 from collections import Counter, defaultdict
 from collections import namedtuple
 import logging
+from time import sleep
 from typing import Union
 
 import pandas as pd
@@ -16,6 +17,10 @@ from ipapi.tools.image_list import ImageList
 logger = logging.getLogger(__name__)
 
 WorkerResult = namedtuple("WorkerResult", "result, text_result, name, message")
+
+
+def _dummy_worker(args):
+    return args
 
 
 def _pipeline_worker(arg):
@@ -215,12 +220,16 @@ class PipelineProcessor:
             return self.abort_callback()
 
     def grab_files_from_data_base(self, experiment):
-        self.accepted_files = self._target_database.query(
+        files = self._target_database.query(
             command="SELECT",
             columns="FilePath",
-            additional="ORDER BY Time ASC",
+            additional="ORDER BY date_time ASC",
             experiment=experiment,
         )
+        if files is not None:
+            self.accepted_files = [f[0] for f in files]
+        else:
+            self.accepted_files = []
 
     def group_by_series(self, time_delta: int):
         # Build dictionary
@@ -497,6 +506,57 @@ class PipelineProcessor:
                         logger.info("User stopped process")
                         break
                     self.handle_result(res, i, len(groups_list))
+            self.close_progress()
+            logger.info("   --- Files processed ---")
+
+    def yield_test_process_groups(self, groups_list, target_database=None):
+        # Build images and data
+        if groups_list:
+            force_directories(self.options.partials_path)
+            logger.info(f"   --- Processing {len(groups_list)} files ---")
+            self.init_progress(
+                total=len(groups_list),
+                desc="Processing images",
+                yield_mode=True,
+            )
+
+            max_cores = min([10, mp.cpu_count()])
+            if isinstance(self.multi_thread, int):
+                num_cores = min(self.multi_thread, max_cores)
+            elif isinstance(self.multi_thread, bool):
+                if self.multi_thread:
+                    num_cores = max_cores
+                else:
+                    num_cores = 1
+            else:
+                num_cores = 1
+            if (num_cores > 1) and len(groups_list) > 1:
+                pool = mp.Pool(num_cores)
+                chunky_size_ = num_cores
+                total = len(groups_list)
+                for i, res in enumerate(
+                    pool.imap_unordered(
+                        _dummy_worker,
+                        ((fl) for fl in groups_list),
+                        chunky_size_,
+                    )
+                ):
+                    if self.check_abort():
+                        logger.info("User stopped process")
+                        break
+                    yield {"step": i, "total": total}
+                    logger.info(f"Test process (multi thread): {res}")
+                    sleep(0.1)
+            else:
+                total = len(groups_list)
+                for i, fl in enumerate(groups_list):
+                    if self.check_abort():
+                        logger.info("User stopped process")
+                        break
+                    yield {"step": i, "total": total}
+                    logger.info(f"Test process (single thread): {fl}")
+                    sleep(0.1)
+
             self.close_progress()
             logger.info("   --- Files processed ---")
 
