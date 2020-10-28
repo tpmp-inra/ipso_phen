@@ -214,6 +214,14 @@ class PipelineProcessor:
         else:
             return self.abort_callback()
 
+    def grab_files_from_data_base(self, experiment):
+        self.accepted_files = self._target_database.query(
+            command="SELECT",
+            columns="FilePath",
+            additional="ORDER BY Time ASC",
+            experiment=experiment,
+        )
+
     def group_by_series(self, time_delta: int):
         # Build dictionary
         self.init_progress(
