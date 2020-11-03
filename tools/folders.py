@@ -1,6 +1,7 @@
 import os
 from datetime import datetime as dt
 from ipapi.tools.common_functions import force_directories
+import platform
 
 try:
     import win32api
@@ -9,9 +10,16 @@ except Exception as e:
 else:
     is_winapi = True
 
+try:
+    from ipapi.database.db_connect_data import db_connect_data as dbc
+
+    conf = dbc.get("mass_storage", {})
+except Exception as e:
+    conf = {}
+
+
 g_storage_path = ""
 
-MASS_DRIVES = [("2bigTPMP", "images"), ("TPMP_ EXT", "input")]
 
 ROOT_IPSO_FOLDER = "ipso_phen"
 
@@ -19,16 +27,23 @@ ROOT_IPSO_FOLDER = "ipso_phen"
 def get_mass_storage_path():
     global g_storage_path
     if not g_storage_path and is_winapi:
-        drives = {}
-        for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
-            try:
-                drives[win32api.GetVolumeInformation(drive)[0]] = drive
-            except Exception as e:
-                pass
-        for drive, subfolder in MASS_DRIVES:
-            if drive in drives:
-                g_storage_path = os.path.join(drives[drive], subfolder, "")
-                break
+        if platform.system().lower() == "windows" and conf:
+            drives = {}
+            for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
+                try:
+                    drives[win32api.GetVolumeInformation(drive)[0]] = drive
+                except Exception as e:
+                    pass
+            for drive, subfolder in [
+                (d, n) for d, n in zip(conf["drive_names"], conf["folder_names"])
+            ]:
+                if drive in drives:
+                    g_storage_path = os.path.join(drives[drive], subfolder, "")
+                    break
+            else:
+                g_storage_path = ""
+        elif platform.system().lower() == "linux" and conf:
+            g_storage_path = ""
         else:
             g_storage_path = ""
     return g_storage_path
@@ -50,7 +65,7 @@ class FolderData:
         self.dynamic = dynamic
 
     def get_path(self, force_creation: bool = True) -> str:
-        if force_creation is True:
+        if force_creation is True and self._path:
             force_directories(self._path)
         return self._path
 
