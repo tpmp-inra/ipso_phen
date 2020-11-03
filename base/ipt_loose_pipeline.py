@@ -1314,7 +1314,9 @@ class LoosePipeline(object):
 
         # Build/retrieve wrapper
         if isinstance(src_image, str):
-            self.wrapper = BaseImageProcessor(src_image, options=options)
+            self.wrapper = BaseImageProcessor(
+                src_image, options=options, database=target_data_base
+            )
         elif isinstance(src_image, BaseImageProcessor):
             self.wrapper = src_image
         else:

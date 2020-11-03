@@ -10,7 +10,11 @@ import paramiko
 
 import ipapi.file_handlers
 import ipapi.base.ip_common as ipc
+<<<<<<< HEAD
 from ipapi.tools.common_functions import get_module_classes, force_directories
+=======
+from ipapi.tools.common_functions import get_module_classes
+>>>>>>> 209de50d7fc8e73d1b5ae7739a5d1f27ac1d7f9c
 from ipapi.tools.folders import ipso_folders
 
 import logging
