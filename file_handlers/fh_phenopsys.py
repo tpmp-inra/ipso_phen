@@ -136,7 +136,7 @@ class DirectHandlerPhenopsis(FileHandlerPhenopsis):
     @classmethod
     def probe(cls, file_path, database):
         return (
-            100
+            90
             if conf and database is not None and database.db_info.target == "phenopsis"
             else 0
         )

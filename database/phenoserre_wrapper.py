@@ -199,7 +199,7 @@ def get_exp_as_df(exp_name: str) -> pd.DataFrame:
         + dataframe["view_option"]
         + ").png"
     )
-    dataframe["luid"] = (
+    dataframe["Luid"] = (
         dataframe["Experiment"]
         + "_"
         + dataframe["Plant"]
@@ -216,7 +216,7 @@ def get_exp_as_df(exp_name: str) -> pd.DataFrame:
 
     return dataframe[
         [
-            "luid",
+            "Luid",
             "Experiment",
             "Plant",
             "date_time",

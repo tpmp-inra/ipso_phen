@@ -10,7 +10,7 @@ import paramiko
 
 import ipapi.file_handlers
 import ipapi.base.ip_common as ipc
-from ipapi.tools.common_functions import get_module_classes
+from ipapi.tools.common_functions import get_module_classes, force_directories
 from ipapi.tools.folders import ipso_folders
 
 import logging
@@ -42,7 +42,6 @@ class FileHandlerBase(ABC):
         )
 
     def init_from_database(self, **kwargs):
-        self._file_path = kwargs.get("file_path", "")
         self._database = kwargs.get("database", None)
 
         (
@@ -52,15 +51,25 @@ class FileHandlerBase(ABC):
             self._camera,
             self._view_option,
             self._blob_path,
+            self._file_path,
         ) = self._database.query_one(
             command="SELECT",
-            columns="Experiment,Plant,date_time,Camera,view_option,blob_path",
-            additional="ORDER BY Time ASC",
+            columns="Experiment,Plant,date_time,Camera,view_option,blob_path,FilePath",
+            additional="ORDER BY date_time ASC",
             FilePath=self._file_path,
         )
-        self.update(**kwargs)
+        if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
+            self._file_path = os.path.join(
+                ipso_folders.get_path("mass_storage", False),
+                self.experiment,
+                self.file_name,
+            )
 
     def load_from_database(self, address, port, user, pwd):
+        if os.path.isdir(ipso_folders.get_path("mass_storage", False)) and os.path.isfile(
+            self.file_path
+        ):
+            return self.load_from_harddrive()
         src_img = None
         try:
             p = paramiko.SSHClient()
@@ -77,6 +86,9 @@ class FileHandlerBase(ABC):
                 file.prefetch(file_size)
                 file.set_pipelined()
                 src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
+                if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
+                    force_directories(os.path.dirname(self.file_path))
+                    cv2.imwrite(self.file_path, src_img)
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
@@ -84,7 +96,7 @@ class FileHandlerBase(ABC):
         else:
             return src_img
 
-    def load_source_file(self):
+    def load_from_harddrive(self):
         src_img = None
         try:
             stream = open(self.file_path, "rb")
@@ -97,6 +109,9 @@ class FileHandlerBase(ABC):
             return None
         else:
             return src_img
+
+    def load_source_file(self):
+        return self.load_from_harddrive()
 
     def update(self, **kwargs):
         self._file_path = kwargs.get("file_path", self._file_path)
