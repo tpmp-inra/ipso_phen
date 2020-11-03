@@ -2,10 +2,8 @@ from datetime import datetime as dt
 import numpy as np
 import os
 
-import cv2
-import paramiko
-
 from ipapi.file_handlers.fh_base import FileHandlerBase
+from ipapi.tools.folders import ipso_folders
 
 try:
     from ipapi.database.db_connect_data import db_connect_data as dbc
@@ -76,7 +74,7 @@ class DirectHandlerPhenoserre(FileHandlerPhenoserre):
     @classmethod
     def probe(cls, file_path, database):
         return (
-            100
+            90
             if conf and database is not None and database.db_info.target == "phenoserre"
             else 0
         )

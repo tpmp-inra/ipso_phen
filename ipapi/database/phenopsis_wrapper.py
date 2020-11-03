@@ -84,6 +84,31 @@ class PhenopsisDbWrapper(PandasDbWrapper):
                     ret.append(FileHandlerPhenopsis(file_path=obj_path, database=None))
         return ret
 
+    def get_local_df(self, exp_name) -> pd.DataFrame:
+        csv_path = (
+            "C:/Users/fmavianemac/Documents/Felicia/Python/database/data_out/phenopsis/"
+            + f"{exp_name.lower()}.dst.csv"
+        )
+        dataframe = pd.read_csv(csv_path)
+        dataframe["Experiment"] = dataframe["experiment"].str.lower()
+        dataframe["Plant"] = dataframe["plant"].str.lower()
+        dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
+        dataframe["Camera"] = dataframe["camera"]
+        dataframe["FilePath"] = dataframe["filepath"].str.replace("./phenopsis/", "")
+        dataframe["Luid"] = dataframe["luid"]
+        return dataframe[
+            [
+                "Luid",
+                "Experiment",
+                "Plant",
+                "date_time",
+                "Camera",
+                "view_option",
+                "FilePath",
+                "blob_path",
+            ]
+        ]
+
     def get_exp_as_df(self, exp_name: str) -> pd.DataFrame:
         ftp = get_pheno_db_ftp()
         csv_path = (
@@ -104,7 +129,7 @@ class PhenopsisDbWrapper(PandasDbWrapper):
             self._init_progress(total=len(images), desc="Building dataframe")
             d = defaultdict(list)
             for j, fh in enumerate(images):
-                d["luid"].append(fh.luid)
+                d["Luid"].append(fh.luid)
                 d["Experiment"].append(fh.experiment)
                 d["Plant"].append(fh.plant)
                 d["date_time"].append(fh.date_time)
@@ -126,9 +151,10 @@ class PhenopsisDbWrapper(PandasDbWrapper):
             dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
             dataframe["Camera"] = dataframe["camera"]
             dataframe["FilePath"] = dataframe["filepath"]
+            dataframe["Luid"] = dataframe["luid"]
             dataframe = dataframe[
                 [
-                    "luid",
+                    "Luid",
                     "Experiment",
                     "Plant",
                     "date_time",

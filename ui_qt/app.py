@@ -692,7 +692,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.multithread = True
         self.use_pipeline_cache = True
         self._selected_output_image_luid = None
-        
+
         self.last_pipeline_path = ""
 
         self._options = ArgWrapper(
@@ -2304,7 +2304,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
             if save_lst_ is True:
                 model.images.to_csv(
-                    "./saved_data/last_image_browser_state.csv",
+                    os.path.join(
+                        ipso_folders.get_path("saved_data", force_creation=True), 
+                        "last_image_browser_state.csv",
+                    ),
                     index=False,
                 )
                 settings_.setValue(
@@ -4349,7 +4352,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         return self.query_current_database_as_pandas(
             command="SELECT",
             columns="Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, Luid",
-            additional="ORDER BY Time ASC",
+            additional="ORDER BY date_time ASC",
             **sql_dict,
         )
 
@@ -4962,7 +4965,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         ret = self.query_current_database(
             command="SELECT",
             columns="FilePath",
-            additional="ORDER BY Time ASC",
+            additional="ORDER BY date_time ASC",
             experiment=self._current_exp,
             plant=self._current_plant,
             date=self._current_date,

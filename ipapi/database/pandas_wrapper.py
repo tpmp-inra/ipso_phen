@@ -46,14 +46,21 @@ class PandasQueryHandler(QueryHandler):
         if self.connect() is False:
             return None
 
+        def match_column(c: str, cols: list) -> str:
+            if c in cols:
+                return c
+            for col in cols:
+                if c.lower() == col.lower():
+                    return col
+            else:
+                return ""
+
         res_df = self.dataframe.copy()
         if kwargs:
             for k, v in kwargs.items():
-                if k not in res_df.columns:
-                    for c in res_df.columns:
-                        if k.lower() == c.lower():
-                            k = c
-                            break
+                k = match_column(k, res_df.columns)
+                if not k:
+                    continue
                 if isinstance(v, dict):
                     if v["operator"].lower() == "between":
                         res_df = res_df[
@@ -67,10 +74,19 @@ class PandasQueryHandler(QueryHandler):
         if additional:
             assert "order by" in additional.lower(), f"Can't handle {additional}"
             _, _, column, direction = additional.split(" ")
-            res_df = res_df.sort_values(by=column, ascending=direction == "asc")
+            res_df = res_df.sort_values(by=column, ascending=direction.lower() == "asc")
 
         if columns != "*":
-            res_df = res_df[columns.replace(" ", "").split(",")]
+            res_df = res_df[
+                [
+                    c
+                    for c in [
+                        match_column(c, res_df.columns)
+                        for c in columns.replace(" ", "").split(",")
+                    ]
+                    if c
+                ]
+            ]
 
         if "distinct" in command.lower():
             res_df = res_df.drop_duplicates()

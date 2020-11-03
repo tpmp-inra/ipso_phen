@@ -36,11 +36,15 @@ if "psql_local" in dbc:
         DbInfo(
             display_name=name,
             target="psql_local",
-            src_files_path=os.path.join(ipso_folders.get_path("local_storage"), name),
+            src_files_path=os.path.join(
+                ipso_folders.get_path("local_storage", False), name
+            ),
             dbms="psql",
         )
         for name in os.listdir(ipso_folders.get_path("local_storage"))
-        if os.path.isdir(os.path.join(ipso_folders.get_path("local_storage"), name))
+        if os.path.isdir(
+            os.path.join(ipso_folders.get_path("local_storage", False), name)
+        )
     ]
 
     if ipso_folders.get_path("mass_storage"):
@@ -48,11 +52,15 @@ if "psql_local" in dbc:
             DbInfo(
                 display_name=name,
                 target="psql_local",
-                src_files_path=os.path.join(ipso_folders.get_path("mass_storage"), name),
+                src_files_path=os.path.join(
+                    ipso_folders.get_path("mass_storage", False), name
+                ),
                 dbms="psql",
             )
             for name in os.listdir(ipso_folders.get_path("mass_storage"))
-            if os.path.isdir(os.path.join(ipso_folders.get_path("mass_storage"), name))
+            if os.path.isdir(
+                os.path.join(ipso_folders.get_path("mass_storage", False), name)
+            )
         ]
 
 
