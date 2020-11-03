@@ -7,7 +7,7 @@ import ipapi.file_handlers.fh_base as fh
 class ImageWrapper:
     """Class wrapping an image item importing using the TPMP standard name"""
 
-    def __init__(self, file_path, database=None):
+    def __init__(self, file_path, database):
         self._file_handler = fh.file_handler_factory(file_path, database)
 
     def __repr__(self):  # Serialization
