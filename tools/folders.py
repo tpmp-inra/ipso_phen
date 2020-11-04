@@ -1,5 +1,12 @@
 import os
 from datetime import datetime as dt
+
+if __name__ == "__main__":
+    import sys
+
+    sys.path.append(os.path.join("..", ".."))
+    sys.path.append(os.path.join(".", "app"))
+
 from ipapi.tools.common_functions import force_directories
 import platform
 
@@ -26,8 +33,8 @@ ROOT_IPSO_FOLDER = "ipso_phen"
 
 def get_mass_storage_path():
     global g_storage_path
-    if not g_storage_path and is_winapi:
-        if platform.system().lower() == "windows" and conf:
+    if not g_storage_path:
+        if platform.system().lower() == "windows" and is_winapi and conf:
             drives = {}
             for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
                 try:
@@ -43,7 +50,13 @@ def get_mass_storage_path():
             else:
                 g_storage_path = ""
         elif platform.system().lower() == "linux" and conf:
-            g_storage_path = ""
+            for mnt in os.listdir("/mnt/"):
+                for fld in conf["folder_names"]:
+                    if os.path.isdir(os.path.join("/", "mnt", mnt, fld, "")):
+                        g_storage_path = os.path.join("/", "mnt", mnt, fld, "")
+                        break
+                if g_storage_path:
+                    break
         else:
             g_storage_path = ""
     return g_storage_path
@@ -204,3 +217,8 @@ ipso_folders.add_dynamic(
     path="",
     user_folder="Pictures",
 )
+
+
+if __name__ == "__main__":
+    for k, v in ipso_folders.items():
+        print(f"{k}: {v.get_path(False)}")

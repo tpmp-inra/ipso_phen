@@ -59,6 +59,7 @@ class PhenopsisDbWrapper(PandasDbWrapper):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.df_builder = self.get_exp_as_df
+        self.main_selector = {"view_option": "sw755"}
 
     def get_all_files(
         self,
