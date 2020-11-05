@@ -1,5 +1,12 @@
 import os
 from datetime import datetime as dt
+
+if __name__ == "__main__":
+    import sys
+
+    sys.path.append(os.path.join("..", ".."))
+    sys.path.append(os.path.join(".", "app"))
+
 from ipapi.tools.common_functions import force_directories
 import platform
 
@@ -204,3 +211,8 @@ ipso_folders.add_dynamic(
     path="",
     user_folder="Pictures",
 )
+
+
+if __name__ == "__main__":
+    for k, v in ipso_folders.items():
+        print(f"{k}: {v.get_path(False)}")

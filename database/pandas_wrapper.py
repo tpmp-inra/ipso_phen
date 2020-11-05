@@ -119,10 +119,11 @@ class PandasQueryHandler(QueryHandler):
 
 
 class PandasDbWrapper(DbWrapper, PandasQueryHandler):
+    dataframe = None
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.df_builder = None
-        self.dataframe = None
 
     def __del__(self):
         pass
