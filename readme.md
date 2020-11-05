@@ -77,8 +77,8 @@ Follow this steps
 1. Install Python minimum version 3.6 if needed - [https://www.python.org/downloads/](https://www.python.org/downloads/) during installation keep track of the folder where Python is installed and find the path to the python.exe file *PYTHON_EXE_PATH*
 2. Extract/copy/clone IPSO Phen files to a new folder
 3. Launch a command line shell and go to the created folder
-4. Execute on the prompt: install.bat *PYTHON_EXE_PATH*
-5. To launch IPSO Phen just double click on run.bat
+4. Execute on the prompt: .\scripts\install.bat *PYTHON_EXE_PATH*
+5. To launch IPSO Phen run *python \_\_main__.py*
 
 ### Linux/OSX
 

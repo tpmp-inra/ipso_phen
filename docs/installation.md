@@ -20,7 +20,7 @@ IPSO Phen can be used to add an UI to PlantCV's tools. But since at the moment o
 ### Windows
 
 1. Open a command line console with windows start menu and go to the folder containing IPSO Phen.
-2. Execute on the command line: install.pip.bat PYTHON_EXE_PATH.
+2. Execute on the command line: .\scripts\install.bat PYTHON_EXE_PATH.
 
 ### Linux/OSX
 
@@ -32,8 +32,8 @@ IPSO Phen can be used to add an UI to PlantCV's tools. But since at the moment o
 
 1. Open a terminal session ond go to the folder containing IPSO Phen.
 2. Activate the environment.
-   - On Windows execute _activate.bat_ on the terminal
-   - On Linux/OSX execute _source ./ipso_pip_env/bin/activate_ on the terminal
-3. execute _python run_qt.py_ on the terminal
+   - On Windows execute *.\env\Scripts\activate.bat*
+   - On Linux/OSX execute _source *./env/bin/activate* on the terminal
+3. execute *python \_\_main__.py* on the terminal
 
 On Windows you can skip all these steps and double click on the _run.bat_ file from the explorer.
