@@ -2,7 +2,7 @@ site_name: IPSO Phen documentation
 site_description: UI for plant phenotyping
 site_author: Felicià Antoni Maviane Macia
 repo_url: https://github.com/tpmp-inra/ipso_phen
-copyright: Copyright 2018-2020, INRA
+copyright: Copyright 2018-2020, INRAE
 theme:
   name: "material"
 markdown_extensions:
