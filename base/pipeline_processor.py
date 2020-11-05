@@ -132,8 +132,6 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            if self._target_database is not None and not wrapper_res.text_result:
-                self._target_database.log_connexion_state()
             spaces_ = len(str(total))
             msg = (
                 f'{"OK" if wrapper_res.result is True else "FAIL"}'
@@ -157,8 +155,6 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            if self._target_database is not None and not wrapper_res.text_result:
-                self._target_database.log_connexion_state()
             spaces_ = len(str(total))
             msg = (
                 f'{"OK" if wrapper_res.result is True else "FAIL"}'
@@ -219,12 +215,13 @@ class PipelineProcessor:
         else:
             return self.abort_callback()
 
-    def grab_files_from_data_base(self, experiment):
+    def grab_files_from_data_base(self, experiment, **kwargs):
         files = self._target_database.query(
             command="SELECT",
             columns="FilePath",
             additional="ORDER BY date_time ASC",
             experiment=experiment,
+            **kwargs,
         )
         if files is not None:
             self.accepted_files = [f[0] for f in files]
@@ -451,7 +448,7 @@ class PipelineProcessor:
             yield {"step": 1, "total": 1}
         self.groups_to_process = self.accepted_files[:]
 
-    def process_groups(self, groups_list, target_database=None):
+    def process_groups(self, groups_list):
         # Build images and data
         if groups_list:
             force_directories(self.options.partials_path)
@@ -480,8 +477,8 @@ class PipelineProcessor:
                                 self.options,
                                 self.script,
                                 None
-                                if target_database is None
-                                else target_database.copy(),
+                                if self._target_database is None
+                                else self._target_database.copy(),
                             )
                             for fl in groups_list
                         ),
@@ -499,7 +496,9 @@ class PipelineProcessor:
                             fl,
                             self.options,
                             self.script,
-                            None if target_database is None else target_database.copy(),
+                            None
+                            if self._target_database is None
+                            else self._target_database.copy(),
                         ]
                     )
                     if self.check_abort():
@@ -509,7 +508,7 @@ class PipelineProcessor:
             self.close_progress()
             logger.info("   --- Files processed ---")
 
-    def yield_test_process_groups(self, groups_list, target_database=None):
+    def yield_test_process_groups(self, groups_list):
         # Build images and data
         if groups_list:
             force_directories(self.options.partials_path)
@@ -560,7 +559,7 @@ class PipelineProcessor:
             self.close_progress()
             logger.info("   --- Files processed ---")
 
-    def yield_process_groups(self, groups_list, target_database=None):
+    def yield_process_groups(self, groups_list):
         # Build images and data
         if groups_list:
             force_directories(self.options.partials_path)
@@ -593,8 +592,8 @@ class PipelineProcessor:
                                 self.options,
                                 self.script,
                                 None
-                                if target_database is None
-                                else target_database.copy(),
+                                if self._target_database is None
+                                else self._target_database.copy(),
                             )
                             for fl in groups_list
                         ),
@@ -616,7 +615,9 @@ class PipelineProcessor:
                             fl,
                             self.options,
                             self.script,
-                            None if target_database is None else target_database.copy(),
+                            None
+                            if self._target_database is None
+                            else self._target_database.copy(),
                         ]
                     )
                     if self.check_abort():
@@ -631,18 +632,14 @@ class PipelineProcessor:
             logger.info("   --- Files processed ---")
 
     @time_method
-    def run(self, target_database=None):
-        """Processes all files stored in file list
-
-        Keyword Arguments:
-            target_database {DbWrapper} -- Database holding images data (default: {None})
-        """
+    def run(self):
+        """Processes all files stored in file list"""
         if self.accepted_files:
             # build series
             files_to_process = self.prepare_groups(time_delta=20)
 
             # Build images and data
-            self.process_groups(files_to_process, target_database)
+            self.process_groups(files_to_process)
 
             # Build text merged file
             self.merge_result_files("raw_output_data.csv")

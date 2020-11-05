@@ -119,6 +119,7 @@ class DbWrapper(ABC):
         self._last_step = 0
         self.step_dir = "right"
         self.db_info = kwargs.get("db_info", None)
+        self.main_selector = {}
 
     def __del__(self):
         self.close_connexion()
