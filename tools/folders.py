@@ -33,8 +33,8 @@ ROOT_IPSO_FOLDER = "ipso_phen"
 
 def get_mass_storage_path():
     global g_storage_path
-    if not g_storage_path:
-        if platform.system().lower() == "windows" and is_winapi and conf:
+    if not g_storage_path and is_winapi:
+        if platform.system().lower() == "windows" and conf:
             drives = {}
             for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
                 try:
@@ -50,13 +50,7 @@ def get_mass_storage_path():
             else:
                 g_storage_path = ""
         elif platform.system().lower() == "linux" and conf:
-            for mnt in os.listdir("/mnt/"):
-                for fld in conf["folder_names"]:
-                    if os.path.isdir(os.path.join("/", "mnt", mnt, fld, "")):
-                        g_storage_path = os.path.join("/", "mnt", mnt, fld, "")
-                        break
-                if g_storage_path:
-                    break
+            g_storage_path = ""
         else:
             g_storage_path = ""
     return g_storage_path
