@@ -20,15 +20,31 @@ logger = logging.getLogger(__name__)
 class FileHandlerPhenoserre(FileHandlerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self._file_path = kwargs.get("file_path", "")
-        if self._file_path:
-            tmp_str = self.file_name_no_ext.replace("(", "")
-            tmp_str = tmp_str.replace(")", "")
-            [self._plant, date_time_str, self._exp, cam_str] = tmp_str.split("--")
-            self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
-            [self._camera, self._view_option] = cam_str.split("-")
+        database = kwargs.get("database", None)
+        if conf and database is not None and database.db_info.target == "phenopsis":
+            self.db_linked = self.init_from_database(**kwargs)
+        else:
+            self.db_linked = False
 
-        self.update(**kwargs)
+        if not self.db_linked:
+            self._file_path = kwargs.get("file_path", "")
+            if self._file_path:
+                tmp_str = self.file_name_no_ext.replace("(", "")
+                tmp_str = tmp_str.replace(")", "")
+                [self._plant, date_time_str, self._exp, cam_str] = tmp_str.split("--")
+                self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
+                [self._camera, self._view_option] = cam_str.split("-")
+
+    def load_source_file(self):
+        if self.db_linked:
+            return self.load_from_database(
+                address=conf["jump_address"],
+                port=conf["port"],
+                user=conf["user"],
+                pwd=conf["password"],
+            )
+        else:
+            return self.load_from_harddrive()
 
     def fix_image(self, src_image):
         if self.is_nir and self.view_option == "top":
@@ -38,9 +54,13 @@ class FileHandlerPhenoserre(FileHandlerBase):
 
     @classmethod
     def probe(cls, file_path, database):
-        if not isinstance(file_path, str) or not os.path.isfile(file_path):
-            return 0
-        elif ")--(" in cls.extract_file_name(file_path):
+        if (
+            isinstance(file_path, str)
+            and os.path.isfile(file_path)
+            and (")--(" in cls.extract_file_name(file_path))
+        ):
+            return 100
+        elif conf and database is not None and database.db_info.target == "phenoserre":
             return 100
         else:
             return 0
@@ -56,25 +76,3 @@ class FileHandlerPhenoserre(FileHandlerBase):
     @property
     def is_nir(self):
         return "nir" in self.camera
-
-
-class DirectHandlerPhenoserre(FileHandlerPhenoserre):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.init_from_database(**kwargs)
-
-    def load_source_file(self):
-        return self.load_from_database(
-            address=conf["jump_address"],
-            port=conf["port"],
-            user=conf["user"],
-            pwd=conf["password"],
-        )
-
-    @classmethod
-    def probe(cls, file_path, database):
-        return (
-            90
-            if conf and database is not None and database.db_info.target == "phenoserre"
-            else 0
-        )

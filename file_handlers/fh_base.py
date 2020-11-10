@@ -28,6 +28,7 @@ class FileHandlerBase(ABC):
         self._date_time = dt.now()
         self._linked_images = []
         self._database = None
+        self._cache_file_path = ""
 
     def __repr__(self):  # Serialization
         return self.file_path
@@ -42,35 +43,41 @@ class FileHandlerBase(ABC):
         )
 
     def init_from_database(self, **kwargs):
-        self._database = kwargs.get("database", None)
-
-        (
-            self._exp,
-            self._plant,
-            self._date_time,
-            self._camera,
-            self._view_option,
-            self._blob_path,
-            self._file_path,
-        ) = self._database.query_one(
-            command="SELECT",
-            columns="Experiment,Plant,date_time,Camera,view_option,blob_path,FilePath",
-            additional="ORDER BY date_time ASC",
-            FilePath=self._file_path,
-        )
-        if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
-            self._file_path = os.path.join(
-                ipso_folders.get_path("mass_storage", False),
-                self.experiment,
-                self.file_name,
+        try:
+            self._database = kwargs.get("database", None)
+            (
+                self._exp,
+                self._plant,
+                self._date_time,
+                self._camera,
+                self._view_option,
+                self._blob_path,
+                self._file_path,
+            ) = self._database.query_one(
+                command="SELECT",
+                columns="Experiment,Plant,date_time,Camera,view_option,blob_path,FilePath",
+                additional="ORDER BY date_time ASC",
+                FilePath=kwargs["file_path"],
             )
+            if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
+                self._cache_file_path = os.path.join(
+                    ipso_folders.get_path("mass_storage", False),
+                    self.experiment,
+                    self.file_name,
+                )
+            else:
+                self._cache_file_path = ""
+        except Exception as e:
+            return False
+        else:
+            return True
 
     def load_from_database(self, address, port, user, pwd):
         if os.path.isdir(ipso_folders.get_path("mass_storage", False)) and os.path.isfile(
-            self.file_path
+            self._cache_file_path
         ):
             logger.info(f"Retrieved from cache: {str(self)}")
-            return self.load_from_harddrive()
+            return self.load_from_harddrive(self._cache_file_path)
         src_img = None
         try:
             logger.info(f"Cache default, retrieving from server: {str(self)}")
@@ -89,8 +96,8 @@ class FileHandlerBase(ABC):
                 file.set_pipelined()
                 src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
                 if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
-                    force_directories(os.path.dirname(self.file_path))
-                    cv2.imwrite(self.file_path, src_img)
+                    force_directories(os.path.dirname(self._cache_file_path))
+                    cv2.imwrite(self._cache_file_path, src_img)
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
@@ -98,10 +105,11 @@ class FileHandlerBase(ABC):
         else:
             return src_img
 
-    def load_from_harddrive(self):
+    def load_from_harddrive(self, override_path: str = None):
         src_img = None
         try:
-            stream = open(self.file_path, "rb")
+            fp = override_path if override_path is not None else self.file_path
+            stream = open(fp, "rb")
             bytes = bytearray(stream.read())
             np_array = np.asarray(bytes, dtype=np.uint8)
             src_img = cv2.imdecode(np_array, 3)
@@ -565,16 +573,17 @@ def file_handler_factory(file_path: str, database) -> FileHandlerBase:
         class_inherits_from=FileHandlerBase,
         remove_abstract=True,
     )
+    file_handlers_list = [
+        fh
+        for fh in file_handlers_list
+        if inspect.isclass(fh) and callable(getattr(fh, "probe", None))
+    ]
 
     # Create objects
     best_score = 0
     best_class = None
     for cls in file_handlers_list:
-        if (
-            inspect.isclass(cls)
-            and callable(getattr(cls, "probe", None))
-            and (cls.probe(file_path, database) > best_score)
-        ):
+        if cls.probe(file_path, database) > best_score:
             best_score = cls.probe(file_path, database)
             best_class = cls
 

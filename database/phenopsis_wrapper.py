@@ -41,10 +41,15 @@ def get_pheno_db_ftp():
 
 def get_phenopsis_exp_list() -> list:
     assert conf, "Unable to connect to phenoserre"
-    ftp = get_pheno_db_ftp()
-    exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
-    ftp.close()
-    return [exp for exp in exp_lst if exp != "csv"]
+    try:
+        ftp = get_pheno_db_ftp()
+        exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
+        ftp.close()
+    except Exception as e:
+        logger.error("Unable to reach Phenopsis")
+        return []
+    else:
+        return [exp for exp in exp_lst if exp != "csv"]
 
 
 def isdir(ftp, path):
