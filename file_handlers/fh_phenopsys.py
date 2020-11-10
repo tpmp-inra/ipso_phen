@@ -26,40 +26,38 @@ class FileHandlerPhenopsis(FileHandlerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        database = kwargs.get("database", None)
-        if conf and database is not None and database.db_info.target == "phenopsis":
-            self.db_linked = self.init_from_database(**kwargs)
-        else:
-            self.db_linked = False
-
-        if not self.db_linked:
-            self._file_path = kwargs.get("file_path", "")
-            self._database = kwargs.get("database", None)
-            self._linked_images = []
-            if self._file_path:
-                [
-                    self._exp,
-                    self._plant,
-                    self._view_option,
-                    date_time_str,
-                    self._opaque,
-                ] = self.file_name_no_ext.split(";")
-                try:
-                    self._date_time = dt.strptime(date_time_str, "%Y,%m,%d-%Hh%Mm%Ss")
-                except ValueError:
-                    self._date_time = dt.strptime(date_time_str, "%Y%m%d-%Hh%Mm%Ss")
-                if "fluo-" in self._view_option.lower():
-                    self._camera = "cf"
-                    if self.is_cf_calc:
-                        self._view_option = "calc"
-                    elif self.is_cf_csv:
-                        self._view_option = "csv"
-                    elif self.is_cf_pim:
-                        self._view_option = "pim"
-                    elif self.is_cf_raw:
-                        self._view_option = "raw"
-                else:
-                    self._camera, self._view_option = self._view_option.split("-")
+        self._database = kwargs.get("database", None)
+        self.db_linked = (
+            conf
+            and self._database is not None
+            and self._database.db_info.target == "phenopsis"
+        ) is True
+        self._file_path = kwargs.get("file_path", "")
+        self._linked_images = []
+        if self._file_path:
+            [
+                self._exp,
+                self._plant,
+                self._view_option,
+                date_time_str,
+                self._opaque,
+            ] = self.file_name_no_ext.split(";")
+            try:
+                self._date_time = dt.strptime(date_time_str, "%Y,%m,%d-%Hh%Mm%Ss")
+            except ValueError:
+                self._date_time = dt.strptime(date_time_str, "%Y%m%d-%Hh%Mm%Ss")
+            if "fluo-" in self._view_option.lower():
+                self._camera = "cf"
+                if self.is_cf_calc:
+                    self._view_option = "calc"
+                elif self.is_cf_csv:
+                    self._view_option = "csv"
+                elif self.is_cf_pim:
+                    self._view_option = "pim"
+                elif self.is_cf_raw:
+                    self._view_option = "raw"
+            else:
+                self._camera, self._view_option = self._view_option.split("-")
 
     def load_source_file(self):
         if self.db_linked:

@@ -29,6 +29,8 @@ class FileHandlerBase(ABC):
         self._linked_images = []
         self._database = None
         self._cache_file_path = ""
+        self._blob_path = ""
+        self.db_linked = False
 
     def __repr__(self):  # Serialization
         return self.file_path
@@ -42,42 +44,12 @@ class FileHandlerBase(ABC):
             f"[view_option:{self.view_option}]"
         )
 
-    def init_from_database(self, **kwargs):
-        try:
-            self._database = kwargs.get("database", None)
-            (
-                self._exp,
-                self._plant,
-                self._date_time,
-                self._camera,
-                self._view_option,
-                self._blob_path,
-                self._file_path,
-            ) = self._database.query_one(
-                command="SELECT",
-                columns="Experiment,Plant,date_time,Camera,view_option,blob_path,FilePath",
-                additional="ORDER BY date_time ASC",
-                FilePath=kwargs["file_path"],
-            )
-            if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
-                self._cache_file_path = os.path.join(
-                    ipso_folders.get_path("mass_storage", False),
-                    self.experiment,
-                    self.file_name,
-                )
-            else:
-                self._cache_file_path = ""
-        except Exception as e:
-            return False
-        else:
-            return True
-
     def load_from_database(self, address, port, user, pwd):
         if os.path.isdir(ipso_folders.get_path("mass_storage", False)) and os.path.isfile(
-            self._cache_file_path
+            self.cache_file_path
         ):
             logger.info(f"Retrieved from cache: {str(self)}")
-            return self.load_from_harddrive(self._cache_file_path)
+            return self.load_from_harddrive(self.cache_file_path)
         src_img = None
         try:
             logger.info(f"Cache default, retrieving from server: {str(self)}")
@@ -90,14 +62,17 @@ class FileHandlerBase(ABC):
                 password=pwd,
             )
             ftp = p.open_sftp()
-            with ftp.open(self._blob_path) as file:
-                file_size = file.stat().st_size
-                file.prefetch(file_size)
-                file.set_pipelined()
-                src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
-                if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
-                    force_directories(os.path.dirname(self._cache_file_path))
-                    cv2.imwrite(self._cache_file_path, src_img)
+            try:
+                with ftp.open(self.blob_path) as file:
+                    file_size = file.stat().st_size
+                    file.prefetch(file_size)
+                    file.set_pipelined()
+                    src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
+                    if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
+                        force_directories(os.path.dirname(self.cache_file_path))
+                        cv2.imwrite(self.cache_file_path, src_img)
+            finally:
+                ftp.close()
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
@@ -537,6 +512,32 @@ class FileHandlerBase(ABC):
     @property
     def linked_images(self):
         return self._linked_images
+
+    @property
+    def blob_path(self):
+        if not self._blob_path and self.db_linked is True:
+            try:
+                self._blob_path = self._database.query_one(
+                    command="SELECT",
+                    columns="blob_path",
+                    FilePath=self.file_path,
+                )[0]
+            except Exception as e:
+                self._blob_path = ""
+        return self._blob_path
+
+    @property
+    def cache_file_path(self):
+        if not self._cache_file_path and self.db_linked is True:
+            if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
+                self._cache_file_path = os.path.join(
+                    ipso_folders.get_path("mass_storage", False),
+                    self.experiment,
+                    self.file_name,
+                )
+            else:
+                self._cache_file_path = ""
+        return self._cache_file_path
 
 
 class FileHandlerDefault(FileHandlerBase):
