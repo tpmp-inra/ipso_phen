@@ -153,7 +153,13 @@ def _query_phenoserre(query: str) -> pd.DataFrame:
 
 def get_phenoserre_exp_list() -> list:
     assert conf, "Unable to connect to phenoserre"
-    return sorted(_query_phenoserre(conf["exp_list_query"]).iloc[:, 0].to_list())
+    try:
+        exp_list = sorted(_query_phenoserre(conf["exp_list_query"]).iloc[:, 0].to_list())
+    except Exception as e:
+        logger.error("Unable to connect to Phenoserre")
+        return []
+    else:
+        return exp_list
 
 
 def get_exp_as_df(exp_name: str) -> pd.DataFrame:
