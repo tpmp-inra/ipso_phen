@@ -62,14 +62,17 @@ class FileHandlerBase(ABC):
                 password=pwd,
             )
             ftp = p.open_sftp()
-            with ftp.open(self.blob_path) as file:
-                file_size = file.stat().st_size
-                file.prefetch(file_size)
-                file.set_pipelined()
-                src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
-                if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
-                    force_directories(os.path.dirname(self.cache_file_path))
-                    cv2.imwrite(self.cache_file_path, src_img)
+            try:
+                with ftp.open(self.blob_path) as file:
+                    file_size = file.stat().st_size
+                    file.prefetch(file_size)
+                    file.set_pipelined()
+                    src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
+                    if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
+                        force_directories(os.path.dirname(self.cache_file_path))
+                        cv2.imwrite(self.cache_file_path, src_img)
+            finally:
+                ftp.close()
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
