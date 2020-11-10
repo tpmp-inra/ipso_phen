@@ -140,7 +140,6 @@ from ipapi.base.ipt_functional import call_ipt_code
 from ipapi.base.ipt_holder import IptHolder
 from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import ipapi.base.ip_common as ipc
-from ipapi.base.pipeline_launcher import save_state
 from ipapi.tools import error_holder as eh
 from ipapi.tools.folders import ipso_folders
 
@@ -2305,7 +2304,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if save_lst_ is True:
                 model.images.to_csv(
                     os.path.join(
-                        ipso_folders.get_path("saved_data", force_creation=True), 
+                        ipso_folders.get_path("saved_data", force_creation=True),
                         "last_image_browser_state.csv",
                     ),
                     index=False,
@@ -5038,22 +5037,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.multithread = self.ui.action_use_multithreading.isChecked()
 
     def on_action_save_pipeline_processor_state(self):
-        model = self.get_image_model()
-        if (model is None) or (model.rowCount() == 0):
-            self.update_feedback(
-                status_message="Pipeline state save: no images",
-                log_message="Pipeline state save: no images",
-                log_level=logging.ERROR,
-            )
-            return
-        df = self.get_image_dataframe()
-        if df is None:
-            self.update_feedback(
-                status_message="Pipeline state save: no images",
-                log_message="Pipeline state save: no images",
-                log_level=logging.ERROR,
-            )
-            return
+        database_data = (
+            None
+            if self.current_database is None
+            else self.current_database.db_info.to_json()
+        )
         if self.pipeline is not None:
             script_ = self.pipeline.copy()
         else:
@@ -5072,7 +5060,51 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             ),
             filter="JSON(*.json)",
         )[0]
-        if file_name_:
+        if not file_name_:
+            return
+        if database_data is not None and (
+            database_data["target"] in ["phenoserre", "phenopsis"]
+        ):
+            with open(file_name_, "w") as jw:
+                json.dump(
+                    dict(
+                        output_folder=self.ui.le_pp_output_folder.text(),
+                        csv_file_name=self.ui.edt_csv_file_name.text(),
+                        overwrite_existing=self.ui.cb_pp_overwrite.isChecked(),
+                        sub_folder_name=database_data["display_name"],
+                        append_time_stamp=self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
+                        script=script_.to_json(),
+                        generate_series_id=self.ui.cb_pp_generate_series_id.isChecked(),
+                        series_id_time_delta=self.ui.sp_pp_time_delta.value(),
+                        thread_count=self.ui.sl_pp_thread_count.value(),
+                        database_data=database_data,
+                        experiment=database_data["display_name"],
+                    ),
+                    jw,
+                    indent=2,
+                )
+                self.update_feedback(
+                    status_message="Pipeline processor state saved",
+                    log_message=f'Pipeline state saved to: "{file_name_}"',
+                )
+        else:
+            model = self.get_image_model()
+            if (model is None) or (model.rowCount() == 0):
+                self.update_feedback(
+                    status_message="Pipeline state save: no images",
+                    log_message="Pipeline state save: no images",
+                    log_level=logging.ERROR,
+                )
+                return
+            df = self.get_image_dataframe()
+            if df is None:
+                self.update_feedback(
+                    status_message="Pipeline state save: no images",
+                    log_message="Pipeline state save: no images",
+                    log_level=logging.ERROR,
+                )
+                return
+
             ipso_folders.set_path(
                 "pp_state", os.path.join(os.path.dirname(file_name_), "")
             )
@@ -5081,14 +5113,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 if self.ui.cb_pp_append_experience_name.isChecked()
                 else ""
             )
-            database_data = (
-                None
-                if self.current_database is None
-                else self.current_database.db_info.to_json()
-            )
             with open(file_name_, "w") as jw:
                 json.dump(
-                    save_state(
+                    dict(
                         output_folder=self.ui.le_pp_output_folder.text(),
                         csv_file_name=self.ui.edt_csv_file_name.text(),
                         overwrite_existing=self.ui.cb_pp_overwrite.isChecked(),
