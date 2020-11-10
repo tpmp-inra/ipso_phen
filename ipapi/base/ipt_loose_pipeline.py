@@ -1315,7 +1315,9 @@ class LoosePipeline(object):
         # Build/retrieve wrapper
         if isinstance(src_image, str):
             self.wrapper = BaseImageProcessor(
-                src_image, options=options, database=target_data_base
+                src_image,
+                options=options,
+                database=target_data_base,
             )
         elif isinstance(src_image, BaseImageProcessor):
             self.wrapper = src_image
@@ -1334,6 +1336,10 @@ class LoosePipeline(object):
             self.error_level = logging.ERROR
             self.text_result = "Wrapper error"
             return False
+        elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
+            self.error_level = logging.INFO
+            self.text_result = "Skipped"
+            return True
         elif not self.wrapper.check_source_image():
             if isinstance(src_image, str):
                 logger.error(f"Image seems to be corrupted '{src_image}''")
@@ -1342,10 +1348,6 @@ class LoosePipeline(object):
             self.text_result = "Corrupted image"
             self.error_level = logging.ERROR
             return False
-        elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
-            self.error_level = logging.INFO
-            self.text_result = "Skipped"
-            return True
 
         # Override wrapper settings
         if self.last_wrapper_luid != self.wrapper.luid:
