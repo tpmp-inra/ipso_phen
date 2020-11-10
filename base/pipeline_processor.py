@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 from collections import namedtuple
 import logging
 from time import sleep
+from timeit import default_timer as timer
 from typing import Union
 
 import pandas as pd
@@ -11,12 +12,10 @@ from tqdm import tqdm
 
 from ipapi.file_handlers.fh_base import file_handler_factory
 from ipapi.tools.comand_line_wrapper import ArgWrapper
-from ipapi.tools.common_functions import time_method, force_directories
+from ipapi.tools.common_functions import time_method, force_directories, format_time
 from ipapi.tools.image_list import ImageList
 
 logger = logging.getLogger(__name__)
-
-WorkerResult = namedtuple("WorkerResult", "result, text_result, name, message")
 
 
 def _dummy_worker(args):
@@ -38,6 +37,7 @@ def _pipeline_worker(arg):
     # Extract parameters
     file_path, options, script, db = arg
 
+    start_time = timer()
     try:
         bool_res = script.execute(
             src_image=file_path if isinstance(file_path, str) else file_path[0],
@@ -54,12 +54,21 @@ def _pipeline_worker(arg):
             call_back=None,
         )
     except Exception as e:
-        return WorkerResult(False, "", file_path, repr(e))
+        return {
+            "result": False,
+            "result_as_text": "",
+            "image_name": file_path,
+            "error_message": repr(e),
+            "time_spent": format_time(timer() - start_time),
+        }
     else:
-        if script.wrapper is not None:
-            return WorkerResult(bool_res, script.text_result, str(script.wrapper), "")
-        else:
-            return WorkerResult(bool_res, script.text_result, "Unknown", "")
+        return {
+            "result": bool_res,
+            "result_as_text": script.text_result,
+            "image_name": "Unknown" if script.wrapper is None else str(script.wrapper),
+            "error_message": "",
+            "time_spent": format_time(timer() - start_time),
+        }
 
 
 class PipelineProcessor:
@@ -126,7 +135,7 @@ class PipelineProcessor:
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
 
-    def handle_result(self, wrapper_res, wrapper_index, total):
+    def handle_result(self, wrapper_res: dict, wrapper_index, total):
         if not wrapper_res:
             logger.error("Process error - UNKNOWN ERROR")
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
@@ -134,43 +143,64 @@ class PipelineProcessor:
         else:
             spaces_ = len(str(total))
             msg = (
-                f'{"OK" if wrapper_res.result is True else "FAIL"}'
+                f"{(wrapper_index + 1):{spaces_}d}/{total}"
                 + " - "
-                + f"{(wrapper_index + 1):{spaces_}d}/{total} >>> "
-                + wrapper_res.name
-                + f" - {wrapper_res.message}"
-                if wrapper_res.message
-                else ""
+                + (
+                    wrapper_res["result_as_text"]
+                    if wrapper_res["result_as_text"]
+                    else f'{"OK" if wrapper_res["result"] is True else "FAIL"}'
+                )
+                + " >>> "
+                + wrapper_res["image_name"]
+                + (
+                    f" - {wrapper_res['error_message']}"
+                    if wrapper_res["error_message"]
+                    else ""
+                )
             )
             logger.info(msg)
-            if wrapper_res.result is not True:
+            if wrapper_res["result"] is not True:
                 self.report_error(logging.ERROR, msg)
-            if wrapper_res.result is not True:
+            if wrapper_res["result"] is not True:
                 self._process_errors += 1
         self.update_progress()
 
-    def yield_handle_result(self, wrapper_res, wrapper_index, total):
+    def yield_handle_result(self, wrapper_res: dict, wrapper_index, total):
         if not wrapper_res:
-            logger.error("Process error - UNKNOWN ERROR")
+            msg = "Process error - UNKNOWN ERROR"
+            logger.error(msg)
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
             spaces_ = len(str(total))
             msg = (
-                f'{"OK" if wrapper_res.result is True else "FAIL"}'
+                f"{(wrapper_index + 1):{spaces_}d}/{total}"
                 + " - "
-                + f"{(wrapper_index + 1):{spaces_}d}/{total} >>> "
-                + wrapper_res.name
-                + f" - {wrapper_res.message}"
-                if wrapper_res.message
-                else ""
+                + (
+                    wrapper_res["result_as_text"]
+                    if wrapper_res["result_as_text"]
+                    else f'{"OK" if wrapper_res["result"] is True else "FAIL"}'
+                )
+                + "<br>"
+                + wrapper_res["image_name"]
+                + (
+                    f"<br> {wrapper_res['error_message']}"
+                    if wrapper_res["error_message"]
+                    else ""
+                )
+                + "<br>"
+                + f"Image processed in: {wrapper_res['time_spent']}"
             )
             logger.info(msg)
-            if wrapper_res.result is not True:
+            if wrapper_res["result"] is not True:
                 self.report_error(logging.ERROR, msg)
-            if wrapper_res.result is not True:
+            if wrapper_res["result"] is not True:
                 self._process_errors += 1
-        yield {"step": self._progress_step, "total": self._progress_total}
+        yield {
+            "step": self._progress_step,
+            "total": self._progress_total,
+            "message": msg,
+        }
         self._progress_step += 1
 
     def init_progress(self, total: int, desc: str = "", yield_mode: bool = False) -> None:
