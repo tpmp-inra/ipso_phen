@@ -20,20 +20,22 @@ logger = logging.getLogger(__name__)
 class FileHandlerPhenoserre(FileHandlerBase):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        database = kwargs.get("database", None)
-        if conf and database is not None and database.db_info.target == "phenopsis":
-            self.db_linked = self.init_from_database(**kwargs)
-        else:
-            self.db_linked = False
 
-        if not self.db_linked:
-            self._file_path = kwargs.get("file_path", "")
-            if self._file_path:
-                tmp_str = self.file_name_no_ext.replace("(", "")
-                tmp_str = tmp_str.replace(")", "")
-                [self._plant, date_time_str, self._exp, cam_str] = tmp_str.split("--")
-                self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
-                [self._camera, self._view_option] = cam_str.split("-")
+        self._database = kwargs.get("database", None)
+        self.db_linked = (
+            conf
+            and self._database is not None
+            and self._database.db_info.target == "phenopsis"
+        ) is True
+        self._file_path = kwargs.get("file_path", "")
+        self._linked_images = []
+
+        if self._file_path:
+            tmp_str = self.file_name_no_ext.replace("(", "")
+            tmp_str = tmp_str.replace(")", "")
+            [self._plant, date_time_str, self._exp, cam_str] = tmp_str.split("--")
+            self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
+            [self._camera, self._view_option] = cam_str.split("-")
 
     def load_source_file(self):
         if self.db_linked:
