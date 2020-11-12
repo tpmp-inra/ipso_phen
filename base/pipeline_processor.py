@@ -1,5 +1,6 @@
 import multiprocessing as mp
 import os
+import sys
 from collections import Counter, defaultdict
 from collections import namedtuple
 import logging
@@ -18,6 +19,9 @@ from ipapi.tools.common_functions import time_method, force_directories, format_
 from ipapi.tools.image_list import ImageList
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+USE_TQDM = False
 
 
 def _dummy_worker(args):
@@ -143,8 +147,8 @@ class PipelineProcessor:
         if wrapper_res["result_as_text"]:
             rat = wrapper_res["result_as_text"]
         else:
-            rat = f"(TC: {threading.active_count()}) "
-            rat += "OK" if wrapper_res["result"] is True else "FAIL"
+            rat = "OK" if wrapper_res["result"] is True else "FAIL"
+            rat += f" (TC: {threading.active_count()})"
         if timer() - self._last_garbage_collected > 60:
             self._last_garbage_collected = timer()
             gc.collect()
@@ -168,6 +172,7 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, msg)
         if wrapper_res["result"] is not True:
             self._process_errors += 1
+        return msg
 
     def handle_result(self, wrapper_res: dict, wrapper_index, total):
         if not wrapper_res:
@@ -190,7 +195,7 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            self.log_result(
+            msg = self.log_result(
                 wrapper_res=wrapper_res,
                 wrapper_index=wrapper_index,
                 total=total,
@@ -207,7 +212,8 @@ class PipelineProcessor:
         if yield_mode is True:
             pass
         elif self.progress_callback is None:
-            self._tqdm = tqdm(total=total, desc=desc)
+            if USE_TQDM:
+                self._tqdm = tqdm(total=total, desc=desc)
         else:
             self.progress_callback(step=0, total=total)
         self._progress_total = total
@@ -215,7 +221,8 @@ class PipelineProcessor:
 
     def update_progress(self):
         if self.progress_callback is None:
-            self._tqdm.update(1)
+            if USE_TQDM:
+                self._tqdm.update(1)
         else:
             self.progress_callback(step=self._progress_step, total=self._progress_total)
             self._progress_step += 1
@@ -236,7 +243,7 @@ class PipelineProcessor:
             )
 
     def close_progress(self):
-        if self._tqdm is not None:
+        if USE_TQDM and self._tqdm is not None:
             self._tqdm.close()
 
     def check_abort(self):
