@@ -100,22 +100,18 @@ class BaseImageProcessor(ImageWrapper):
 
         self._built_channels = {}
 
+    def init_data_holder(self):
         self.csv_data_holder = self.init_csv_writer()
         self.csv_data_holder.update_csv_value("experiment", self.experiment)
         self.csv_data_holder.update_csv_value("plant", self.plant)
         self.csv_data_holder.update_csv_value("date_time", self.date_time)
         self.csv_data_holder.update_csv_value("camera", self.camera)
-        self.csv_data_holder.update_csv_value("view_option", self.view_option)
+        self.csv_data_holder.update_csv_value("view_option", self.view_option)        
 
     def reset(self):
         if self.lock:
             return
-        self.csv_data_holder = self.init_csv_writer()
-        self.csv_data_holder.update_csv_value("experiment", self.experiment)
-        self.csv_data_holder.update_csv_value("plant", self.plant)
-        self.csv_data_holder.update_csv_value("date_time", self.date_time)
-        self.csv_data_holder.update_csv_value("camera", self.camera)
-        self.csv_data_holder.update_csv_value("view_option", self.view_option)
+        self.init_data_holder()
         self._rois_list = []
         self.image_list = []
         self.data_output = {}

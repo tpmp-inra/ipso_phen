@@ -1363,6 +1363,9 @@ class LoosePipeline(object):
         if options is not None:
             self.image_output_path = self.wrapper.dst_path
 
+        # Prepare data holder
+        self.wrapper.init_data_holder()
+
         # Execute pipeline
         self.root.execute(**kwargs)
 

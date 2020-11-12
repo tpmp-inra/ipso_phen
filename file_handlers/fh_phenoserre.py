@@ -34,7 +34,8 @@ class FileHandlerPhenoserre(FileHandlerBase):
             tmp_str = self.file_name_no_ext.replace("(", "")
             tmp_str = tmp_str.replace(")", "")
             [self._plant, date_time_str, self._exp, cam_str] = tmp_str.split("--")
-            self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
+            if not self.db_linked:
+                self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
             [self._camera, self._view_option] = cam_str.split("-")
 
     def load_source_file(self):
