@@ -7,6 +7,7 @@ from time import sleep
 from timeit import default_timer as timer
 from typing import Union
 import threading
+import gc
 
 import pandas as pd
 from tqdm import tqdm
@@ -105,6 +106,7 @@ class PipelineProcessor:
         self._tqdm = None
         self._progress_total = 0
         self._progress_step = 0
+        self._last_garbage_collected = timer()
 
     def build_files_list(self, src_path: str, flatten_list=True, **kwargs):
         """Build a list containing all the files that will be parsed
@@ -136,14 +138,18 @@ class PipelineProcessor:
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
 
-    def build_result_message(self, wrapper_res: dict, wrapper_index, total, separator):
+    def log_result(self, wrapper_res: dict, wrapper_index, total, separator):
         spaces_ = len(str(total))
         if wrapper_res["result_as_text"]:
             rat = wrapper_res["result_as_text"]
         else:
             rat = f"(TC: {threading.active_count()}) "
             rat += "OK" if wrapper_res["result"] is True else "FAIL"
-        return (
+        if timer() - self._last_garbage_collected > 60:
+            self._last_garbage_collected = timer()
+            gc.collect()
+            rat += " (GC)"
+        msg = (
             f"{(wrapper_index + 1):{spaces_}d}/{total}"
             + " - "
             + rat
@@ -157,6 +163,11 @@ class PipelineProcessor:
             + f"{separator}"
             + f"Image processed in: {wrapper_res['time_spent']}"
         )
+        logger.info(msg)
+        if wrapper_res["result"] is not True:
+            self.report_error(logging.ERROR, msg)
+        if wrapper_res["result"] is not True:
+            self._process_errors += 1
 
     def handle_result(self, wrapper_res: dict, wrapper_index, total):
         if not wrapper_res:
@@ -164,17 +175,12 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            msg = self.build_result_message(
+            self.log_result(
                 wrapper_res=wrapper_res,
                 wrapper_index=wrapper_index,
                 total=total,
                 separator=" >>> ",
             )
-            logger.info(msg)
-            if wrapper_res["result"] is not True:
-                self.report_error(logging.ERROR, msg)
-            if wrapper_res["result"] is not True:
-                self._process_errors += 1
         self.update_progress()
 
     def yield_handle_result(self, wrapper_res: dict, wrapper_index, total):
@@ -184,17 +190,12 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            msg = self.build_result_message(
+            self.log_result(
                 wrapper_res=wrapper_res,
                 wrapper_index=wrapper_index,
                 total=total,
                 separator="<br>",
             )
-            logger.info(msg)
-            if wrapper_res["result"] is not True:
-                self.report_error(logging.ERROR, msg)
-            if wrapper_res["result"] is not True:
-                self._process_errors += 1
         yield {
             "step": self._progress_step,
             "total": self._progress_total,
