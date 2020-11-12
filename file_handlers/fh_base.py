@@ -76,6 +76,7 @@ class FileHandlerBase(ABC):
                         cv2.imwrite(self.cache_file_path, src_img)
             finally:
                 ftp.close()
+            p.close()
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
