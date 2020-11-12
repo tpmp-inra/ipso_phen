@@ -17,6 +17,7 @@ from ipapi.file_handlers.fh_base import file_handler_factory
 from ipapi.tools.comand_line_wrapper import ArgWrapper
 from ipapi.tools.common_functions import time_method, force_directories, format_time
 from ipapi.tools.image_list import ImageList
+from ipapi.base.ip_abstract import BaseImageProcessor
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -45,20 +46,27 @@ def _pipeline_worker(arg):
 
     start_time = timer()
     try:
-        bool_res = script.execute(
-            src_image=file_path if isinstance(file_path, str) else file_path[0],
-            silent_mode=True,
-            target_module="",
-            additional_data={"luid": file_path[1]}
-            if isinstance(file_path, tuple)
-            else {},
-            write_data=True,
-            target_data_base=db,
-            overwrite_data=options.overwrite,
-            store_images=False,
+        wrapper = BaseImageProcessor(
+            file_path,
             options=options,
-            call_back=None,
+            database=db,
         )
+        bool_res = wrapper.check_source_image()
+
+        # bool_res = script.execute(
+        #     src_image=file_path if isinstance(file_path, str) else file_path[0],
+        #     silent_mode=True,
+        #     target_module="",
+        #     additional_data={"luid": file_path[1]}
+        #     if isinstance(file_path, tuple)
+        #     else {},
+        #     write_data=True,
+        #     target_data_base=db,
+        #     overwrite_data=options.overwrite,
+        #     store_images=False,
+        #     options=options,
+        #     call_back=None,
+        # )
     except Exception as e:
         return {
             "result": False,
@@ -70,8 +78,9 @@ def _pipeline_worker(arg):
     else:
         return {
             "result": bool_res,
-            "result_as_text": script.text_result,
-            "image_name": "Unknown" if script.wrapper is None else str(script.wrapper),
+            "result_as_text": "",
+            # "result_as_text": script.text_result,
+            "image_name": "Unknown" if wrapper is None else str(wrapper),
             "error_message": "",
             "time_spent": format_time(timer() - start_time),
         }
