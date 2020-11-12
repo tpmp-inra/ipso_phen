@@ -51,11 +51,11 @@ class FileHandlerBase(ABC):
         if os.path.isdir(ipso_folders.get_path("mass_storage", False)) and os.path.isfile(
             self.cache_file_path
         ):
-            logger.info(f"Retrieved from cache: {str(self)}")
+            logger.debug(f"Retrieved from cache: {str(self)}")
             return self.load_from_harddrive(self.cache_file_path)
         src_img = None
         try:
-            logger.info(f"Cache default, retrieving from server: {str(self)}")
+            logger.debug(f"Cache default, retrieving from server: {str(self)}")
             p = paramiko.SSHClient()
             p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
             p.connect(
