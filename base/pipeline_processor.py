@@ -6,6 +6,7 @@ import logging
 from time import sleep
 from timeit import default_timer as timer
 from typing import Union
+import threading
 
 import pandas as pd
 from tqdm import tqdm
@@ -135,28 +136,39 @@ class PipelineProcessor:
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
 
+    def build_result_message(self, wrapper_res: dict, wrapper_index, total, separator):
+        spaces_ = len(str(total))
+        if wrapper_res["result_as_text"]:
+            rat = wrapper_res["result_as_text"]
+        else:
+            rat = f"(TC: {threading.active_count()}) "
+            rat += "OK" if wrapper_res["result"] is True else "FAIL"
+        return (
+            f"{(wrapper_index + 1):{spaces_}d}/{total}"
+            + " - "
+            + rat
+            + f"{separator}"
+            + wrapper_res["image_name"]
+            + (
+                f" - {wrapper_res['error_message']}"
+                if wrapper_res["error_message"]
+                else ""
+            )
+            + f"{separator}"
+            + f"Image processed in: {wrapper_res['time_spent']}"
+        )
+
     def handle_result(self, wrapper_res: dict, wrapper_index, total):
         if not wrapper_res:
             logger.error("Process error - UNKNOWN ERROR")
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            spaces_ = len(str(total))
-            msg = (
-                f"{(wrapper_index + 1):{spaces_}d}/{total}"
-                + " - "
-                + (
-                    wrapper_res["result_as_text"]
-                    if wrapper_res["result_as_text"]
-                    else f'{"OK" if wrapper_res["result"] is True else "FAIL"}'
-                )
-                + " >>> "
-                + wrapper_res["image_name"]
-                + (
-                    f" - {wrapper_res['error_message']}"
-                    if wrapper_res["error_message"]
-                    else ""
-                )
+            msg = self.build_result_message(
+                wrapper_res=wrapper_res,
+                wrapper_index=wrapper_index,
+                total=total,
+                separator=" >>> ",
             )
             logger.info(msg)
             if wrapper_res["result"] is not True:
@@ -172,24 +184,11 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            spaces_ = len(str(total))
-            msg = (
-                f"{(wrapper_index + 1):{spaces_}d}/{total}"
-                + " - "
-                + (
-                    wrapper_res["result_as_text"]
-                    if wrapper_res["result_as_text"]
-                    else f'{"OK" if wrapper_res["result"] is True else "FAIL"}'
-                )
-                + "<br>"
-                + wrapper_res["image_name"]
-                + (
-                    f"<br> {wrapper_res['error_message']}"
-                    if wrapper_res["error_message"]
-                    else ""
-                )
-                + "<br>"
-                + f"Image processed in: {wrapper_res['time_spent']}"
+            msg = self.build_result_message(
+                wrapper_res=wrapper_res,
+                wrapper_index=wrapper_index,
+                total=total,
+                separator="<br>",
             )
             logger.info(msg)
             if wrapper_res["result"] is not True:
