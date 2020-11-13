@@ -1,3 +1,4 @@
+from ipapi.tools.folders import ipso_folders
 from uuid import uuid4
 import json
 from datetime import datetime as dt
@@ -87,13 +88,6 @@ class PipelineSettings(IptParamHolder):
             default_value=eh.ERR_LVL_EXCEPTION,
             values={i: eh.error_level_to_str(i) for i in [0, 10, 20, 30, 35, 40, 50]},
             hint="If any error of the selected level or higher happens the process will halt",
-        )
-        self.add_text_output(
-            is_single_line=True,
-            name="image_output_path",
-            desc="Images output folder",
-            default_value="",
-            hint="Path where images will be copied, if not absolute, will be relative to output CSV data file",
         )
 
     def params_to_dict(
@@ -465,10 +459,8 @@ class ModuleNode(Node):
         wrapper = self.root.parent.wrapper
 
         if not self.last_result:
-            if self.tool.has_param("path") and self.root.parent.image_output_path:
-                self.tool.set_value_of(
-                    key="path", value=self.root.parent.image_output_path
-                )
+            if hasattr(self.tool, "output_path") and self.root.parent.image_output_path:
+                self.tool.output_path = self.root.parent.image_output_path
             if target_module == self.uuid and grid_search_mode:
                 self._execute_grid_search(call_back=call_back)
                 self.last_result = {}
@@ -1360,7 +1352,14 @@ class LoosePipeline(object):
         )
         for module in self.root.iter_items(types=("modules",)):
             self.wrapper.forced_storage_images_list.extend(module.tool.required_images)
-        if options is not None:
+        if self.image_output_path:
+            pass
+        elif options is None:
+            self.image_output_path = ipso_folders.get_path(
+                key="image_output",
+                force_creation=False,
+            )
+        else:
             self.image_output_path = self.wrapper.dst_path
 
         # Prepare data holder
@@ -1657,14 +1656,6 @@ class LoosePipeline(object):
             value=1 if value is True else 0,
             update_widgets=False,
         )
-
-    @property
-    def image_output_path(self):
-        return self.settings.get_value_of("image_output_path")
-
-    @image_output_path.setter
-    def image_output_path(self, value):
-        self.settings.set_value_of("image_output_path", value)
 
     @property
     def stop_on(self) -> int:

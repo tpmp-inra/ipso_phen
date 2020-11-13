@@ -15,20 +15,19 @@ from ipapi.tools import regions
 class IptCopyOrRenameImage(IptBaseAnalyzer):
     def build_params(self):
         self.add_enabled_checkbox()
-        self.add_text_input(
-            name="path",
-            desc="Target folder",
-            default_value="",
-            hint="Can be overridden at process call",
-        )
         self.add_combobox(
             name="source_image",
             desc="Image to copy",
             default_value="source",
-            values=dict(source="Source image", custom="Select from name below",),
+            values=dict(
+                source="Source image",
+                custom="Select from name below",
+            ),
         )
         self.add_text_input(
-            name="named_source", desc="Custom image name", default_value="mask",
+            name="named_source",
+            desc="Custom image name",
+            default_value="mask",
         )
         self.add_file_naming()
         self.add_roi_selector()
@@ -127,10 +126,12 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 else:
                     r = None
                 if r is not None:
-                    img = ipc.resize_image(src_img=img, target_rect=r, keep_aspect_ratio=kar)
+                    img = ipc.resize_image(
+                        src_img=img, target_rect=r, keep_aspect_ratio=kar
+                    )
 
                 # Copy image
-                force_directories(self.get_value_of("path"))
+                force_directories(self.output_path)
                 cv2.imwrite(filename=dst_path, img=img)
                 res = True
             else:
@@ -166,8 +167,12 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
         "dictionary"
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        self.set_value_of(
-            "path", os.path.join(os.path.dirname(__file__), "..", "test", "output_files", "")
+        self.output_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "test",
+            "output_files",
+            "",
         )
 
     @property
