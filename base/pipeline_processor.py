@@ -440,6 +440,8 @@ class PipelineProcessor:
         for i, csv_file in enumerate(csv_lst):
             try:
                 dataframe = dataframe.append(pd.read_csv(csv_file))
+            except pd.errors.EmptyDataError:
+                pass
             except Exception as e:
                 logger.exception("Merge error")
             yield {"step": i, "total": total}
