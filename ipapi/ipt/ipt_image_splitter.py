@@ -13,12 +13,6 @@ from ipapi.base.ip_common import ToolFamily
 
 class IptImageSplitter(IptBase):
     def build_params(self):
-        self.add_text_input(
-            name="path",
-            desc="Target folder",
-            default_value="",
-            hint="Can be overridden at process call",
-        )
         self.add_source_selector(default_value="source")
         self.add_text_input(
             name="exp",
@@ -36,7 +30,11 @@ class IptImageSplitter(IptBase):
             name="line_count", desc="Line count", default_value=1, minimum=1, maximum=20
         )
         self.add_slider(
-            name="column_count", desc="Column count", default_value=1, minimum=1, maximum=20
+            name="column_count",
+            desc="Column count",
+            default_value=1,
+            minimum=1,
+            maximum=20,
         )
         self.add_slider(
             name="padding_hor",
@@ -54,7 +52,9 @@ class IptImageSplitter(IptBase):
             maximum=100,
             hint="Vertical padding applied to the slices, will apply crop",
         )
-        self.add_checkbox(name="write_to_disc", desc="Save images to disc", default_value=1)
+        self.add_checkbox(
+            name="write_to_disc", desc="Save images to disc", default_value=1
+        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -93,10 +93,9 @@ class IptImageSplitter(IptBase):
             h, w = img.shape[:2]
             h_step, w_step = h // line_count, w // column_count
 
-            dst_path = self.get_value_of("path")
-            if not dst_path:
+            if not self.output_path:
                 wrapper.error_holder.add_error(
-                    f"Failed : Missing folder parameter", target_logger=logger
+                    "Failed : Missing folder parameter", target_logger=logger
                 )
             else:
                 for i in range(0, line_count):
@@ -110,7 +109,10 @@ class IptImageSplitter(IptBase):
                         ]
                         wrapper.store_image(slice_, file_name)
                         if write_to_disc:
-                            cv2.imwrite(os.path.join(dst_path, f"{file_name}{ext}"), slice_)
+                            cv2.imwrite(
+                                os.path.join(self.output_path, f"{file_name}{ext}"),
+                                slice_,
+                            )
 
                 res = True
         except Exception as e:

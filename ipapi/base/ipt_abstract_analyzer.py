@@ -6,6 +6,7 @@ class IptBaseAnalyzer(IptBase, ABC):
     def __init__(self, wrapper=None, **kwargs):
         super().__init__(wrapper, **kwargs)
         self.data_dict = {}
+        self.output_path = ""
 
     def add_value(self, key, value, force_add: bool = False):
         if force_add or (self.get_value_of(key=key) == 1):

@@ -128,7 +128,7 @@ class IpsoFolders(dict):
 
     @property
     def dynamic(self):
-        return {k: v for k, v in self.items() if v.dynamic is False}
+        return {k: v for k, v in self.items() if v.dynamic is True}
 
 
 ipso_folders = IpsoFolders(
