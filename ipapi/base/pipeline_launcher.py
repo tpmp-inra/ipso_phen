@@ -5,6 +5,7 @@ import logging
 from timeit import default_timer as timer
 
 import pandas as pd
+from ipapi.database.base import DbInfo
 import tqdm
 
 import ipapi.database.base as dbb
@@ -94,6 +95,8 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         excluded=_get_key("excluded", res, overrides, []),
         overwrite=_get_key("overwrite", res, overrides, False),
         build_annotation_csv=_get_key("build_annotation_csv", res, overrides, False),
+        database=_get_key("database", res, overrides, ""),
+        experiment=_get_key("experiment", res, overrides, ""),
     )
 
 
@@ -127,13 +130,28 @@ def launch(**kwargs):
 
     # Retrieve images
     image_list_ = res.get("images", None)
-    if image_list_ is None or not isinstance(image_list_, list) or len(image_list_) < 1:
-        exit_error_message("No images to process")
-        return 1
 
     # Build database
     db_data = res.get("database_data", None)
-    db = dbf.db_info_to_database(dbb.DbInfo(**db_data)) if db_data is not None else None
+    if db_data is None:
+        database = res.get("database", None)
+        experiment = res.get("experiment", None)
+        if database is None or experiment is None:
+            db = None
+        else:
+            db = dbf.db_info_to_database(
+                DbInfo(
+                    display_name=experiment,
+                    target=database,
+                    dbms="pandas",
+                )
+            )
+            if "sub_folder_name" not in res or not res["sub_folder_name"]:
+                res["sub_folder_name"] = experiment
+            if "csv_file_name" not in res or not res["csv_file_name"]:
+                res["csv_file_name"] = f"{experiment.lower()}_raw_data"
+    else:
+        db = dbf.db_info_to_database(dbb.DbInfo(**db_data))
 
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
@@ -169,6 +187,23 @@ def launch(**kwargs):
         exit_error_message(f"Failed to load script: {repr(e)}")
         return 1
 
+    # Build pipeline processor
+    pp = PipelineProcessor(
+        database=db.copy(),
+        dst_path=output_folder_,
+        overwrite=res["overwrite_existing"],
+        seed_output=res["append_time_stamp"],
+        group_by_series=res["generate_series_id"],
+        store_images=False,
+    )
+    if not image_list_:
+        pp.grab_files_from_data_base(
+            experiment=db.db_info.display_name.lower(),
+            **db.main_selector,
+        )
+    else:
+        pp.accepted_files = image_list_
+
     logger.info("Process summary")
     logger.info("_______________")
     logger.info(f'database: {res.get("database_data", None)}')
@@ -180,23 +215,18 @@ def launch(**kwargs):
     logger.info(f'Generate series ID: {res["generate_series_id"]}')
     logger.info(f'Series ID time delta allowed: {res["series_id_time_delta"]}')
     logger.info(f'Build annotation ready CSV: {res["build_annotation_csv"]}')
-    logger.info(f"Images: {len(image_list_)}")
+    logger.info(f"Images: {len(pp.accepted_files)}")
     logger.info(f"Concurrent processes count: {mpc}")
     logger.info(f"Script summary: {str(script)}")
 
-    # Build pipeline processor
-    pp = PipelineProcessor(
-        database=db.copy(),
-        dst_path=output_folder_,
-        overwrite=res["overwrite_existing"],
-        seed_output=res["append_time_stamp"],
-        group_by_series=res["generate_series_id"],
-        store_images=False,
-    )
+    if pp.accepted_files is None or len(pp.accepted_files) < 1:
+        exit_error_message("No images to process")
+        return 1
+
     pp.progress_callback = kwargs.get("progress_callback", None)
     pp.error_callback = kwargs.get("error_callback", None)
     pp.ensure_root_output_folder()
-    pp.accepted_files = image_list_
+
     pp.script = script
     if not pp.accepted_files:
         logger.error("Nothing to precess")
@@ -238,9 +268,9 @@ def launch(**kwargs):
         print(f"{preffix} - Disease index file")
 
     groups_to_process_count = len(groups_to_process)
-    # if groups_to_process_count > 0:
-    #     pp.multi_thread = mpc
-    #     pp.process_groups(groups_list=groups_to_process, target_database=db)
+    if groups_to_process_count > 0:
+        pp.multi_thread = mpc
+        pp.process_groups(groups_list=groups_to_process)
 
     # Merge dataframe
     pp.merge_result_files(csv_file_name=csv_file_name + ".csv")

@@ -25,7 +25,7 @@ class FileHandlerBase(ABC):
         self._plant = ""
         self._camera = ""
         self._view_option = ""
-        self._date_time = dt.now()
+        self._date_time = None
         self._linked_images = []
         self._database = None
         self._cache_file_path = ""
@@ -36,23 +36,26 @@ class FileHandlerBase(ABC):
         return self.file_path
 
     def __str__(self):  # Human readable
-        return (
-            f"[exp:{self.experiment}]"
-            f"[plant:{self.plant}]"
-            f"[date:{self.condensed_date}]"
-            f"[camera:{self.camera}]"
-            f"[view_option:{self.view_option}]"
-        )
+        if self._date_time:
+            return (
+                f"[exp:{self.experiment}]"
+                f"[plant:{self.plant}]"
+                f"[date:{self.condensed_date}]"
+                f"[camera:{self.camera}]"
+                f"[view_option:{self.view_option}]"
+            )
+        else:
+            return self.file_name
 
     def load_from_database(self, address, port, user, pwd):
         if os.path.isdir(ipso_folders.get_path("mass_storage", False)) and os.path.isfile(
             self.cache_file_path
         ):
-            logger.info(f"Retrieved from cache: {str(self)}")
+            logger.debug(f"Retrieved from cache: {str(self)}")
             return self.load_from_harddrive(self.cache_file_path)
         src_img = None
         try:
-            logger.info(f"Cache default, retrieving from server: {str(self)}")
+            logger.debug(f"Cache default, retrieving from server: {str(self)}")
             p = paramiko.SSHClient()
             p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
             p.connect(
@@ -73,6 +76,7 @@ class FileHandlerBase(ABC):
                         cv2.imwrite(self.cache_file_path, src_img)
             finally:
                 ftp.close()
+            p.close()
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
@@ -411,6 +415,13 @@ class FileHandlerBase(ABC):
 
     @property
     def date_time(self):
+        if not self._date_time and self.db_linked:
+            self._date_time = self._database.query_one(
+                command="SELECT",
+                columns="date_time",
+                additional="ORDER BY date_time ASC",
+                FilePath=self.file_path,
+            )[0]
         return self._date_time
 
     @property
@@ -459,11 +470,11 @@ class FileHandlerBase(ABC):
 
     @property
     def condensed_date(self):
-        return dt.strftime(self._date_time, "%Y%m%d-%H%M%S")
+        return dt.strftime(self.date_time, "%Y%m%d-%H%M%S")
 
     @property
     def luid(self):
-        return f'{self.experiment}_{self.plant}_{dt.strftime(self._date_time, "%Y%m%d%H%M%S")}_{self.camera}_{self.view_option}'
+        return f'{self.experiment}_{self.plant}_{dt.strftime(self.date_time, "%Y%m%d%H%M%S")}_{self.camera}_{self.view_option}'
 
     @property
     def is_vis(self):

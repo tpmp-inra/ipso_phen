@@ -14,13 +14,7 @@ class ImageWrapper:
         return self.file_path
 
     def __str__(self):  # Human readable
-        return (
-            f"[exp:{self.experiment}]"
-            f"[plant:{self.plant}]"
-            f"[date:{self.date_str}]"
-            f"[camera:{self.camera}]"
-            f"[view_option:{self.view_option}]"
-        )
+        return str(self._file_handler)
 
     def __eq__(self, other):
         return self.file_name == other.file_name

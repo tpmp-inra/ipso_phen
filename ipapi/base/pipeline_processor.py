@@ -1,11 +1,14 @@
 import multiprocessing as mp
 import os
+import sys
 from collections import Counter, defaultdict
 from collections import namedtuple
 import logging
 from time import sleep
 from timeit import default_timer as timer
 from typing import Union
+import threading
+import gc
 
 import pandas as pd
 from tqdm import tqdm
@@ -14,8 +17,12 @@ from ipapi.file_handlers.fh_base import file_handler_factory
 from ipapi.tools.comand_line_wrapper import ArgWrapper
 from ipapi.tools.common_functions import time_method, force_directories, format_time
 from ipapi.tools.image_list import ImageList
+from ipapi.base.ip_abstract import BaseImageProcessor
 
 logger = logging.getLogger(__name__)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+USE_TQDM = False
 
 
 def _dummy_worker(args):
@@ -39,6 +46,13 @@ def _pipeline_worker(arg):
 
     start_time = timer()
     try:
+        # wrapper = BaseImageProcessor(
+        #     file_path,
+        #     options=options,
+        #     database=db,
+        # )
+        # bool_res = wrapper.check_source_image()
+
         bool_res = script.execute(
             src_image=file_path if isinstance(file_path, str) else file_path[0],
             silent_mode=True,
@@ -64,6 +78,7 @@ def _pipeline_worker(arg):
     else:
         return {
             "result": bool_res,
+            # "result_as_text": "",
             "result_as_text": script.text_result,
             "image_name": "Unknown" if script.wrapper is None else str(script.wrapper),
             "error_message": "",
@@ -104,6 +119,7 @@ class PipelineProcessor:
         self._tqdm = None
         self._progress_total = 0
         self._progress_step = 0
+        self._last_garbage_collected = timer()
 
     def build_files_list(self, src_path: str, flatten_list=True, **kwargs):
         """Build a list containing all the files that will be parsed
@@ -135,34 +151,50 @@ class PipelineProcessor:
         if not os.path.exists(self.options.dst_path):
             os.makedirs(self.options.dst_path)
 
+    def log_result(self, wrapper_res: dict, wrapper_index, total, separator):
+        spaces_ = len(str(total))
+        if wrapper_res["result_as_text"]:
+            rat = wrapper_res["result_as_text"]
+        else:
+            rat = "OK" if wrapper_res["result"] is True else "FAIL"
+            rat += f" (TC: {threading.active_count()})"
+        if timer() - self._last_garbage_collected > 60:
+            self._last_garbage_collected = timer()
+            gc.collect()
+            rat += " (GC)"
+        msg = (
+            f"{(wrapper_index + 1):{spaces_}d}/{total}"
+            + " - "
+            + rat
+            + f"{separator}"
+            + wrapper_res["image_name"]
+            + (
+                f" - {wrapper_res['error_message']}"
+                if wrapper_res["error_message"]
+                else ""
+            )
+            + f"{separator}"
+            + f"Image processed in: {wrapper_res['time_spent']}"
+        )
+        logger.info(msg)
+        if wrapper_res["result"] is not True:
+            self.report_error(logging.ERROR, msg)
+        if wrapper_res["result"] is not True:
+            self._process_errors += 1
+        return msg
+
     def handle_result(self, wrapper_res: dict, wrapper_index, total):
         if not wrapper_res:
             logger.error("Process error - UNKNOWN ERROR")
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            spaces_ = len(str(total))
-            msg = (
-                f"{(wrapper_index + 1):{spaces_}d}/{total}"
-                + " - "
-                + (
-                    wrapper_res["result_as_text"]
-                    if wrapper_res["result_as_text"]
-                    else f'{"OK" if wrapper_res["result"] is True else "FAIL"}'
-                )
-                + " >>> "
-                + wrapper_res["image_name"]
-                + (
-                    f" - {wrapper_res['error_message']}"
-                    if wrapper_res["error_message"]
-                    else ""
-                )
+            self.log_result(
+                wrapper_res=wrapper_res,
+                wrapper_index=wrapper_index,
+                total=total,
+                separator=" >>> ",
             )
-            logger.info(msg)
-            if wrapper_res["result"] is not True:
-                self.report_error(logging.ERROR, msg)
-            if wrapper_res["result"] is not True:
-                self._process_errors += 1
         self.update_progress()
 
     def yield_handle_result(self, wrapper_res: dict, wrapper_index, total):
@@ -172,30 +204,12 @@ class PipelineProcessor:
             self.report_error(logging.ERROR, "Process error - UNKNOWN ERROR")
             self._process_errors += 1
         else:
-            spaces_ = len(str(total))
-            msg = (
-                f"{(wrapper_index + 1):{spaces_}d}/{total}"
-                + " - "
-                + (
-                    wrapper_res["result_as_text"]
-                    if wrapper_res["result_as_text"]
-                    else f'{"OK" if wrapper_res["result"] is True else "FAIL"}'
-                )
-                + "<br>"
-                + wrapper_res["image_name"]
-                + (
-                    f"<br> {wrapper_res['error_message']}"
-                    if wrapper_res["error_message"]
-                    else ""
-                )
-                + "<br>"
-                + f"Image processed in: {wrapper_res['time_spent']}"
+            msg = self.log_result(
+                wrapper_res=wrapper_res,
+                wrapper_index=wrapper_index,
+                total=total,
+                separator="<br>",
             )
-            logger.info(msg)
-            if wrapper_res["result"] is not True:
-                self.report_error(logging.ERROR, msg)
-            if wrapper_res["result"] is not True:
-                self._process_errors += 1
         yield {
             "step": self._progress_step,
             "total": self._progress_total,
@@ -207,7 +221,8 @@ class PipelineProcessor:
         if yield_mode is True:
             pass
         elif self.progress_callback is None:
-            self._tqdm = tqdm(total=total, desc=desc)
+            if USE_TQDM:
+                self._tqdm = tqdm(total=total, desc=desc)
         else:
             self.progress_callback(step=0, total=total)
         self._progress_total = total
@@ -215,7 +230,8 @@ class PipelineProcessor:
 
     def update_progress(self):
         if self.progress_callback is None:
-            self._tqdm.update(1)
+            if USE_TQDM:
+                self._tqdm.update(1)
         else:
             self.progress_callback(step=self._progress_step, total=self._progress_total)
             self._progress_step += 1
@@ -236,7 +252,7 @@ class PipelineProcessor:
             )
 
     def close_progress(self):
-        if self._tqdm is not None:
+        if USE_TQDM and self._tqdm is not None:
             self._tqdm.close()
 
     def check_abort(self):
@@ -424,6 +440,8 @@ class PipelineProcessor:
         for i, csv_file in enumerate(csv_lst):
             try:
                 dataframe = dataframe.append(pd.read_csv(csv_file))
+            except pd.errors.EmptyDataError:
+                pass
             except Exception as e:
                 logger.exception("Merge error")
             yield {"step": i, "total": total}
