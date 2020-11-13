@@ -42,10 +42,11 @@ class FileHandlerPhenopsis(FileHandlerBase):
                 date_time_str,
                 self._opaque,
             ] = self.file_name_no_ext.split(";")
-            try:
-                self._date_time = dt.strptime(date_time_str, "%Y,%m,%d-%Hh%Mm%Ss")
-            except ValueError:
-                self._date_time = dt.strptime(date_time_str, "%Y%m%d-%Hh%Mm%Ss")
+            if not self.db_linked:
+                try:
+                    self._date_time = dt.strptime(date_time_str, "%Y,%m,%d-%Hh%Mm%Ss")
+                except ValueError:
+                    self._date_time = dt.strptime(date_time_str, "%Y%m%d-%Hh%Mm%Ss")
             if "fluo-" in self._view_option.lower():
                 self._camera = "cf"
                 if self.is_cf_calc:
