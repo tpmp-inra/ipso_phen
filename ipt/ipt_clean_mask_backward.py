@@ -13,7 +13,7 @@ class IptCleanMaskBackward(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
         self.add_text_input(
-            name="path",
+            name="mask_search_path",
             desc="Target folder",
             default_value="",
             hint="Can be overridden at process call",
@@ -32,13 +32,16 @@ class IptCleanMaskBackward(IptBase):
                 mask = self.get_mask()
                 if mask is None:
                     wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                        f"FAIL {self.name}: mask must be initialized",
+                        target_logger=logger,
                     )
                     return
 
                 # Retrieve previous mask from database
                 last_mask = None
-                msk_path = os.path.join(self.get_value_of("path"), "masks", "")
+                msk_path = os.path.join(
+                    self.get_value_of("mask_search_path"), "masks", ""
+                )
                 if not os.path.isdir(msk_path):
                     wrapper.error_holder.add_error(
                         f"Warning {self.name}: no previous mask", target_logger=logger
@@ -61,7 +64,9 @@ class IptCleanMaskBackward(IptBase):
                     i = -1
                 if 0 < i < len(ret):
                     last_mask_path = os.path.join(
-                        self.get_value_of("path"), "masks", os.path.basename(ret[i - 1][0])
+                        self.get_value_of("mask_search_path"),
+                        "masks",
+                        os.path.basename(ret[i - 1][0]),
                     )
                     if os.path.isfile(last_mask_path):
                         try:

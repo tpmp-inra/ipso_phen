@@ -18,12 +18,6 @@ class IptDataViz(IptBaseAnalyzer):
             default_value=0,
         )
         self.add_text_input(
-            name="path",
-            desc="Target folder",
-            default_value="",
-            hint="Can be overridden at process call",
-        )
-        self.add_text_input(
             name="img_name",
             desc="Name in csv",
             default_value="img",
@@ -165,7 +159,7 @@ class IptDataViz(IptBaseAnalyzer):
                         value=dst_path,
                         force_add=True,
                     )
-                    force_directories(self.get_value_of("path"))
+                    force_directories(self.output_path)
                     cv2.imwrite(filename=dst_path, img=self.result)
                 wrapper.store_image(self.result, "visualization")
                 self.demo_image = self.result

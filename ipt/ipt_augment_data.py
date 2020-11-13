@@ -13,12 +13,6 @@ from ipapi.base.ip_common import ToolFamily
 
 class IptAugmentData(IptBaseAnalyzer):
     def build_params(self):
-        self.add_text_input(
-            name="path",
-            desc="Target folder",
-            default_value="",
-            hint="Can be overridden at process call",
-        )
         self.add_checkbox(
             name="add_sub_folder",
             desc="Put image in subfolder with experiment as its name",
@@ -128,24 +122,25 @@ class IptAugmentData(IptBaseAnalyzer):
             p = self.find_by_name(name="gamma_values")
             gsl = None if p is None else p.decode_string(p.value)
             src_img = wrapper.current_image
-            dst_path = self.get_value_of("path")
             if self.get_value_of("test_only") == 0:
                 try:
-                    force_directories(dst_path)
+                    force_directories(self.output_path)
                 except Exception as e:
                     self.wrapper.error_holder.add_error(
                         f"Unable to create folder: {repr(e)}", target_logger=logger
                     )
-            if not dst_path:
-                wrapper.error_holder.add_error(f"Failed : Missing folder parameter")
+            if not self.output_path:
+                wrapper.error_holder.add_error("Failed : Missing folder parameter")
             elif gsl:
                 self.add_value(key="source_name", value=wrapper.name, force_add=True)
                 for gamma_value in gsl:
-                    self.save_image(image=src_img, gamma=float(gamma_value), path=dst_path)
+                    self.save_image(
+                        image=src_img, gamma=float(gamma_value), path=self.output_path
+                    )
                 res = True
             else:
                 self.add_value(key="source_name", value=wrapper.name, force_add=True)
-                self.save_image(image=src_img, gamma=1, path=dst_path)
+                self.save_image(image=src_img, gamma=1, path=self.output_path)
                 res = True
         except Exception as e:
             wrapper.error_holder.add_error(
@@ -173,8 +168,12 @@ class IptAugmentData(IptBaseAnalyzer):
         return "none"
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        self.set_value_of(
-            "path", os.path.join(os.path.dirname(__file__), "..", "test", "output_files", "")
+        self.output_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "test",
+            "output_files",
+            "",
         )
 
     @property

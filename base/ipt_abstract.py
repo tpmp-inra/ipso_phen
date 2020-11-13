@@ -1069,7 +1069,6 @@ class IptParamHolder(object):
                 f"Copy or rename image FAILED, unknown naming convention: {output_name_mode}"
             )
             return
-        dst_path = self.get_value_of("path")
 
         # Get new extension
         file_ext = self.get_value_of("output_format")
@@ -1079,7 +1078,7 @@ class IptParamHolder(object):
             file_ext = f".{file_ext}"
 
         # Build destination full path
-        return os.path.join(dst_path, f"{dst_name}{file_ext}")
+        return os.path.join(self.output_path, f"{dst_name}{file_ext}")
 
     def reset_grid_search(self):
         for p in self._param_list:
