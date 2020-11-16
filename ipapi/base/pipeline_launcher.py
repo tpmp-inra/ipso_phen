@@ -3,6 +3,7 @@ import json
 from typing import Union
 import logging
 from timeit import default_timer as timer
+import random
 
 import pandas as pd
 from ipapi.database.base import DbInfo
@@ -97,6 +98,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         build_annotation_csv=_get_key("build_annotation_csv", res, overrides, False),
         database=_get_key("database", res, overrides, ""),
         experiment=_get_key("experiment", res, overrides, ""),
+        randomize=_get_key("randomize", res, overrides, False),
     )
 
 
@@ -203,6 +205,9 @@ def launch(**kwargs):
         )
     else:
         pp.accepted_files = image_list_
+
+    if res.get("randomize", False) is True:
+        random.shuffle(pp.accepted_files)
 
     logger.info("Process summary")
     logger.info("_______________")
