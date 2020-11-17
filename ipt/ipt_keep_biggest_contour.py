@@ -57,8 +57,8 @@ class IptKeepBiggestContours(IptBase):
             img = self.wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                logger.error(
+                    f"FAIL {self.name}: mask must be initialized"
                 )
                 return
 
@@ -76,13 +76,9 @@ class IptKeepBiggestContours(IptBase):
 
             res = wrapper.ensure_mask_zone()
             if not res:
-                wrapper.error_holder.add_error("HANDLED FAILURE Mask not where expected to be")
+                logger.error("HANDLED FAILURE Mask not where expected to be")
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             return False
         else:
             return res

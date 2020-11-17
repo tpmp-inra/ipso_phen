@@ -44,9 +44,7 @@ class IptConvertImageToMask(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                f"Convert image to mask FAILED, exception: {repr(e)}", target_logger=logger
-            )
+            logger.error(f"Convert image to mask FAILED, exception: {repr(e)}")
         else:
             pass
         finally:
@@ -54,7 +52,11 @@ class IptConvertImageToMask(IptBase):
 
     @property
     def name(self):
-        return "Convert image to mask (WIP)"
+        return "Convert image to mask"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def package(self):

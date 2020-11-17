@@ -129,7 +129,11 @@ class IptPartialAnalysis(IptBaseAnalyzer):
 
     @property
     def name(self):
-        return "Partial Analysis (WIP)"
+        return "Partial Analysis"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def package(self):

@@ -242,9 +242,7 @@ class IptFixPerspective(IptBase):
                     )
                     wrapper.store_image(image=mask, text="merged_mask")
                 else:
-                    wrapper.error_holder.add_error(
-                        "Unable to merge partial masks", target_logger=logger
-                    )
+                    logger.error("Unable to merge partial masks")
                     res = False
                     return
 
@@ -383,11 +381,7 @@ class IptFixPerspective(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

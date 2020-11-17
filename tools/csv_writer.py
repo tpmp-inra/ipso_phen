@@ -2,6 +2,9 @@ class AbstractCsvWriter:
     def __init__(self):
         self.data_list = {}
 
+    def clear(self):
+        self.data_list = {}
+
     def clean_data(self):
         self.data_list = {k: v for k, v in self.data_list.items() if v is not None}
 
@@ -9,7 +12,10 @@ class AbstractCsvWriter:
         return [key.replace("-", "_") for key in self.data_list.keys()]
 
     def data_to_list(self):
-        return [v.replace(",", " ") if isinstance(v, str) else v for v in self.data_list.values()]
+        return [
+            v.replace(",", " ") if isinstance(v, str) else v
+            for v in self.data_list.values()
+        ]
 
     def has_csv_key(self, key):
         return key in self.data_list.keys()
@@ -34,6 +40,9 @@ class AbstractCsvWriter:
         self.update_csv_value("image_height", img.shape[0])
         if "scale_width" in self.data_list.keys():
             if scale_width == 1:
-                self.update_csv_value("scale_width", self.data_list["image_width"])
+                self.update_csv_value(
+                    "scale_width",
+                    self.data_list["image_width"],
+                )
             else:
                 self.update_csv_value("scale_width", scale_width)

@@ -37,8 +37,8 @@ class IptMorphology(IptBase):
         try:
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                logger.error(
+                    f"FAIL {self.name}: mask must be initialized"
                 )
                 return
             self.result = self.apply_morphology_from_params(mask.copy())
@@ -78,11 +78,7 @@ class IptMorphology(IptBase):
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:

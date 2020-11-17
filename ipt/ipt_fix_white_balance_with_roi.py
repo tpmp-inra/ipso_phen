@@ -49,9 +49,7 @@ class IptFixWhiteBalanceWithRoi(IptBase):
                     selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 if not rois:
-                    wrapper.error_holder.add_error(
-                        "Warning Fix white balance with ROI, missing ROI", target_logger=logger
-                    )
+                    logger.error("Warning Fix white balance with ROI, missing ROI")
                     rois = [RectangleRegion(width=wrapper.width, height=wrapper.height)]
 
                 patch = wrapper.keep_rois(src_mask=img, tags=rois)
@@ -75,11 +73,7 @@ class IptFixWhiteBalanceWithRoi(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

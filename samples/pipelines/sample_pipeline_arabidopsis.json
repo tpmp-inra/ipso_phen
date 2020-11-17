@@ -2,16 +2,28 @@
   "title": "IPSO Phen pipeline V2",
   "name": "sample_pipeline_arabidopsis",
   "description": "Demo pipeline, to be use with sample arabidopsis image",
-  "date": "2020_Mar_05_15-06-04",
+  "date": "2020_Nov_17_09-03-47",
   "version": "0.2.0.0",
   "settings": {
+    "show_tool_result": 1,
+    "show_group_result": 1,
     "debug_mode": 0,
     "allow_step_mosaics": 1,
-    "stop_on": 3,
+    "show_source_image": 0,
+    "tool_group_name_watermark": 0,
+    "stop_on": 35,
     "mosaic_enabled": true,
     "mosaic_images": [
-      ["Fix image", "Hough circles detector keep_roi", "Build mask"],
-      ["Clean mask", "Analyze color l", "Analyze object"]
+      [
+        "Fix image",
+        "Hough circles detector keep_roi",
+        "Build mask"
+      ],
+      [
+        "Clean mask",
+        "Analyze color l",
+        "Analyze object"
+      ]
     ]
   },
   "Pipeline": {
@@ -36,7 +48,7 @@
               "name": "Image transformations",
               "package": "IPSO Phen",
               "class__name__": "IptLinearTransformation",
-              "module__name__": "ip_tools.ipt_linear_transformation",
+              "module__name__": "ipapi.ipt.ipt_linear_transformation",
               "params": {
                 "enabled": 1,
                 "method": "alpha_beta_target",
@@ -70,7 +82,15 @@
             "enabled": true,
             "uuid": "32e19e2e-fde5-4855-97ea-d61e93418407"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       },
       {
         "node_type": "group",
@@ -86,7 +106,7 @@
               "name": "Check exposure",
               "package": "IPSO Phen",
               "class__name__": "IptExposureChecker",
-              "module__name__": "ip_tools.ipt_check_exposure",
+              "module__name__": "ipapi.ipt.ipt_check_exposure",
               "params": {
                 "enabled": 1,
                 "overexposed_limit": 100,
@@ -128,7 +148,15 @@
             "enabled": true,
             "uuid": "78c8cad0-44e9-4209-a482-50af297e0fee"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       },
       {
         "node_type": "group",
@@ -144,9 +172,10 @@
               "name": "Hough circles detector",
               "package": "IPSO Phen",
               "class__name__": "IptHoughCircles",
-              "module__name__": "ip_tools.ipt_hough_circles_detector",
+              "module__name__": "ipapi.ipt.ipt_hough_circles_detector",
               "params": {
-                "enable_cache": 0,
+                "enable_cache": 1,
+                "source_selector": "current_image",
                 "roi_name": "keep_roi",
                 "roi_type": "keep",
                 "roi_shape": "circle",
@@ -174,13 +203,14 @@
                 "canny_first": 0,
                 "canny_second": 255,
                 "kernel_size": 5,
-                "threshold": 170,
+                "threshold": 130,
                 "apply_threshold": 1,
                 "text_overlay": 0,
                 "source_file": "source"
               },
               "grid_search_params": {
                 "enable_cache": "0",
+                "source_selector": "current_image",
                 "roi_name": "unnamed_roi",
                 "roi_type": "keep",
                 "roi_shape": "rectangle",
@@ -218,7 +248,15 @@
             "enabled": true,
             "uuid": "89c51e47-28b3-4a77-b6d8-f9e68899924a"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       },
       {
         "node_type": "group",
@@ -234,7 +272,7 @@
               "name": "Range threshold",
               "package": "IPSO Phen",
               "class__name__": "IptThreshold",
-              "module__name__": "ip_tools.ipt_threshold_binary",
+              "module__name__": "ipapi.ipt.ipt_threshold_binary",
               "params": {
                 "enabled": 1,
                 "channel": "h",
@@ -275,7 +313,7 @@
               "name": "Otsu overthinked",
               "package": "IPSO Phen",
               "class__name__": "IptOtsuOverthinked",
-              "module__name__": "ip_tools.ipt_threshold_otsu_overthinked",
+              "module__name__": "ipapi.ipt.ipt_threshold_otsu_overthinked",
               "params": {
                 "merge_method": "l_and",
                 "h": "disabled",
@@ -323,7 +361,15 @@
             "enabled": true,
             "uuid": "e8c3e762-be86-4923-8a81-0617cc900cc2"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       },
       {
         "node_type": "group",
@@ -339,7 +385,7 @@
               "name": "Apply ROI",
               "package": "TPMP",
               "class__name__": "IptApplyRoi",
-              "module__name__": "ip_tools.ipt_apply_roi",
+              "module__name__": "ipapi.ipt.ipt_apply_roi",
               "params": {
                 "enabled": 1,
                 "roi_names": "keep_roi",
@@ -361,10 +407,18 @@
                 "output_mode": "mask"
               }
             },
-            "enabled": 1,
+            "enabled": 2,
             "uuid": "d62b5f7b-3a95-4f21-8342-ce62cc39e1b4"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       },
       {
         "node_type": "group",
@@ -380,7 +434,7 @@
               "name": "Keep linked Contours",
               "package": "IPSO Phen",
               "class__name__": "IptKeepLinkedContours",
-              "module__name__": "ip_tools.ipt_keep_linked_contours",
+              "module__name__": "ipapi.ipt.ipt_keep_linked_contours",
               "params": {
                 "tolerance_distance": 10,
                 "tolerance_area": 5000,
@@ -402,7 +456,7 @@
                 "use_existing_mask": "1"
               }
             },
-            "enabled": true,
+            "enabled": 2,
             "uuid": "4c5e1077-5fe2-4449-8913-891e2167a362"
           },
           {
@@ -411,7 +465,7 @@
               "name": "Morphology",
               "package": "IPSO Phen",
               "class__name__": "IptMorphology",
-              "module__name__": "ip_tools.ipt_morphology",
+              "module__name__": "ipapi.ipt.ipt_morphology",
               "params": {
                 "morph_op": "close",
                 "kernel_size": 3,
@@ -429,10 +483,43 @@
                 "roi_selection_mode": "all_linked"
               }
             },
-            "enabled": true,
+            "enabled": 2,
             "uuid": "cafbec6a-82dc-4da3-a081-b7d8706abac9"
+          },
+          {
+            "node_type": "module",
+            "tool": {
+              "name": "Filter contour by size",
+              "package": "TPMP",
+              "class__name__": "IptFilterContourBySize",
+              "module__name__": "ipapi.ipt.ipt_filter_contour_by_size",
+              "params": {
+                "enabled": 1,
+                "min_threshold": 500,
+                "max_threshold": 100000000,
+                "roi_names": "",
+                "roi_selection_mode": "all_linked"
+              },
+              "grid_search_params": {
+                "enabled": "1",
+                "min_threshold": "0",
+                "max_threshold": "100000000",
+                "roi_names": "",
+                "roi_selection_mode": "all_linked"
+              }
+            },
+            "enabled": 0,
+            "uuid": "b07849e5-6eac-42db-add4-75c708235662"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       },
       {
         "node_type": "group",
@@ -448,7 +535,7 @@
               "name": "Observation data",
               "package": "IPSO Phen",
               "class__name__": "IptAnalyseObservation",
-              "module__name__": "ip_tools.ipt_analyze_observation",
+              "module__name__": "ipapi.ipt.ipt_analyze_observation",
               "params": {
                 "experiment": 1,
                 "plant": 1,
@@ -486,7 +573,7 @@
               "name": "Analyze chlorophyll",
               "package": "IPSO Phen",
               "class__name__": "IptAnalyzeChlorophyll",
-              "module__name__": "ip_tools.ipt_analyse_chlorophyll",
+              "module__name__": "ipapi.ipt.ipt_analyse_chlorophyll",
               "params": {
                 "chlorophyll_mean": 1,
                 "chlorophyll_std_dev": 1,
@@ -510,7 +597,7 @@
               "name": "Analyze color",
               "package": "IPSO Phen",
               "class__name__": "IptAnalyzeColor",
-              "module__name__": "ip_tools.ipt_analyze_color",
+              "module__name__": "ipapi.ipt.ipt_analyze_color",
               "params": {
                 "normalize": 0,
                 "remove_outliers": 0,
@@ -550,9 +637,10 @@
               "name": "Analyze object",
               "package": "IPSO Phen",
               "class__name__": "IptAnalyzeObject",
-              "module__name__": "ip_tools.ipt_analyze_object",
+              "module__name__": "ipapi.ipt.ipt_analyze_object",
               "params": {
                 "area": 1,
+                "perimeter": 1,
                 "centroid_x": 1,
                 "centroid_y": 1,
                 "hull_area": 1,
@@ -582,6 +670,7 @@
               },
               "grid_search_params": {
                 "area": "1",
+                "perimeter": "1",
                 "centroid_x": "1",
                 "centroid_y": "1",
                 "hull_area": "1",
@@ -614,8 +703,24 @@
             "enabled": true,
             "uuid": "e7a166f8-7ebe-460a-8944-074c120c9d1a"
           }
-        ]
+        ],
+        "execute_filters": {
+          "experiment": "",
+          "plant": "",
+          "date": "",
+          "time": "",
+          "camera": "",
+          "view_option": ""
+        }
       }
-    ]
+    ],
+    "execute_filters": {
+      "experiment": "",
+      "plant": "",
+      "date": "",
+      "time": "",
+      "camera": "",
+      "view_option": ""
+    }
   }
 }

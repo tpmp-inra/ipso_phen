@@ -94,9 +94,7 @@ class IptImageSplitter(IptBase):
             h_step, w_step = h // line_count, w // column_count
 
             if not self.output_path:
-                wrapper.error_holder.add_error(
-                    "Failed : Missing folder parameter", target_logger=logger
-                )
+                logger.error("Failed : Missing folder parameter")
             else:
                 for i in range(0, line_count):
                     for j in range(0, column_count):
@@ -129,7 +127,11 @@ class IptImageSplitter(IptBase):
 
     @property
     def name(self):
-        return "Image slicer (WIP)"
+        return "Image slicer"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def real_time(self):

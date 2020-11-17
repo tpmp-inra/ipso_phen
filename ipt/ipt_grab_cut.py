@@ -42,7 +42,7 @@ class IptGrabCut(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-        Grab cut (WIP):
+        Grab cut:
         Implementation of OpenCV grab cut function.
 
                 Better if used with a ROI.
@@ -74,9 +74,7 @@ class IptGrabCut(IptBase):
             # Get starting mask
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             # Get ROI
@@ -136,7 +134,9 @@ class IptGrabCut(IptBase):
             )
 
             wrapper.store_image(
-                cv2.applyColorMap(self.to_uint8(gc_in_mask, normalize=True), int(color_map)),
+                cv2.applyColorMap(
+                    self.to_uint8(gc_in_mask, normalize=True), int(color_map)
+                ),
                 "grabcut_false_color_mask",
             )
 
@@ -145,7 +145,10 @@ class IptGrabCut(IptBase):
 
             wrapper.store_image(
                 image=self.wrapper.draw_image(
-                    src_image=img, src_mask=self.result, background="bw", foreground="source"
+                    src_image=img,
+                    src_mask=self.result,
+                    background="bw",
+                    foreground="source",
                 ),
                 text="result_on_bw",
             )
@@ -168,11 +171,7 @@ class IptGrabCut(IptBase):
                 wrapper.store_image(canvas, "mosaic")
 
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass
@@ -181,7 +180,11 @@ class IptGrabCut(IptBase):
 
     @property
     def name(self):
-        return "Grab cut (WIP)"
+        return "Grab cut"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def real_time(self):

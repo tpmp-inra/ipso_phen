@@ -14,10 +14,25 @@ class IptRoiComposition(IptBase):
             name="op",
             desc="Composition method",
             default_value="intersection",
-            values={"intersection": "Intersection of ROIs", "union": "Union of ROIs",},
+            values={
+                "intersection": "Intersection of ROIs",
+                "union": "Union of ROIs",
+            },
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        ROI composition:
+        Create an ROI by composing other ROIs
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Composition method (op):
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False

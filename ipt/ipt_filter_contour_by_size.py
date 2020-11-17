@@ -53,8 +53,8 @@ class IptFilterContourBySize(IptBase):
             if self.get_value_of("enabled") == 1:
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                    logger.error(
+                        f"FAIL {self.name}: mask must be initialized"
                     )
                     return
 

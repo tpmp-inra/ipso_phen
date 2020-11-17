@@ -88,8 +88,8 @@ class FileHandlerBase(ABC):
         src_img = None
         try:
             fp = override_path if override_path is not None else self.file_path
-            stream = open(fp, "rb")
-            bytes = bytearray(stream.read())
+            with open(fp, "rb") as stream:
+                bytes = bytearray(stream.read())
             np_array = np.asarray(bytes, dtype=np.uint8)
             src_img = cv2.imdecode(np_array, 3)
             src_img = self.fix_image(src_image=src_img)

@@ -67,8 +67,8 @@ class IptFillMaskHoles(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                    logger.error(
+                        f"FAIL {self.name}: mask must be initialized"
                     )
                     return
 
@@ -132,10 +132,8 @@ class IptFillMaskHoles(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
+            logger.error(
+                f'Failed to process {self. name}: "{repr(e)}"'
             )
         else:
             pass

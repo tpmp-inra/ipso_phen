@@ -5,6 +5,7 @@ import unittest
 
 abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
+sys.path.insert(0, os.getcwd())
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 # When running tests from ipapi
@@ -30,7 +31,7 @@ class TestIptOtsuOverthinked(unittest.TestCase):
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptOtsuOverthinked()
-        if "(wip)" not in op.name.lower():
+        if not op.is_wip:
             self.assertIsNotNone(
                 op.process_wrapper.__doc__, "Missing docstring for Otsu overthinked"
             )
@@ -54,7 +55,9 @@ class TestIptOtsuOverthinked(unittest.TestCase):
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Otsu overthinked")
-        self.assertIsInstance(op.result, np.ndarray, "Empty result for Otsu overthinked")
+        self.assertIsInstance(
+            op.result, np.ndarray, "Empty result for Otsu overthinked"
+        )
         self.assertEqual(len(op.result.shape), 2, "Masks can only have one channel")
         self.assertEqual(
             np.sum(op.result[op.result != 255]), 0, "Masks values can only be 0 or 255"
@@ -65,11 +68,16 @@ class TestIptOtsuOverthinked(unittest.TestCase):
         op = IptOtsuOverthinked()
         op_doc_name = op.name.replace(" ", "_")
         op_doc_name = "ipt_" + op_doc_name + ".md"
+        doc_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "docs",
+            f"{op_doc_name}",
+        )
         self.assertTrue(
-            os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
-            ),
-            "Missing documentation file for Otsu overthinked",
+            os.path.isfile(doc_path),
+            "Missing doc file for ROI composition {doc_path}",
         )
 
 

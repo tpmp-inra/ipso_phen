@@ -5,13 +5,14 @@ import sys
 
 abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
+sys.path.insert(0, os.getcwd())
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
 from ipapi.tools.common_functions import get_module_classes
 from ipapi.base.ipt_abstract import IptBase
-import ipt
+from ipapi import ipt
 
 # Check PlantCV
 try:
@@ -28,11 +29,26 @@ class TestIptHolder(unittest.TestCase):
         print(__file__)
         tool_fld = os.path.join(os.path.dirname(__file__), "..", "ipt", "")
         self.assertTrue(
-            os.path.isdir(tool_fld), f"Missing root ip tools folder '{tool_fld}'",
+            os.path.isdir(tool_fld),
+            f"Missing root ip tools folder '{tool_fld}'",
         )
 
+    def test_objects(self):
+        """Check objects are created"""
+        for cls in get_module_classes(
+            package=ipt, class_inherits_from=IptBase, remove_abstract=True
+        ):
+            self.assertIsInstance(
+                cls(),
+                cls=cls,
+                msg=f"Failed to create ipt of type {cls.__name__}",
+            )
+
     def test_script_files(self):
-        """Check that fo every file in ipt, there's a corresponding file in the test's folder"""
+        """
+        Check that for every file in ipt, there's a corresponding file in the test's folder.
+        WIP tools will be excluded.
+        """
 
         test_folder = os.path.dirname(__file__)
 
@@ -46,17 +62,10 @@ class TestIptHolder(unittest.TestCase):
         ]
         for script_ in script_list:
             self.assertTrue(
-                os.path.isfile(os.path.join(test_folder, f"test_{os.path.basename(script_)}")),
+                os.path.isfile(
+                    os.path.join(test_folder, f"test_{os.path.basename(script_)}"),
+                ),
                 f"Missing test script for {os.path.basename(script_)}",
-            )
-
-    def test_objects(self):
-        """Check objects are created"""
-        for cls in get_module_classes(
-            package=ipt, class_inherits_from=IptBase, remove_abstract=True
-        ):
-            self.assertIsInstance(
-                cls(), cls=cls, msg=f"Failed to create ipt of type {cls.__name__}"
             )
 
 

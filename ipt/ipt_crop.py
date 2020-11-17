@@ -63,19 +63,20 @@ class IptCrop(IptBaseAnalyzer):
                     selection_mode="all_named",
                 )
                 if len(roi_list) <= 0:
-                    logger.error("One ROI is required")
-                    self.result = None
-                    return
+                    logger.warning("No ROI detected, will return source image")
                 elif len(roi_list) > 1:
                     logger.warning("Multiple ROIs detected, first one will be used")
-                if isinstance(roi_list[0], regions.RectangleRegion):
+                if len(roi_list) <= 0:
+                    roi = None
+                elif isinstance(roi_list[0], regions.RectangleRegion):
                     roi: regions.RectangleRegion = roi_list[0]
                 else:
                     logger.warning("ROI has been converted to rectangle rectangle")
                     roi: regions.RectangleRegion = roi_list[0].as_rect()
 
                 # Crop image
-                img = roi.crop(src_image=img)
+                if roi is not None:
+                    img = roi.crop(src_image=img)
 
                 # Finalize
                 wrapper.store_image(img, "cropped_image")

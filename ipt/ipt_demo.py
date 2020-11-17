@@ -152,8 +152,8 @@ class IptDemo(IptBase):
             wrapper.store_image(image=255 - wrapper.current_image, text="inverted_image")
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                f'Failed to execute: "{repr(e)}"', target_logger=logger
+            logger.error(
+                f'Failed to execute: "{repr(e)}"'
             )
             res = False
         else:
@@ -236,8 +236,8 @@ class IptDemo(IptBase):
                 )
             else:  # This how we handle errors
                 # If the error is added to the wrapper, it will be displayed in the main log
-                wrapper.error_holder.add_error(
-                    "Unknown output mode", target_logger=logger
+                logger.error(
+                    "Unknown output mode"
                 )
                 # We can also create an empty image that will generate another error when storing it
                 img = None
@@ -252,10 +252,8 @@ class IptDemo(IptBase):
             self.result = img
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
+            logger.error(
+                f'Failed to process {self. name}: "{repr(e)}"'
             )
             res = False
         else:

@@ -128,8 +128,8 @@ class IptRemovePlantGuide(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                    logger.error(
+                        f"FAIL {self.name}: mask must be initialized"
                     )
                     return
 

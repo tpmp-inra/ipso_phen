@@ -5,6 +5,7 @@ import unittest
 
 abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
+sys.path.insert(0, os.getcwd())
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 # When running tests from ipapi
@@ -31,8 +32,8 @@ class TestIptCleanMaskBackward(unittest.TestCase):
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptCleanMaskBackward()
-        if "(wip)" not in op.name.lower():
+        if not op.is_wip:
             self.assertIsNotNone(
                 op.process_wrapper.__doc__,
-                "Missing docstring for Clean mask with previous mask (WIP)",
+                "Missing docstring for Clean mask with previous mask",
             )

@@ -134,11 +134,7 @@ class IptHorizontalLineDetector(IptBase):
 
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

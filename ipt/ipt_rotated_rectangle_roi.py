@@ -81,9 +81,7 @@ class IptRotatedRectangleRoi(IptBase):
             else:
                 res = False
         except Exception as e:
-            wrapper.error_holder.add_error(
-                f'Failed to execute: "{repr(e)}"', target_logger=logger
-            )
+            logger.error(f'Failed to execute: "{repr(e)}"')
             res = False
         else:
             pass
@@ -126,11 +124,7 @@ class IptRotatedRectangleRoi(IptBase):
 
             res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"',)
             res = False
         else:
             pass

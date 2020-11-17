@@ -136,8 +136,8 @@ class IptKeepCountoursNearRois(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                    logger.error(
+                        f"FAIL {self.name}: mask must be initialized"
                     )
                     return
 
@@ -153,9 +153,7 @@ class IptKeepCountoursNearRois(IptBase):
                         rois_mask = roi.draw_to(dst_img=rois_mask, line_width=-1, color=255)
                 else:
                     self.result = mask
-                    wrapper.error_holder.add_error(
-                        f"Warning {self.name}: must have at least one ROI", target_logger=logger
-                    )
+                    logger.error(f"Warning {self.name}: must have at least one ROI")
                     res = True
                     return
                 wrapper.store_image(rois_mask, "rois_as_mask")

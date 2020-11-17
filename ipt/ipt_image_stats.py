@@ -68,7 +68,7 @@ class IptImageStats(IptBaseAnalyzer):
             else:
                 return
 
-            img = self.extract_source_from_args(ignore_list=("color_space",))
+            img = wrapper.current_image
             wrapper.store_image(img, "used_source")
 
             text_overlay = []

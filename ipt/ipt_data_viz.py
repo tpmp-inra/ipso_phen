@@ -135,6 +135,42 @@ class IptDataViz(IptBaseAnalyzer):
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Visualization helper:
+        'With the current image and a mask build a visualization for selected features
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Save generated image (save_image):
+            * Name in csv (img_name):
+            * Image output format (output_format):
+            * Output naming convention (output_name):
+            * Prefix or suffix (prefix_suffix):
+            * Pseudo color channel (channel):
+            * Select pseudo color map (color_map):
+            * Foreground (foreground):
+            * Background color (fore_color):
+            * Background (background):
+            * Background color (bcg_color):
+            * Background intensity (bck_grd_luma):
+            * Normalize source image (normalize):
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Contour thickness (contour_thickness):
+            * Add numeric value for contour (cnt_num):
+            * Hull thickness (hull_thickness):
+            * Bounding rectangle thickness (bounding_rec_thickness):
+            * Straight bounding rectangle thickness (straight_bounding_rec_thickness):
+            * Enclosing circle thickness (enclosing_circle_thickness):
+            * Centroid width (centroid_width):
+            * Centroid line width (centroid_line_width):
+            * Add numeric value for centroid x value (cx_num):
+            * Add numeric value for centroid y value (cy_num):
+            * Height thickness (height_thickness):
+            * Width thickness (width_thickness):
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -174,6 +210,9 @@ class IptDataViz(IptBaseAnalyzer):
             pass
         finally:
             return res
+
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        self.set_value_of("save_image", 1)
 
     @property
     def name(self):

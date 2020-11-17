@@ -4,6 +4,7 @@ import unittest
 
 abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
+sys.path.insert(0, os.getcwd())
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 # When running tests from ipapi
@@ -32,7 +33,7 @@ class TestIptCopyOrRenameImage(unittest.TestCase):
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptCopyOrRenameImage()
-        if "(wip)" not in op.name.lower():
+        if not op.is_wip:
             self.assertIsNotNone(
                 op.process_wrapper.__doc__, "Missing docstring for Copy or rename image"
             )
@@ -40,13 +41,6 @@ class TestIptCopyOrRenameImage(unittest.TestCase):
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
-
-    def test_needed_param(self):
-        """Test that class has needed param path"""
-        op = IptCopyOrRenameImage()
-        self.assertTrue(
-            op.has_param("path"), "Missing needed param path for Copy or rename image"
-        )
 
     def test_feature_out(self):
         """Test that when using the basic mask generated script this tool extracts features"""
@@ -89,11 +83,16 @@ class TestIptCopyOrRenameImage(unittest.TestCase):
         op = IptCopyOrRenameImage()
         op_doc_name = op.name.replace(" ", "_")
         op_doc_name = "ipt_" + op_doc_name + ".md"
+        doc_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "docs",
+            f"{op_doc_name}",
+        )
         self.assertTrue(
-            os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
-            ),
-            "Missing documentation file for Copy or rename image",
+            os.path.isfile(doc_path),
+            "Missing doc file for ROI composition {doc_path}",
         )
 
 

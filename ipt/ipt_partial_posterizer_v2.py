@@ -65,6 +65,22 @@ class IptPartialPosterizerV2(IptBase):
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Partial posterizer v2:
+        Replaces dominant colors by other colors. Different algorithm from V1
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Color to use to replace blue dominant pixels (blue_color): Replace value of pixels where blue is dominant and represents more than % value by selected color
+            * Blue channel threshold value (post_blue_value): Blue pixel value threshold (as percentage)
+            * Color to use to replace green dominant pixels (green_color): Replace value of pixels where green is dominant and represents more than % value by selected color
+            * Green channel threshold value (post_green_value): Green pixel value threshold (as percentage)
+            * Color to use to replace red dominant pixels (red_color): Replace value of pixels where red is dominant and represents more than % value by selected color
+            * Red channel threshold value (post_red_value): Red pixel value threshold (as percentage)
+        --------------
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False

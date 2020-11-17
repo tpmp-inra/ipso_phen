@@ -93,8 +93,8 @@ class IptTemperatureTint(IptBase):
                 elif clip_method == "rescale":
                     self.result = self.to_uint8(cv2.merge([b, g, r]))
                 else:
-                    wrapper.error_holder.add_error(
-                        f'Failed : unknown clip_method "{clip_method}"', target_logger=logger
+                    logger.error(
+                        f'Failed : unknown clip_method "{clip_method}"'
                     )
                     return
 
@@ -113,11 +113,7 @@ class IptTemperatureTint(IptBase):
             res = True
 
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass
