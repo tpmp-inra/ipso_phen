@@ -80,9 +80,7 @@ class IptWatershedOpenCv(IptBaseMerger):
                 wrapper.process_image(threshold_only=True)
                 thresh = wrapper.mask
                 if thresh is None:
-                    wrapper.error_holder.add_error(
-                        "Watershed needs a calculated mask to start", target_logger=logger
-                    )
+                    logger.error("Watershed needs a calculated mask to start")
                     return False
 
             if source_type == "cropped_source":
@@ -112,7 +110,9 @@ class IptWatershedOpenCv(IptBaseMerger):
             )
             _, dt = cv2.threshold(dt, distance_threshold, 255, cv2.THRESH_BINARY)
             wrapper.store_image(
-                dt, f"dist_transform_threshold_{self.input_params_as_str()}", text_overlay=True
+                dt,
+                f"dist_transform_threshold_{self.input_params_as_str()}",
+                text_overlay=True,
             )
             labels, ncc = ndimage.label(dt)
             labels = labels * (255 / (ncc + 1))
@@ -151,11 +151,7 @@ class IptWatershedOpenCv(IptBaseMerger):
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:
@@ -163,7 +159,11 @@ class IptWatershedOpenCv(IptBaseMerger):
 
     @property
     def name(self):
-        return "Watershed OpenCV (WIP)"
+        return "Watershed OpenCV"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def real_time(self):

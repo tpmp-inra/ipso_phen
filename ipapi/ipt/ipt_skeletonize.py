@@ -62,8 +62,8 @@ class IptSkeletonize(IptBase):
             # Build mask
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized", target_logger=logger
+                logger.error(
+                    f"FAIL {self.name}: mask must be initialized"
                 )
                 return
 
@@ -96,8 +96,8 @@ class IptSkeletonize(IptBase):
                     text_overlay=text_overlay,
                 )
             else:
-                wrapper.error_holder.add_error(
-                    f"Unknown skeletonize mode {mode}", target_logger=logger
+                logger.error(
+                    f"Unknown skeletonize mode {mode}"
                 )
 
             self.result = skeleton
@@ -111,11 +111,7 @@ class IptSkeletonize(IptBase):
                 )
                 wrapper.store_image(canvas, "mosaic")
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             return False
         else:
             return res

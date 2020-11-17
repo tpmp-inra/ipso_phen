@@ -170,7 +170,7 @@ class IptThresholdDistance(IptBase):
                 try:
                     p0 = all_colors_dict[origin]
                 except Exception as e:
-                    wrapper.error_holder.add_error("Unknown origin", target_logger=logger)
+                    logger.error("Unknown origin")
                     res = False
                     return
 
@@ -222,8 +222,8 @@ class IptThresholdDistance(IptBase):
                     dist_map = np.add(dist_map, np.subtract(c.astype(np.float), p))
                 dist_map[dist_map > 0] = 0
             else:
-                wrapper.error_holder.add_error(
-                    "Unknown distance calculation method", target_logger=logger
+                logger.error(
+                    "Unknown distance calculation method"
                 )
                 res = False
                 return
@@ -279,10 +279,8 @@ class IptThresholdDistance(IptBase):
                     image=self.result, text="image_from_distances", text_overlay=text_overlay
                 )
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
+            logger.error(
+                f'Failed to process {self. name}: "{repr(e)}"'
             )
             res = False
         else:

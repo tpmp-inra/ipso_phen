@@ -7,7 +7,9 @@ import sys
 import subprocess
 import argparse
 import logging
+from matplotlib import use
 from tqdm import tqdm
+
 
 if __name__ == "__main__":
     abspath = os.path.abspath(__file__)
@@ -53,6 +55,7 @@ else:
 
 DEFAULT_TEST_IMAGE = "arabido_small.jpg"
 HELIASEN_TEST_IMAGE = "18HP01U17-CAM11-20180712221558.bmp"
+WIP_CASE = "Work in progress"
 
 
 def add_tab(sc: str) -> str:
@@ -65,15 +68,16 @@ def remove_tab(sc: str) -> str:
 
 class IptHolder(object):
     def __init__(self, **kwargs):
-        self._ipt_list = []
-        self._use_cases = []
+        self.ipt_list = []
+        self.use_cases = [WIP_CASE]
         self._log_callback = None
 
-    def _init_holders(self):
         """Build list containing a single instance of all available tools"""
         # Build unique class list
         ipt_classes_list = get_module_classes(
-            package=ipt, class_inherits_from=IptBase, remove_abstract=True
+            package=ipt,
+            class_inherits_from=IptBase,
+            remove_abstract=True,
         )
 
         # Create objects
@@ -83,23 +87,30 @@ class IptHolder(object):
         for cls in ipt_classes_list:
             try:
                 op = cls()
-                self._ipt_list.append(op)
-                self._use_cases.extend(op.use_case)
+                self.ipt_list.append(op)
+                self.use_cases.extend(op.use_case)
             except Exception as e:
                 logger.exception(f'Failed to add "{cls.__name__}" because "{repr(e)}"')
                 error_count += 1
             else:
                 logger.info(f'Loaded "{cls.__name__}"')
                 load_count += 1
-        self._use_cases = sorted(list(set(self._use_cases)))
-        self._ipt_list.sort(key=lambda x: (x.order, x.name))
+        self.use_cases = sorted(list(set(self.use_cases)))
+        self.ipt_list.sort(key=lambda x: (x.order, x.name))
         if error_count == 0:
             logger.info(f"Loaded {load_count} modules")
         else:
             logger.warning(f"Loaded {load_count} modules, {error_count} errors")
 
     def list_by_use_case(self, use_case: str = ""):
-        return [op for op in self.ipt_list if not use_case or (use_case in op.use_case)]
+        if not use_case:
+            return [op for op in self.ipt_list]
+        elif use_case == WIP_CASE:
+            return [op for op in self.ipt_list if op.is_wip]
+        else:
+            return [
+                op for op in self.ipt_list if (use_case in op.use_case) and not op.is_wip
+            ]
 
     def write_init_pipeline(
         self, f, use_case, pipeline_name, test_image, group_uuid, op, spaces
@@ -165,6 +176,7 @@ class IptHolder(object):
         f.write("import unittest\n\n")
         f.write("abspath = os.path.abspath(__file__)\n")
         f.write("fld_name = os.path.dirname(abspath)\n")
+        f.write("sys.path.insert(0, os.getcwd())\n")
         f.write("sys.path.insert(0, fld_name)\n")
         f.write("sys.path.insert(0, os.path.dirname(fld_name))\n")
         f.write("# When running tests from ipapi\n")
@@ -205,7 +217,7 @@ class IptHolder(object):
         spaces = add_tab(spaces)
         f.write(f'{spaces}"""Test that class process_wrapper method has docstring"""\n')
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(f"{spaces}if '(wip)' not in op.name.lower():\n")
+        f.write(f"{spaces}if not op.is_wip:\n")
         spaces = add_tab(spaces)
         f.write(
             f"{spaces}self.assertIsNotNone(op.process_wrapper.__doc__, 'Missing docstring for {op.name}')\n\n"
@@ -422,18 +434,13 @@ class IptHolder(object):
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}op_doc_name = op.name.replace(' ', '_')\n")
         f.write(f"{spaces}op_doc_name = 'ipt_' + op_doc_name + '.md'\n")
-        f.write(f"{spaces}self.assertTrue(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.isfile(\n")
-        spaces = add_tab(spaces)
         f.write(
-            f"{spaces}os.path.join(os.path.dirname(__file__), '..', 'help', f'{{op_doc_name}}')\n"
+            f"{spaces}doc_path = os.path.join(os.path.dirname(__file__), '..', '..', 'docs', f'{{op_doc_name}}',)\n"
         )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces}),\n")
-        f.write(f"{spaces}'Missing documentation file for {op.name}',\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n\n")
+        f.write(
+            spaces
+            + "self.assertTrue(os.path.isfile(doc_path), 'Missing doc file for ROI composition {doc_path}',)\n\n"
+        )
         return remove_tab(spaces)
 
     def build_test_list(self, use_cases: tuple) -> dict:
@@ -570,11 +577,6 @@ class IptHolder(object):
                             f, op, spaces=spaces, found_fun=needed_tests
                         )
 
-                        if "output_folder" in needed_tests:
-                            spaces = self.write_test_needed_param(
-                                f, op, param_name="path", spaces=spaces
-                            )
-
                         if "img_in_msk_out" in needed_tests:
                             spaces = self.write_test_mask_generation(f, op, spaces=spaces)
 
@@ -623,18 +625,6 @@ class IptHolder(object):
         finally:
             self._log_callback = None
 
-    @property
-    def ipt_list(self):
-        if not self._ipt_list:
-            self._init_holders()
-        return self._ipt_list
-
-    @property
-    def use_cases(self):
-        if not self._use_cases:
-            self._init_holders()
-        return self._use_cases
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -654,6 +644,6 @@ if __name__ == "__main__":
 
     logger.info("Building test files for ip modules")
 
-    IptHolder().build_test_files(overwrite="overwrite" in args)
+    IptHolder().build_test_files(overwrite=True)
 
     logger.info("Building test files for ip modules - Done")

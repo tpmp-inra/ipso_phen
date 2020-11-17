@@ -175,8 +175,8 @@ class IptMultiRangeThreshold(IptBase):
                     text_overlay=text if not build_mosaic else False,
                 )
             else:
-                wrapper.error_holder.add_error(
-                    "Unable to merge partial masks", target_logger=logger
+                logger.error(
+                    "Unable to merge partial masks"
                 )
                 res = False
                 return
@@ -238,11 +238,7 @@ class IptMultiRangeThreshold(IptBase):
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:

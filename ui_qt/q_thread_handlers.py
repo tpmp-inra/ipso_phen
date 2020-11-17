@@ -506,10 +506,12 @@ class IpsoCsvBuilder(QRunnable):
                 self.pipeline.options.write_result_text
                 and not self.pipeline.options.threshold_only
             ):
-                df = self.pipeline.merge_result_files(
+                dataframe = self.pipeline.merge_result_files(
                     csv_file_name=self.root_csv_name + ".csv"
                 )
-            if df is None:
+            else:
+                dataframe = None
+            if dataframe is None:
                 return
             # Get the total number of steps
             steps_ = 0
@@ -542,11 +544,11 @@ class IpsoCsvBuilder(QRunnable):
                     csv_root_name = csv_root_name.replace("_raw_data", "")
                 if csv_root_name.endswith(".csv"):
                     csv_root_name = csv_root_name.replace(".csv", "")
-                df = df.drop("view_option", axis=1)
+                dataframe = dataframe.drop("view_option", axis=1)
                 if self.group_by_series_id:
                     csv_sid_root_name = csv_root_name + "_sid"
                     if self.build_median_df:
-                        df.groupby("series_id").median().merge(df).drop(
+                        dataframe.groupby("series_id").median().merge(dataframe).drop(
                             ["series_id"], axis=1
                         ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
                             os.path.join(
@@ -557,7 +559,7 @@ class IpsoCsvBuilder(QRunnable):
                         step_ += 1
                         self.signals_holder.on_progress.emit(step_, steps_)
                     if self.build_mean_df:
-                        df.groupby("series_id").mean().drop(
+                        dataframe.groupby("series_id").mean().drop(
                             ["series_id"]
                         ).drop_duplicates().sort_values(by=["plant", "date_time"]).to_csv(
                             os.path.join(
@@ -580,7 +582,7 @@ class IpsoCsvBuilder(QRunnable):
                 if self.group_by_day:
                     csv_day_root_name = csv_root_name + "_day"
                     if self.build_median_df:
-                        df.groupby("date").median().drop_duplicates().sort_values(
+                        dataframe.groupby("date").median().drop_duplicates().sort_values(
                             by=["plant", "date"]
                         ).to_csv(
                             os.path.join(
@@ -591,7 +593,7 @@ class IpsoCsvBuilder(QRunnable):
                         step_ += 1
                         self.signals_holder.on_progress.emit(step_, steps_)
                     if self.build_mean_df:
-                        df.groupby("date").mean().drop_duplicates().sort_values(
+                        dataframe.groupby("date").mean().drop_duplicates().sort_values(
                             by=["plant", "date"]
                         ).to_csv(
                             os.path.join(

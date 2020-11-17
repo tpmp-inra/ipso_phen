@@ -22,7 +22,11 @@ class IptRandomWalker(IptBaseMerger):
             maximum=50000,
         )
         self.add_slider(
-            name="min_distance", desc="Min distance", default_value=20, minimum=-1, maximum=1000
+            name="min_distance",
+            desc="Min distance",
+            default_value=20,
+            minimum=-1,
+            maximum=1000,
         )
         self.add_combobox(
             name="post_process",
@@ -57,9 +61,7 @@ class IptRandomWalker(IptBaseMerger):
         try:
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"Random walker needs a calculated mask to start", target_logger=logger
-                )
+                logger.error(f"Random walker needs a calculated mask to start")
                 res = False
 
             dist_transform = ndimage.distance_transform_edt(mask)
@@ -82,14 +84,18 @@ class IptRandomWalker(IptBaseMerger):
 
             walker_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
             wrapper.store_image(
-                walker_img, f"walker_img_vis_{self.input_params_as_str()}", text_overlay=True
+                walker_img,
+                f"walker_img_vis_{self.input_params_as_str()}",
+                text_overlay=True,
             )
             self.print_segmentation_labels(
                 walker_img, labels, dbg_suffix="random_walker", min_size=min_area
             )
 
             if post_process == "merge_labels":
-                res = self._merge_labels(wrapper.current_image, labels=post_labels, **kwargs)
+                res = self._merge_labels(
+                    wrapper.current_image, labels=post_labels, **kwargs
+                )
             else:
                 res = True
 
@@ -107,7 +113,11 @@ class IptRandomWalker(IptBaseMerger):
 
     @property
     def name(self):
-        return "Random Walker (WIP)"
+        return "Random Walker"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def real_time(self):

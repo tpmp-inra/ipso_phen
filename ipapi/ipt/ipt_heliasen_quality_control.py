@@ -14,20 +14,22 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
     def build_params(self):
         self.add_enabled_checkbox()
         self.add_checkbox(
-            name="binary_error", desc="Encode final error as binary option", default_value=0
+            name="binary_error",
+            desc="Encode final error as binary option",
+            default_value=0,
         )
 
     def process_wrapper(self, **kwargs):
         """
-            Heliasen Quality Control (WIP):
+        Heliasen Quality Control:
 
-            Needs vertical and horizontal noise removal before been called.
-            Checks light barrier image quality.
-            Outputs main error and partial errors.
-            Real time: False
+        Needs vertical and horizontal noise removal before been called.
+        Checks light barrier image quality.
+        Outputs main error and partial errors.
+        Real time: False
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -41,9 +43,7 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 ept = wrapper.data_output.get("expected_plant_top_position", False)
@@ -122,7 +122,9 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 leaning_error = 0
                 # Leaning plant
                 first_active_line = msk_dt.lines_data[0]
-                if (first_active_line is not None) and (len(first_active_line.nz_pos) >= 1):
+                if (first_active_line is not None) and (
+                    len(first_active_line.nz_pos) >= 1
+                ):
                     if (first_active_line.nz_pos[0] <= 10) and (
                         first_active_line.nz_span < mask.shape[1] / 3
                     ):
@@ -271,7 +273,9 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                         error_level += len(np.where(err_lst >= 2)[0]) - 1
                 wrapper.data_output["error_level"] = error_level
                 if report_lines:
-                    wrapper.data_output["report"] = " ".join(report_lines).replace(",", "->")
+                    wrapper.data_output["report"] = " ".join(report_lines).replace(
+                        ",", "->"
+                    )
                 else:
                     wrapper.data_output["report"] = " "
 
@@ -297,7 +301,11 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                         line_color = ipc.C_ORANGE
                     cv2.line(dbg_img, (0, line_height), (10, line_height), line_color, 1)
                     cv2.line(
-                        dbg_img, (x_to - 10, line_height), (x_to, line_height), line_color, 1
+                        dbg_img,
+                        (x_to - 10, line_height),
+                        (x_to, line_height),
+                        line_color,
+                        1,
                     )
                 wrapper.store_image(dbg_img, "quality_control_report")
 
@@ -310,11 +318,7 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:
@@ -322,7 +326,11 @@ class IptHeliasenQualityControl(IptBaseAnalyzer):
 
     @property
     def name(self):
-        return "Heliasen Quality Control (WIP)"
+        return "Heliasen Quality Control"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def package(self):

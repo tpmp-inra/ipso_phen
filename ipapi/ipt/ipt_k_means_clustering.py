@@ -146,9 +146,8 @@ class IptKMeansClustering(IptBase):
                     self.get_value_of("precision"),
                 )
             else:
-                wrapper.error_holder.add_error(
-                    f"K-means clustering FAILED, unknown criteria '{stop_criteria}''",
-                    target_logger=logger,
+                logger.error(
+                    f"K-means clustering FAILED, unknown criteria '{stop_criteria}''"
                 )
                 return
 
@@ -180,11 +179,7 @@ class IptKMeansClustering(IptBase):
 
             wrapper.store_image(self.result, "k_means_cluster")
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:

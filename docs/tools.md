@@ -47,7 +47,7 @@ Details [here](ipt_Slic.md)
 
 ## Create an ROI
 
-Create a ROI
+Create an ROI
 
 ### Annulus ROI
 
@@ -65,6 +65,11 @@ Hough circles detector: Perform a circular Hough transform.
 Can generate ROIs  
 Details [here](ipt_Hough_circles_detector.md)
 
+### ROI composition
+
+Create an ROI by composing other ROIs  
+Details [here](ipt_ROI_composition.md)
+
 ### ROI manager (deprecated)
 
 Handles ROI edition via user input  
@@ -74,6 +79,11 @@ Details [here](ipt_ROI_manager_(deprecated).md)
 
 Create rectangle ROIs  
 Details [here](ipt_Rectangle_ROI.md)
+
+### Rotated rectangle ROI
+
+Create rotated rectangle ROIs  
+Details [here](ipt_Rotated_rectangle_ROI.md)
 
 ## Demo
 
@@ -111,6 +121,16 @@ Details [here](ipt_Fix_perspective.md)
 
 Performs various transformations on the image  
 Details [here](ipt_Image_transformations.md)
+
+### Median Filter
+
+'Apply median filter  
+Details [here](ipt_Median_Filter.md)
+
+### Normalize Image
+
+'Normalize image  
+Details [here](ipt_Normalize_Image.md)
 
 ### Rotate
 
@@ -160,13 +180,6 @@ Needs a mask as an input.
 Normally used in a pipeline after a clean mask is created.  
 Details [here](ipt_Analyze_object.md)
 
-### Heliasen Quality Control (WIP)
-
-Needs vertical and horizontal noise removal before been called.  
-        Checks light barrier image quality.  
-        Outputs main error and partial errors.  
-Details [here](ipt_Heliasen_Quality_Control_(WIP).md)
-
 ### Hough lines detector
 
 Use the OpenCV functions HoughLines and HoughLinesP to detect lines in an image.  
@@ -196,6 +209,11 @@ Details [here](ipt_Augment_data.md)
 
 Copies an image, renaming it if needed  
 Details [here](ipt_Copy_or_rename_image.md)
+
+### Visualization helper
+
+'With the current image and a mask build a visualization for selected features  
+Details [here](ipt_Visualization_helper.md)
 
 ## Image info
 
@@ -233,6 +251,11 @@ Details [here](ipt_Clean_horizontal_noise_(Hough_method).md)
 
 Fills holes in mask  
 Details [here](ipt_Fill_mask_holes.md)
+
+### Filter contour by size
+
+'Keep or descard contours according to their size  
+Details [here](ipt_Filter_contour_by_size.md)
 
 ### Keep Biggest Contours
 
@@ -310,10 +333,21 @@ Displays over/under exposed parts of the image
 Also displays average brightness of the image  
 Details [here](ipt_Check_exposure.md)
 
+### Crop
+
+'Crop image or mask to rectangular ROI  
+Details [here](ipt_Crop.md)
+
 ### Custom channels
 
 Builds a mask or a channel by comparing pixels to the average value.  
 Details [here](ipt_Custom_channels.md)
+
+### Edge detectors
+
+Performs edge detection with various common operators.  
+Mostly used by other tools.  
+Details [here](ipt_Edge_detectors.md)
 
 ### Filtering regional maxima
 
@@ -351,6 +385,16 @@ Details [here](ipt_Image_transformations.md)
 Performs k-means clustering, grouping object with a distance formula  
 Details [here](ipt_K-means_clustering.md)
 
+### Median Filter
+
+'Apply median filter  
+Details [here](ipt_Median_Filter.md)
+
+### Normalize Image
+
+'Normalize image  
+Details [here](ipt_Normalize_Image.md)
+
 ### Otsu merger
 
 Based on Otsu's binarization, create a new image from OTSU channel binarization.  
@@ -360,6 +404,16 @@ Details [here](ipt_Otsu_merger.md)
 
 Replaces dominant colors by other colors  
 Details [here](ipt_Partial_posterizer.md)
+
+### Partial posterizer v2
+
+Replaces dominant colors by other colors. Different algorithm from V1  
+Details [here](ipt_Partial_posterizer_v2.md)
+
+### Print channels
+
+Print channels  
+Details [here](ipt_Print_channels.md)
 
 ### Pyramid mean shift
 
@@ -400,12 +454,6 @@ Active contour model by evolving a level set.
 Can be used to segment objects without clearly defined boundaries.  
   
 Details [here](ipt_Chan_Vese.md)
-
-### Dummy threshold (WIP)
-
-Dummy threshold.  
-        Pass through threshold, expects binary mask as entry  
-Details [here](ipt_Dummy_threshold_(WIP).md)
 
 ### Multi range threshold
 

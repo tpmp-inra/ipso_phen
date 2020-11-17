@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class IptMedianFileter(IptBase):
+class IptMedianFilter(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
 
@@ -22,6 +22,16 @@ class IptMedianFileter(IptBase):
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Median Filter:
+        'Apply median filter
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Median filter size (odd values only) (median_filter_size):
+        """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -51,7 +61,7 @@ class IptMedianFileter(IptBase):
 
     @property
     def name(self):
-        return "Median Fileter"
+        return "Median Filter"
 
     @property
     def package(self):

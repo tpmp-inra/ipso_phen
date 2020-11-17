@@ -5,6 +5,7 @@ import unittest
 
 abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
+sys.path.insert(0, os.getcwd())
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 # When running tests from ipapi
@@ -31,7 +32,7 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptCleanHorizontalNoise()
-        if "(wip)" not in op.name.lower():
+        if not op.is_wip:
             self.assertIsNotNone(
                 op.process_wrapper.__doc__,
                 "Missing docstring for Clean horizontal noise",
@@ -65,7 +66,9 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
             )
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
-        self.assertTrue(res, "Failed to process Clean horizontal noise with test script")
+        self.assertTrue(
+            res, "Failed to process Clean horizontal noise with test script"
+        )
         self.assertIsInstance(
             wrapper.mask, np.ndarray, "Empty result for Range threshold"
         )
@@ -81,11 +84,16 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
         op = IptCleanHorizontalNoise()
         op_doc_name = op.name.replace(" ", "_")
         op_doc_name = "ipt_" + op_doc_name + ".md"
+        doc_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "docs",
+            f"{op_doc_name}",
+        )
         self.assertTrue(
-            os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
-            ),
-            "Missing documentation file for Clean horizontal noise",
+            os.path.isfile(doc_path),
+            "Missing doc file for ROI composition {doc_path}",
         )
 
 

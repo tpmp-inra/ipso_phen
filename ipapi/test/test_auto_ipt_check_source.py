@@ -4,6 +4,7 @@ import unittest
 
 abspath = os.path.abspath(__file__)
 fld_name = os.path.dirname(abspath)
+sys.path.insert(0, os.getcwd())
 sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 # When running tests from ipapi
@@ -29,7 +30,7 @@ class TestIptCheckSource(unittest.TestCase):
     def test_docstring(self):
         """Test that class process_wrapper method has docstring"""
         op = IptCheckSource()
-        if "(wip)" not in op.name.lower():
+        if not op.is_wip:
             self.assertIsNotNone(
                 op.process_wrapper.__doc__, "Missing docstring for Check source image"
             )
@@ -53,18 +54,25 @@ class TestIptCheckSource(unittest.TestCase):
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Check source image")
-        self.assertIsInstance(op.result, bool, "Check source image must return a boolean")
+        self.assertIsInstance(
+            op.result, bool, "Check source image must return a boolean"
+        )
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""
         op = IptCheckSource()
         op_doc_name = op.name.replace(" ", "_")
         op_doc_name = "ipt_" + op_doc_name + ".md"
+        doc_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "..",
+            "docs",
+            f"{op_doc_name}",
+        )
         self.assertTrue(
-            os.path.isfile(
-                os.path.join(os.path.dirname(__file__), "..", "help", f"{op_doc_name}")
-            ),
-            "Missing documentation file for Check source image",
+            os.path.isfile(doc_path),
+            "Missing doc file for ROI composition {doc_path}",
         )
 
 

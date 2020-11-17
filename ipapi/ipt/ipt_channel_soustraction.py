@@ -123,8 +123,8 @@ class IptChannelSubtraction(IptBase):
             elif post_processing == "rescale":
                 tmp = (tmp - tmp.min()).astype(np.uint8)
             else:
-                self._wrapper.error_holder.add_error(
-                    f"Unknown postprocessing {post_processing}", target_logger=logger
+                logger.error(
+                    f"Unknown postprocessing {post_processing}"
                 )
                 res = False
                 return
@@ -151,11 +151,7 @@ class IptChannelSubtraction(IptBase):
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:

@@ -29,7 +29,13 @@ from PySide2.QtWidgets import (
     QStyleOptionViewItem,
 )
 from PySide2.QtCore import QSize, QRect
-from PySide2.QtCore import QAbstractItemModel, QAbstractTableModel, QModelIndex, Qt, Signal
+from PySide2.QtCore import (
+    QAbstractItemModel,
+    QAbstractTableModel,
+    QModelIndex,
+    Qt,
+    Signal,
+)
 
 from ipapi.base.ipt_loose_pipeline import (
     GroupNode,
@@ -223,6 +229,8 @@ class PipelineNode(TreeNode):
                     tool = nd
                 elif isinstance(nd, dict):
                     tool = nd["grid_search"]
+                else:
+                    tool = None
                 label, widget = build_widgets(
                     tool=tool,
                     param=new_data,
@@ -240,7 +248,9 @@ class PipelineNode(TreeNode):
                     layout.setStretch(1, 3)
             elif isinstance(new_data, ModuleNode):
                 run_call_back = self.call_backs.get("run_callback", None)
-                self.run_button = QPushButton(QIcon(":/image_process/resources/Play.png"), "")
+                self.run_button = QPushButton(
+                    QIcon(":/image_process/resources/Play.png"), ""
+                )
                 self.run_button.setToolTip("Run to this module")
                 self.run_button.setMinimumHeight(28)
                 self.run_button.setIconSize(QSize(24, 24))
@@ -250,13 +260,17 @@ class PipelineNode(TreeNode):
                     self.run_button.clicked.connect(run_call_back)
                 else:
                     self.run_button.setEnabled(False)
-                self.reset_button = QPushButton(QIcon(":/common/resources/Refresh.png"), "")
+                self.reset_button = QPushButton(
+                    QIcon(":/common/resources/Refresh.png"), ""
+                )
                 self.reset_button.setToolTip("Reset widgets to default values")
                 self.reset_button.setMaximumWidth(200)
                 self.reset_button.clicked.connect(self.on_reset_module)
             elif isinstance(new_data, dict) and "grid_search" in new_data:
                 run_call_back = self.call_backs.get("run_grid_search_callback", None)
-                self.run_button = QPushButton(QIcon(":/image_process/resources/Play.png"), "")
+                self.run_button = QPushButton(
+                    QIcon(":/image_process/resources/Play.png"), ""
+                )
                 self.run_button.setToolTip("Run to this module using grid search")
                 self.run_button.setMinimumHeight(28)
                 self.run_button.setIconSize(QSize(24, 24))
@@ -345,14 +359,14 @@ class QColorDelegate(QItemDelegate):
         try:
             painter.save()
 
-            df: pd.DataFrame = self.parent().model().df
+            dataframe: pd.DataFrame = self.parent().model().dataframe
             # set background color
-            is_error_column = "error" in df.columns[index.column()]
+            is_error_column = "error" in dataframe.columns[index.column()]
             painter.setPen(QPen(Qt.NoPen))
             if is_error_column:
                 try:
                     num_val = int(index.data(Qt.DisplayRole))
-                    max_val = df[df.columns[index.column()]].max()
+                    max_val = dataframe[dataframe.columns[index.column()]].max()
                 except ValueError:
                     num_val = None
                     max_val = None
@@ -456,8 +470,12 @@ class QImageDrawerDelegate(QItemDelegate):
                 color_dict = self.colors.get(data["kind"].lower(), self._default_colors)
             else:
                 color_dict = self._default_colors
-            bg_color = color_dict["s_bgd" if option.state & QStyle.State_Selected else "bgd"]
-            fg_color = color_dict["s_fnt" if option.state & QStyle.State_Selected else "fnt"]
+            bg_color = color_dict[
+                "s_bgd" if option.state & QStyle.State_Selected else "bgd"
+            ]
+            fg_color = color_dict[
+                "s_fnt" if option.state & QStyle.State_Selected else "fnt"
+            ]
 
             fnt = painter.font()
             fnt.setBold(option.state & QStyle.State_Selected)
@@ -469,7 +487,9 @@ class QImageDrawerDelegate(QItemDelegate):
             painter.drawRect(option.rect)
             painter.setPen(QPen(fg_color))
             painter.drawText(
-                option.rect, Qt.AlignVCenter | Qt.AlignCenter, str(index.data(Qt.DisplayRole))
+                option.rect,
+                Qt.AlignVCenter | Qt.AlignCenter,
+                str(index.data(Qt.DisplayRole)),
             )
 
             painter.restore()
@@ -491,10 +511,17 @@ class QImageDrawerDelegate(QItemDelegate):
         ret = self.annotations.get(luid, None)
         if ret is None:
             with OrmAnnotationsDbWrapper(experiment) as session_:
-                data = session_.query(OrmAnnotation).filter(OrmAnnotation.idk == luid).first()
+                data = (
+                    session_.query(OrmAnnotation)
+                    .filter(OrmAnnotation.idk == luid)
+                    .first()
+                )
                 if data is not None:
                     ret = dict(
-                        luid=data.idk, kind=data.kind, text=data.text, auto_text=data.auto_text
+                        luid=data.idk,
+                        kind=data.kind,
+                        text=data.text,
+                        auto_text=data.auto_text,
                     )
                 else:
                     ret = None
@@ -536,10 +563,15 @@ class QImageDrawerDelegate(QItemDelegate):
                     ann_.auto_text = auto_text
                     ann_.last_access = last_access
                     self.annotations[luid] = dict(
-                        luid=luid, kind=ann_.kind, text=ann_.text, auto_text=ann_.auto_text
+                        luid=luid,
+                        kind=ann_.kind,
+                        text=ann_.text,
+                        auto_text=ann_.auto_text,
                     )
             elif text or auto_text:
-                session_.add(OrmAnnotation(idk=luid, kind=kind, text=text, auto_text=auto_text))
+                session_.add(
+                    OrmAnnotation(idk=luid, kind=kind, text=text, auto_text=auto_text)
+                )
                 self.annotations[luid] = dict(
                     luid=luid, kind=kind, text=text, auto_text=auto_text
                 )
@@ -580,13 +612,15 @@ class PipelineDelegate(QStyledItemDelegate):
                 ip = index.internalPointer()
                 if index.internalPointer().widget_holder is not None:
                     self.parent().setIndexWidget(
-                        index, index.internalPointer().widget_holder,
+                        index,
+                        index.internalPointer().widget_holder,
                     )
                 elif isinstance(ip.node_data, (GroupNode, ModuleNode)):
                     option.palette.setColor(
                         QPalette.Text,
                         Qt.red
-                        if ip is not None and not ip.node_data.root.check_input(ip.node_data)
+                        if ip is not None
+                        and not ip.node_data.root.check_input(ip.node_data)
                         else painter.pen().color(),
                     )
                     option.font.setBold(isinstance(ip.node_data, GroupNode))
@@ -656,7 +690,9 @@ class PipelineDelegate(QStyledItemDelegate):
             vb_main.addWidget(gb_main_options)
 
             gb_filters = QGroupBox(widget)
-            gb_filters.setTitle("Filters: Select which plants this group will be applied to")
+            gb_filters.setTitle(
+                "Filters: Select which plants this group will be applied to"
+            )
             gl_filters = QGridLayout(gb_filters)
             for i, (k, _) in enumerate(nd.execute_filters.items()):
                 gl_filters.addWidget(QLabel(k), i, 0, 1, 1)
@@ -853,7 +889,7 @@ class QPandasModel(QAbstractTableModel):
         return flags
 
     @property
-    def df(self):
+    def dataframe(self):
         return self._df
 
 
@@ -900,7 +936,7 @@ class QPandasColumnsModel(QAbstractTableModel):
         return flags
 
     @property
-    def df(self):
+    def dataframe(self):
         return self._df
 
 
@@ -998,7 +1034,11 @@ class TreeModel(QAbstractItemModel):
             return QModelIndex()
 
     def get_item(self, index: QModelIndex) -> TreeNode:
-        return index.internalPointer() if index.isValid() else QModelIndex().internalPointer()
+        return (
+            index.internalPointer()
+            if index.isValid()
+            else QModelIndex().internalPointer()
+        )
 
     def parent(self, index):
         node = self.get_item(index)
@@ -1016,7 +1056,8 @@ class TreeModel(QAbstractItemModel):
     def iter_items(self, root, allowed_classes: Union[None, tuple] = None):
         if root is None:
             stack = [
-                self.createIndex(0, 0, self.rootNodes[i]) for i in range(len(self.rootNodes))
+                self.createIndex(0, 0, self.rootNodes[i])
+                for i in range(len(self.rootNodes))
             ]
         else:
             stack = [root]
@@ -1040,9 +1081,9 @@ class TreeModel(QAbstractItemModel):
 
     def as_pivot_list(self, index, allowed_classes) -> dict:
         """Splits all nodes in three classes
-            * before: all nodes before index
-            * pivot: index
-            * after: all nodes after index
+        * before: all nodes before index
+        * pivot: index
+        * after: all nodes after index
         """
         item = self.get_item(index)
         matched_uuid = False
@@ -1182,7 +1223,9 @@ class PipelineModel(TreeModel):
                 elif isinstance(item.node_data, dict) and "checked" in item.node_data:
                     item.node_data["checked"] = value
                     item.parent.parent.node_data.grid_search_mode = value
-                    self.dataChanged.emit(index.parent().parent(), index.parent().parent())
+                    self.dataChanged.emit(
+                        index.parent().parent(), index.parent().parent()
+                    )
                 self.layoutChanged.emit()
                 return True
             elif role == Qt.EditRole:
@@ -1246,7 +1289,9 @@ class PipelineModel(TreeModel):
             self.layoutChanged.emit()
             return added_index
 
-    def add_group(self, selected_items, merge_mode: str = ipc.MERGE_MODE_CHAIN, name: str = ""):
+    def add_group(
+        self, selected_items, merge_mode: str = ipc.MERGE_MODE_CHAIN, name: str = ""
+    ):
         root = self.get_parent_group_node(selected_items=selected_items)
         if root is not None:
             node: PipelineNode = root.internalPointer()
@@ -1276,11 +1321,15 @@ class PipelineModel(TreeModel):
         # self.layoutChanged.emit()
         return res
 
-    def move_row(self, selected_items, target_index: int, target_parent: QModelIndex = None):
+    def move_row(
+        self, selected_items, target_index: int, target_parent: QModelIndex = None
+    ):
         if len(selected_items) != 1:
             return False
         root = selected_items[0]
-        self.beginMoveRows(root.parent(), root.row(), root.row(), target_parent, target_index)
+        self.beginMoveRows(
+            root.parent(), root.row(), root.row(), target_parent, target_index
+        )
         self.moveRow(root.parent(), root.row(), target_parent, target_index)
         self.endMoveRows()
         # nd = root.internalPointer().node_data
@@ -1368,10 +1417,10 @@ class MosaicModel(QPandasModel):
             return pd.DataFrame(lst, columns=[i for i in range(len(lst[0]))])
 
     def to_list(self):
-        return self.df.values.tolist()
+        return self.dataframe.values.tolist()
 
     def to_string(self):
-        return "\n".join([",".join(l) for l in self.to_list()])
+        return "\n".join([",".join(i) for i in self.to_list()])
 
     def set_row_count(self, row_count):
         if row_count > self.rowCount():
@@ -1387,7 +1436,7 @@ class MosaicModel(QPandasModel):
             [["source" for _ in range(self.columnCount())] for _ in range(count)],
             columns=[i for i in range(self.columnCount())],
         )
-        self._df = self.df.append(new_df).reset_index(drop=True)
+        self._df = self.dataframe.append(new_df).reset_index(drop=True)
         self._update_model()
         self.endInsertRows()
         return True
@@ -1555,7 +1604,10 @@ class QMouseGraphicsView(QGraphicsView):
                     if i is None:
                         continue
                     r = RectangleRegion(
-                        left=int((shape[1] / len(images)) * c), width=w, top=0, height=shape[0],
+                        left=int((shape[1] / len(images)) * c),
+                        width=w,
+                        top=0,
+                        height=shape[0],
                     )
                     canvas = ipc.enclose_image(canvas, i, r)
                 q_pix = cv2_to_qimage(canvas)

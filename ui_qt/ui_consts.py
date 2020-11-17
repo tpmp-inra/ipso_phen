@@ -1,6 +1,4 @@
 # UI settings
 DISABLE_SPLASH_SCREEN = True
 
-FLAT_TOOLS_MENU = False
-
 ENABLE_POSTGRES = True

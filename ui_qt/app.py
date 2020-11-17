@@ -137,7 +137,7 @@ from ipapi.base.ip_abstract import BaseImageProcessor
 from ipapi.base.ipt_abstract import IptBase, IptParamHolder
 from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipapi.base.ipt_functional import call_ipt_code
-from ipapi.base.ipt_holder import IptHolder
+from ipapi.base.ipt_holder import IptHolder, WIP_CASE
 from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import ipapi.base.ip_common as ipc
 from ipapi.tools import error_holder as eh
@@ -447,12 +447,17 @@ class NewToolDialog(QDialog):
             spaces = add_tab("")
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def name(self):\n")
-            f.write(f"{spaces}    return '{self.ui.le_tool_name.text()} (WIP)'\n")
+            f.write(f"{spaces}    return '{self.ui.le_tool_name.text()}'\n")
             f.write("\n")
 
             f.write(f"{spaces}@property\n")
             f.write(f"{spaces}def package(self):\n")
             f.write(f"{spaces}    return '{self.ui.le_package_name.text()}'\n")
+            f.write("\n")
+
+            f.write(f"{spaces}@property\n")
+            f.write(f"{spaces}def is_wip(self):\n")
+            f.write(f"{spaces}    return True\n")
             f.write("\n")
 
             f.write(f"{spaces}@property\n")
@@ -841,104 +846,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         self.statusBar().addWidget(self._status_label, stretch=0)
 
-        # Build tools selectors
-        def update_font_(op, act):
-            if "(wip)" in op.name.lower():
-                fnt = act.font()
-                fnt.setBold(True)
-                act.setFont(fnt)
-
         self._ip_tools_holder = IptHolder()
-        try:
-            if hasattr(self.ui, "bt_select_tool"):
-                tool_menu = QMenu(self.ui.bt_select_tool)
-                if ui_consts.FLAT_TOOLS_MENU:
-                    lst = self._ip_tools_holder.ipt_list
-                    for op in lst:
-                        act = QAction(op.name, self)
-                        act.setToolTip(op.hint)
-                        update_font_(op, act)
-                        tool_menu.addAction(act)
-                else:
-                    for use_case in self._ip_tools_holder.use_cases:
-                        if use_case == "none":
-                            continue
-                        # Menu items
-                        use_case_root = tool_menu.addMenu(use_case)
-                        use_case_root.setToolTip(ipc.tool_family_hints.get(use_case, ""))
-                        op_lst = self._ip_tools_holder.list_by_use_case(use_case)
-                        for op in op_lst:
-                            act = QAction(op.name, self)
-                            act.setToolTip(op.hint)
-                            update_font_(op, act)
-                            use_case_root.addAction(act)
-                        use_case_root.setToolTipsVisible(True)
-                tool_menu.triggered[QAction].connect(self.on_menu_tool_selection)
-                tool_menu.setToolTipsVisible(True)
-                self.ui.bt_select_tool.setMenu(tool_menu)
-
-            if hasattr(self.ui, "bt_pp_select_tool"):
-                tool_menu = QMenu(self)
-                # Image processing tools
-                for use_case in self._ip_tools_holder.use_cases:
-                    if use_case == "none":
-                        continue
-                    op_lst = [
-                        op
-                        for op in self._ip_tools_holder.list_by_use_case(use_case)
-                        if bool(
-                            set(op.use_case).intersection(set(ipc.tool_groups_pipeline))
-                        )
-                    ]
-                    if op_lst:
-                        use_case_root = tool_menu.addMenu(use_case)
-                        for op in op_lst:
-                            act = QAction(op.name, self)
-                            act.setToolTip(op.hint)
-                            update_font_(op, act)
-                            use_case_root.addAction(act)
-                        use_case_root.setToolTip(ipc.tool_family_hints.get(use_case, ""))
-                        use_case_root.setToolTipsVisible(True)
-                        use_case_root.triggered[QAction].connect(self.on_bt_pp_add_tool)
-                # Groups
-                tool_menu.addSeparator()
-                act = QAction("Default empty group", self)
-                act.setToolTip("Add an empty group with default settings")
-                act.triggered.connect(self.on_bt_pp_add_tool)
-                tool_menu.addAction(act)
-                group_root = tool_menu.addMenu("Pre filled groups")
-                for name, hint in zip(
-                    [
-                        "Fix exposure",
-                        "Pre process image",
-                        "Threshold",
-                        "Mask cleanup",
-                        "Feature extraction",
-                        "Visualization helpers",
-                    ],
-                    [
-                        """Default exposure and white balance fixing tools\n
-                            Added tools need to be configured""",
-                        """Prepare image to make thresholding easier \n
-                            Added tools need to be configured""",
-                        """Build a mask containing only the target object(s)\n
-                            Added tools need to be configured""",
-                        """Remove noise from a mask\n
-                            Added tools need to be configured""",
-                        """Add tools to extract features from the image, some may need a mask\n
-                            Added tools need to be configured""",
-                        """Add tools to help visualize the pipeline output""",
-                    ],
-                ):
-                    act = QAction(name, self)
-                    act.setToolTip(hint)
-                    group_root.addAction(act)
-                group_root.triggered[QAction].connect(self.on_bt_pp_add_tool)
-
-                tool_menu.setToolTipsVisible(True)
-                self.ui.bt_pp_select_tool.setMenu(tool_menu)
-        except Exception as e:
-            logger.exception(f"Failed to load tools: {repr(e)}")
+        self.build_tools_selectors()
 
         # Build database selectors
         self.current_database = None
@@ -1147,22 +1056,100 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         return ret if isinstance(ret, QImageDrawerDelegate) else None
 
     def update_images_queue(self):
-        df = self.get_image_dataframe()
+        dataframe = self.get_image_dataframe()
         self.ui.lw_images_queue.clear()
-        if df is None:
+        if dataframe is None:
             return
-        df = df.sort_values(by=["date_time"], axis=0, na_position="first")
-        for row in reversed(range(df.shape[0])):
+        dataframe = dataframe.sort_values(by=["date_time"], axis=0, na_position="first")
+        for row in reversed(range(dataframe.shape[0])):
             row_data = {
                 k: v
                 for k, v in zip(
-                    list(df.columns), [str(df.iloc[row, ci]) for ci in range(df.shape[1])]
+                    list(dataframe.columns),
+                    [str(dataframe.iloc[row, ci]) for ci in range(dataframe.shape[1])],
                 )
             }
             new_item = QListWidgetItem()
             new_item.setText(row_data["Luid"])
             new_item.setToolTip("\n".join([f"{k}: {v}" for k, v in row_data.items()]))
             self.ui.lw_images_queue.insertItem(0, new_item)
+
+    def build_tools_selectors(self):
+        try:
+            sg_menu = QMenu(self.ui.bt_select_tool)
+            pp_menu = QMenu(self)
+            use_cases = self._ip_tools_holder.use_cases
+            for use_case in use_cases:
+                # Exclude case orphans
+
+                print(use_case)
+
+                if use_case == "none":
+                    continue
+                sg_use_case_root = sg_menu.addMenu(use_case)
+                sg_use_case_root.setToolTipsVisible(True)
+                sg_use_case_root.setToolTip(ipc.tool_family_hints.get(use_case, ""))
+
+                pp_use_case_root = pp_menu.addMenu(use_case)
+                pp_use_case_root.setToolTip(ipc.tool_family_hints.get(use_case, ""))
+                pp_use_case_root.setToolTipsVisible(True)
+                pp_use_case_root.triggered[QAction].connect(self.on_bt_pp_add_tool)
+
+                op_lst = self._ip_tools_holder.list_by_use_case(use_case)
+                for op in op_lst:
+                    # Single tools menu
+                    act = QAction(op.name, self)
+                    act.setToolTip(op.hint)
+                    sg_use_case_root.addAction(act)
+                    # Pipeline tools menu
+                    if bool(set(op.use_case).intersection(set(ipc.tool_groups_pipeline))):
+                        act = QAction(op.name, self)
+                        act.setToolTip(op.hint)
+                        pp_use_case_root.addAction(act)
+
+            sg_menu.triggered[QAction].connect(self.on_menu_tool_selection)
+
+            # Pipeline groups
+            pp_menu.addSeparator()
+            act = QAction("Default empty group", self)
+            act.setToolTip("Add an empty group with default settings")
+            act.triggered.connect(self.on_bt_pp_add_tool)
+            pp_menu.addAction(act)
+            group_root = pp_menu.addMenu("Pre filled groups")
+            for name, hint in zip(
+                [
+                    "Fix exposure",
+                    "Pre process image",
+                    "Threshold",
+                    "Mask cleanup",
+                    "Feature extraction",
+                    "Visualization helpers",
+                ],
+                [
+                    """Default exposure and white balance fixing tools\n
+                        Added tools need to be configured""",
+                    """Prepare image to make thresholding easier \n
+                        Added tools need to be configured""",
+                    """Build a mask containing only the target object(s)\n
+                        Added tools need to be configured""",
+                    """Remove noise from a mask\n
+                        Added tools need to be configured""",
+                    """Add tools to extract features from the image, some may need a mask\n
+                        Added tools need to be configured""",
+                    """Add tools to help visualize the pipeline output""",
+                ],
+            ):
+                act = QAction(name, self)
+                act.setToolTip(hint)
+                group_root.addAction(act)
+            group_root.triggered[QAction].connect(self.on_bt_pp_add_tool)
+
+            pp_menu.setToolTipsVisible(True)
+
+            self.ui.bt_pp_select_tool.setMenu(pp_menu)
+            self.ui.bt_select_tool.setMenu(sg_menu)
+        except Exception as e:
+            logger.exception(f"Failed to load tools: {repr(e)}")
 
     def init_image_browser(self, dataframe):
         self.ui.tv_image_browser.setModel(QImageDatabaseModel(dataframe))
@@ -1245,9 +1232,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return
             else:
                 model = self.get_image_model()
-                df = model.images
+                dataframe = model.images
                 old_row_count = model.rowCount()
-                model.images = df[~df["Luid"].isin(dataframe["Luid"])]
+                model.images = dataframe[~dataframe["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 self.update_feedback(
@@ -1260,9 +1247,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return
             else:
                 model = self.get_image_model()
-                df = model.images
+                dataframe = model.images
                 old_row_count = model.rowCount()
-                model.images = df[df["Luid"].isin(dataframe["Luid"])]
+                model.images = dataframe[dataframe["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 self.update_feedback(
@@ -2531,7 +2518,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             f.write("    Some tools may be in more than one category  \n")
             lst = self._ip_tools_holder.ipt_list
             for use_case in self._ip_tools_holder.use_cases:
-                if use_case == "none":
+                if use_case in ["none", WIP_CASE]:
                     continue
                 f.write(f"## {use_case}\n\n")
                 f.write(ipc.tool_family_hints[use_case] + "\n\n")
@@ -2542,6 +2529,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         f.write(f"### {ipt_.name}\n\n")
                         f.write(ipt_.description.replace("\n", "  \n") + "  \n")
                         f.write(f"Details [here]({tool_name}.md)\n\n")
+            logger.info("Built documentation index file")
 
         # Fill TOC
         with open(os.path.join("mkdocs.yml"), "w", encoding="utf8") as f:
@@ -3354,14 +3342,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
                 self.ui.lv_stats.insertPlainText("\n")
 
-            df: pd.DataFrame = model.images
+            dataframe: pd.DataFrame = model.images
             for key in ["Experiment", "Plant", "Date", "Camera", "view_option"]:
                 self.ui.lv_stats.insertPlainText(f"{key}s:\n")
                 self.ui.lv_stats.insertPlainText(
                     "\n".join(
                         [
                             f"- {k}: {v}"
-                            for k, v in df.groupby(key)
+                            for k, v in dataframe.groupby(key)
                             .agg({key: "count"})
                             .iloc[:, 0]
                             .to_dict()
@@ -3658,18 +3646,22 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     ):
         if wrapper is None:
             # Collect images
-            df = self.get_image_dataframe()
-            if df is None:
+            dataframe = self.get_image_dataframe()
+            if dataframe is None:
                 image_list_ = None
             else:
                 skim_mode_ = self.ui.cb_batch_mode.currentText().lower()
-                dff = df[["Luid", "FilePath", "date_time"]]
+                dff = dataframe[["Luid", "FilePath", "date_time"]]
                 if skim_mode_ == "all":
                     pass
                 elif skim_mode_ == "first n":
-                    dff = dff.iloc[0 : min(df.shape[0], self.ui.sb_batch_count.value())]
+                    dff = dff.iloc[
+                        0 : min(dataframe.shape[0], self.ui.sb_batch_count.value())
+                    ]
                 elif skim_mode_ == "random n":
-                    dff = dff.sample(n=min(df.shape[0], self.ui.sb_batch_count.value()))
+                    dff = dff.sample(
+                        n=min(dataframe.shape[0], self.ui.sb_batch_count.value())
+                    )
                 else:
                     self.update_feedback(
                         status_message="Run process: unknown filter mode",
@@ -3995,7 +3987,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def get_de_dataframe(self) -> pd.DataFrame:
         model = self.get_de_model()
-        return None if model is None else model.df
+        return None if model is None else model.dataframe
 
     def has_de_dataframe(self) -> bool:
         return self.get_de_dataframe() is not None
@@ -4018,18 +4010,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.gv_de_image.main_image = image
             return
 
-        df = self.get_de_dataframe()
-        if df is None:
+        dataframe = self.get_de_dataframe()
+        if dataframe is None:
             self.gv_de_image.scene().setBackgroundBrush(brush_color)
             self.gv_de_image.main_image = image
             return
 
-        # df = self.get_image_dataframe()
-        if "source_path" in df:
+        # dataframe = self.get_image_dataframe()
+        if "source_path" in dataframe:
             src_path = "source_path"
-        elif "path" in df:
+        elif "path" in dataframe:
             src_path = "path"
-        elif "FilePath" in df:
+        elif "FilePath" in dataframe:
             src_path = "FilePath"
         else:
             src_path = ""
@@ -4037,21 +4029,21 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             col = -1
             for index in selected.indexes():
                 col = index.column()
-            if (col >= 0) and ("error" in df.columns[col]):
+            if (col >= 0) and ("error" in dataframe.columns[col]):
                 try:
-                    val = int(df.iloc[current_row, col])
+                    val = int(dataframe.iloc[current_row, col])
                 except ValueError:
                     pass
                 else:
-                    max_val = df[df.columns[col]].max()
+                    max_val = dataframe[dataframe.columns[col]].max()
                     colors = ipc.build_color_steps(step_count=max_val + 1)
                     color = QColor(*ipc.bgr_to_rgb(colors[val]))
             else:
                 color = QColor(*ipc.bgr_to_rgb(ipc.C_WHITE))
-            image = df.iloc[current_row, df.columns.get_loc(src_path)]
+            image = dataframe.iloc[current_row, dataframe.columns.get_loc(src_path)]
             image_columns = [
-                df.iloc[current_row, df.columns.get_loc(c)]
-                for c in list(df.columns)
+                dataframe.iloc[current_row, dataframe.columns.get_loc(c)]
+                for c in list(dataframe.columns)
                 if "image" in c
             ]
             if image_columns:
@@ -4148,9 +4140,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
     def on_action_de_create_sheet_from_selection(self):
-        df = self.get_de_dataframe()
-        if df is not None:
-            self.init_data_editor(df.copy())
+        dataframe = self.get_de_dataframe()
+        if dataframe is not None:
+            self.init_data_editor(dataframe.copy())
 
     def on_action_de_add_column(self):
         pass
@@ -4159,8 +4151,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         pass
 
     def on_action_de_save_csv(self):
-        df = self.get_de_dataframe()
-        if df is not None:
+        dataframe = self.get_de_dataframe()
+        if dataframe is not None:
             file_name_ = QFileDialog.getSaveFileName(
                 parent=self,
                 caption="Save dataframe as CSV",
@@ -4171,7 +4163,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 ipso_folders.set_path(
                     "csv", os.path.join(os.path.dirname(file_name_), "")
                 )
-                df.to_csv(file_name_, index=False)
+                dataframe.to_csv(file_name_, index=False)
                 self.update_feedback(
                     status_message="Dataframe saved",
                     log_message=f"Saved dataframe to {file_name_}",
@@ -4400,18 +4392,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.begin_edit_image_browser()
         try:
             id = self.get_image_delegate()
-            df = self.get_image_dataframe()
-            if id is None or df is None:
+            dataframe = self.get_image_dataframe()
+            if id is None or dataframe is None:
                 return
-            df = df[["Experiment", "Luid"]]
+            dataframe = dataframe[["Experiment", "Luid"]]
             luids = []
             self.update_feedback(
                 status_message="Keeping only tagged images", use_status_as_log=True
             )
             self.global_progress_start(add_stop_button=False)
-            total_ = df.shape[0]
+            total_ = dataframe.shape[0]
             i = 1
-            for _, row in df.iterrows():
+            for _, row in dataframe.iterrows():
                 if id.get_annotation(experiment=row[0], luid=row[1]) is None:
                     luids.append(row[1])
                 self.global_progress_update(step=i, total=total_, process_events=True)
@@ -5096,8 +5088,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     log_level=logging.ERROR,
                 )
                 return
-            df = self.get_image_dataframe()
-            if df is None:
+            dataframe = self.get_image_dataframe()
+            if dataframe is None:
                 self.update_feedback(
                     status_message="Pipeline state save: no images",
                     log_message="Pipeline state save: no images",
@@ -5124,7 +5116,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         script=script_.to_json(),
                         generate_series_id=self.ui.cb_pp_generate_series_id.isChecked(),
                         series_id_time_delta=self.ui.sp_pp_time_delta.value(),
-                        images=list(df["FilePath"]),
+                        images=list(dataframe["FilePath"]),
                         thread_count=self.ui.sl_pp_thread_count.value(),
                         database_data=database_data,
                     ),

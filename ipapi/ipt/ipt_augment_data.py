@@ -126,11 +126,9 @@ class IptAugmentData(IptBaseAnalyzer):
                 try:
                     force_directories(self.output_path)
                 except Exception as e:
-                    self.wrapper.error_holder.add_error(
-                        f"Unable to create folder: {repr(e)}", target_logger=logger
-                    )
+                    logger.error(f"Unable to create folder: {repr(e)}")
             if not self.output_path:
-                wrapper.error_holder.add_error("Failed : Missing folder parameter")
+                logger.error("Failed : Missing folder parameter")
             elif gsl:
                 self.add_value(key="source_name", value=wrapper.name, force_add=True)
                 for gamma_value in gsl:
@@ -143,11 +141,7 @@ class IptAugmentData(IptBaseAnalyzer):
                 self.save_image(image=src_img, gamma=1, path=self.output_path)
                 res = True
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"',)
             res = False
         else:
             pass

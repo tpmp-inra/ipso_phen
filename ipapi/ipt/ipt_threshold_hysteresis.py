@@ -17,7 +17,11 @@ class IptHysteresis(IptBase):
         self.add_edge_detector()
         self.add_separator(name="sep_1")
         self.add_slider(
-            name="low_threshold", desc="Low threshold", default_value=10, minimum=0, maximum=100
+            name="low_threshold",
+            desc="Low threshold",
+            default_value=10,
+            minimum=0,
+            maximum=100,
         )
         self.add_slider(
             name="high_threshold",
@@ -32,11 +36,11 @@ class IptHysteresis(IptBase):
         """
         Hysteresis threshold:
         From scikit-image: Apply hysteresis thresholding to image.
-        This algorithm finds regions where image is greater than high OR image is 
+        This algorithm finds regions where image is greater than high OR image is
         greater than low and that region is connected to a region greater than high.
-        In other words, a pixel is accepted if its value is greater than the upper threshold, 
+        In other words, a pixel is accepted if its value is greater than the upper threshold,
         or its value is higher than the lower threshold and one of has already been accepted.
-        
+
         Real time : False
 
         Keyword Arguments (in parentheses, argument name):
@@ -74,11 +78,13 @@ class IptHysteresis(IptBase):
             edges = self.to_fuzzy(edges)
 
             high_t = (edges > high_threshold).astype(int)
-            hyst = apply_hysteresis_threshold(edges, low_threshold, high_threshold).astype(
+            hyst = apply_hysteresis_threshold(
+                edges, low_threshold, high_threshold
+            ).astype(np.uint8)
+            hyst = hyst + high_t
+            hyst = ((hyst - hyst.min()) / (hyst.max() - hyst.min()) * 255).astype(
                 np.uint8
             )
-            hyst = hyst + high_t
-            hyst = ((hyst - hyst.min()) / (hyst.max() - hyst.min()) * 255).astype(np.uint8)
             hyst = cv2.applyColorMap(hyst, color_map)
 
             self.result = hyst.astype(np.uint8)
@@ -88,11 +94,7 @@ class IptHysteresis(IptBase):
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:
@@ -100,7 +102,11 @@ class IptHysteresis(IptBase):
 
     @property
     def name(self):
-        return "Hysteresis threshold (WIP)"
+        return "Hysteresis threshold"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def real_time(self):

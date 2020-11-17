@@ -233,10 +233,10 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     plt.close()
 
             if self.get_value_of("save_histograms") == 1:
-                df = pd.DataFrame(columns=["channel"] + [i for i in range(0, 256)])
+                dataframe = pd.DataFrame(columns=["channel"] + [i for i in range(0, 256)])
                 for i, v in enumerate(channel_data.values()):
-                    df.loc[i] = [v["channel_name"]] + list(v["hist"].flatten())
-                df.to_csv(
+                    dataframe.loc[i] = [v["channel_name"]] + list(v["hist"].flatten())
+                dataframe.to_csv(
                     path_or_buf=os.path.join(
                         "C:\\Users\\fmavianemac\\Documents\\Presentations\\IMean_2019_11\\resources\\histograms",
                         f"{wrapper.plant}_histograms.csv",
@@ -252,7 +252,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 src_mask=mask,
                 background=self.get_value_of("background"),
             )
-            wrapper.store_image(image=self.demo_image, text=f"pseudo_on")
+            wrapper.store_image(image=self.demo_image, text="pseudo_on")
 
             # handle color quantiles
             n = self.get_value_of("quantile_color")

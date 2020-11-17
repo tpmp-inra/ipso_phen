@@ -193,3 +193,4 @@ logs/
 saved_data/
 ipapi/database/phenoserre_access.py
 ipapi/database/db_connect_data.py
+test-output.xml

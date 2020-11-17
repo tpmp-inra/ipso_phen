@@ -125,8 +125,8 @@ class IptThresholdAdaptive(IptBase):
                 elif method == "mean":
                     method = cv2.ADAPTIVE_THRESH_MEAN_C
                 else:
-                    self._wrapper.error_holder.add_error(
-                        f"Unknown method {method}", target_logger=logger
+                    logger.error(
+                        f"Unknown method {method}"
                     )
                     return False
                 block_size = self.get_value_of("block_size")
@@ -179,11 +179,7 @@ class IptThresholdAdaptive(IptBase):
 
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

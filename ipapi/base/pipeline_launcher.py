@@ -64,9 +64,9 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         res = {}
 
     # Handle legacy states
-    df = res.pop("data_frame", None)
-    if df is not None:
-        res["images"] = list(df["FilePath"])
+    dataframe = res.pop("data_frame", None)
+    if dataframe is not None:
+        res["images"] = list(dataframe["FilePath"])
     sf = res.pop("append_experience_name", None)
     if sf is not None:
         res["sub_folder_name"] = sf

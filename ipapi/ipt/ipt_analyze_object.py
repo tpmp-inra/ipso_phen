@@ -180,9 +180,7 @@ class IptAnalyzeObject(IptBaseAnalyzer):
             img = wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                wrapper.error_holder.add_error(
-                    f"FAIL {self.name}: mask must be initialized"
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             obj, mask = wrapper.prepare_analysis(

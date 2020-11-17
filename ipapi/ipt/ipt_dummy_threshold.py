@@ -10,14 +10,13 @@ class IptDummyThreshold(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Dummy threshold (WIP):
-            Dummy threshold.
+        Dummy threshold:
 
-                    Pass through threshold, expects binary mask as entry
-            Real time: True
+                Pass through threshold, expects binary mask as entry
+        Real time: True
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -40,11 +39,7 @@ class IptDummyThreshold(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:
@@ -52,7 +47,11 @@ class IptDummyThreshold(IptBase):
 
     @property
     def name(self):
-        return "Dummy threshold (WIP)"
+        return "Dummy threshold"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def package(self):

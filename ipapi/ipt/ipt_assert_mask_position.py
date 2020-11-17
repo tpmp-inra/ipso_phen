@@ -42,9 +42,7 @@ class IptAssertMaskPosition(IptBase):
                         src_img=wrapper.current_image, channel="h", min_t=10, max_t=100,
                     )
                 elif mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 # Retrieve ROIs
@@ -65,11 +63,7 @@ class IptAssertMaskPosition(IptBase):
                         img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_GREEN)
                     else:
                         img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_RED)
-                        wrapper.error_holder.add_error(
-                            new_error_text=f'{self. name}: check failed for ROI "{enforcer.name}""',
-                            new_error_level=2,
-                            target_logger=logger,
-                        )
+                        logger.error(f'{self. name}: check failed for ROI "{enforcer.name}""')
                 self.demo_image = img
                 wrapper.store_image(image=img, text=f"enforcers")
 
@@ -79,11 +73,7 @@ class IptAssertMaskPosition(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

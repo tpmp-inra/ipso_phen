@@ -32,7 +32,11 @@ class IptWatershedSkimage(IptBaseMerger):
             maximum=50000,
         )
         self.add_slider(
-            name="compactness", desc="Compactness", default_value=0, minimum=0, maximum=1000
+            name="compactness",
+            desc="Compactness",
+            default_value=0,
+            minimum=0,
+            maximum=1000,
         )
         self.add_combobox(
             name="post_process",
@@ -71,9 +75,7 @@ class IptWatershedSkimage(IptBaseMerger):
                 wrapper.process_image(threshold_only=True)
                 thresh = wrapper.mask
                 if thresh is None:
-                    wrapper.error_holder.add_error(
-                        "Watershed needs a calculated mask to start", target_logger=logger
-                    )
+                    logger.error("Watershed needs a calculated mask to start")
                     return False
 
             if morph_op > 0:
@@ -99,7 +101,10 @@ class IptWatershedSkimage(IptBaseMerger):
             # using 8-connectivity, then appy the Watershed algorithm
             markers = ndimage.label(local_max, structure=np.ones((3, 3)))[0]
             labels = watershed(
-                -dist_transform, markers, mask=wrapper.erode(thresh, 5), compactness=compactness
+                -dist_transform,
+                markers,
+                mask=wrapper.erode(thresh, 5),
+                compactness=compactness,
             )
             if post_process != "none":
                 post_labels = labels.copy()
@@ -108,12 +113,14 @@ class IptWatershedSkimage(IptBaseMerger):
 
             self.result = labels.copy()
             labels[labels == -1] = 0
-            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(
-                np.uint8
-            )
+            labels = (
+                (labels - labels.min()) / (labels.max() - labels.min()) * 255
+            ).astype(np.uint8)
             water_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
             wrapper.store_image(
-                water_img, f"watershed_vis_{self.input_params_as_str()}", text_overlay=True
+                water_img,
+                f"watershed_vis_{self.input_params_as_str()}",
+                text_overlay=True,
             )
 
             self.print_segmentation_labels(
@@ -121,16 +128,14 @@ class IptWatershedSkimage(IptBaseMerger):
             )
 
             if post_process == "merge_labels":
-                res = self._merge_labels(wrapper.current_image, labels=post_labels, **kwargs)
+                res = self._merge_labels(
+                    wrapper.current_image, labels=post_labels, **kwargs
+                )
             else:
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=3,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:
@@ -138,7 +143,11 @@ class IptWatershedSkimage(IptBaseMerger):
 
     @property
     def name(self):
-        return "Watershed Skimage (WIP)"
+        return "Watershed Skimage"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def real_time(self):

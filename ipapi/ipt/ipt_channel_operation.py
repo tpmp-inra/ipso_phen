@@ -134,8 +134,8 @@ class IptChannelOperation(IptBase):
                     elif op1 == "power":
                         c12 = np.power(c1, c2)
                     else:
-                        wrapper.error_holder.add_error(
-                            f"Unknown operator {op1}", target_logger=logger
+                        logger.error(
+                            f"Unknown operator {op1}"
                         )
                 else:
                     c12 = c1
@@ -162,8 +162,8 @@ class IptChannelOperation(IptBase):
                         tmp = np.power(c12, c3)
                     else:
                         tmp = None
-                        wrapper.error_holder.add_error(
-                            f"Unknown operator {op2}", target_logger=logger
+                        logger.error(
+                            f"Unknown operator {op2}"
                         )
                 else:
                     tmp = c12
@@ -232,11 +232,7 @@ class IptChannelOperation(IptBase):
         except Exception as e:
             res = False
             self.result = None
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             if not res:
                 self.result = None

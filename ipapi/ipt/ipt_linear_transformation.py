@@ -143,8 +143,8 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     if brg_calc != "none":
                         avg_src, _ = wrapper.avg_brightness_contrast(img=img, mode=brg_calc)
                     else:
-                        self.wrapper.error_holder.add_error(
-                            "Please select brightness calculation method", target_logger=logger
+                        logger.error(
+                            "Please select brightness calculation method"
                         )
                         res = False
                         return
@@ -263,11 +263,7 @@ class IptLinearTransformation(IptBaseAnalyzer):
                 res = True
 
         except Exception as e:
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

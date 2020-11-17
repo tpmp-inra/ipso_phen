@@ -71,7 +71,7 @@ class IptRotate(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(f"Rotate FAILED, exception: {repr(e)}")
+            logger.error(f"Rotate FAILED, exception: {repr(e)}")
         else:
             pass
         finally:
@@ -176,7 +176,7 @@ def process_wrapper(self, **kwargs):
             res = True
     except Exception as e:
         res = False
-        wrapper.error_holder.add_error(f"Rotate FAILED, exception: {repr(e)}")
+        logger.error(f"Rotate FAILED, exception: {repr(e)}")
     else:
         pass
     finally:

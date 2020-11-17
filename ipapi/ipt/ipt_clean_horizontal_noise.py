@@ -26,11 +26,13 @@ class IptCleanHorizontalNoise(IptBase):
             minimum=1,
             maximum=1000,
         )
-        self.add_checkbox(name="fully_isolated", desc="Remove blocks of lines", default_value=1)
+        self.add_checkbox(
+            name="fully_isolated", desc="Remove blocks of lines", default_value=1
+        )
 
     def process_wrapper(self, **kwargs):
         """
-        Clean horizontal noise (WIP):
+        Clean horizontal noise:
         Removes noise in the form of horizontal lines from masks.
         Used with light barriers
         Real time: False
@@ -52,9 +54,7 @@ class IptCleanHorizontalNoise(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    wrapper.error_holder.add_error(
-                        f"FAIL {self.name}: mask must be initialized", target_logger=logger
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 nz_pixels = np.count_nonzero(mask)
@@ -70,7 +70,9 @@ class IptCleanHorizontalNoise(IptBase):
                     iter_ += 1
                     msk_data = ipc.MaskData(mask=mask)
                     for l in msk_data.lines_data:
-                        if (l.solidity >= 0.99) and (l.nz_span >= msk_data.mask_width - 4):
+                        if (l.solidity >= 0.99) and (
+                            l.nz_span >= msk_data.mask_width - 4
+                        ):
                             ld_up, ld_down = msk_data.find_top_bottom_non_full_lines(
                                 l.height_pos
                             )
@@ -88,7 +90,9 @@ class IptCleanHorizontalNoise(IptBase):
                             all_lines.append(lines)
                             for i, line in enumerate(lines):
                                 stable_ = False
-                                cv2.line(mask, (line[1], line[0]), (line[2], line[0]), 0, 1)
+                                cv2.line(
+                                    mask, (line[1], line[0]), (line[2], line[0]), 0, 1
+                                )
                     wrapper.store_image(mask, f"cleaned_image_iter_{iter_}")
 
                 lines_removed_ = list(set([line[0][0] for line in all_lines]))
@@ -97,7 +101,9 @@ class IptCleanHorizontalNoise(IptBase):
                         wrapper.data_output["hor_lines_removed"].extend(lines_removed_)
                     else:
                         wrapper.data_output["hor_lines_removed"] = lines_removed_
-                wrapper.data_output["hor_pixels_removed"] = nz_pixels - np.count_nonzero(mask)
+                wrapper.data_output["hor_pixels_removed"] = nz_pixels - np.count_nonzero(
+                    mask
+                )
                 wrapper.data_output["hor_lines_removed_hit_plant"] = 0
 
                 self.result = mask
@@ -109,11 +115,7 @@ class IptCleanHorizontalNoise(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

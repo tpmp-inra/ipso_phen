@@ -707,8 +707,8 @@ class IptStrictPipeline(object):
                 if not file_path:
                     # Leave if no source
                     res = False
-                    wrapper.error_holder.add_error(
-                        "Missing source image", target_logger=logger
+                    logger.error(
+                        "Missing source image"
                     )
                     return False
                 wrapper = BaseImageProcessor(file_path)
@@ -769,7 +769,7 @@ class IptStrictPipeline(object):
                     wrapper.mask = func([mask for mask in mask_list if mask is not None])
                     wrapper.store_image(image=wrapper.mask, text="coarse_mask")
                 else:
-                    wrapper.error_holder.add_error("Unable to merge coarse masks")
+                    logger.error("Unable to merge coarse masks")
                     self.last_error.add_error(
                         new_error_text="Unable to merge coarse masks",
                         new_error_kind="pipeline_process_error",
@@ -1015,16 +1015,11 @@ class IptStrictPipeline(object):
                 progress_callback, total_steps, total_steps, "Done", wrapper
             )
         except Exception as e:
-            self.last_error.add_error(
-                new_error_text=f'Unexpected failure: "{repr(e)}"',
-                new_error_kind="pipeline_process_error",
-                target_logger=logger,
-            )
+            logger.error(f'Unexpected failure: "{repr(e)}"')
             res = False
         else:
             pass
         finally:
-            self.last_error.append(wrapper.error_holder)
             wrapper.lock = False
             return res
 

@@ -77,14 +77,16 @@ class IptLocalBinaryPatternThreshold(IptBase):
             name="post_processing",
             desc="Postprocessing option",
             default_value="none",
-            values=dict(none="None", threshold="Threshold", false_color="Use false color"),
+            values=dict(
+                none="None", threshold="Threshold", false_color="Use false color"
+            ),
         )
         self.add_binary_threshold(add_morphology=True)
         self.add_color_map_selector()
 
     def process_wrapper(self, **kwargs):
         """
-        Local binary pattern threshold (WIP):
+        Local binary pattern threshold:
         Gray scale and rotation invariant LBP (Local Binary Patterns).
                 LBP is an invariant descriptor that can be used for texture classification.
         Real time: False
@@ -117,7 +119,9 @@ class IptLocalBinaryPatternThreshold(IptBase):
         try:
             if self.get_value_of("enabled") == 1:
                 c = ipc.resize_image(
-                    wrapper.get_channel(wrapper.current_image, self.get_value_of("channel")),
+                    wrapper.get_channel(
+                        wrapper.current_image, self.get_value_of("channel")
+                    ),
                     target_rect=RectangleRegion(width=800, height=600),
                     keep_aspect_ratio=True,
                     output_as_bgr=False,
@@ -162,7 +166,9 @@ class IptLocalBinaryPatternThreshold(IptBase):
                 if pp == "threshold":
                     median_filter_size = self.get_value_of("median_filter_size")
                     median_filter_size = (
-                        0 if median_filter_size == 1 else ipc.ensure_odd(median_filter_size)
+                        0
+                        if median_filter_size == 1
+                        else ipc.ensure_odd(median_filter_size)
                     )
                     c, _ = wrapper.get_mask(
                         src_img=c,
@@ -187,11 +193,7 @@ class IptLocalBinaryPatternThreshold(IptBase):
                 res = True
         except Exception as e:
             res = False
-            wrapper.error_holder.add_error(
-                new_error_text=f'Failed to process {self. name}: "{repr(e)}"',
-                new_error_level=35,
-                target_logger=logger,
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:
@@ -199,7 +201,11 @@ class IptLocalBinaryPatternThreshold(IptBase):
 
     @property
     def name(self):
-        return "Local binary pattern threshold (WIP)"
+        return "Local binary pattern threshold"
+
+    @property
+    def is_wip(self):
+        return True
 
     @property
     def package(self):
