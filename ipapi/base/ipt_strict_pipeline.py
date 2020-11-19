@@ -4,6 +4,7 @@ import pickle
 from copy import copy
 from uuid import uuid4
 from datetime import datetime as dt
+from typing import Union
 
 import cv2
 import numpy as np
@@ -161,7 +162,7 @@ class IptStrictPipeline(object):
         return save_dict
 
     @classmethod
-    def from_json(cls, json_data: [str, dict]):
+    def from_json(cls, json_data: Union[str, dict]):
         if isinstance(json_data, str):
             with open(json_data, "r") as f:
                 saved_dict = json.load(f)
@@ -192,7 +193,7 @@ class IptStrictPipeline(object):
         return res
 
     @classmethod
-    def load(cls, path: str) -> [object, Exception]:
+    def load(cls, path: str) -> Union[object, Exception]:
         res = None
         try:
             _, ext = os.path.splitext(os.path.basename(path))
@@ -220,7 +221,7 @@ class IptStrictPipeline(object):
                 if not hasattr(res, "_last_wrapper_luid"):
                     res._last_wrapper_luid = ""
                 if not hasattr(res, "last_error"):
-                    res.last_error: ErrorHolder = ErrorHolder(res)
+                    res.last_error = ErrorHolder(res)
             elif ext.lower() == ".json":
                 res = cls.from_json(json_data=path)
             else:
@@ -268,7 +269,7 @@ class IptStrictPipeline(object):
         finally:
             return res
 
-    def save(self, path: str) -> [None, Exception]:
+    def save(self, path: str) -> Union[None, Exception]:
         self.last_error.clear()
         try:
             dump_obj = self.copy()
@@ -302,7 +303,7 @@ class IptStrictPipeline(object):
         else:
             return None
 
-    def save_as_script(self, path: str) -> [None, Exception]:
+    def save_as_script(self, path: str) -> Union[None, Exception]:
         self.last_error.clear()
         try:
             with open(path, "w") as f:
@@ -521,7 +522,9 @@ class IptStrictPipeline(object):
 
         return use_last_result, current_step
 
-    def build_target_tools(self, tools: [None, list], wrapper, use_last_result: bool):
+    def build_target_tools(
+        self, tools: Union[None, list], wrapper, use_last_result: bool
+    ):
         if tools is None:
             tools = self.get_operators(
                 constraints=dict(
@@ -545,7 +548,7 @@ class IptStrictPipeline(object):
     def build_rois(
         self,
         wrapper,
-        tools: [None, list],
+        tools: Union[None, list],
         use_last_result: bool,
         progress_callback=None,
         current_step: int = -1,
@@ -707,9 +710,7 @@ class IptStrictPipeline(object):
                 if not file_path:
                     # Leave if no source
                     res = False
-                    logger.error(
-                        "Missing source image"
-                    )
+                    logger.error("Missing source image")
                     return False
                 wrapper = BaseImageProcessor(file_path)
             wrapper.lock = True
@@ -1645,7 +1646,7 @@ class IptStrictPipeline(object):
         else:
             return []
 
-    def delete_cache_if_tool_after(self, tool_kind: [str, None] = None):
+    def delete_cache_if_tool_after(self, tool_kind: Union[str, None] = None):
         for tool_dict in self.get_operators(
             constraints=dict(kind=self.ops_after(tool_kind))
         ):
@@ -1663,7 +1664,7 @@ class IptStrictPipeline(object):
             tool[0]["enabled"] = not tool[0]["enabled"]
             self.delete_cache_if_tool_after(tool[0]["kind"])
 
-    def invalidate(self, key: [str, None] = None):
+    def invalidate(self, key: Union[str, None] = None):
         if key is not None:
             tool = self.get_operators(constraints=dict(uuid=key))
             if len(tool) > 0:

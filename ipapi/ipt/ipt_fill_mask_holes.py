@@ -67,9 +67,7 @@ class IptFillMaskHoles(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    logger.error(
-                        f"FAIL {self.name}: mask must be initialized"
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 rois = self.get_ipt_roi(
@@ -105,6 +103,8 @@ class IptFillMaskHoles(IptBase):
                         elif h[3] == 3:
                             color = ipc.C_ORANGE
                         elif h[3] == 4:
+                            color = ipc.C_MAROON
+                        else:
                             color = ipc.C_FUCHSIA
                         cv2.drawContours(
                             image=dbg_img,
@@ -115,7 +115,11 @@ class IptFillMaskHoles(IptBase):
                         )
                         if h[3] != -1:
                             cv2.drawContours(
-                                image=mask, contours=[c], contourIdx=-1, color=255, thickness=-1
+                                image=mask,
+                                contours=[c],
+                                contourIdx=-1,
+                                color=255,
+                                thickness=-1,
                             )
                     wrapper.store_image(dbg_img, "tagged_contours")
 
@@ -132,9 +136,7 @@ class IptFillMaskHoles(IptBase):
                 res = True
         except Exception as e:
             res = False
-            logger.error(
-                f'Failed to process {self. name}: "{repr(e)}"'
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             pass
         finally:

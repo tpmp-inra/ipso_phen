@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 import streamlit as st
 import datetime
 
@@ -305,7 +306,6 @@ st.title("Video tools")
 
 st.subheader("Initialize")
 
-src_folder = st.text_input("Source folder: ", os.path.join("g:", "images", ""))
 num_cores = st.slider("Thread count", 1, MAX_CORES, 1)
 video_resolution = st.selectbox("Video resolution", ["1080p", "720p", "576p", "480p"])
 video_aspect_ratio = st.selectbox("Video aspect ratio", ["16/9", "4/3", "1/1"])
@@ -313,10 +313,15 @@ video_aspect_ratio = st.selectbox("Video aspect ratio", ["16/9", "4/3", "1/1"])
 video_height = int(video_resolution[0:-1])
 video_width = int(video_height * eval(video_aspect_ratio))
 
-db_name = st.selectbox(
-    label="Select source experiment",
-    options=["Please make your choice..."]
-    + [db.display_name for db in dbi.available_db_dicts[dbi.DbType.MASS_DB]],
+databases_group = st.selectbox(
+    label="Database group",
+    options=[k for k in dbi.available_db_dicts],
+    format_func=lambda x: x.value,
+)
+experiment_dbi = st.selectbox(
+    label="Experiment",
+    options=[db for db in dbi.available_db_dicts[databases_group]],
+    format_func=lambda x: x.db_qualified_name,
 )
 
 job_choice = st.selectbox(
@@ -324,18 +329,17 @@ job_choice = st.selectbox(
     ["Please make your choice...", "Single plant", "Side by side comparison"],
 )
 
-if job_choice != "Please make your choice..." and db_name != "Please make your choice...":
-    st.subheader("Building database")
+
+if job_choice != "Please make your choice...":
+    st.subheader("Connect to database")
     current_progress = st.progress(0)
-    for db in dbi.available_db_dicts[dbi.DbType.MASS_DB]:
-        if db.display_name == db_name:
-            current_database = dbf.db_info_to_database(
-                db,
-                progress_call_back=progress_update,
-            )
-            break
+    current_database = dbf.db_info_to_database(
+        experiment_dbi,
+        progress_call_back=progress_update,
+    )
     current_progress.progress(1 / 1)
     st.write("Database OK")
+
     st.subheader("Filter")
     exp_list = get_query_items(column="Experiment")
     experiment = st.selectbox("Experiment", exp_list)
@@ -360,11 +364,11 @@ if job_choice != "Please make your choice..." and db_name != "Please make your c
         "Plants", plant_lst, plant_lst if job_choice == "Single plant" else []
     )
     dates = st.multiselect("Dates", date_list, date_list)
+    num_cores = min([MAX_CORES, num_cores])
     if job_choice == "Single plant":
         view_options = st.multiselect("View options", view_option_lst, view_option_lst)
         if st.button("Build videos"):
             force_directories(dst_folder)
-            num_cores = min([MAX_CORES, num_cores])
             st.write(f"Building {len(plants)} videos using {num_cores} cores")
             current_progress = st.progress(0)
             total_ = len(plants)
@@ -384,20 +388,16 @@ if job_choice != "Please make your choice..." and db_name != "Please make your c
                     build_single_plant_video(plant)
                     current_progress.progress((i + 1) / total_)
 
-            current_progress.progress(1 / 1)
-            st.subheader("Done")
-            st.balloons()
     elif job_choice == "Side by side comparison":
         view_option = st.selectbox("View option", view_option_lst)
         if st.button("Build video"):
             force_directories(dst_folder)
-            num_cores = min([MAX_CORES, num_cores])
             st.write(
                 f"Building sbs video for  {','.join(plants)} using {num_cores} cores"
             )
 
             build_sbs_video()
 
-            current_progress.progress(1 / 1)
-            st.subheader("Done")
-            st.balloons()
+    current_progress.progress(1 / 1)
+    st.subheader("Done")
+    st.balloons()

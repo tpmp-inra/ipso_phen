@@ -922,7 +922,7 @@ class BaseImageProcessor(ImageWrapper):
                 enclosing_circle_thickness = 0
 
             self.csv_data_holder.update_csv_value("shape_height", height)
-            # Some new f(r)iends
+
             if self.csv_data_holder.has_csv_key("width_data"):
                 mask_data = ipc.MaskData(mask)
                 _, _, _, min_, max_, avg_, std_ = mask_data.width_quantile_stats(
@@ -1097,7 +1097,7 @@ class BaseImageProcessor(ImageWrapper):
         Inputs:
         img             = image
         mask            = mask made from selected contours
-        line_position   = position of boundry line (a value of 0 would draw the line through the bottom of the image)
+        line_position   = position of boundary line (a value of 0 would draw the line through the bottom of the image)
         :param pseudo_color_channel: str
         :param mask: numpy array, mask made from selected contours
         :param line_position: int
@@ -1303,7 +1303,7 @@ class BaseImageProcessor(ImageWrapper):
         hist_plot_type   = 'None', 'all', 'rgb','lab' or 'hsv'
         color_slice_type = 'None', 'rgb', 'hsv' or 'lab'
         pseudo_channel   = 'None', 'l', 'm' (green-magenta), 'y' (blue-yellow), h','s', or 'v',
-                           creates pseduo colored image based on the specified channel
+                           creates pseudo colored image based on the specified channel
         pseudo_bkg       = 'img' => channel image,
                            'white' => white background image,
                            'both' => both img and white options
@@ -1736,7 +1736,7 @@ class BaseImageProcessor(ImageWrapper):
             * roi: initial ROI, required=False, default=full image
             * root_position: if initial ROI exists, position to start contour, required=False, default=BOTTOM_CENTER
             * trusted_safe_zone: if true all contours in zones tagged safe will be accepted, required=False, default=False
-            * area_override_size: over this area all contours will be accepted as long as they are in a safeish or better region
+            * area_override_size: over this area all contours will be accepted as long as they are in a safe-ish or better region
             * delete_all_bellow: all contours smaller than value will be deleted
         :return: : Filtered mask
         """
@@ -2134,7 +2134,7 @@ class BaseImageProcessor(ImageWrapper):
         :param boundary_position:
         :param mask: Mask from segmentation
         :param pseudo_color_channel: Channel used for pseudo color output image
-        :param source_image: name of overriden source image
+        :param source_image: name of overridden source image
         :return: success
         """
         res = False
@@ -2734,7 +2734,7 @@ class BaseImageProcessor(ImageWrapper):
                 keep_roi = roi
                 break
         if keep_roi is not None:
-            return roi.crop(img, erase_outside_if_circle)
+            return keep_roi.crop(img, erase_outside_if_circle)
         else:
             return img
 
@@ -2795,12 +2795,12 @@ class BaseImageProcessor(ImageWrapper):
                 histo[i] += histo[i - 1]
             # Search vmin & vmax
             vmin = 0
-            perc = vec_size * percents[0] / 100
-            while histo[vmin + 1] <= perc:
+            percent_ = vec_size * percents[0] / 100
+            while histo[vmin + 1] <= percent_:
                 vmin += 1
             vmax = 255 - 1
-            perc = vec_size * (1 - percents[1] / 100)
-            while histo[vmax - 1] > perc:
+            percent_ = vec_size * (1 - percents[1] / 100)
+            while histo[vmax - 1] > percent_:
                 vmax -= 1
             if vmax < 255 - 1:
                 vmax += 1
@@ -3236,6 +3236,7 @@ class BaseImageProcessor(ImageWrapper):
         has_main = False
         mosaic_image_list = []
         for c in self.file_handler.channels_data:
+            img = None
             if c[0] == "chla":
                 continue
             elif c[0] == "msp":
@@ -3251,8 +3252,9 @@ class BaseImageProcessor(ImageWrapper):
                 img = self.current_image
                 has_main = True
 
-            self.store_image(img, c[2])
-            mosaic_image_list.append(c[2])
+            if img is not None:
+                self.store_image(img, c[2])
+                mosaic_image_list.append(c[2])
 
         size = math.sqrt(len(mosaic_image_list))
         d, m = divmod(size, 1)

@@ -69,6 +69,7 @@ from PySide2.QtWidgets import (
     QWidget,
     QListWidgetItem,
 )
+from PySide2.QtWidgets import qApp
 
 
 class Signaller(QObject):
@@ -4025,6 +4026,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             src_path = "FilePath"
         else:
             src_path = ""
+        color = QColor(*ipc.bgr_to_rgb(ipc.C_FUCHSIA))
         if src_path:
             col = -1
             for index in selected.indexes():

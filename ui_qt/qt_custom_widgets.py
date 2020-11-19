@@ -39,7 +39,7 @@ class QCheckableComboBox(QComboBox):
         self.lineEdit().setPalette(palette)
 
         # Use custom delegate
-        self.setItemDelegate(CheckableComboBox.Delegate())
+        self.setItemDelegate(QCheckableComboBox.Delegate())
 
         # Update the text when an item is toggled
         self.model().dataChanged.connect(self.updateText)
@@ -92,7 +92,7 @@ class QCheckableComboBox(QComboBox):
         self.updateText()
 
     def timerEvent(self, event):
-        # After timeout, kill timer, and reenable click on line edit
+        # After timeout, kill timer, and re-enable click on line edit
         self.killTimer(event.timerId())
         self.closeOnLineEditClick = False
 
@@ -156,7 +156,9 @@ class QLogger(QTextBrowser):
         if msg_lst:
             line = msg_lst[0]
             self.insertHtml(
-                line.replace("DEBUG", '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>')
+                line.replace(
+                    "DEBUG", '<font color="aqua"><b>PIPELINE PROCESSOR</b></font>'
+                )
                 .replace("INFO", '<font color="blue"><b>INFO</b></font>')
                 .replace("ERROR", '<font color="OrangeRed"><b>ERROR</b></font>')
                 .replace("WARNING", '<font color="Yellow"><b>WARNING</b></font>')
