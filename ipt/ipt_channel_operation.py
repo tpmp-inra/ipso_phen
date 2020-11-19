@@ -11,7 +11,9 @@ from ipapi.base.ip_common import ToolFamily
 
 class IptChannelOperation(IptBase):
     def build_params(self):
-        self.add_channel_selector("bl", name="channel_1", desc="Channel 1", enable_none=True)
+        self.add_channel_selector(
+            "bl", name="channel_1", desc="Channel 1", enable_none=True
+        )
         self.add_slider(
             name="alpha",
             desc="Weight of the first channel",
@@ -20,7 +22,9 @@ class IptChannelOperation(IptBase):
             maximum=100,
         )
         self.add_arithmetic_operator(name="op1")
-        self.add_channel_selector("rd", name="channel_2", desc="Channel 2", enable_none=True)
+        self.add_channel_selector(
+            "rd", name="channel_2", desc="Channel 2", enable_none=True
+        )
         self.add_slider(
             name="beta",
             desc="Weight of the second channel",
@@ -29,7 +33,9 @@ class IptChannelOperation(IptBase):
             maximum=100,
         )
         self.add_arithmetic_operator(name="op2")
-        self.add_channel_selector("gr", name="channel_3", desc="Channel 3", enable_none=True)
+        self.add_channel_selector(
+            "gr", name="channel_3", desc="Channel 3", enable_none=True
+        )
         self.add_slider(
             name="gamma",
             desc="Weight of the third channel",
@@ -64,16 +70,16 @@ class IptChannelOperation(IptBase):
         Real time : True
 
         Keyword Arguments (in parentheses, argument name):
-            * Channel 1 (channel_1): 
-            * Weight of the first channel (alpha): 
+            * Channel 1 (channel_1):
+            * Weight of the first channel (alpha):
             * Arithmetic operator (op1): Operator to use with operands
-            * Channel 2 (channel_2): 
-            * Weight of the second channel (beta): 
+            * Channel 2 (channel_2):
+            * Weight of the second channel (beta):
             * Arithmetic operator (op2): Operator to use with operands
-            * Channel 3 (channel_3): 
-            * Weight of the third channel (gamma): 
-            * Set negative values to 0 (cut_negative_values): 
-            * Select pseudo color map (color_map): 
+            * Channel 3 (channel_3):
+            * Weight of the third channel (gamma):
+            * Set negative values to 0 (cut_negative_values):
+            * Select pseudo color map (color_map):
             * use color palette (use_palette): Use color palette in postprocessing
             * Build mosaic (build_mosaic): Choose mosaic type to display
             * Overlay text on top of images (text_overlay): Draw description text on top of images
@@ -115,6 +121,7 @@ class IptChannelOperation(IptBase):
             if c3 is not None:
                 c3 = c3 * gamma
 
+            c12 = None
             if c1 is not None:
                 if c2 is not None:
                     if op1 == "plus":
@@ -134,15 +141,11 @@ class IptChannelOperation(IptBase):
                     elif op1 == "power":
                         c12 = np.power(c1, c2)
                     else:
-                        logger.error(
-                            f"Unknown operator {op1}"
-                        )
+                        logger.error(f"Unknown operator {op1}")
                 else:
                     c12 = c1
             elif c2 is not None:
                 c12 = c2
-            else:
-                c12 = None
 
             if c12 is not None:
                 if c3 is not None:
@@ -162,9 +165,7 @@ class IptChannelOperation(IptBase):
                         tmp = np.power(c12, c3)
                     else:
                         tmp = None
-                        logger.error(
-                            f"Unknown operator {op2}"
-                        )
+                        logger.error(f"Unknown operator {op2}")
                 else:
                     tmp = c12
             elif c3 is not None:
@@ -206,7 +207,10 @@ class IptChannelOperation(IptBase):
                 canvas = wrapper.build_mosaic(
                     shape=(tmp.shape[0] * 2, tmp.shape[1] * 3, 3),
                     image_names=np.array(
-                        [[c1_str, c2_str, c3_str], ["source", "step_1", "arithmetic_result"]]
+                        [
+                            [c1_str, c2_str, c3_str],
+                            ["source", "step_1", "arithmetic_result"],
+                        ]
                     ),
                 )
                 main_result_name = "arithmetic_result_mosaic_steps"

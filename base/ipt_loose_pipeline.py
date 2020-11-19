@@ -1068,6 +1068,8 @@ class GroupNode(Node):
                 return True
             elif n.input_type == ipc.IO_ROI:
                 needed_output = ipc.IO_ROI
+            else:
+                needed_output = ipc.IO_NONE
             for node in pivot_list["before"]:
                 if node.output_type in needed_output:
                     return True

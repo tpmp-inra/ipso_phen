@@ -144,25 +144,27 @@ class IptMultiRangeThreshold(IptBase):
 
             channels = []
             stored_names = []
+            dbg_channels = []
             if build_mosaic:
-                dbg_channels = []
-            for i in [1, 2, 3]:
-                c = self.get_value_of(f"c{i}")
-                if c == "none":
+                for i in [1, 2, 3]:
+                    c = self.get_value_of(f"c{i}")
+                    if c == "none":
+                        if build_mosaic:
+                            dbg_channels.append(
+                                np.full_like(a=img[:, :, 0], fill_value=255)
+                            )
+                        continue
+                    msk, stored_name = wrapper.get_mask(
+                        src_img=img,
+                        channel=c,
+                        min_t=self.get_value_of(f"c{i}_low"),
+                        max_t=self.get_value_of(f"c{i}_high"),
+                    )
+                    channels.append(msk)
                     if build_mosaic:
-                        dbg_channels.append(np.full_like(a=img[:, :, 0], fill_value=255))
-                    continue
-                msk, stored_name = wrapper.get_mask(
-                    src_img=img,
-                    channel=c,
-                    min_t=self.get_value_of(f"c{i}_low"),
-                    max_t=self.get_value_of(f"c{i}_high"),
-                )
-                channels.append(msk)
-                if build_mosaic:
-                    dbg_channels.append(msk)
-                stored_names.append(stored_name)
-                wrapper.store_image(image=msk, text=stored_name)
+                        dbg_channels.append(msk)
+                    stored_names.append(stored_name)
+                    wrapper.store_image(image=msk, text=stored_name)
 
             func = getattr(wrapper, self.get_value_of("merge_mode"), None)
             if func:
@@ -175,9 +177,7 @@ class IptMultiRangeThreshold(IptBase):
                     text_overlay=text if not build_mosaic else False,
                 )
             else:
-                logger.error(
-                    "Unable to merge partial masks"
-                )
+                logger.error("Unable to merge partial masks")
                 res = False
                 return
 
@@ -232,7 +232,10 @@ class IptMultiRangeThreshold(IptBase):
                     )
                 )
                 wrapper.store_image(
-                    image=mosaic, text="mosaic", text_overlay=text, font_color=ipc.C_WHITE,
+                    image=mosaic,
+                    text="mosaic",
+                    text_overlay=text,
+                    font_color=ipc.C_WHITE,
                 )
                 self.demo_image = mosaic
 

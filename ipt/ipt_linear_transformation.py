@@ -51,7 +51,11 @@ class IptLinearTransformation(IptBaseAnalyzer):
             hint="Alpha value for linear transformation, gamma for gamma correction",
         )
         self.add_spin_box(
-            name="beta", desc="Beta (brightness)", default_value=0, minimum=-255, maximum=255
+            name="beta",
+            desc="Beta (brightness)",
+            default_value=0,
+            minimum=-255,
+            maximum=255,
         )
         self.add_spin_box(
             name="target_brightness",
@@ -82,7 +86,12 @@ class IptLinearTransformation(IptBaseAnalyzer):
         )
         self.add_table_output(
             name="tb_output",
-            desc=("Image", "Brightness average", "Contrast average", "Brightness min/max"),
+            desc=(
+                "Image",
+                "Brightness average",
+                "Contrast average",
+                "Brightness min/max",
+            ),
         )
         self.add_text_overlay()
 
@@ -137,15 +146,19 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     self.result = self.apply_gamma(
                         img=img, gamma=self.get_value_of("alpha_gamma") / 100
                     )
-                elif method in ["smart_target_brightness", "alpha_beta_target", "gamma_target"]:
+                elif method in [
+                    "smart_target_brightness",
+                    "alpha_beta_target",
+                    "gamma_target",
+                ]:
                     # First get the source brightness
                     target_brightness = self.get_value_of("target_brightness")
                     if brg_calc != "none":
-                        avg_src, _ = wrapper.avg_brightness_contrast(img=img, mode=brg_calc)
-                    else:
-                        logger.error(
-                            "Please select brightness calculation method"
+                        avg_src, _ = wrapper.avg_brightness_contrast(
+                            img=img, mode=brg_calc
                         )
+                    else:
+                        logger.error("Please select brightness calculation method")
                         res = False
                         return
 
@@ -157,9 +170,11 @@ class IptLinearTransformation(IptBaseAnalyzer):
                         target_brightness = max(avg_src - max_delta, target_brightness)
                     apply_case = self.get_value_of("apply_case")
                     if (
-                        (avg_src > target_brightness) and (apply_case in ["always", "if_over"])
+                        (avg_src > target_brightness)
+                        and (apply_case in ["always", "if_over"])
                     ) or (
-                        (avg_src < target_brightness) and (apply_case in ["always", "if_under"])
+                        (avg_src < target_brightness)
+                        and (apply_case in ["always", "if_under"])
                     ):
                         if (method == "gamma_target") or (
                             (method == "smart_target_brightness")
@@ -174,7 +189,9 @@ class IptLinearTransformation(IptBaseAnalyzer):
                         ):
                             beta = (target_brightness - avg_src) / 2
                             alpha = (target_brightness + avg_src) / (2 * avg_src)
-                            self.result = cv2.convertScaleAbs(src=img, alpha=alpha, beta=beta)
+                            self.result = cv2.convertScaleAbs(
+                                src=img, alpha=alpha, beta=beta
+                            )
                         else:
                             self.result = img
                     else:
@@ -200,6 +217,9 @@ class IptLinearTransformation(IptBaseAnalyzer):
                             + 0.691 * np.power(gr.astype(np.float), 2)
                             + 0.068 * np.power(br.astype(np.float), 2)
                         )
+                    else:
+                        r = None
+                        s = None
 
                     s_tuple = cv2.meanStdDev(s.reshape(s.shape[1] * s.shape[0]))
                     r_tuple = cv2.meanStdDev(r.reshape(s.shape[1] * r.shape[0]))
@@ -296,4 +316,3 @@ class IptLinearTransformation(IptBaseAnalyzer):
     @property
     def description(self):
         return "Performs various transformations on the image"
-

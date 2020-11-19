@@ -174,32 +174,32 @@ class IptFixPerspective(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Fix perspective:
-            Fixes perspective using four dots to detect rectangle boundary.
-            Use the included threshold utility to detect the dots.
-            Real time: True
+        Fix perspective:
+        Fixes perspective using four dots to detect rectangle boundary.
+        Use the included threshold utility to detect the dots.
+        Real time: True
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
-                * Module mode (mode):
-                * Channel 1 (c1):
-                * Min threshold for channel 1 (c1_low):
-                * Max threshold for channel 1 (c1_high):
-                * Channel 2 (c2):
-                * Min threshold for channel 2 (c2_low):
-                * Max threshold for channel 2 (c2_high):
-                * Channel 3 (c3):
-                * Min threshold for channel 3 (c3_low):
-                * Max threshold for channel 3 (c3_high):
-                * How to merge thresholds (merge_mode):
-                * Morphology operator (morph_op):
-                * Kernel size (kernel_size):
-                * Kernel shape (kernel_shape):
-                * Iterations (proc_times):
-                * Minimal dot size (surface) (min_dot_size):
-                * Maximal dot size (surface) (max_dot_size):
-                * Destination width (dst_width):
-                * Destination height (dst_height):
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Module mode (mode):
+            * Channel 1 (c1):
+            * Min threshold for channel 1 (c1_low):
+            * Max threshold for channel 1 (c1_high):
+            * Channel 2 (c2):
+            * Min threshold for channel 2 (c2_low):
+            * Max threshold for channel 2 (c2_high):
+            * Channel 3 (c3):
+            * Min threshold for channel 3 (c3_low):
+            * Max threshold for channel 3 (c3_high):
+            * How to merge thresholds (merge_mode):
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
+            * Minimal dot size (surface) (min_dot_size):
+            * Maximal dot size (surface) (max_dot_size):
+            * Destination width (dst_width):
+            * Destination height (dst_height):
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -279,7 +279,9 @@ class IptFixPerspective(IptBase):
                 # find the contours in the mask, then sort them from left to
                 # right
                 cnts = ipc.get_contours(
-                    mask=mask, retrieve_mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_SIMPLE
+                    mask=mask,
+                    retrieve_mode=cv2.RETR_EXTERNAL,
+                    method=cv2.CHAIN_APPROX_SIMPLE,
                 )
                 cnts = sort_contours(cnts)[0]
 
@@ -293,7 +295,7 @@ class IptFixPerspective(IptBase):
 
                 # Reorder dots
                 top_left = min_distance(origin=(0, 0), points=dots)
-                cv2.circle(img, top_left, int(radius), (0, 0, 255), 3)
+                cv2.circle(img, top_left, 20, (0, 0, 255), 3)
                 cv2.putText(
                     img,
                     f"top_left - {top_left}",
@@ -304,7 +306,7 @@ class IptFixPerspective(IptBase):
                     6,
                 )
                 top_right = min_distance(origin=(wrapper.width, 0), points=dots)
-                cv2.circle(img, top_right, int(radius), (0, 0, 255), 3)
+                cv2.circle(img, top_right, 20, (0, 0, 255), 3)
                 cv2.putText(
                     img,
                     f"top_right - {top_right}",
@@ -315,7 +317,7 @@ class IptFixPerspective(IptBase):
                     6,
                 )
                 bottom_left = min_distance(origin=(0, wrapper.height), points=dots)
-                cv2.circle(img, bottom_left, int(radius), (0, 0, 255), 3)
+                cv2.circle(img, bottom_left, 20, (0, 0, 255), 3)
                 cv2.putText(
                     img,
                     f"bottom_left - {bottom_left}",
@@ -325,8 +327,10 @@ class IptFixPerspective(IptBase):
                     (255, 0, 255),
                     6,
                 )
-                bottom_right = min_distance(origin=(wrapper.width, wrapper.height), points=dots)
-                cv2.circle(img, bottom_right, int(radius), (0, 0, 255), 3)
+                bottom_right = min_distance(
+                    origin=(wrapper.width, wrapper.height), points=dots
+                )
+                cv2.circle(img, bottom_right, 20, (0, 0, 255), 3)
                 cv2.putText(
                     img,
                     f"bottom_right - {bottom_right}",
@@ -371,7 +375,10 @@ class IptFixPerspective(IptBase):
                 self.result = cv2.warpPerspective(
                     src=wrapper.current_image,
                     M=mat,
-                    dsize=(self.get_value_of("dst_width"), self.get_value_of("dst_height")),
+                    dsize=(
+                        self.get_value_of("dst_width"),
+                        self.get_value_of("dst_height"),
+                    ),
                 )
                 wrapper.store_image(image=self.result, text="warped_image")
 

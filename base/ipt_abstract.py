@@ -8,6 +8,7 @@ import base64
 import hashlib
 import logging
 import os
+from typing import Union
 
 import cv2
 import numpy as np
@@ -1617,7 +1618,7 @@ class IptBase(IptParamHolder, ABC):
 
     def get_short_hash(
         self, exclude_list: tuple = (), add_plant_name: bool = True
-    ) -> [str, None]:
+    ) -> Union[str, None]:
         wrapper = self.wrapper
         if wrapper is None:
             return None
