@@ -171,6 +171,24 @@ ipso_folders = IpsoFolders(
                 "",
             )
         ),
+        "logs": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "logs",
+                "",
+            )
+        ),
+        "db_cache": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "db_cache",
+                "",
+            )
+        ),
         "mass_storage": FolderData(get_mass_storage_path()),
         "local_storage": FolderData(get_local_storage_path()),
         "image_cache": FolderData(

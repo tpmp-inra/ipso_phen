@@ -4,7 +4,7 @@ import logging
 
 from PySide2.QtWidgets import QApplication
 
-from ui_qt.app import IpsoMainForm
+from ipso_phen.ui.app import IpsoMainForm
 
 logger = logging.getLogger(__name__)
 

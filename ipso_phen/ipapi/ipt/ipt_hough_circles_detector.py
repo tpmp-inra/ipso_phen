@@ -13,7 +13,7 @@ import ipapi.base.ip_common as ipc
 from ipapi.base.ipt_abstract import IptBase
 from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
 from ipapi.tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
-from ipapi.tools.common_functions import force_directories
+from ipapi.tools.folders import ipso_folders
 
 
 class IptHoughCircles(IptBase):
@@ -205,14 +205,12 @@ class IptHoughCircles(IptBase):
         try:
             edge_only = self.get_value_of("edge_only") == 1
             pkl_file = os.path.join(
-                "stored_data",
+                ipso_folders.get_path("stored_data"),
                 self.get_short_hash(
                     exclude_list=("annulus_size", "roi_name", "tool_target", "roi_shape")
                 )
                 + ".pkl",
             )
-            if self.get_value_of("enable_cache") == 1:
-                force_directories("stored_data")
             if (
                 (self.get_value_of("enable_cache") == 1)
                 and edge_only is False

@@ -45,7 +45,7 @@ from PySide2.QtWidgets import (
     QStatusBar,
 )
 
-import ui_qt.main_rc
+import ui.main_rc
 
 
 class Ui_MainWindow(object):
@@ -92,7 +92,9 @@ class Ui_MainWindow(object):
         self.actionAdd_white_balance_fixer = QAction(MainWindow)
         self.actionAdd_white_balance_fixer.setObjectName(u"actionAdd_white_balance_fixer")
         self.action_script_merge_select_and = QAction(MainWindow)
-        self.action_script_merge_select_and.setObjectName(u"action_script_merge_select_and")
+        self.action_script_merge_select_and.setObjectName(
+            u"action_script_merge_select_and"
+        )
         self.action_script_merge_select_and.setCheckable(True)
         self.action_script_merge_select_and.setChecked(True)
         self.action_script_merge_select_or = QAction(MainWindow)
@@ -124,11 +126,15 @@ class Ui_MainWindow(object):
         self.actionNone = QAction(MainWindow)
         self.actionNone.setObjectName(u"actionNone")
         self.action_build_video_from_images = QAction(MainWindow)
-        self.action_build_video_from_images.setObjectName(u"action_build_video_from_images")
+        self.action_build_video_from_images.setObjectName(
+            u"action_build_video_from_images"
+        )
         self.action_new_script = QAction(MainWindow)
         self.action_new_script.setObjectName(u"action_new_script")
         icon1 = QIcon()
-        icon1.addFile(u":/common/resources/New document.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(
+            u":/common/resources/New document.png", QSize(), QIcon.Normal, QIcon.Off
+        )
         self.action_new_script.setIcon(icon1)
         self.action_load_script = QAction(MainWindow)
         self.action_load_script.setObjectName(u"action_load_script")
@@ -206,7 +212,9 @@ class Ui_MainWindow(object):
         self.actionAdd_auto_fill_in_grid_search.setObjectName(
             u"actionAdd_auto_fill_in_grid_search"
         )
-        self.actionAdd_buttons_to_add_tool_to_script_next_to_reset_button = QAction(MainWindow)
+        self.actionAdd_buttons_to_add_tool_to_script_next_to_reset_button = QAction(
+            MainWindow
+        )
         self.actionAdd_buttons_to_add_tool_to_script_next_to_reset_button.setObjectName(
             u"actionAdd_buttons_to_add_tool_to_script_next_to_reset_button"
         )
@@ -320,7 +328,9 @@ class Ui_MainWindow(object):
         self.action_use_dark_theme.setCheckable(True)
         self.action_use_dark_theme.setChecked(True)
         self.action_build_tool_documentation = QAction(MainWindow)
-        self.action_build_tool_documentation.setObjectName(u"action_build_tool_documentation")
+        self.action_build_tool_documentation.setObjectName(
+            u"action_build_tool_documentation"
+        )
         self.action_build_ipso_phen_documentation = QAction(MainWindow)
         self.action_build_ipso_phen_documentation.setObjectName(
             u"action_build_ipso_phen_documentation"
@@ -399,7 +409,9 @@ class Ui_MainWindow(object):
             u"action_add_white_balance_corrector"
         )
         self.action_build_roi_with_raw_image = QAction(MainWindow)
-        self.action_build_roi_with_raw_image.setObjectName(u"action_build_roi_with_raw_image")
+        self.action_build_roi_with_raw_image.setObjectName(
+            u"action_build_roi_with_raw_image"
+        )
         self.action_build_roi_with_pre_processed_image = QAction(MainWindow)
         self.action_build_roi_with_pre_processed_image.setObjectName(
             u"action_build_roi_with_pre_processed_image"
@@ -629,10 +641,14 @@ class Ui_MainWindow(object):
 
         self.cb_annotation_level = QComboBox(self.tb_annotations)
         icon4 = QIcon()
-        icon4.addFile(u":/annotation_level/resources/Info.png", QSize(), QIcon.Normal, QIcon.On)
+        icon4.addFile(
+            u":/annotation_level/resources/Info.png", QSize(), QIcon.Normal, QIcon.On
+        )
         self.cb_annotation_level.addItem(icon4, "")
         icon5 = QIcon()
-        icon5.addFile(u":/annotation_level/resources/OK.png", QSize(), QIcon.Normal, QIcon.On)
+        icon5.addFile(
+            u":/annotation_level/resources/OK.png", QSize(), QIcon.Normal, QIcon.On
+        )
         self.cb_annotation_level.addItem(icon5, "")
         icon6 = QIcon()
         icon6.addFile(
@@ -675,7 +691,9 @@ class Ui_MainWindow(object):
 
         self.gridLayout_4.addWidget(self.bt_delete_annotation, 1, 3, 1, 1)
 
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
+        )
 
         self.gridLayout_4.addItem(self.horizontalSpacer, 1, 2, 1, 1)
 
@@ -778,7 +796,9 @@ class Ui_MainWindow(object):
         self.bt_launch_batch = QToolButton(self.frame_2)
         self.bt_launch_batch.setObjectName(u"bt_launch_batch")
         icon12 = QIcon()
-        icon12.addFile(u":/image_process/resources/Play.png", QSize(), QIcon.Normal, QIcon.On)
+        icon12.addFile(
+            u":/image_process/resources/Play.png", QSize(), QIcon.Normal, QIcon.On
+        )
         self.bt_launch_batch.setIcon(icon12)
         self.bt_launch_batch.setIconSize(QSize(24, 24))
 
@@ -808,7 +828,9 @@ class Ui_MainWindow(object):
 
         self.gridLayout_15.addWidget(self.bt_pp_save, 0, 2, 1, 1)
 
-        self.horizontalSpacer_8 = QSpacerItem(13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalSpacer_8 = QSpacerItem(
+            13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum
+        )
 
         self.gridLayout_15.addItem(self.horizontalSpacer_8, 0, 3, 1, 1)
 
@@ -828,7 +850,9 @@ class Ui_MainWindow(object):
 
         self.gridLayout_15.addWidget(self.bt_pp_down, 0, 5, 1, 1)
 
-        self.horizontalSpacer_15 = QSpacerItem(13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalSpacer_15 = QSpacerItem(
+            13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum
+        )
 
         self.gridLayout_15.addItem(self.horizontalSpacer_15, 0, 6, 1, 1)
 
@@ -842,7 +866,9 @@ class Ui_MainWindow(object):
 
         self.gridLayout_15.addWidget(self.bt_pp_delete, 0, 7, 1, 1)
 
-        self.horizontalSpacer_14 = QSpacerItem(13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalSpacer_14 = QSpacerItem(
+            13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum
+        )
 
         self.gridLayout_15.addItem(self.horizontalSpacer_14, 0, 8, 1, 1)
 
@@ -857,14 +883,18 @@ class Ui_MainWindow(object):
 
         self.gridLayout_15.addWidget(self.bt_pp_select_tool, 0, 9, 1, 1)
 
-        self.horizontalSpacer_13 = QSpacerItem(13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        self.horizontalSpacer_13 = QSpacerItem(
+            13, 20, QSizePolicy.Fixed, QSizePolicy.Minimum
+        )
 
         self.gridLayout_15.addItem(self.horizontalSpacer_13, 0, 10, 1, 1)
 
         self.bt_pp_invalidate = QPushButton(self.tb_pipeline_v2)
         self.bt_pp_invalidate.setObjectName(u"bt_pp_invalidate")
         icon17 = QIcon()
-        icon17.addFile(u":/common/resources/Refresh.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon17.addFile(
+            u":/common/resources/Refresh.png", QSize(), QIcon.Normal, QIcon.Off
+        )
         self.bt_pp_invalidate.setIcon(icon17)
 
         self.gridLayout_15.addWidget(self.bt_pp_invalidate, 0, 11, 1, 1)
@@ -943,7 +973,9 @@ class Ui_MainWindow(object):
 
         self.gridLayout_17.addLayout(self.gl_tool_params, 0, 0, 1, 1)
 
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer = QSpacerItem(
+            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding
+        )
 
         self.gridLayout_17.addItem(self.verticalSpacer, 1, 0, 1, 1)
 
@@ -1130,7 +1162,9 @@ class Ui_MainWindow(object):
         self.bt_pp_select_output_folder = QToolButton(self.groupBox)
         self.bt_pp_select_output_folder.setObjectName(u"bt_pp_select_output_folder")
         icon20 = QIcon()
-        icon20.addFile(u":/common/resources/folder_blue.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon20.addFile(
+            u":/common/resources/folder_blue.png", QSize(), QIcon.Normal, QIcon.Off
+        )
         self.bt_pp_select_output_folder.setIcon(icon20)
 
         self.gridLayout_11.addWidget(self.bt_pp_select_output_folder, 0, 2, 1, 1)
@@ -1166,7 +1200,9 @@ class Ui_MainWindow(object):
 
         self.sp_pp_time_delta = QSpinBox(self.groupBox)
         self.sp_pp_time_delta.setObjectName(u"sp_pp_time_delta")
-        sizePolicy2.setHeightForWidth(self.sp_pp_time_delta.sizePolicy().hasHeightForWidth())
+        sizePolicy2.setHeightForWidth(
+            self.sp_pp_time_delta.sizePolicy().hasHeightForWidth()
+        )
         self.sp_pp_time_delta.setSizePolicy(sizePolicy2)
         self.sp_pp_time_delta.setFont(font1)
         self.sp_pp_time_delta.setMaximum(10080)
@@ -1203,7 +1239,9 @@ class Ui_MainWindow(object):
         )
         self.cb_pp_append_timestamp_to_output_folder.setFont(font1)
 
-        self.gridLayout_11.addWidget(self.cb_pp_append_timestamp_to_output_folder, 4, 0, 1, 3)
+        self.gridLayout_11.addWidget(
+            self.cb_pp_append_timestamp_to_output_folder, 4, 0, 1, 3
+        )
 
         self.cb_pp_append_experience_name = QCheckBox(self.groupBox)
         self.cb_pp_append_experience_name.setObjectName(u"cb_pp_append_experience_name")
@@ -1263,7 +1301,9 @@ class Ui_MainWindow(object):
         font4.setWeight(75)
         self.bt_pp_start.setFont(font4)
         icon21 = QIcon()
-        icon21.addFile(u":/image_process/resources/Play.png", QSize(), QIcon.Normal, QIcon.Off)
+        icon21.addFile(
+            u":/image_process/resources/Play.png", QSize(), QIcon.Normal, QIcon.Off
+        )
         self.bt_pp_start.setIcon(icon21)
         self.bt_pp_start.setIconSize(QSize(24, 24))
 
@@ -1363,7 +1403,9 @@ class Ui_MainWindow(object):
         self.menuPipeline_builder = QMenu(self.menu_settings)
         self.menuPipeline_builder.setObjectName(u"menuPipeline_builder")
         self.menu_source_image_scale_factor = QMenu(self.menuPipeline_builder)
-        self.menu_source_image_scale_factor.setObjectName(u"menu_source_image_scale_factor")
+        self.menu_source_image_scale_factor.setObjectName(
+            u"menu_source_image_scale_factor"
+        )
         self.menu_help = QMenu(self.menubar)
         self.menu_help.setObjectName(u"menu_help")
         self.menu_view = QMenu(self.menubar)
@@ -1449,7 +1491,9 @@ class Ui_MainWindow(object):
         )
         self.menuCode_generation_mode.addAction(self.action_standard_object_oriented_call)
         self.mnu_debug.addAction(self.action_use_multithreading)
-        self.menuPipeline_builder.addAction(self.menu_source_image_scale_factor.menuAction())
+        self.menuPipeline_builder.addAction(
+            self.menu_source_image_scale_factor.menuAction()
+        )
         self.menu_source_image_scale_factor.addAction(self.act_settings_sir_keep)
         self.menu_source_image_scale_factor.addAction(self.act_settings_sir_2x)
         self.menu_source_image_scale_factor.addAction(self.act_settings_sir_3x)
@@ -1501,7 +1545,9 @@ class Ui_MainWindow(object):
         self.action_switch_db_new.setText(
             QCoreApplication.translate("MainWindow", u"New DB", None)
         )
-        self.actionSelect.setText(QCoreApplication.translate("MainWindow", u"Select ...", None))
+        self.actionSelect.setText(
+            QCoreApplication.translate("MainWindow", u"Select ...", None)
+        )
         self.actionExit.setText(QCoreApplication.translate("MainWindow", u"Exit", None))
         self.actionEnable_annotations.setText(
             QCoreApplication.translate("MainWindow", u"Enable annotations", None)
@@ -1556,7 +1602,9 @@ class Ui_MainWindow(object):
         self.action_build_video_from_images.setText(
             QCoreApplication.translate("MainWindow", u"Build video from images", None)
         )
-        self.action_new_script.setText(QCoreApplication.translate("MainWindow", u"New", None))
+        self.action_new_script.setText(
+            QCoreApplication.translate("MainWindow", u"New", None)
+        )
         self.action_load_script.setText(
             QCoreApplication.translate("MainWindow", u"Load...", None)
         )
@@ -1569,21 +1617,33 @@ class Ui_MainWindow(object):
             )
         )
         self.action_roi_execute_before_pre_processing.setText(
-            QCoreApplication.translate("MainWindow", u"Execute before pre-processing", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Execute before pre-processing", None
+            )
         )
         self.action_roi_execute_after_pre_processing.setText(
-            QCoreApplication.translate("MainWindow", u"Execute after pre-processing", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Execute after pre-processing", None
+            )
         )
         self.action_roi_execute_after_mask_merger.setText(
             QCoreApplication.translate("MainWindow", u"Execute after mask merger", None)
         )
-        self.act_view_anno_all.setText(QCoreApplication.translate("MainWindow", u"All", None))
-        self.act_view_anno_none.setText(QCoreApplication.translate("MainWindow", u"None", None))
+        self.act_view_anno_all.setText(
+            QCoreApplication.translate("MainWindow", u"All", None)
+        )
+        self.act_view_anno_none.setText(
+            QCoreApplication.translate("MainWindow", u"None", None)
+        )
         self.act_view_anno_empty.setText(
             QCoreApplication.translate("MainWindow", u"No annotation", None)
         )
-        self.act_view_anno_info.setText(QCoreApplication.translate("MainWindow", u"Info", None))
-        self.act_view_anno_ok.setText(QCoreApplication.translate("MainWindow", u"OK", None))
+        self.act_view_anno_info.setText(
+            QCoreApplication.translate("MainWindow", u"Info", None)
+        )
+        self.act_view_anno_ok.setText(
+            QCoreApplication.translate("MainWindow", u"OK", None)
+        )
         self.act_view_anno_warning.setText(
             QCoreApplication.translate("MainWindow", u"Warning", None)
         )
@@ -1603,21 +1663,31 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Save as Python script...", None)
         )
         self.actionMerge_script_and_toolbox_panels.setText(
-            QCoreApplication.translate("MainWindow", u"Merge script and toolbox panels", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Merge script and toolbox panels", None
+            )
         )
         self.actionPut_tools_widgets_in_scroll_panel.setText(
-            QCoreApplication.translate("MainWindow", u"Put tools widgets in scroll panel", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Put tools widgets in scroll panel", None
+            )
         )
         self.actionAdd_auto_fill_in_grid_search.setText(
-            QCoreApplication.translate("MainWindow", u"Add auto fill in grid search", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Add auto fill in grid search", None
+            )
         )
         self.actionAdd_buttons_to_add_tool_to_script_next_to_reset_button.setText(
             QCoreApplication.translate(
-                "MainWindow", u"Add buttons to add tool to script next to reset button", None
+                "MainWindow",
+                u"Add buttons to add tool to script next to reset button",
+                None,
             )
         )
         self.actionAdd_roi_to_check_mask_positioning.setText(
-            QCoreApplication.translate("MainWindow", u"Add roi to check mask positioning", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Add roi to check mask positioning", None
+            )
         )
         self.actionFix_ROI_display_color_issue_for_rectangles.setText(
             QCoreApplication.translate(
@@ -1631,7 +1701,9 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Create wrapper before", None)
         )
         self.action_standard_object_oriented_call.setText(
-            QCoreApplication.translate("MainWindow", u"Standard object oriented call", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Standard object oriented call", None
+            )
         )
         self.action_object_oriented_wrapped_with_a_with_clause.setText(
             QCoreApplication.translate(
@@ -1680,8 +1752,12 @@ class Ui_MainWindow(object):
         self.action_video_ar_16_9.setText(
             QCoreApplication.translate("MainWindow", u"16/9", None)
         )
-        self.action_video_ar_4_3.setText(QCoreApplication.translate("MainWindow", u"4/3", None))
-        self.action_video_ar_1_1.setText(QCoreApplication.translate("MainWindow", u"1/1", None))
+        self.action_video_ar_4_3.setText(
+            QCoreApplication.translate("MainWindow", u"4/3", None)
+        )
+        self.action_video_ar_1_1.setText(
+            QCoreApplication.translate("MainWindow", u"1/1", None)
+        )
         self.action_video_bkg_color_black.setText(
             QCoreApplication.translate("MainWindow", u"Black", None)
         )
@@ -1729,13 +1805,17 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Build tool documentation", None)
         )
         self.action_build_ipso_phen_documentation.setText(
-            QCoreApplication.translate("MainWindow", u"Build IPSO Phen documentation", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Build IPSO Phen documentation", None
+            )
         )
         self.action_show_read_me.setText(
             QCoreApplication.translate("MainWindow", u"Read me", None)
         )
         self.action_build_missing_tools_documentation.setText(
-            QCoreApplication.translate("MainWindow", u"Build missing tools documentation", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Build missing tools documentation", None
+            )
         )
         self.action_new_tool.setText(
             QCoreApplication.translate("MainWindow", u"New tool", None)
@@ -1751,7 +1831,9 @@ class Ui_MainWindow(object):
         self.action_use_pipeline_cache.setText(
             QCoreApplication.translate("MainWindow", u"Use pipeline cache", None)
         )
-        self.action_show_log.setText(QCoreApplication.translate("MainWindow", u"Log", None))
+        self.action_show_log.setText(
+            QCoreApplication.translate("MainWindow", u"Log", None)
+        )
         self.action_de_load_csv.setText(
             QCoreApplication.translate("MainWindow", u"Load CSV", None)
         )
@@ -1782,13 +1864,25 @@ class Ui_MainWindow(object):
         self.act_settings_sir_keep.setText(
             QCoreApplication.translate("MainWindow", u"Keep original", None)
         )
-        self.act_settings_sir_2x.setText(QCoreApplication.translate("MainWindow", u"2x", None))
-        self.act_settings_sir_3x.setText(QCoreApplication.translate("MainWindow", u"3x", None))
-        self.act_settings_sir_4x.setText(QCoreApplication.translate("MainWindow", u"4x", None))
-        self.act_settings_sir_5x.setText(QCoreApplication.translate("MainWindow", u"5x", None))
-        self.act_settings_sir_6x.setText(QCoreApplication.translate("MainWindow", u"6x", None))
+        self.act_settings_sir_2x.setText(
+            QCoreApplication.translate("MainWindow", u"2x", None)
+        )
+        self.act_settings_sir_3x.setText(
+            QCoreApplication.translate("MainWindow", u"3x", None)
+        )
+        self.act_settings_sir_4x.setText(
+            QCoreApplication.translate("MainWindow", u"4x", None)
+        )
+        self.act_settings_sir_5x.setText(
+            QCoreApplication.translate("MainWindow", u"5x", None)
+        )
+        self.act_settings_sir_6x.setText(
+            QCoreApplication.translate("MainWindow", u"6x", None)
+        )
         self.action_save_pipeline_processor_state.setText(
-            QCoreApplication.translate("MainWindow", u"Save pipeline processor state", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Save pipeline processor state", None
+            )
         )
         self.action_add_image_generator.setText(
             QCoreApplication.translate("MainWindow", u"Add Image Generator", None)
@@ -1803,14 +1897,18 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Build with raw image", None)
         )
         self.action_build_roi_with_pre_processed_image.setText(
-            QCoreApplication.translate("MainWindow", u"Build with pre processed image", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Build with pre processed image", None
+            )
         )
         self.chk_experiment.setText(
             QCoreApplication.translate("MainWindow", u"Experiment:", None)
         )
         self.chk_plant.setText(QCoreApplication.translate("MainWindow", u"Plant:", None))
         self.chk_date.setText(QCoreApplication.translate("MainWindow", u"Date:", None))
-        self.chk_camera.setText(QCoreApplication.translate("MainWindow", u"Camera:", None))
+        self.chk_camera.setText(
+            QCoreApplication.translate("MainWindow", u"Camera:", None)
+        )
         self.chk_view_option.setText(
             QCoreApplication.translate("MainWindow", u"View option:", None)
         )
@@ -1857,15 +1955,21 @@ class Ui_MainWindow(object):
         # if QT_CONFIG(tooltip)
         self.bt_add_to_selection.setToolTip(
             QCoreApplication.translate(
-                "MainWindow", u"Add to image browser images matching the current query", None
+                "MainWindow",
+                u"Add to image browser images matching the current query",
+                None,
             )
         )
         # endif // QT_CONFIG(tooltip)
-        self.bt_add_to_selection.setText(QCoreApplication.translate("MainWindow", u"Add", None))
+        self.bt_add_to_selection.setText(
+            QCoreApplication.translate("MainWindow", u"Add", None)
+        )
         self.bt_clear_selection.setText(
             QCoreApplication.translate("MainWindow", u"Clear", None)
         )
-        self.pushButton.setText(QCoreApplication.translate("MainWindow", u"PushButton", None))
+        self.pushButton.setText(
+            QCoreApplication.translate("MainWindow", u"PushButton", None)
+        )
         self.label_3.setText(
             QCoreApplication.translate("MainWindow", u"Annotation level:", None)
         )
@@ -1916,7 +2020,9 @@ class Ui_MainWindow(object):
             self.tw_tool_box.indexOf(self.tb_statistics),
             QCoreApplication.translate("MainWindow", u"Statistics", None),
         )
-        self.label.setText(QCoreApplication.translate("MainWindow", u"Batch process:", None))
+        self.label.setText(
+            QCoreApplication.translate("MainWindow", u"Batch process:", None)
+        )
         self.cb_batch_mode.setItemText(
             0, QCoreApplication.translate("MainWindow", u"All", None)
         )
@@ -1999,7 +2105,9 @@ class Ui_MainWindow(object):
             self.tb_tool_script.indexOf(self.tab_tools),
             QCoreApplication.translate("MainWindow", u"Standalone tools", None),
         )
-        self.bt_clear_result.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
+        self.bt_clear_result.setText(
+            QCoreApplication.translate("MainWindow", u"Clear", None)
+        )
         self.bt_set_as_selected.setText(
             QCoreApplication.translate("MainWindow", u"Set as selected", None)
         )
@@ -2007,15 +2115,25 @@ class Ui_MainWindow(object):
             self.tabWidget.indexOf(self.tab_pipeline_builder),
             QCoreApplication.translate("MainWindow", u"Pipeline builder", None),
         )
-        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"Pipeline:", None))
-        self.bt_pp_select_script.setText(QCoreApplication.translate("MainWindow", u"...", None))
-        self.lb_pp_thread_count.setText(QCoreApplication.translate("MainWindow", u"0", None))
-        self.label_9.setText(QCoreApplication.translate("MainWindow", u"Thread count:", None))
+        self.groupBox_2.setTitle(
+            QCoreApplication.translate("MainWindow", u"Pipeline:", None)
+        )
+        self.bt_pp_select_script.setText(
+            QCoreApplication.translate("MainWindow", u"...", None)
+        )
+        self.lb_pp_thread_count.setText(
+            QCoreApplication.translate("MainWindow", u"0", None)
+        )
+        self.label_9.setText(
+            QCoreApplication.translate("MainWindow", u"Thread count:", None)
+        )
         self.rb_pp_load_script.setText(
             QCoreApplication.translate("MainWindow", u"Pipeline", None)
         )
         self.rb_pp_default_process.setText(
-            QCoreApplication.translate("MainWindow", u"Default process (script pipeline)", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Default process (script pipeline)", None
+            )
         )
         self.groupBox.setTitle(
             QCoreApplication.translate("MainWindow", u"Output options:", None)
@@ -2035,9 +2153,13 @@ class Ui_MainWindow(object):
             )
         )
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"minutes", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"Output folder:", None))
+        self.label_2.setText(
+            QCoreApplication.translate("MainWindow", u"Output folder:", None)
+        )
         self.cb_pp_append_timestamp_to_output_folder.setText(
-            QCoreApplication.translate("MainWindow", u"Append timestamp to output folder", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Append timestamp to output folder", None
+            )
         )
         self.cb_pp_append_experience_name.setText(
             QCoreApplication.translate(
@@ -2080,7 +2202,9 @@ class Ui_MainWindow(object):
         self.menuImage_lists.setTitle(
             QCoreApplication.translate("MainWindow", u"Image lists", None)
         )
-        self.menu_settings.setTitle(QCoreApplication.translate("MainWindow", u"Settings", None))
+        self.menu_settings.setTitle(
+            QCoreApplication.translate("MainWindow", u"Settings", None)
+        )
         # if QT_CONFIG(tooltip)
         self.menuVideo.setToolTip("")
         # endif // QT_CONFIG(tooltip)
@@ -2106,7 +2230,9 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Pipeline builder", None)
         )
         self.menu_source_image_scale_factor.setTitle(
-            QCoreApplication.translate("MainWindow", u"Source image down scale factor", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Source image down scale factor", None
+            )
         )
         self.menu_help.setTitle(QCoreApplication.translate("MainWindow", u"Help", None))
         self.menu_view.setTitle(QCoreApplication.translate("MainWindow", u"View", None))

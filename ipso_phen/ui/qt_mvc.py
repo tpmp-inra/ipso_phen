@@ -45,7 +45,7 @@ from ipapi.base.ipt_loose_pipeline import (
 )
 from ipapi.base.ipt_abstract import IptBase, IptParam, IptParamHolder
 import ipapi.base.ip_common as ipc
-from ui_qt.qt_funct import build_widgets, cv2_to_qimage
+from ui.qt_funct import build_widgets, cv2_to_qimage
 import numpy as np
 import pandas as pd
 from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper

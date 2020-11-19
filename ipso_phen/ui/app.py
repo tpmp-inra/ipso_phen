@@ -113,16 +113,19 @@ class QtHandler(logging.Handler):
 g_qt_log_handler = QtHandler()
 g_qt_log_handler.addFilter(MemoryFilter())
 
+from ipapi.tools.folders import ipso_folders
+
 log_file_handler = logging.FileHandler(
-    os.path.join("logs", f"{dt.now().strftime('%Y%m%d %H%M%S')}.log"),
+    os.path.join(
+        ipso_folders.get_path("logs", force_creation=True),
+        f"ipso_phen_{dt.now().strftime('%Y_%m_%d')}.log",
+    ),
     mode="a",
     delay=True,
 )
 log_file_handler.addFilter(MemoryFilter())
 
 
-if not os.path.exists("logs"):
-    os.mkdir("logs")
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s - %(mem_data)s - %(name)s - %(levelname)s] - %(message)s",
@@ -131,6 +134,11 @@ logging.basicConfig(
         log_file_handler,
     ],
 )
+
+logger = logging.getLogger(__name__)
+logger.info("")
+logger.info("______________________Starting session________________________________")
+logger.info("")
 
 
 from ipapi.base.ip_abstract import BaseImageProcessor
@@ -141,7 +149,6 @@ from ipapi.base.ipt_holder import IptHolder, WIP_CASE
 from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
 import ipapi.base.ip_common as ipc
 from ipapi.tools import error_holder as eh
-from ipapi.tools.folders import ipso_folders
 
 from ipapi.class_pipelines.ip_factory import ipo_factory
 
@@ -159,11 +166,11 @@ import ipapi.database.db_factory as dbf
 import ipapi.database.base as dbb
 from ipapi.base.pipeline_processor import PipelineProcessor
 
-from ui_qt import ui_consts
-from ui_qt.about import Ui_about_dialog
-from ui_qt.folder_selector import Ui_folder_selector
-from ui_qt.new_tool import Ui_dlg_new_tool
-from ui_qt.qt_mvc import (
+from ui import ui_consts
+from ui.about import Ui_about_dialog
+from ui.folder_selector import Ui_folder_selector
+from ui.new_tool import Ui_dlg_new_tool
+from ui.qt_mvc import (
     QMouseGraphicsView,
     build_widgets,
     QPandasModel,
@@ -174,9 +181,9 @@ from ui_qt.qt_mvc import (
     QImageDrawerDelegate,
     PipelineDelegate,
 )
-from ui_qt.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
-from ui_qt.main import Ui_MainWindow
-from ui_qt.qt_custom_widgets import QLogger
+from ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
+from ui.main import Ui_MainWindow
+from ui.qt_custom_widgets import QLogger
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
@@ -188,9 +195,6 @@ _PRAGMA_NAME = "IPSO Phen"
 _PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json)
 ;;JSON compatible pipeline (*.json)"""
 __version__ = "0.6.547b"
-
-
-logger = logging.getLogger(__name__)
 
 
 def excepthook(excType, excValue, tracebackobj):
@@ -1081,9 +1085,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             use_cases = self._ip_tools_holder.use_cases
             for use_case in use_cases:
                 # Exclude case orphans
-
-                print(use_case)
-
                 if use_case == "none":
                     continue
                 sg_use_case_root = sg_menu.addMenu(use_case)

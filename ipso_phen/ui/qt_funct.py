@@ -16,7 +16,7 @@ from PySide2.QtWidgets import (
     QTextEdit,
 )
 
-from ui_qt.qt_param_widgets import (
+from ui.qt_param_widgets import (
     QLineEditWthParam,
     QPushButtonWthParam,
     QComboBoxWthParam,
@@ -46,7 +46,9 @@ def cv2_to_qimage(img):
     else:
         height_, width_ = img.shape
 
-    return QPixmap.fromImage(QImage(img, width_, height_, width_ * 3, qformat).rgbSwapped())
+    return QPixmap.fromImage(
+        QImage(img, width_, height_, width_ * 3, qformat).rgbSwapped()
+    )
 
 
 def build_widgets(
@@ -115,7 +117,9 @@ def build_widgets(
             widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         elif param.allowed_values == "single_line_text_input":
             label = QLabel(param.desc)
-            widget = QLineEditWthParam(tool=tool, param=param, allow_real_time=allow_real_time)
+            widget = QLineEditWthParam(
+                tool=tool, param=param, allow_real_time=allow_real_time
+            )
         elif param.allowed_values == "multi_line_text_input":
             label = QLabel(param.desc)
             widget = QTextBrowserWthParam(
@@ -136,7 +140,9 @@ def build_widgets(
                     log_message=f"Widget initialization: unknown param {param.name}, allowed values {param.allowed_values}",
                 )
             return None, None
-    elif isinstance(param.allowed_values, tuple) or isinstance(param.allowed_values, list):
+    elif isinstance(param.allowed_values, tuple) or isinstance(
+        param.allowed_values, list
+    ):
         pa = tuple(param.allowed_values)
         if pa == (0, 1):
             label = None
