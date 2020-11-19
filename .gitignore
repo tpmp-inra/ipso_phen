@@ -192,5 +192,5 @@ IPSO_Phen.egg-info/
 logs/
 saved_data/
 ipapi/database/phenoserre_access.py
-ipapi/database/db_connect_data.py
+ipso_phen/ipapi/database/db_connect_data.py
 test-output.xml
