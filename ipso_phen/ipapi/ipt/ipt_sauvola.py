@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptSauvola(IptBase):
@@ -16,7 +16,11 @@ class IptSauvola(IptBase):
             name="invert_mask", desc="Invert mask", default_value=0, hint="Invert result"
         )
         self.add_slider(
-            name="window_size", desc="Window size", default_value=25, minimum=3, maximum=100
+            name="window_size",
+            desc="Window size",
+            default_value=25,
+            minimum=3,
+            maximum=100,
         )
         self.add_slider(
             name="k", desc="k threshold formula", default_value=20, minimum=0, maximum=100

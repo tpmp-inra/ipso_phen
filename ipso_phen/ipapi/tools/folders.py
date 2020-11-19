@@ -7,7 +7,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.join("..", ".."))
     sys.path.append(os.path.join(".", "app"))
 
-from ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.tools.common_functions import force_directories
 import platform
 
 try:
@@ -18,7 +18,7 @@ else:
     is_winapi = True
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 
     conf = dbc.get("mass_storage", {})
 except Exception as e:

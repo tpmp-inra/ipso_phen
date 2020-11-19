@@ -3,8 +3,8 @@ import os
 import cv2
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.common_functions import time_method, add_header_footer
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.common_functions import time_method, add_header_footer
 
 
 class TpmpImageProcessorBrachy(BaseImageProcessor):

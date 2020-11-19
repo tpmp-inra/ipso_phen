@@ -4,8 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily,ensure_odd
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 class IptClahe(IptBase):
@@ -73,7 +73,9 @@ class IptClahe(IptBase):
             )
 
             wrapper.store_image(
-                self.result, f"CLAHE_{self.input_params_as_str()}", text_overlay=text_overlay
+                self.result,
+                f"CLAHE_{self.input_params_as_str()}",
+                text_overlay=text_overlay,
             )
 
         except Exception as e:

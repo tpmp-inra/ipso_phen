@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 class IptPcvTextureThreshold(IptBase):
@@ -26,7 +26,11 @@ class IptPcvTextureThreshold(IptBase):
             maximum=255,
         )
         self.add_spin_box(
-            name="offset", desc="Distance offsets", default_value=3, minimum=0, maximum=1000
+            name="offset",
+            desc="Distance offsets",
+            default_value=3,
+            minimum=0,
+            maximum=1000,
         )
         self.add_combobox(
             name="texture_method",

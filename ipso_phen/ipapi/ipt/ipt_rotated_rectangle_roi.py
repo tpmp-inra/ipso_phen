@@ -4,10 +4,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import resize_image
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.regions import RotatedRectangle, EmptyRegion
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ip_common import resize_image
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.regions import RotatedRectangle, EmptyRegion
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptRotatedRectangleRoi(IptBase):
@@ -17,7 +17,11 @@ class IptRotatedRectangleRoi(IptBase):
             name="left", desc="Left", default_value=0, minimum=-10000, maximum=10000
         )
         self.add_spin_box(
-            name="width", desc="Width", default_value=0, minimum=-10000, maximum=10000,
+            name="width",
+            desc="Width",
+            default_value=0,
+            minimum=-10000,
+            maximum=10000,
         )
         self.add_spin_box(
             name="top", desc="Top", default_value=0, minimum=-10000, maximum=10000
@@ -124,7 +128,9 @@ class IptRotatedRectangleRoi(IptBase):
 
             res = True
         except Exception as e:
-            logger.error(f'Failed to process {self. name}: "{repr(e)}"',)
+            logger.error(
+                f'Failed to process {self. name}: "{repr(e)}"',
+            )
             res = False
         else:
             pass

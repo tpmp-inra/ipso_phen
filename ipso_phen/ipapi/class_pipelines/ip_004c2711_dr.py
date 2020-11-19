@@ -1,7 +1,7 @@
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 
 class ImageCsvWriter(AbstractCsvWriter):

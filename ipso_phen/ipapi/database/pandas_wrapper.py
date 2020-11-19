@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 import pandas as pd
 
-from ipapi.database.base import QueryHandler, DbWrapper
-from ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.database.base import QueryHandler, DbWrapper
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 logger = logging.getLogger(__name__)
 

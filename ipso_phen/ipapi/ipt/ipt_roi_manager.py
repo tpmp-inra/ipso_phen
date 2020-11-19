@@ -4,9 +4,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import resize_image, ToolFamily
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.regions import CircleRegion, RectangleRegion, EmptyRegion
+from ipso_phen.ipapi.base.ip_common import resize_image, ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.regions import CircleRegion, RectangleRegion, EmptyRegion
 
 
 class IptRoiManager(IptBase):
@@ -72,9 +72,7 @@ class IptRoiManager(IptBase):
             else:
                 res = False
         except Exception as e:
-            logger.error(
-                f'Failed to execute: "{repr(e)}"'
-            )
+            logger.error(f'Failed to execute: "{repr(e)}"')
             res = False
         else:
             pass
@@ -91,14 +89,14 @@ class IptRoiManager(IptBase):
         Real time : True
 
         Keyword Arguments (in parentheses, argument name):
-            * ROI name (roi_name): 
+            * ROI name (roi_name):
             * Select action linked to ROI (roi_type): no clue
             * Select ROI shape (roi_shape): no clue
             * Target IPT (tool_target): no clue
-            * Left (left): 
-            * Width (Diameter for circles) (width): 
-            * Top (top): 
-            * Height (height): 
+            * Left (left):
+            * Width (Diameter for circles) (width):
+            * Top (top):
+            * Height (height):
             * Launch ROI draw form (draw_roi): Launch OpenCV window to select a ROI
         """
         wrapper = self.init_wrapper(**kwargs)

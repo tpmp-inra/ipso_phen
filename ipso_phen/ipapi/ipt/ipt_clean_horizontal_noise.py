@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base import ip_common as ipc
 
 
 class IptCleanHorizontalNoise(IptBase):

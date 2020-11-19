@@ -9,11 +9,16 @@ import cv2
 import numpy as np
 from skimage.transform import hough_circle, hough_circle_peaks
 
-import ipapi.base.ip_common as ipc
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
-from ipapi.tools.regions import RectangleRegion, CircleRegion, AnnulusRegion, Point
-from ipapi.tools.folders import ipso_folders
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from ipso_phen.ipapi.tools.regions import (
+    RectangleRegion,
+    CircleRegion,
+    AnnulusRegion,
+    Point,
+)
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 
 class IptHoughCircles(IptBase):

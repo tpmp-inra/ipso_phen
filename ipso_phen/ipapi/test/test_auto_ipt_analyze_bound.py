@@ -13,12 +13,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_analyze_bound import IptAnalyzeBound
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.ipt.ipt_analyze_bound import IptAnalyzeBound
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
-import ipapi.base.ip_common as ipc
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptAnalyzeBound(unittest.TestCase):
@@ -67,7 +67,9 @@ class TestIptAnalyzeBound(unittest.TestCase):
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertIsInstance(
-            op, IptBaseAnalyzer, "Analyze bound must inherit from ipapi.iptBaseAnalyzer"
+            op,
+            IptBaseAnalyzer,
+            "Analyze bound must inherit from ipso_phen.ipapi.iptBaseAnalyzer",
         )
         self.assertTrue(res, "Failed to process Analyze bound with test script")
         self.assertNotEqual(

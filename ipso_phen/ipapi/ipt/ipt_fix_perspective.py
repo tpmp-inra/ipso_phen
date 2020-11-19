@@ -8,8 +8,8 @@ from scipy.spatial import distance as dist
 from skimage import measure
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 def sort_contours(cnts, method="left-to-right"):

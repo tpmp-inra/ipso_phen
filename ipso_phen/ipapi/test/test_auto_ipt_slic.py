@@ -14,9 +14,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_slic import IptSlic
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_slic import IptSlic
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptSlic(unittest.TestCase):
@@ -32,9 +32,7 @@ class TestIptSlic(unittest.TestCase):
         """Test that class process_wrapper method has docstring"""
         op = IptSlic()
         if not op.is_wip:
-            self.assertIsNotNone(
-                op.process_wrapper.__doc__, "Missing docstring for Slic"
-            )
+            self.assertIsNotNone(op.process_wrapper.__doc__, "Missing docstring for Slic")
 
     def test_has_test_function(self):
         """Check that at list one test function has been generated"""

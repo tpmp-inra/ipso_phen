@@ -4,10 +4,10 @@ from io import StringIO
 import logging
 from tqdm import tqdm
 
-from ipapi.database.pandas_wrapper import PandasDbWrapper
+from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 except Exception as e:
     dbc = {}
 

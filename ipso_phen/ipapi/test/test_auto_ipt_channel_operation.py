@@ -14,9 +14,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_channel_operation import IptChannelOperation
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_channel_operation import IptChannelOperation
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptChannelOperation(unittest.TestCase):
@@ -55,9 +55,7 @@ class TestIptChannelOperation(unittest.TestCase):
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Channel operation")
-        self.assertIsInstance(
-            op.result, np.ndarray, "Empty result for Channel operation"
-        )
+        self.assertIsInstance(op.result, np.ndarray, "Empty result for Channel operation")
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""

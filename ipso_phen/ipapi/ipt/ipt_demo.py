@@ -2,9 +2,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_functional import call_ipt
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_functional import call_ipt
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptDemo(IptBase):
@@ -152,9 +152,7 @@ class IptDemo(IptBase):
             wrapper.store_image(image=255 - wrapper.current_image, text="inverted_image")
             res = True
         except Exception as e:
-            logger.error(
-                f'Failed to execute: "{repr(e)}"'
-            )
+            logger.error(f'Failed to execute: "{repr(e)}"')
             res = False
         else:
             pass
@@ -236,9 +234,7 @@ class IptDemo(IptBase):
                 )
             else:  # This how we handle errors
                 # If the error is added to the wrapper, it will be displayed in the main log
-                logger.error(
-                    "Unknown output mode"
-                )
+                logger.error("Unknown output mode")
                 # We can also create an empty image that will generate another error when storing it
                 img = None
 
@@ -252,9 +248,7 @@ class IptDemo(IptBase):
             self.result = img
             res = True
         except Exception as e:
-            logger.error(
-                f'Failed to process {self. name}: "{repr(e)}"'
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

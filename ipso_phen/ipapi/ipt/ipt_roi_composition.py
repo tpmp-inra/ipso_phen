@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.regions import CompositeRegion, EmptyRegion
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.regions import CompositeRegion, EmptyRegion
 
 
 class IptRoiComposition(IptBase):

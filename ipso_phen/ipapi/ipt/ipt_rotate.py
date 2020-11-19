@@ -4,7 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 class IptRotate(IptBase):
@@ -20,13 +20,13 @@ class IptRotate(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Rotate:
-            Rotates an image according to selected angle
-            Real time: True
+        Rotate:
+        Rotates an image according to selected angle
+        Real time: True
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
-                * Rotation angle (rotate_angle): Select the angle to rotate the image
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Rotation angle (rotate_angle): Select the angle to rotate the image
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

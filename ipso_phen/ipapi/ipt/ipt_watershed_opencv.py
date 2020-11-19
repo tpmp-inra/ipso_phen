@@ -6,11 +6,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import (
+from ipso_phen.ipapi.base.ip_common import (
     DEFAULT_COLOR_MAP,
     ToolFamily,
 )
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptWatershedOpenCv(IptBaseMerger):

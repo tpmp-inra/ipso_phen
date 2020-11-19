@@ -1,8 +1,8 @@
 import cv2
 
-from ipapi.tools.common_functions import force_directories
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base import ip_common as ipc
 
 import logging
 

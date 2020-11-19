@@ -10,7 +10,7 @@ from PySide2.QtWidgets import (
 
 from PySide2.QtCore import Qt
 
-from ui.qt_custom_widgets import QCheckableComboBox
+from ipso_phen.ui.qt_custom_widgets import QCheckableComboBox
 
 
 class QParamHandler(object):

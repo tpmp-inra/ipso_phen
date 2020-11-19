@@ -4,8 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily, ensure_odd
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 class IptChannelSubtraction(IptBase):
@@ -123,9 +123,7 @@ class IptChannelSubtraction(IptBase):
             elif post_processing == "rescale":
                 tmp = (tmp - tmp.min()).astype(np.uint8)
             else:
-                logger.error(
-                    f"Unknown postprocessing {post_processing}"
-                )
+                logger.error(f"Unknown postprocessing {post_processing}")
                 res = False
                 return
 

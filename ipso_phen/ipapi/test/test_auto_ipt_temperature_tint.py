@@ -14,9 +14,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_temperature_tint import IptTemperatureTint
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_temperature_tint import IptTemperatureTint
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptTemperatureTint(unittest.TestCase):

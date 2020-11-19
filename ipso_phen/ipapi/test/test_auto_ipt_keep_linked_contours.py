@@ -14,10 +14,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_keep_linked_contours import IptKeepLinkedContours
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_keep_linked_contours import IptKeepLinkedContours
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptKeepLinkedContours(unittest.TestCase):

@@ -4,12 +4,12 @@ import pickle
 import cv2
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.ipt.ipt_check_exposure import IptExposureChecker
-from ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
-from ipapi.ipt.ipt_linear_transformation import IptLinearTransformation
-from ipapi.tools.csv_writer import AbstractCsvWriter
-from ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.ipt.ipt_check_exposure import IptExposureChecker
+from ipso_phen.ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
+from ipso_phen.ipapi.ipt.ipt_linear_transformation import IptLinearTransformation
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.tools.common_functions import force_directories
 
 _EXPERIMENT = "06ac_phenor_1901".lower()
 

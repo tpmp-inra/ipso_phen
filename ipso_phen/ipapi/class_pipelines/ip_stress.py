@@ -1,9 +1,9 @@
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.ipt.ipt_linear_transformation import IptLinearTransformation
-from ipapi.ipt.ipt_check_exposure import IptExposureChecker
-from ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.ipt.ipt_linear_transformation import IptLinearTransformation
+from ipso_phen.ipapi.ipt.ipt_check_exposure import IptExposureChecker
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 _EXPERIMENTS = ["05AS_STRESS_1812".lower(), "08AS_STRES3_1902".lower()]
 

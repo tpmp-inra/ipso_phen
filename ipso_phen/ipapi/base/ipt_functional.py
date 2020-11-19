@@ -1,9 +1,9 @@
 import inspect
 from typing import Union
 
-import ipapi.ipt as ipt
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.common_functions import get_module_classes
+import ipso_phen.ipapi.ipt as ipt
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.common_functions import get_module_classes
 
 
 def get_ipt_class(class_name: str) -> Union[type, None]:
@@ -85,7 +85,7 @@ def call_ipt_code(
     """
 
     if generate_imports:
-        res = "from ipapi.base.ipt_functional import call_ipt\n"
+        res = "from ipso_phen.ipapi.base.ipt_functional import call_ipt\n"
         res += "\n"
     else:
         res = ""
@@ -137,11 +137,9 @@ def call_ipt_func_code(
     """
 
     if generate_imports:
-        res = "from ipapi.ipt import call_ipt_func\n"
+        res = "from ipso_phen.ipapi.ipt import call_ipt_func\n"
         if not file_name:
-            res += (
-                f"{white_spaces}from ipapi.base.ip_abstract import BaseImageProcessor\n"
-            )
+            res += f"{white_spaces}from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor\n"
         res += "\n"
     else:
         res = ""

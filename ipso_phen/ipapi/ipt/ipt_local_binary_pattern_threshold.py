@@ -7,9 +7,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
-from ipapi.tools.regions import RectangleRegion
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.tools.regions import RectangleRegion
 
 
 class IptLocalBinaryPatternThreshold(IptBase):

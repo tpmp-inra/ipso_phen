@@ -13,9 +13,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ip_common import AVAILABLE_FEATURES, C_RED, ToolFamily
-from ipapi.base.ipt_abstract import (
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ip_common import AVAILABLE_FEATURES, C_RED, ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import (
     IptParam,
     IptBase,
     IptParamHolder,
@@ -23,10 +23,10 @@ from ipapi.base.ipt_abstract import (
     MODULE_NAME_KEY,
     PARAMS_NAME_KEY,
 )
-from ipapi.base.ipt_functional import call_ipt_code, call_ipt_func_code
-from ipapi.tools.csv_writer import AbstractCsvWriter
-from ipapi.tools.common_functions import get_module_classes, force_directories
-from ipapi.tools.error_holder import ErrorHolder
+from ipso_phen.ipapi.base.ipt_functional import call_ipt_code, call_ipt_func_code
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.tools.common_functions import get_module_classes, force_directories
+from ipso_phen.ipapi.tools.error_holder import ErrorHolder
 
 
 last_script_version = "0.6.0.0"
@@ -1047,9 +1047,9 @@ class IptStrictPipeline(object):
         # IPSO Phen libraries
         import_lst.extend(
             [
-                "from ipapi.base.ip_abstract import BaseImageProcessor",
-                "from ipapi.base.ipt_functional import call_ipt, call_ipt_func",
-                "from ipapi.tools.csv_writer import AbstractCsvWriter",
+                "from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor",
+                "from ipso_phen.ipapi.base.ipt_functional import call_ipt, call_ipt_func",
+                "from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter",
             ]
         )
 

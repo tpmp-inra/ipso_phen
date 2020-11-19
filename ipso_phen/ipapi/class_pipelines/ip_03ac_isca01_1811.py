@@ -1,8 +1,8 @@
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.ipt.ipt_check_exposure import IptExposureChecker
-from ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.ipt.ipt_check_exposure import IptExposureChecker
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 _EXPERIMENT = "03AC_ISCA01_1811".lower()
 

@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import (
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import (
     ToolFamily,
     C_FUCHSIA,
     C_ORANGE,
@@ -26,7 +26,8 @@ class IptTemperatureTint(IptBase):
             desc="Clip method",
             default_value="clip",
             values=dict(
-                clip="Set to 0 if lower 255 if upper", rescale="Allow overflow and the rescale"
+                clip="Set to 0 if lower 255 if upper",
+                rescale="Allow overflow and the rescale",
             ),
         )
         self.add_spin_box(
@@ -49,17 +50,17 @@ class IptTemperatureTint(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Temperature and tint:
-            Simple method to alter an image temperature and tint
-            http://www.tannerhelland.com/5675/simple-algorithms-adjusting-image-temperature-tint/
-            Real time: True
+        Temperature and tint:
+        Simple method to alter an image temperature and tint
+        http://www.tannerhelland.com/5675/simple-algorithms-adjusting-image-temperature-tint/
+        Real time: True
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
-                * Clip method (clip_method):
-                * Temperature adjustment (temperature_adjustment): Adjust image temperature
-                * Tint adjustment (tint_adjustment): Adjust image tint
-                * Build mosaic (build_mosaic):
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Clip method (clip_method):
+            * Temperature adjustment (temperature_adjustment): Adjust image temperature
+            * Tint adjustment (tint_adjustment): Adjust image tint
+            * Build mosaic (build_mosaic):
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -93,9 +94,7 @@ class IptTemperatureTint(IptBase):
                 elif clip_method == "rescale":
                     self.result = self.to_uint8(cv2.merge([b, g, r]))
                 else:
-                    logger.error(
-                        f'Failed : unknown clip_method "{clip_method}"'
-                    )
+                    logger.error(f'Failed : unknown clip_method "{clip_method}"')
                     return
 
                 if self.get_value_of("show_over_under") == 1:

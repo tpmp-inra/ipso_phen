@@ -1,9 +1,9 @@
 import numpy as np
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools import regions
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools import regions
+from ipso_phen.ipapi.base import ip_common as ipc
 
 import logging
 
@@ -37,9 +37,7 @@ class IptMorphology(IptBase):
         try:
             mask = self.get_mask()
             if mask is None:
-                logger.error(
-                    f"FAIL {self.name}: mask must be initialized"
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
             self.result = self.apply_morphology_from_params(mask.copy())
             rois = self.get_ipt_roi(

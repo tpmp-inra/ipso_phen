@@ -2,8 +2,12 @@ import cv2
 import os
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.common_functions import time_method, add_header_footer, force_directories
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.common_functions import (
+    time_method,
+    add_header_footer,
+    force_directories,
+)
 
 
 class TpmpImageProcessorTabac(BaseImageProcessor):

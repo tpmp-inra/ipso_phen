@@ -1,12 +1,12 @@
-from ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import cv2
 import numpy as np
 
 import logging
 
 logger = logging.getLogger(__name__)
-from ipapi.base.ip_common import all_colors_dict
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import all_colors_dict
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptPartialPosterizer(IptBase):
@@ -124,8 +124,12 @@ class IptPartialPosterizer(IptBase):
                             b.astype(np.float),
                             b.astype(np.float) + g.astype(np.float) + r.astype(np.float),
                         )
-                        where_percent[(where_percent == np.inf) | np.isnan(where_percent)] = 0
-                        wrapper.store_image(self.to_uint8(where_percent, normalize=True), "bdm")
+                        where_percent[
+                            (where_percent == np.inf) | np.isnan(where_percent)
+                        ] = 0
+                        wrapper.store_image(
+                            self.to_uint8(where_percent, normalize=True), "bdm"
+                        )
                         where_percent = (where_percent > blue_percent).astype(np.uint8)
                         blue_mask = cv2.bitwise_and(where_more, where_percent)
                     finally:
@@ -142,8 +146,12 @@ class IptPartialPosterizer(IptBase):
                             g.astype(np.float),
                             b.astype(np.float) + g.astype(np.float) + r.astype(np.float),
                         )
-                        where_percent[(where_percent == np.inf) | np.isnan(where_percent)] = 0
-                        wrapper.store_image(self.to_uint8(where_percent, normalize=True), "gdm")
+                        where_percent[
+                            (where_percent == np.inf) | np.isnan(where_percent)
+                        ] = 0
+                        wrapper.store_image(
+                            self.to_uint8(where_percent, normalize=True), "gdm"
+                        )
                         where_percent = (where_percent > green_percent).astype(np.uint8)
                         green_mask = cv2.bitwise_and(where_more, where_percent)
                     finally:
@@ -160,8 +168,12 @@ class IptPartialPosterizer(IptBase):
                             b.astype(np.float),
                             r.astype(np.float) + g.astype(np.float) + r.astype(np.float),
                         )
-                        where_percent[(where_percent == np.inf) | np.isnan(where_percent)] = 0
-                        wrapper.store_image(self.to_uint8(where_percent, normalize=True), "rdm")
+                        where_percent[
+                            (where_percent == np.inf) | np.isnan(where_percent)
+                        ] = 0
+                        wrapper.store_image(
+                            self.to_uint8(where_percent, normalize=True), "rdm"
+                        )
                         where_percent = (where_percent > red_percent).astype(np.uint8)
                         red_mask = cv2.bitwise_and(where_more, where_percent)
                     finally:
@@ -174,12 +186,18 @@ class IptPartialPosterizer(IptBase):
                     ).replace(", ", "\n")
 
                 self.result = img
-                wrapper.store_image(self.result, "partial_poster", text_overlay=text_overlay)
+                wrapper.store_image(
+                    self.result, "partial_poster", text_overlay=text_overlay
+                )
                 if build_mosaic == "channels":
-                    wrapper.store_image(self.result, "threshold_by_average", text_overlay=False)
+                    wrapper.store_image(
+                        self.result, "threshold_by_average", text_overlay=False
+                    )
                     canvas = wrapper.build_mosaic(
                         shape=(img.shape[0], img.shape[1], 3),
-                        image_names=np.array([["bdm", "gdm"], ["rdm", "threshold_by_average"]]),
+                        image_names=np.array(
+                            [["bdm", "gdm"], ["rdm", "threshold_by_average"]]
+                        ),
                     )
                     wrapper.store_image(canvas, "mosaic", text_overlay=text_overlay)
                 elif build_mosaic == "sbs":
@@ -227,4 +245,3 @@ class IptPartialPosterizer(IptBase):
     @property
     def description(self):
         return "Replaces dominant colors by other colors"
-

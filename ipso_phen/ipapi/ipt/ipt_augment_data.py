@@ -6,9 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.tools.common_functions import force_directories
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptAugmentData(IptBaseAnalyzer):
@@ -141,7 +141,9 @@ class IptAugmentData(IptBaseAnalyzer):
                 self.save_image(image=src_img, gamma=1, path=self.output_path)
                 res = True
         except Exception as e:
-            logger.error(f'Failed to process {self. name}: "{repr(e)}"',)
+            logger.error(
+                f'Failed to process {self. name}: "{repr(e)}"',
+            )
             res = False
         else:
             pass

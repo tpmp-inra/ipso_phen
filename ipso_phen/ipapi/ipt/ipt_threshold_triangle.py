@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily, ensure_odd
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 class IptThresholdTriangle(IptBase):
@@ -64,7 +64,9 @@ class IptThresholdTriangle(IptBase):
                 0 if median_filter_size == 1 else ensure_odd(median_filter_size)
             )
 
-            c = wrapper.get_channel(src_img, channel, median_filter_size=median_filter_size)
+            c = wrapper.get_channel(
+                src_img, channel, median_filter_size=median_filter_size
+            )
             if c is None:
                 self.do_channel_failure(channel)
                 return

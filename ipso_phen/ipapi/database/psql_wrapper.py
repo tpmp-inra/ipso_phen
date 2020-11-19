@@ -7,9 +7,9 @@ from sqlalchemy_utils import database_exists
 
 import pandas as pd
 
-from ipapi.database.base import DbInfo, QueryHandler, DbWrapper
-from ipapi.tools.image_list import ImageList
-from ipapi.file_handlers.fh_base import file_handler_factory
+from ipso_phen.ipapi.database.base import DbInfo, QueryHandler, DbWrapper
+from ipso_phen.ipapi.tools.image_list import ImageList
+from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 
 
 logger = logging.getLogger(__name__)

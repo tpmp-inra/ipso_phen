@@ -37,20 +37,20 @@ from PySide2.QtCore import (
     Signal,
 )
 
-from ipapi.base.ipt_loose_pipeline import (
+from ipso_phen.ipapi.base.ipt_loose_pipeline import (
     GroupNode,
     ModuleNode,
     MosaicData,
     PipelineSettings,
 )
-from ipapi.base.ipt_abstract import IptBase, IptParam, IptParamHolder
-import ipapi.base.ip_common as ipc
-from ui.qt_funct import build_widgets, cv2_to_qimage
+from ipso_phen.ipapi.base.ipt_abstract import IptBase, IptParam, IptParamHolder
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ui.qt_funct import build_widgets, cv2_to_qimage
 import numpy as np
 import pandas as pd
-from annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
+from ipso_phen.annotations.orm_annotations import OrmAnnotation, OrmAnnotationsDbWrapper
 import cv2
-from ipapi.tools.regions import RectangleRegion
+from ipso_phen.ipapi.tools.regions import RectangleRegion
 
 logger = logging.getLogger(__name__)
 

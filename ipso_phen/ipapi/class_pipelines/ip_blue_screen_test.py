@@ -1,4 +1,4 @@
-from ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 
 
 class TpmpImageProcessorBlueScreenTest(BaseImageProcessor):

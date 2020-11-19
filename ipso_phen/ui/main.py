@@ -45,7 +45,7 @@ from PySide2.QtWidgets import (
     QStatusBar,
 )
 
-import ui.main_rc
+import ipso_phen.ui.main_rc
 
 
 class Ui_MainWindow(object):

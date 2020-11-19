@@ -6,20 +6,30 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptSlic(IptBaseMerger):
     def build_params(self):
         self.add_source_selector(default_value="source")
         self.add_slider(
-            name="n_segments", desc="Segment count", default_value=3, minimum=1, maximum=250
+            name="n_segments",
+            desc="Segment count",
+            default_value=3,
+            minimum=1,
+            maximum=250,
         )
         self.add_slider(
-            name="compactness", desc="Compactness", default_value=10, minimum=0, maximum=100
+            name="compactness",
+            desc="Compactness",
+            default_value=10,
+            minimum=0,
+            maximum=100,
         )
-        self.add_slider(name="sigma", desc="Sigma", default_value=100, minimum=0, maximum=100)
+        self.add_slider(
+            name="sigma", desc="Sigma", default_value=100, minimum=0, maximum=100
+        )
         self.add_combobox(
             name="post_process",
             desc="Post process",
@@ -54,7 +64,9 @@ class IptSlic(IptBaseMerger):
         res = False
         try:
             img = self.wrapper.current_image
-            labels = slic(img, n_segments=n_segments, compactness=compactness, sigma=sigma)
+            labels = slic(
+                img, n_segments=n_segments, compactness=compactness, sigma=sigma
+            )
             if post_process != "none":
                 post_labels = labels.copy()
             else:
@@ -62,9 +74,9 @@ class IptSlic(IptBaseMerger):
 
             self.result = labels.copy()
             labels[labels == -1] = 0
-            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(
-                np.uint8
-            )
+            labels = (
+                (labels - labels.min()) / (labels.max() - labels.min()) * 255
+            ).astype(np.uint8)
             slick_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
             wrapper.store_image(
                 slick_img,
@@ -115,6 +127,4 @@ class IptSlic(IptBaseMerger):
 
     @property
     def description(self):
-        return (
-            "From scikit-image: Segments image using k-means clustering in Color-(x,y,z) space."
-        )
+        return "From scikit-image: Segments image using k-means clustering in Color-(x,y,z) space."

@@ -2,11 +2,11 @@ from datetime import datetime as dt
 import numpy as np
 import os
 
-from ipapi.file_handlers.fh_base import FileHandlerBase
-from ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 
     conf = dbc.get("phenoserre", {})
 except Exception as e:

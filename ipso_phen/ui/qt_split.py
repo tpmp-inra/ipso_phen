@@ -1,7 +1,7 @@
 import sys
 from PySide2.QtWidgets import QAction, QApplication, QMainWindow
 from PySide2.QtWidgets import QMenu
-from ui.qy_split import Ui_MainWindow
+from ipso_phen.ui.qy_split import Ui_MainWindow
 
 
 class MainWindow(QMainWindow):

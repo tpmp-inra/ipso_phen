@@ -4,10 +4,10 @@ from collections import namedtuple
 
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
-from ipapi.tools.csv_writer import AbstractCsvWriter
-from ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.tools.common_functions import force_directories
 
 _ExpPlantNameData = namedtuple(
     "NameData", "ecotype, infection_type, age, strain, plant_id"

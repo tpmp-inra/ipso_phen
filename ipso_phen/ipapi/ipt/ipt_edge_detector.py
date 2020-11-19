@@ -6,8 +6,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import ipapi.base.ip_common as ipc
-from ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 class IptEdgeDetector(IptBase):
@@ -151,14 +151,18 @@ class IptEdgeDetector(IptBase):
                     edges = c.copy()
 
                 edges = self.to_uint8(edges)
-                if operator_ in [
-                    "laplacian",
-                    "sobel",
-                    "sobel_v",
-                    "sobel_h",
-                    "roberts",
-                    "prewitt",
-                ] and self.get_value_of("apply_threshold", default_value=1):
+                if (
+                    operator_
+                    in [
+                        "laplacian",
+                        "sobel",
+                        "sobel_v",
+                        "sobel_h",
+                        "roberts",
+                        "prewitt",
+                    ]
+                    and self.get_value_of("apply_threshold", default_value=1)
+                ):
                     edges[edges < threshold] = 0
                     edges[edges >= threshold] = 255
                 self.result = edges

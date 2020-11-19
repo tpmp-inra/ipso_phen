@@ -7,15 +7,19 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
 
 
 class IptFelzenswalb(IptBaseMerger):
     def build_params(self):
         self.add_source_selector(default_value="source")
-        self.add_slider(name="scale", desc="Scale", default_value=100, minimum=1, maximum=500)
-        self.add_slider(name="sigma", desc="Sigma", default_value=50, minimum=0, maximum=100)
+        self.add_slider(
+            name="scale", desc="Scale", default_value=100, minimum=1, maximum=500
+        )
+        self.add_slider(
+            name="sigma", desc="Sigma", default_value=50, minimum=0, maximum=100
+        )
         self.add_slider(
             name="min_size", desc="Min size", default_value=50, minimum=0, maximum=250
         )
@@ -62,9 +66,9 @@ class IptFelzenswalb(IptBaseMerger):
                 post_labels = None
 
             labels[labels == -1] = 0
-            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(
-                np.uint8
-            )
+            labels = (
+                (labels - labels.min()) / (labels.max() - labels.min()) * 255
+            ).astype(np.uint8)
             self.result = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
             wrapper.store_image(self.result, "felsenszwalb", text_overlay=True)
 
@@ -77,9 +81,7 @@ class IptFelzenswalb(IptBaseMerger):
 
         except Exception as e:
             res = False
-            logger.error(
-                f'Failed to process {self. name}: "{repr(e)}"'
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
         else:
             res = True
         finally:

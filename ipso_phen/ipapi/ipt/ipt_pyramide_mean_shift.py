@@ -4,17 +4,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptPyramidMeanShift(IptBase):
     def build_params(self):
         self.add_slider(
-            name="sp", desc="Spatial window radius", default_value=4, minimum=2, maximum=100
+            name="sp",
+            desc="Spatial window radius",
+            default_value=4,
+            minimum=2,
+            maximum=100,
         )
         self.add_slider(
-            name="sr", desc="Color window radius", default_value=10, minimum=0, maximum=100
+            name="sr",
+            desc="Color window radius",
+            default_value=10,
+            minimum=0,
+            maximum=100,
         )
 
     def process_wrapper(self, **kwargs):

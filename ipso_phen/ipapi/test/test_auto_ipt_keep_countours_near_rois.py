@@ -14,10 +14,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_keep_countours_near_rois import IptKeepCountoursNearRois
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_keep_countours_near_rois import IptKeepCountoursNearRois
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptKeepCountoursNearRois(unittest.TestCase):

@@ -3,9 +3,9 @@ import math
 import cv2
 import numpy as np
 
-import ipapi.base.ip_common as ipc
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.csv_writer import AbstractCsvWriter
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 
 class ImageCsvWriter(AbstractCsvWriter):

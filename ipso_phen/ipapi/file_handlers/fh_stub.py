@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 
-from ipapi.file_handlers.fh_base import FileHandlerBase
+from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 
 
 class FileHandlerStub(FileHandlerBase):

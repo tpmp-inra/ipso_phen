@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptAnalyseObservation(IptBaseAnalyzer):
@@ -16,7 +16,9 @@ class IptAnalyseObservation(IptBaseAnalyzer):
         self.add_checkbox(
             name="luid", desc="Add Local Unique IDentifier (LUID)", default_value=0
         )
-        self.add_checkbox(name="source_path", desc="Add path to source file", default_value=0)
+        self.add_checkbox(
+            name="source_path", desc="Add path to source file", default_value=0
+        )
         self.add_separator(name="sep_1")
         self.add_checkbox(
             name="split_plant_name",
@@ -33,7 +35,9 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             hint='names separate by "," with no spaces',
         )
         self.add_text_input(
-            name="add_columns", desc="Add as empty columns", default_value="",
+            name="add_columns",
+            desc="Add as empty columns",
+            default_value="",
         )
 
     def process_wrapper(self, **kwargs):
@@ -75,7 +79,9 @@ class IptAnalyseObservation(IptBaseAnalyzer):
                 sep = self.get_value_of("separator")
                 if sep:
                     name_splits = wrapper.plant.split(sep)
-                    vars = self.get_value_of("new_column_names").replace(" ", "").split(",")
+                    vars = (
+                        self.get_value_of("new_column_names").replace(" ", "").split(",")
+                    )
                     for i, value in enumerate(name_splits):
                         if len(vars) > i:
                             key = vars[i]

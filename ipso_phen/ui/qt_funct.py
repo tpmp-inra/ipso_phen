@@ -16,7 +16,7 @@ from PySide2.QtWidgets import (
     QTextEdit,
 )
 
-from ui.qt_param_widgets import (
+from ipso_phen.ui.qt_param_widgets import (
     QLineEditWthParam,
     QPushButtonWthParam,
     QComboBoxWthParam,

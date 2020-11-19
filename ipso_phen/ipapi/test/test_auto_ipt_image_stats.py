@@ -13,12 +13,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_image_stats import IptImageStats
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.ipt.ipt_image_stats import IptImageStats
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
-import ipapi.base.ip_common as ipc
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptImageStats(unittest.TestCase):
@@ -69,7 +69,7 @@ class TestIptImageStats(unittest.TestCase):
         self.assertIsInstance(
             op,
             IptBaseAnalyzer,
-            "Image statistics must inherit from ipapi.iptBaseAnalyzer",
+            "Image statistics must inherit from ipso_phen.ipapi.iptBaseAnalyzer",
         )
         self.assertTrue(res, "Failed to process Image statistics with test script")
         self.assertNotEqual(

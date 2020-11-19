@@ -6,9 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptHysteresis(IptBase):

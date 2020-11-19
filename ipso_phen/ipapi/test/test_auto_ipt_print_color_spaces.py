@@ -13,9 +13,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_print_color_spaces import IptPrintColorSpaces
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_print_color_spaces import IptPrintColorSpaces
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptPrintColorSpaces(unittest.TestCase):

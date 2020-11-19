@@ -113,7 +113,7 @@ class QtHandler(logging.Handler):
 g_qt_log_handler = QtHandler()
 g_qt_log_handler.addFilter(MemoryFilter())
 
-from ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 log_file_handler = logging.FileHandler(
     os.path.join(
@@ -141,36 +141,36 @@ logger.info("______________________Starting session_____________________________
 logger.info("")
 
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_abstract import IptBase, IptParamHolder
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ipt_functional import call_ipt_code
-from ipapi.base.ipt_holder import IptHolder, WIP_CASE
-from ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
-import ipapi.base.ip_common as ipc
-from ipapi.tools import error_holder as eh
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_abstract import IptBase, IptParamHolder
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ipt_functional import call_ipt_code
+from ipso_phen.ipapi.base.ipt_holder import IptHolder, WIP_CASE
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline, GroupNode, ModuleNode
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.tools import error_holder as eh
 
-from ipapi.class_pipelines.ip_factory import ipo_factory
+from ipso_phen.ipapi.class_pipelines.ip_factory import ipo_factory
 
-from ipapi.tools.regions import RectangleRegion
-from ipapi.tools.comand_line_wrapper import ArgWrapper
-from ipapi.tools.common_functions import (
+from ipso_phen.ipapi.tools.regions import RectangleRegion
+from ipso_phen.ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipso_phen.ipapi.tools.common_functions import (
     force_directories,
     format_time,
     make_safe_name,
     natural_keys,
     open_file,
 )
-import ipapi.database.db_initializer as dbi
-import ipapi.database.db_factory as dbf
-import ipapi.database.base as dbb
-from ipapi.base.pipeline_processor import PipelineProcessor
+import ipso_phen.ipapi.database.db_initializer as dbi
+import ipso_phen.ipapi.database.db_factory as dbf
+import ipso_phen.ipapi.database.base as dbb
+from ipso_phen.ipapi.base.pipeline_processor import PipelineProcessor
 
-from ui import ui_consts
-from ui.about import Ui_about_dialog
-from ui.folder_selector import Ui_folder_selector
-from ui.new_tool import Ui_dlg_new_tool
-from ui.qt_mvc import (
+from ipso_phen.ui import ui_consts
+from ipso_phen.ui.about import Ui_about_dialog
+from ipso_phen.ui.folder_selector import Ui_folder_selector
+from ipso_phen.ui.new_tool import Ui_dlg_new_tool
+from ipso_phen.ui.qt_mvc import (
     QMouseGraphicsView,
     build_widgets,
     QPandasModel,
@@ -181,9 +181,9 @@ from ui.qt_mvc import (
     QImageDrawerDelegate,
     PipelineDelegate,
 )
-from ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
-from ui.main import Ui_MainWindow
-from ui.qt_custom_widgets import QLogger
+from ipso_phen.ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
+from ipso_phen.ui.main import Ui_MainWindow
+from ipso_phen.ui.qt_custom_widgets import QLogger
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
@@ -356,11 +356,13 @@ class NewToolDialog(QDialog):
                 or self.check_boxes[ipc.ToolFamily.IMAGE_GENERATOR].isChecked()
             ):
                 f.write(
-                    f"{spaces}from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n"
+                    f"{spaces}from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n"
                 )
                 inh_class_name_ = "IptBaseAnalyzer"
             else:
-                f.write(f"{spaces}from ipapi.base.ipt_abstract import IptBase\n")
+                f.write(
+                    f"{spaces}from ipso_phen.ipapi.base.ipt_abstract import IptBase\n"
+                )
                 inh_class_name_ = "IptBase"
             f.write("\n\n")
 

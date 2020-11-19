@@ -8,18 +8,18 @@ from matplotlib import pyplot as plt
 import numpy as np
 import cv2
 
-from ipapi.file_handlers.fh_base import file_handler_factory
-from ipapi.base.image_wrapper import ImageWrapper
-import ipapi.base.ip_common as ipc
-from ipapi.tools.comand_line_wrapper import ArgWrapper
-from ipapi.tools.regions import (
+from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
+from ipso_phen.ipapi.base.image_wrapper import ImageWrapper
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipso_phen.ipapi.tools.regions import (
     CircleRegion,
     RectangleRegion,
     EmptyRegion,
     Point,
     AbstractRegion,
 )
-from ipapi.tools.common_functions import time_method, force_directories
+from ipso_phen.ipapi.tools.common_functions import time_method, force_directories
 
 matplotlib.use("agg")
 

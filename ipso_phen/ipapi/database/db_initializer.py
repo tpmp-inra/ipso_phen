@@ -3,14 +3,14 @@ import logging
 from collections import defaultdict
 from enum import Enum, unique
 
-from ipapi.database.base import DbInfo
-from ipapi.database.phenoserre_wrapper import get_phenoserre_exp_list
-from ipapi.database.phenopsis_wrapper import get_phenopsis_exp_list
-from ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.database.base import DbInfo
+from ipso_phen.ipapi.database.phenoserre_wrapper import get_phenoserre_exp_list
+from ipso_phen.ipapi.database.phenopsis_wrapper import get_phenopsis_exp_list
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 except Exception as e:
     dbc = {}
 

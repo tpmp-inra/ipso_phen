@@ -13,10 +13,10 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.tools.regions as regions
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_hough_circles_detector import IptHoughCircles
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.tools.regions as regions
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptHoughCircles(unittest.TestCase):

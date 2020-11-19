@@ -7,8 +7,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import (
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import (
     all_colors_dict,
     ToolFamily,
 )
@@ -20,7 +20,9 @@ class IptThresholdDistance(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
         for i, dc in zip(range(1, CHANNEL_COUNT + 1), ("h", "none", "none", "none")):
-            self.add_channel_selector(name=f"channel_{i}", default_value=dc, enable_none=i != 1)
+            self.add_channel_selector(
+                name=f"channel_{i}", default_value=dc, enable_none=i != 1
+            )
             self.add_combobox(
                 name=f"transformation_{i}",
                 desc=f"Transformation applied to channel {i}",
@@ -40,7 +42,9 @@ class IptThresholdDistance(IptBase):
             default_value="zero",
             values={
                 **dict(
-                    zero="Space origin", mean="Components means", median="Components medians"
+                    zero="Space origin",
+                    mean="Components means",
+                    median="Components medians",
                 ),
                 **{k: k for k in all_colors_dict},
             },
@@ -181,11 +185,15 @@ class IptThresholdDistance(IptBase):
             if distance_method == "l1":
                 dist_map = np.zeros_like(channels[0])
                 for c, p in zip(channels, p0):
-                    dist_map = np.add(dist_map, np.abs(np.subtract(c.astype(np.float), p)))
+                    dist_map = np.add(
+                        dist_map, np.abs(np.subtract(c.astype(np.float), p))
+                    )
             elif distance_method == "l2":
                 dist_map = np.zeros_like(channels[0])
                 for c, p in zip(channels, p0):
-                    dist_map = np.add(dist_map, np.power(np.subtract(c.astype(np.float), p), 2))
+                    dist_map = np.add(
+                        dist_map, np.power(np.subtract(c.astype(np.float), p), 2)
+                    )
                 dist_map = np.sqrt(dist_map)
             elif distance_method == "chebyshev":
                 dist_map = np.abs(np.subtract(channels[0].astype(np.float), p0[0]))
@@ -222,9 +230,7 @@ class IptThresholdDistance(IptBase):
                     dist_map = np.add(dist_map, np.subtract(c.astype(np.float), p))
                 dist_map[dist_map > 0] = 0
             else:
-                logger.error(
-                    "Unknown distance calculation method"
-                )
+                logger.error("Unknown distance calculation method")
                 res = False
                 return
             dist_map = self.to_uint8(dist_map)
@@ -276,12 +282,12 @@ class IptThresholdDistance(IptBase):
                 wrapper.store_image(canvas, "mosaic", text_overlay=text_overlay)
             else:
                 wrapper.store_image(
-                    image=self.result, text="image_from_distances", text_overlay=text_overlay
+                    image=self.result,
+                    text="image_from_distances",
+                    text_overlay=text_overlay,
                 )
         except Exception as e:
-            logger.error(
-                f'Failed to process {self. name}: "{repr(e)}"'
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

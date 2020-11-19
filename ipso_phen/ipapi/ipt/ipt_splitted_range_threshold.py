@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptSplittedRangeThreshold(IptBase):
@@ -71,32 +71,32 @@ class IptSplittedRangeThreshold(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Splitted range threshold:
-            Performs range threshold with two sets of borders applied inside and outside of linked ROIs.
+        Splitted range threshold:
+        Performs range threshold with two sets of borders applied inside and outside of linked ROIs.
 
-                    If no ROIs are provided, all image will be considered within ROI.
-            Real time: True
+                If no ROIs are provided, all image will be considered within ROI.
+        Real time: True
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
-                * Channel (channel):
-                * Invert mask (invert):
-                * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
-                * ROI selection mode (roi_selection_mode):
-                * Threshold min value inside ROI (min_inside_t):
-                * Threshold max value inside ROI (max_inside_t):
-                * Threshold min value outside ROI (min_outside_t):
-                * Threshold max value outside ROI (max_outside_t):
-                * Median filter size (odd values only) (median_filter_size):
-                * Morphology operator (morph_op):
-                * Kernel size (kernel_size):
-                * Kernel shape (kernel_shape):
-                * Iterations (proc_times):
-                * Overlay text on top of images (text_overlay): Draw description text on top of images
-                * Build mosaic (build_mosaic): If true edges and result will be displayed side by side
-                * Background color (background_color):
-                    Color to be used when printing masked image.
-                    if "None" is selected standard mask will be printed.
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Channel (channel):
+            * Invert mask (invert):
+            * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
+            * ROI selection mode (roi_selection_mode):
+            * Threshold min value inside ROI (min_inside_t):
+            * Threshold max value inside ROI (max_inside_t):
+            * Threshold min value outside ROI (min_outside_t):
+            * Threshold max value outside ROI (max_outside_t):
+            * Median filter size (odd values only) (median_filter_size):
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
+            * Overlay text on top of images (text_overlay): Draw description text on top of images
+            * Build mosaic (build_mosaic): If true edges and result will be displayed side by side
+            * Background color (background_color):
+                Color to be used when printing masked image.
+                if "None" is selected standard mask will be printed.
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -136,7 +136,8 @@ class IptSplittedRangeThreshold(IptBase):
                 )
                 outside_mask = wrapper.delete_rois(src_mask=outside_mask, tags=rois)
                 wrapper.store_image(
-                    image=outside_mask, text=f"outside_mask_{self.get_value_of('channel')}"
+                    image=outside_mask,
+                    text=f"outside_mask_{self.get_value_of('channel')}",
                 )
 
                 # Merge masks
@@ -185,7 +186,9 @@ class IptSplittedRangeThreshold(IptBase):
                         ).replace(", ", "\n"),
                     )
                 else:
-                    wrapper.store_image(main_image, main_result_name, text_overlay=text_overlay)
+                    wrapper.store_image(
+                        main_image, main_result_name, text_overlay=text_overlay
+                    )
 
                 if self.get_value_of("build_mosaic") == 1:
                     canvas = wrapper.build_mosaic(

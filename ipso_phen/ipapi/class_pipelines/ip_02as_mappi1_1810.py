@@ -2,10 +2,10 @@ from typing import Any, Union
 
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.csv_writer import AbstractCsvWriter
-from ipapi.ipt.ipt_check_exposure import IptExposureChecker
-from ipapi.base.ipt_functional import call_ipt
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.ipt.ipt_check_exposure import IptExposureChecker
+from ipso_phen.ipapi.base.ipt_functional import call_ipt
 
 _EXPERIMENTS = [
     "02as_mappi1_1810".lower(),

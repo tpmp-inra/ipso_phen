@@ -5,9 +5,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import create_channel_generator, get_hr_channel_name, CHANNELS_FLAT
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import (
+    create_channel_generator,
+    get_hr_channel_name,
+    CHANNELS_FLAT,
+)
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptOtsuOverthinked(IptBase):
@@ -126,14 +130,22 @@ class IptOtsuOverthinked(IptBase):
                                 "otsu_overthinked",
                                 f'OTSU_{get_hr_channel_name("b")}',
                             ],
-                            [f"OTSU_{get_hr_channel_name(c)}" for c in ["rd", "gr", "bl"]],
+                            [
+                                f"OTSU_{get_hr_channel_name(c)}"
+                                for c in ["rd", "gr", "bl"]
+                            ],
                         ]
                     ),
                 )
                 wrapper.store_image(canvas, "mosaic")
             elif build_mosaic == "sbs":
                 canvas = wrapper.build_mosaic(
-                    image_names=np.array(["source", "otsu_overthinked",])
+                    image_names=np.array(
+                        [
+                            "source",
+                            "otsu_overthinked",
+                        ]
+                    )
                 )
                 wrapper.store_image(canvas, "mosaic")
 

@@ -4,7 +4,7 @@ import random
 from typing import Any, Union
 import math
 
-from ipapi.tools.csv_writer import AbstractCsvWriter
+from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 import logging
 

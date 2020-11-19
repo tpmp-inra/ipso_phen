@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily, ensure_odd
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 class IptThresholdAdaptive(IptBase):
@@ -84,11 +84,11 @@ class IptThresholdAdaptive(IptBase):
             * Select source file type (source_file): no clue
             * Channel (channel):
             * Invert mask (invert_mask): Invert result
-            * Max value (max_value): Non-zero value assigned to the pixels for which the condition 
+            * Max value (max_value): Non-zero value assigned to the pixels for which the condition
                 is satisfied
-            * Adaptive method (method): Adaptive thresholding algorithm to use, 
+            * Adaptive method (method): Adaptive thresholding algorithm to use,
                 see cv::AdaptiveThresholdTypes
-            * Block size (block_size): Size of a pixel neighborhood that is used to calculate a 
+            * Block size (block_size): Size of a pixel neighborhood that is used to calculate a
                 threshold value for the pixel: 3, 5, 7, and so on.
             * C (C): Constant subtracted from the mean or weighted mean (see the details below).
                 Normally, it is positive but may be zero or negative as well.
@@ -125,9 +125,7 @@ class IptThresholdAdaptive(IptBase):
                 elif method == "mean":
                     method = cv2.ADAPTIVE_THRESH_MEAN_C
                 else:
-                    logger.error(
-                        f"Unknown method {method}"
-                    )
+                    logger.error(f"Unknown method {method}")
                     return False
                 block_size = self.get_value_of("block_size")
                 if block_size % 2 == 0:
@@ -137,7 +135,9 @@ class IptThresholdAdaptive(IptBase):
                 text_overlay = self.get_value_of("text_overlay") == 1
                 build_mosaic = self.get_value_of("build_mosaic") == 1
 
-                c = wrapper.get_channel(src_img, channel, median_filter_size=median_filter_size)
+                c = wrapper.get_channel(
+                    src_img, channel, median_filter_size=median_filter_size
+                )
                 if c is None:
                     self.do_channel_failure(channel)
                     return

@@ -13,9 +13,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_check_source import IptCheckSource
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.ipt.ipt_check_source import IptCheckSource
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptCheckSource(unittest.TestCase):
@@ -54,9 +54,7 @@ class TestIptCheckSource(unittest.TestCase):
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Check source image")
-        self.assertIsInstance(
-            op.result, bool, "Check source image must return a boolean"
-        )
+        self.assertIsInstance(op.result, bool, "Check source image must return a boolean")
 
     def test_documentation(self):
         """Test that module has corresponding documentation file"""

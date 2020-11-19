@@ -1,8 +1,8 @@
 import os
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base import ip_common as ipc
 
 import logging
 

@@ -10,8 +10,8 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipapi.tools.common_functions import get_module_classes
-from ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.common_functions import get_module_classes
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipapi import ipt
 
 # Check PlantCV

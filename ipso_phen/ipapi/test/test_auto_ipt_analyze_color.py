@@ -13,12 +13,12 @@ sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 # When running tests from IPSO Phen
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
-from ipapi.ipt.ipt_analyze_color import IptAnalyzeColor
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.ipt.ipt_analyze_color import IptAnalyzeColor
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
-import ipapi.base.ip_common as ipc
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class TestIptAnalyzeColor(unittest.TestCase):
@@ -67,7 +67,9 @@ class TestIptAnalyzeColor(unittest.TestCase):
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertIsInstance(
-            op, IptBaseAnalyzer, "Analyze color must inherit from ipapi.iptBaseAnalyzer"
+            op,
+            IptBaseAnalyzer,
+            "Analyze color must inherit from ipso_phen.ipapi.iptBaseAnalyzer",
         )
         self.assertTrue(res, "Failed to process Analyze color with test script")
         self.assertNotEqual(

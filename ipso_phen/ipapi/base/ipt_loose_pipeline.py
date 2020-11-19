@@ -1,4 +1,4 @@
-from ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.tools.folders import ipso_folders
 from uuid import uuid4
 import json
 from datetime import datetime as dt
@@ -11,14 +11,14 @@ import os
 
 import numpy as np
 
-from ipapi.base.ipt_abstract import IptParam, IptBase, IptParamHolder
-from ipapi.base.ipt_functional import get_ipt_class
-from ipapi.base import ip_common as ipc
-from ipapi.base.ipt_strict_pipeline import IptStrictPipeline
-from ipapi.base.ip_abstract import BaseImageProcessor
-import ipapi.tools.error_holder as eh
-from ipapi.tools.common_functions import format_time
-from ipapi.tools.regions import RectangleRegion
+from ipso_phen.ipapi.base.ipt_abstract import IptParam, IptBase, IptParamHolder
+from ipso_phen.ipapi.base.ipt_functional import get_ipt_class
+from ipso_phen.ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_strict_pipeline import IptStrictPipeline
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+import ipso_phen.ipapi.tools.error_holder as eh
+from ipso_phen.ipapi.tools.common_functions import format_time
+from ipso_phen.ipapi.tools.regions import RectangleRegion
 
 
 logger = logging.getLogger(__name__)

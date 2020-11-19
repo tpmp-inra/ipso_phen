@@ -17,7 +17,7 @@ if __name__ == "__main__":
     sys.path.insert(0, fld_name)
     sys.path.insert(0, os.path.dirname(fld_name))
     sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
-    sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
+    sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", "..", ""))
 
     if not os.path.exists("logs"):
         os.mkdir("logs")
@@ -38,11 +38,11 @@ if __name__ == "__main__":
 
 logger = logging.getLogger(__name__)
 
-from ipapi.tools.common_functions import get_module_classes
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.ipt as ipt
-import ipapi.base.ip_common as ipc
-from ipapi.tools.error_holder import log_data
+from ipso_phen.ipapi.tools.common_functions import get_module_classes
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.ipt as ipt
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.tools.error_holder import log_data
 
 # Check PlantCV
 try:
@@ -122,7 +122,7 @@ class IptHolder(object):
         f.write(f"{spaces}os.path.join(\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.dirname(__file__), "..", "samples", "pipelines", "{pipeline_name}",\n'
+            f'{spaces}os.path.dirname(__file__), "..", "ipso_phen", "ipapi", "samples", "pipelines", "{pipeline_name}",\n'
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -132,7 +132,7 @@ class IptHolder(object):
         f.write(f"{spaces}wrapper = BaseImageProcessor(\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "samples", "images", "{test_image}",)\n'
+            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "ipso_phen", "ipapi", "samples", "images", "{test_image}",)\n'
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -154,7 +154,7 @@ class IptHolder(object):
         f.write(f"{spaces}wrapper = BaseImageProcessor(\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "samples", "images", "{test_image}",)\n'
+            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "ipso_phen", "ipapi", "samples", "images", "{test_image}",)\n'
         )
         spaces = remove_tab(spaces)
         f.write(f"{spaces})\n")
@@ -188,17 +188,17 @@ class IptHolder(object):
             'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))\n\n'
         )
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
-        f.write("from ipapi.base.ip_abstract import BaseImageProcessor\n")
+        f.write("from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
-            f.write("from ipapi.base.ipt_loose_pipeline import LoosePipeline\n")
+            f.write("from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline\n")
             if "script_in_info_out" in tests_needed:
                 f.write(
-                    "from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n"
+                    "from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n"
                 )
 
         if "img_in_roi_out" in tests_needed:
-            f.write("import ipapi.tools.regions as regions\n")
-        f.write("import ipapi.base.ip_common as ipc\n\n\n")
+            f.write("import ipso_phen.ipapi.tools.regions as regions\n")
+        f.write("import ipso_phen.ipapi.base.ip_common as ipc\n\n\n")
 
     def write_test_use_case(self, f, op, spaces):
         f.write(f"{spaces}def test_use_case(self):\n")
@@ -345,7 +345,7 @@ class IptHolder(object):
             spaces=spaces,
         )
         f.write(
-            f'{spaces}self.assertIsInstance(op, IptBaseAnalyzer, "{op.name} must inherit from ipapi.iptBaseAnalyzer")\n'
+            f'{spaces}self.assertIsInstance(op, IptBaseAnalyzer, "{op.name} must inherit from ipso_phen.ipapi.iptBaseAnalyzer")\n'
         )
         f.write(
             f'{spaces}self.assertTrue(res, "Failed to process {op.name} with test script")\n'
@@ -435,7 +435,7 @@ class IptHolder(object):
         f.write(f"{spaces}op_doc_name = op.name.replace(' ', '_')\n")
         f.write(f"{spaces}op_doc_name = 'ipt_' + op_doc_name + '.md'\n")
         f.write(
-            f"{spaces}doc_path = os.path.join(os.path.dirname(__file__), '..', '..', 'docs', f'{{op_doc_name}}',)\n"
+            f"{spaces}doc_path = os.path.join(os.path.dirname(__file__), '..', 'docs', f'{{op_doc_name}}',)\n"
         )
         f.write(
             spaces
@@ -536,7 +536,9 @@ class IptHolder(object):
                     file_name = os.path.join(
                         os.path.dirname(__file__),
                         "..",
-                        "test",
+                        "..",
+                        "..",
+                        "tests",
                         f"test_auto_{name}.py",
                     )
                     if not overwrite and os.path.isfile(file_name):
