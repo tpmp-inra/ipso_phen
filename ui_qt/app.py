@@ -69,7 +69,6 @@ from PySide2.QtWidgets import (
     QWidget,
     QListWidgetItem,
 )
-from PySide2.QtWidgets import qApp
 
 
 class Signaller(QObject):
