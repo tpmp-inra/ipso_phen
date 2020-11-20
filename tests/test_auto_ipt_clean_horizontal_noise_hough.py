@@ -1,18 +1,6 @@
 import os
-import sys
 import numpy as np
 import unittest
-
-abspath = os.path.abspath(__file__)
-fld_name = os.path.dirname(abspath)
-sys.path.insert(0, os.getcwd())
-sys.path.insert(0, fld_name)
-sys.path.insert(0, os.path.dirname(fld_name))
-# When running tests from ipapi
-sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
-
-# When running tests from IPSO Phen
-sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipso_phen.ipapi.ipt.ipt_clean_horizontal_noise_hough import (
     IptCleanHorizontalNoiseHough,
@@ -49,27 +37,11 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
         op = IptCleanHorizontalNoiseHough()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "ipso_phen",
-                "ipapi",
-                "samples",
-                "pipelines",
-                "test_cleaners.json",
-            )
+            "./ipso_phen/ipapi/samples/pipelines/test_cleaners.json"
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = BaseImageProcessor(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "ipso_phen",
-                "ipapi",
-                "samples",
-                "images",
-                "18HP01U17-CAM11-20180712221558.bmp",
-            )
+            "./ipso_phen/ipapi/samples/images/18HP01U17-CAM11-20180712221558.bmp"
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(
@@ -87,16 +59,7 @@ class TestIptCleanHorizontalNoiseHough(unittest.TestCase):
         )
 
     def test_documentation(self):
-        """Test that module has corresponding documentation file"""
-        op = IptCleanHorizontalNoiseHough()
-        op_doc_name = op.name.replace(" ", "_")
-        op_doc_name = "ipt_" + op_doc_name + ".md"
-        doc_path = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "docs",
-            f"{op_doc_name}",
-        )
+        doc_path = "./docs/ipt_Clean_horizontal_noise_(Hough_method).md"
         self.assertTrue(
             os.path.isfile(doc_path),
             "Missing doc file for ROI composition {doc_path}",

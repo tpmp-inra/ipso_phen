@@ -112,30 +112,30 @@ class IptHolder(object):
                 op for op in self.ipt_list if (use_case in op.use_case) and not op.is_wip
             ]
 
+    @staticmethod
+    def path_to_sample_image(image_name: str):
+        return f"./ipso_phen/ipapi/samples/images/{image_name}"
+
+    @staticmethod
+    def path_to_sample_pipeline(pipeline_name: str):
+        return f"./ipso_phen/ipapi/samples/pipelines/{pipeline_name}"
+
+    @staticmethod
+    def path_to_doc_file(doc_file_name: str):
+        return f"./docs/{doc_file_name}"
+
     def write_init_pipeline(
         self, f, use_case, pipeline_name, test_image, group_uuid, op, spaces
     ):
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}op.apply_test_values_overrides(use_cases=('{use_case}',))\n")
-        f.write(f"{spaces}script = LoosePipeline.load(\n")
-        spaces = add_tab(spaces)
-        f.write(f"{spaces}os.path.join(\n")
-        spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.dirname(__file__), "..", "ipso_phen", "ipapi", "samples", "pipelines", "{pipeline_name}",\n'
+            f"{spaces}script = LoosePipeline.load('{self.path_to_sample_pipeline(pipeline_name)}')\n"
         )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         f.write(f"{spaces}script.add_module(operator=op, target_group='{group_uuid}')\n")
-        f.write(f"{spaces}wrapper = BaseImageProcessor(\n")
-        spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "ipso_phen", "ipapi", "samples", "images", "{test_image}",)\n'
+            f"{spaces}wrapper = BaseImageProcessor('{self.path_to_sample_image(test_image)}')\n"
         )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         f.write(f"{spaces}res = script.execute(src_image=wrapper, silent_mode=True)\n")
         return spaces
 
@@ -151,13 +151,9 @@ class IptHolder(object):
     ):
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}op.apply_test_values_overrides(use_cases=('{use_case}',))\n")
-        f.write(f"{spaces}wrapper = BaseImageProcessor(\n")
-        spaces = add_tab(spaces)
         f.write(
-            f'{spaces}os.path.join(os.path.dirname(__file__), "..", "ipso_phen", "ipapi", "samples", "images", "{test_image}",)\n'
+            f"{spaces}wrapper = BaseImageProcessor('{self.path_to_sample_image(test_image)}')\n"
         )
-        spaces = remove_tab(spaces)
-        f.write(f"{spaces})\n")
         if store_images:
             f.write(f"{spaces}wrapper.store_images = True\n")
         if run_op:
@@ -166,7 +162,6 @@ class IptHolder(object):
 
     def write_imports(self, f, op, tests_needed: dict):
         f.write("import os\n")
-        f.write("import sys\n")
         if (
             "img_in_img_out" in tests_needed
             or "img_in_msk_out" in tests_needed
@@ -174,19 +169,6 @@ class IptHolder(object):
         ):
             f.write("import numpy as np\n")
         f.write("import unittest\n\n")
-        f.write("abspath = os.path.abspath(__file__)\n")
-        f.write("fld_name = os.path.dirname(abspath)\n")
-        f.write("sys.path.insert(0, os.getcwd())\n")
-        f.write("sys.path.insert(0, fld_name)\n")
-        f.write("sys.path.insert(0, os.path.dirname(fld_name))\n")
-        f.write("# When running tests from ipapi\n")
-        f.write(
-            'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))\n\n'
-        )
-        f.write("# When running tests from IPSO Phen\n")
-        f.write(
-            'sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))\n\n'
-        )
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
         f.write("from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor\n")
         if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
@@ -430,13 +412,8 @@ class IptHolder(object):
     def write_test_documentation(self, f, op, spaces):
         f.write(f"{spaces}def test_documentation(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that module has corresponding documentation file"""\n')
-        f.write(f"{spaces}op = {op.__class__.__name__}()\n")
-        f.write(f"{spaces}op_doc_name = op.name.replace(' ', '_')\n")
-        f.write(f"{spaces}op_doc_name = 'ipt_' + op_doc_name + '.md'\n")
-        f.write(
-            f"{spaces}doc_path = os.path.join(os.path.dirname(__file__), '..', 'docs', f'{{op_doc_name}}',)\n"
-        )
+        op_doc_name = f"ipt_{op.name.replace(' ', '_')}.md"
+        f.write(f"{spaces}doc_path = '{self.path_to_doc_file(op_doc_name)}'\n")
         f.write(
             spaces
             + "self.assertTrue(os.path.isfile(doc_path), 'Missing doc file for ROI composition {doc_path}',)\n\n"

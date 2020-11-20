@@ -1,17 +1,5 @@
 import os
-import sys
 import unittest
-
-abspath = os.path.abspath(__file__)
-fld_name = os.path.dirname(abspath)
-sys.path.insert(0, os.getcwd())
-sys.path.insert(0, fld_name)
-sys.path.insert(0, os.path.dirname(fld_name))
-# When running tests from ipapi
-sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
-
-# When running tests from IPSO Phen
-sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipso_phen.ipapi.ipt.ipt_calculate_chlorophyll import IptCalculateChlorophyll
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
@@ -45,15 +33,7 @@ class TestIptCalculateChlorophyll(unittest.TestCase):
         op = IptCalculateChlorophyll()
         op.apply_test_values_overrides(use_cases=("Visualization",))
         wrapper = BaseImageProcessor(
-            os.path.join(
-                os.path.dirname(__file__),
-                "..",
-                "ipso_phen",
-                "ipapi",
-                "samples",
-                "images",
-                "arabido_small.jpg",
-            )
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)
@@ -64,16 +44,7 @@ class TestIptCalculateChlorophyll(unittest.TestCase):
         )
 
     def test_documentation(self):
-        """Test that module has corresponding documentation file"""
-        op = IptCalculateChlorophyll()
-        op_doc_name = op.name.replace(" ", "_")
-        op_doc_name = "ipt_" + op_doc_name + ".md"
-        doc_path = os.path.join(
-            os.path.dirname(__file__),
-            "..",
-            "docs",
-            f"{op_doc_name}",
-        )
+        doc_path = "./docs/ipt_Calculate_chlorophyll.md"
         self.assertTrue(
             os.path.isfile(doc_path),
             "Missing doc file for ROI composition {doc_path}",

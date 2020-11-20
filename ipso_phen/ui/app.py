@@ -21,7 +21,6 @@ import cv2
 import numpy as np
 import pandas as pd
 import psutil
-from psutil import Process
 from unidecode import unidecode
 
 from PySide2 import QtWidgets
@@ -80,7 +79,7 @@ class MemoryFilter(logging.Filter):
     last_process_mem = 0
 
     def filter(self, record):
-        process: Process = psutil.Process(os.getpid())
+        process: psutil.Process = psutil.Process(os.getpid())
         pmp = process.memory_percent()
         sign = (
             "+"
@@ -2339,7 +2338,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         log_level: int = 20,
         target_logger=logger,
     ):
-        process: Process = psutil.Process(os.getpid())
+        process: psutil.Process = psutil.Process(os.getpid())
         mem_data = f"""[Memory: Used/Free%{process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
 
         self.setWindowTitle(f"{_PRAGMA_NAME} -- {mem_data}")
@@ -3044,7 +3043,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             logger.warning("do_pp_item_ended: NOT MAIN THREAD")
 
         # Collect garbage if needed
-        process: Process = psutil.Process(os.getpid())
+        process: psutil.Process = psutil.Process(os.getpid())
         if (
             not self._collecting_garbage
             and (timer() - self._last_garbage_collected > 60)

@@ -1,17 +1,5 @@
 import os
-import sys
 import unittest
-
-abspath = os.path.abspath(__file__)
-fld_name = os.path.dirname(abspath)
-sys.path.insert(0, os.getcwd())
-sys.path.insert(0, fld_name)
-sys.path.insert(0, os.path.dirname(fld_name))
-# When running tests from ipapi
-sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
-
-# When running tests from IPSO Phen
-sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "..", ""))
 
 from ipso_phen.ipapi.ipt.ipt_partial_analysis import IptPartialAnalysis
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
