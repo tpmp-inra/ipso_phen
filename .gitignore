@@ -180,6 +180,7 @@ resources/md_image_4.xcf
 resources/md_image_6.xcf
 resources/splash_600px_fill.png
 dist/
+build/
 home/
 sample_pipelines/pipeline_binary.tipp
 script_pipelines/pipeline_script.py
@@ -192,5 +193,5 @@ IPSO_Phen.egg-info/
 logs/
 saved_data/
 ipapi/database/phenoserre_access.py
-ipapi/database/db_connect_data.py
+ipso_phen/ipapi/database/db_connect_data.py
 test-output.xml

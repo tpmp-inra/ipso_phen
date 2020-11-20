@@ -17,16 +17,16 @@ sys.path.insert(0, fld_name)
 sys.path.insert(0, os.path.dirname(fld_name))
 sys.path.insert(0, os.path.join(os.path.dirname(fld_name), "ipso_phen", ""))
 
-from ipapi import __init__
+from ipso_phen.ipapi import __init__
 
 # os.chdir(fld_name)
 
-from ipapi.tools.common_functions import force_directories, make_safe_name
+from ipso_phen.ipapi.tools.common_functions import force_directories, make_safe_name
 
-import ipapi.database.db_initializer as dbi
-import ipapi.database.db_factory as dbf
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.base.ipt_functional import chain_ipt, call_ipt
+import ipso_phen.ipapi.database.db_initializer as dbi
+import ipso_phen.ipapi.database.db_factory as dbf
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_functional import chain_ipt, call_ipt
 
 # import ptvsd
 

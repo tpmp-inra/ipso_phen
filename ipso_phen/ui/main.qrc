@@ -1,0 +1,33 @@
+<RCC>
+  <qresource prefix="annotation_level">
+    <file>./resources/Warning.png</file>
+    <file>./resources/Error.png</file>
+    <file>./resources/OK.png</file>
+    <file>./resources/Problem.png</file>
+    <file>./resources/Info.png</file>
+    <file>./resources/Danger.png</file>
+    <file>./resources/Help.png</file>
+    <file>./resources/Delete.png</file>
+  </qresource>
+  <qresource prefix="common">
+    <file>./resources/Add.png</file>
+    <file>./resources/AddMulti.png</file>
+    <file>./resources/Lightning.png</file>
+    <file>./resources/Load.png</file>
+    <file>./resources/New document.png</file>
+    <file>./resources/Save.png</file>
+    <file>./resources/Down.png</file>
+    <file>./resources/Up.png</file>
+    <file>./resources/Refresh.png</file>
+    <file>./resources/List.png</file>
+    <file>./resources/folder_blue.png</file>
+  </qresource>
+  <qresource prefix="icons">
+    <file>./resources/leaf-16.ico</file>
+    <file>./resources/leaf-24.ico</file>
+  </qresource>
+  <qresource prefix="image_process">
+    <file>./resources/Play.png</file>
+    <file>./resources/Stop.png</file>
+  </qresource>
+</RCC>

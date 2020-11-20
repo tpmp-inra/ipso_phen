@@ -1,0 +1,202 @@
+CHANGES
+=======
+
+* Sem-ver: bugfix Simplified paths in tests
+* Sem-ver: bugfix Refactoring folder hierarchy: fixed .gitignore
+* Sem-ver: bugfix Refactoring folder hierarchy: - Module working - Testst relocated
+* Sem-ver: bugfix REfactoring folder hierarchy WIP
+* Sem-ver: bugfix Remvoed bugged import
+* Sem-ver: bugfix Code cleanup
+* Sem-ver: bugfix Updated tests  and documentation
+* Sem-ver: feature Added option to randomize image processing queue
+* Sem-ver: bugfix Removed path widgets
+* Sem-ver: bugfix Removed path widgets
+* Sem-ver: bugfix Pipeline processor catch emptty dataframe exception separately
+* Sem-ver: bugfix Pipeline processor thread test mode deactivated
+* Sem-ver: bugfix fh\_base closing SSH client
+* Sem-ver: bugfix Pipeline processor thread test mode
+* Sem-ver: bugfix Pipeline processor logs to stdout
+* Sem-ver: bugfix Added garbage collection
+* Sem-ver: bugfix Added thread feedback to log
+* Sem-ver: bugfix Moved some log to debug
+* Sem-ver: bugfix Fixed error when compirang naive to tz aware timestamps
+* Sem-ver: bugfix Added missing ftp closing
+* Sem-ver: bugfix Added missing ftp closing
+* Sem-ver: bugfix File handlers connect to database only when needed
+* Sem-ver: bugfix File handlers connect to database only when needed
+* Sem-ver: feature Linux support
+* Sem-Ver: feature Fully working version
+* Sem-Ver: bugfix Removed old install line
+* Sem-Ver: bugfix Fixed documentation generator
+* Update requirements.txt
+* Sem-ver: bugfix - Fixed corner case startup crash - Updated readme & rtfm
+* Sem-ver: bugfix - Fixed corner case startup crash - Updated readme & rtfm
+* Sem-ver: bugfix - Removed version from requirements - Made remove\_version\_numbers.py executable
+* Sem-ver: Feature - Added support for phenoserre & phenopsis
+* Sem-ver: Feature - Added support for phenoserre & phenopsis
+* Sem-ver: feature Switched from simulation to actual analysis
+* Sem-ver: bugfix fh\_base.py: Added logging when retrieving from db or cache
+* Sem-ver: bugfix fh\_base.py: Added logging when retrieving from db or cache
+* Sem-ver: bugfix Fixed merge issue
+* Sem-ver: bugfix Fixed merge issue
+* Sem-ver: bugfix Fixed various bugs when accessing distant images
+* Sem-ver: bugfix Fixed various bugs when accessing distant images
+* Sem-ver: bugfix Switching to DB mode (WIP) TEst mode fully functional
+* Sem-ver: bugfix Added option to grab all files from database (WIP)
+* Sem-ver: bugfix Added option to grab all files from database (WIP)
+* Bump cryptography from 2.9.2 to 3.2
+* Sem-ver: feature - Added support for time gap selection in pandas databases - Added global folder manageer - Fixed errors with new database handlers
+* Sem-ver: feature - Added support for time gap selection in pandas databases - Added global folder manageer - Fixed errors with new database handlers
+* Sem-ver:Feature Added support for distant Phenopsis
+* Sem-ver:Feature Added support for distant Phenopsis
+* Sem-ver: bugfix -Fixed issue with yielding pipeline
+* Sem-ver: bugfix -Fixed issue with yielding pipeline
+* Sem-ver: feature Added direct acces to phenoserre database
+* Sem-ver: feature Added direct acces to phenoserre database
+* Sem-Ver: Feature Added partial analyzer
+* Sem-Ver: Feature Added partial analyzer
+* Sem-ver: Feature Added normalize and median filtering
+* Sem-ver: Feature Added normalize and median filtering
+* Sem-ver: bugfix splitted yielding and not yielding  methods
+* Sem-ver: bugfix Fixed issue with psql overload
+* Sem-ver: bugfix Fixed yield\_mode in merge result files
+* Sem-ver: bugfix Fixed yield\_mode in merge result files
+* Sem-ver:-bugfix: Adding direct distant DB connection (WIP)
+* Sem-ver:-bugfix: Adding direct distant DB connection (WIP)
+* Sem-ver: bugfix: pp: fixed yield mode db\_wrapper: Fixed X compatibility routes.py: Improved progress feedback
+* Sem-ver: bugfix: pp: fixed yield mode db\_wrapper: Fixed X compatibility routes.py: Improved progress feedback
+* Sem-ver: Feature - Added support for no redis mode
+* Sem-ver: Feature - Added support for no redis mode
+* Sem-ver: feature Loose pipeline: - Added settings to select which images are displayed - Added watermark to output images - Fixed display callbacks
+* Sem-ver: feature Loose pipeline: - Added settings to select which images are displayed - Added watermark to output images - Fixed display callbacks
+* Sem-ver: feature Going to implement fetching images from database
+* Sem-ver: feature Going to implement fetching images from database
+* Sem-ver: bugfix - Added chain\_ipt
+* Sem-ver: bugfix - Added chain\_ipt
+* Sem-Ver: bugfix Fixed error introduced in previous commit
+* Sem-ver: bugfix Use common colors for keep linked contours
+* Sem-ver: bugfix Use common colors for keep linked contours
+* Sem-Ver: feature - Progress is working - Implementing image analysis WIP
+* Sem-Ver: feature - Progress is working - Implementing image analysis WIP
+* Add 'app/ipapi/' from commit '3f2ac4078913fc3b7a93f4c5c2ae8ca1a0f2f265'
+* Sem-ver:bugfix README
+* Sem-ver: bugfix - Fixed key error when retrieving callbacks
+* Sem-ver: feature Added callbacks for errors
+* Sem-Ver: bugfix - Warning bashing - Loose pipeline, fixed target module - Filter contour by size, fixed small contours not being removed if within big contours
+* Sem-Ver: bugfix - Warning bashing - Loose pipeline, fixed target module - Filter contour by size, fixed small contours not being removed if within big contours
+* Sem-ver: bugfix: - Moving darta writing to loose pipeline DRY - Warning bashing
+* Sem-Ver: bugfix - Added options to draw image - Loose pipeline is now in charge of wrting data - Added data vizualisation module - q\_thread\_handlers removed data writing
+* Sem-Ver: bugfix - Added options to draw image - Loose pipeline is now in charge of wrting data - Added data vizualisation module - q\_thread\_handlers removed data writing
+* Sem-Ver: bugfix - Fixed ROIs in check exposure - Added copy\_rois to regions - Fixed crash by removing item delegate for image's list view - External DBs now built per folder - Fixed stat generator
+* Sem-Ver: bugfix - Fixed ROIs in check exposure - Added copy\_rois to regions - Fixed crash by removing item delegate for image's list view - External DBs now built per folder - Fixed stat generator
+* Sem\_Ver: bugfix: Log only warnings and above when there's no callback
+* Sem-Ver: bugfix REstored multithreading
+* Sem-Ver: bugfix Updated to new series id management
+* Sem-Ver: bugfix - warning bashing
+* Sem-Ver: bugfix - warning bashing
+* Sem-Ver: bugfix - Fixed background bug in draw\_image - build\_color\_steps can now build more than 255 colors - Fixed ROIs in Loose pipeline - Group by series no longer returns nested lists but tuples - Fixed bug in filter contour by size - Fixed bug in morphology ' Added rotated rectangle - Fixed painter CRASH in qt\_mvc
+* Sem-Ver: bugfix - Fixed background bug in draw\_image - build\_color\_steps can now build more than 255 colors - Fixed ROIs in Loose pipeline - Group by series no longer returns nested lists but tuples - Fixed bug in filter contour by size - Fixed bug in morphology ' Added rotated rectangle - Fixed painter CRASH in qt\_mvc
+* SemVer: bugfix Minor typos fixed
+* SemvVer: Feature Tests can now be run from ipapi or ipso\_phen
+* SemVer: bugfix Pipeline: - Added option to store images needed later - Added demo image to ROI modules - Fixed exception when ROI is missing Bookkepping: - Switching from old log system WIP - Removed outdated methods in ipt\_abstract Modules: - Added methods to generate filenames - Added crop - Hough circle detector and edge detection now accept masks as source - Fixed filter contour by size Regions: - Crop returns always c-continuous arrays Main app: - Fixed new tools form - Fixed calling doc & readme Qt: - Fixed random crash related to canvas
+* SemVer: bugfix Pipeline: - Added option to store images needed later - Added demo image to ROI modules - Fixed exception when ROI is missing Bookkepping: - Switching from old log system WIP - Removed outdated methods in ipt\_abstract Modules: - Added methods to generate filenames - Added crop - Hough circle detector and edge detection now accept masks as source - Fixed filter contour by size Regions: - Crop returns always c-continuous arrays Main app: - Fixed new tools form - Fixed calling doc & readme Qt: - Fixed random crash related to canvas
+* SemVer:feature - Added support for series id and annotation CSV
+* Sem-Ver: feature Wrote Readme
+* Sem-Ver: bugfix - Log qt handler no longer catches all stdout - changed imports to avoid adding ipapi to path
+* Sem-Ver: bugfix - Log qt handler no longer catches all stdout - changed imports to avoid adding ipapi to path
+* Sem-Ver: Bugfix Moved log initialisation to \_\_main\_\_.py
+* Sem-Ver: Bugfix - Updating to new logging sceme
+* Sem-Ver: bugfix Further deprecation of error handling module
+* Sem-Ver: bugfix Further deprecation of error handling module
+* Sem-Ver: Feature - Removed log init from package init - Started phasing out error\_holder - Loose pipeline:   . Set wrapper as a class property   . Added support for execution filters - Added tqdm support to db wrapper
+* Sem-Ver: Feature - Removed log init from package init - Started phasing out error\_holder - Loose pipeline:   . Set wrapper as a class property   . Added support for execution filters - Added tqdm support to db wrapper
+* Sem-Ver: bugfix Fixed bug when loading old loggin pipelines Fixed augment data
+* Sem-Ver: bugfix Added missing lines to .gitignore
+* Sem-ver: bugfix - Added logging to dv\_wrapper - app.py sends uncatched exceptions to log - Fixed exception when adding files - Fixed parameter when calling QFileDialog - Fixed not always updating output when executing partial pipelines - Simplified param widgets
+* Sem-ver: bugfix - Added logging to dv\_wrapper - app.py sends uncatched exceptions to log - Fixed exception when adding files - Fixed parameter when calling QFileDialog - Fixed not always updating output when executing partial pipelines - Simplified param widgets
+* Sem\_ver: bugfix     Splitted threshold - Changed demo image     regions: Fixed drawing color selection
+* Sem\_ver: bugfix     Splitted threshold - Changed demo image     regions: Fixed drawing color selection
+* Sem\_ver: bugfix Splitted threshold - Changed demo image regions: Fixed drawing color selection
+* Sem-ver: bugfix Adding overwrite and in/ex.clude options
+* Sem-Ver: bugfix Adding override and in/ex.clude options
+* Sem\_ver: Feature Merged log formats
+* Sem\_ver: Feature Merged log formats
+* Sem-ver: Feature Added logging CLI working
+* Sem-Ver: Bugfix Fixed pipeline processor
+* Sem-Ver: Bugfix Fixed pipeline processor
+* Sem-ver: Feature - Renamed ipt\_pp\_state to pipeline\_launcher - Moved pipeline handling from cli to launcher
+* Sem-ver: bugfix WIP
+* Sem-ver: bugfix Removed CLI options, will be added to IPSO CLI Various bugs fixed
+* Sem-ver: Feature Added state manager
+* Sem-ver: Feature Added state manager
+* Fixed issue with buttons dropdown menu
+* Sem-ver: Switched from PyQt to Pyside 2, WIP for buttons drop down
+* Sem-ver: bugfix Removed unused files
+* Sem-ver: bugfix Removed unused files
+* Sem-ver: bugfix\nMoved files to uncluter root
+* Added tqdm to requirements.txt
+* Add 'ipapi/' from commit '378fef4ebea27560fdb5931eb8dc9e0f9cc4d7aa'
+* Sem-ver: bugfix Deleted all files that will be part of ipapi
+* Added class pipelines
+* Sem-Ver: bugfix: Preparing for ipapi WIP
+* ipapi is now a standalone library
+* Update README.md
+* Create README.md
+* Create LICENSE
+* Create .gitignore
+* Refactoring to create ipapi
+* Refactoring to create ipapi
+* Creating ipapi WIP
+* Creating ipapi WIP
+* Added support for IMean images Added:   - Convert image to mask   - Filter contour by size (WIP)
+* Sem-Ver: bugfix Updated environment.yml to fix revoked packages
+* Sem-Ver: bugfix Resized main UI
+* Sem-Ver: bugfix
+* Changed environment name
+* Bump bleach from 3.1.2 to 3.1.4
+* Minor improvements
+* Formatted some files
+* Bump bleach from 3.1.1 to 3.1.2
+* Sem-Ver: bugfix
+* Sem-Ver: bugfix - Better handling of demo images in loose pipeline - Fixed keep contours near ROI
+* Sem-Ver: bugfix Added V2 for partal posterizer
+* Sem-Ver: bugfix
+* Added versions to requierements.txt, fixed ubuntu bug
+* Added versions to requierements.txt
+* Sem-Ver: feature
+* Sem-Ver: bugfix
+* Sem-Ver: bugfix
+* Sem-Ver: feature
+* Sem-Ver: bugfix
+* Sem-Ver: bugfix
+* Sem-Ver: feature
+* Sem-Ver: bugfix
+* Sem-Ver: feature
+* Sem-Ver: bugfix
+* Sem-Ver: feature
+* Update requirements.txt
+* Update requirements.txt
+* Sem-Ver: bugfix
+* Sem-Ver: bugfix
+* Sem-Ver: feature
+* Sem-Ver: feature
+* Sem-ver: bugfix - Fixed dependency vulnerability
+* Sem-Ver: feature
+* Sem-Ver: feature
+* Sem-Ver: feature
+* Sem-ver: feature
+* Sem-Ver: Feature
+* Sem-ver: bugfix
+* Sem-ver: feature
+* Sem-Ver: bugfix Improved Pipelines documentation
+* Sem-Ver: bugfix Script generator: - Fixed bug on feature extraction - Fixed bug with cache - Added feedbag
+* Sem-Ver: bugfix Fixed typo
+* Sem-Ver: bugfix Updated documentation for X installation
+* Sem-Ver:: bugfix
+* Sem-Ver: feature
+* Update ui\_consts.py
+* Added sample brachy image Improved documentation Fixed pipeline scripts Updated readme with read the docs @
+* Fixed Youtube URL
+* Updated path to tutorial video Restored script generator cache Deactivated postgres option
+* First commit to new repo
+* Initial commit

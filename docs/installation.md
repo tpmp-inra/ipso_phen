@@ -1,37 +1,45 @@
-# Installing
+# Install
 
-## Getting the source code
+## System requirements
 
-Source code is available from our [GitHub](https://github.com/tpmp-inra/ipso_phen). Cloning or forking the repo with git is recommended.
+ IPSO Phen has been tested on:
 
-## Installing python
+- Linux: Ubuntu 18.04+
+- Windows 10
 
-!!! warning
-Following a number of issues with OpenCV and Qt packages on windows, we recommend using pip instead of conda.
+## Dependencies
 
-Download and install python and install python, if needed, it can be found here [https://www.python.org/downloads/](https://www.python.org/downloads/). Please remember/store python's install path, we will be needing it later and we will call it PYTHON_EXE_PATH.
+Python, tested with versions 3.6, 3.7 and 3.8. Python 3.5 will not work.  
+Python packages:
 
-## [About PlantCV](https://plantcv.readthedocs.io/en/latest/)
+- numpy
+- opencv-contrib-python
+- pandas
+- paramiko
+- psutil
+- psycopg2-binary
+- PySide2
+- scikit-image
+- scikit-learn
+- seaborn
+- SQLAlchemy
+- SQLAlchemy-Utils
+- tqdm
+- Unidecode
 
-IPSO Phen can be used to add an UI to PlantCV's tools. But since at the moment of writing this documentation PlantCV uses OpenCV 3 and IPSO Phen uses OpenCV 4 as default you will have to remove the line _opencv-contrib-python_ from _requirements.txt_ and add an additional step to the installation by typing _pip install plantcv_ into the command line/terminal.
+## Install via pacakage manager
 
-## Creating an environment
+Install on an existing python environment with command line:
 
-### Windows
+```shell
+pip install ipso_phen
+```
 
-1. Open a command line console with windows start menu and go to the folder containing IPSO Phen.
-2. Execute on the command line: .\scripts\install.bat PYTHON_EXE_PATH.
+## Install from source
 
-### Linux/OSX
+Source code is available from: <https://github.com/tpmp-inra/ipso_phen>  
+Install on an existing python environment with command line:
 
-1. Open a terminal session ond go to the folder containing IPSO Phen.
-2. Execute ./install.pip.x (you may need to execute chmod u+x install.pip.x before to turn the file into an executable).
-3. When asked "_Where is Python?_" enter _PYTHON_EXE_PATH_
-
-## Launching IPSO Phen
-
-1. Open a terminal session ond go to the folder containing IPSO Phen.
-2. Activate the environment.
-   - On Windows execute *.\env\Scripts\activate.bat*
-   - On Linux/OSX execute *source ./env/bin/activate* on the terminal
-3. execute *python \_\_main__.py* on the terminal
+```shell
+pip install -r requirements.txt
+```
