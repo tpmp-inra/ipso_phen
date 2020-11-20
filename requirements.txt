@@ -12,3 +12,16 @@ SQLAlchemy
 SQLAlchemy-Utils
 tqdm
 Unidecode
+mkdocs
+mkdocs-material
+mkdocs-minify-plugin
+pbr
+yapf
+black
+pymdown
+pyflakes
+pycodestyle
+mccabe
+livereload
+Pygments
+PyYAML

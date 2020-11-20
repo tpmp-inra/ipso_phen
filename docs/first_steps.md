@@ -1,5 +1,15 @@
 # First steps
 
+## Launching IPSO Phen
+
+To run IPSO Phen just type
+
+```shell
+python -m ipso_phen
+```
+
+From the root IPSO Phen folder once the python environment has been activated.
+
 ## Loading images
 
 Since IPSO Phen is high throughput oriented it parses full folders instead of loading single files.
