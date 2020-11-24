@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptChannelMixer(IptBase):
@@ -68,9 +68,9 @@ class IptChannelMixer(IptBase):
             * Weight of channel 1 (channel_1_weight): Factor used to multiply channel 1 values
             * Weight of channel 2 (channel_2_weight): Factor used to multiply channel 2 values
             * Weight of channel 3 (channel_3_weight): Factor used to multiply channel 3 values
-            * Output mode: (post_process): 
+            * Output mode: (post_process):
             * Grey scale palette: (color_map): Grey scale palette (grey scale output only)
-            * Build mosaic (build_mosaic): 
+            * Build mosaic (build_mosaic):
         --------------
         """
 
@@ -105,7 +105,9 @@ class IptChannelMixer(IptBase):
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
                     img = cv2.applyColorMap(img, int(color_map))
                 elif post_process == "grey_avg":
-                    img = ((img[:, :, 0] + img[:, :, 1] + img[:, :, 2]) / 3).astype(np.uint8)
+                    img = ((img[:, :, 0] + img[:, :, 1] + img[:, :, 2]) / 3).astype(
+                        np.uint8
+                    )
                     img = cv2.applyColorMap(img, int(color_map))
 
             wrapper.store_image(img, "channel_mixer")
@@ -150,6 +152,4 @@ class IptChannelMixer(IptBase):
 
     @property
     def description(self):
-        return (
-            "Creates an new image by combining 3 channels from of the color spaces available."
-        )
+        return "Creates an new image by combining 3 channels from of the color spaces available."

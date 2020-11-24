@@ -4,8 +4,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptAssertMaskPosition(IptBase):
@@ -39,7 +39,10 @@ class IptAssertMaskPosition(IptBase):
                 mask = self.get_mask()
                 if mask is None and self._create_test_mask:
                     mask = wrapper.get_mask(
-                        src_img=wrapper.current_image, channel="h", min_t=10, max_t=100,
+                        src_img=wrapper.current_image,
+                        channel="h",
+                        min_t=10,
+                        max_t=100,
                     )
                 elif mask is None:
                     logger.error(f"FAIL {self.name}: mask must be initialized")
@@ -60,10 +63,14 @@ class IptAssertMaskPosition(IptBase):
                     partial_ok = np.count_nonzero(intersection) > 0
                     res = partial_ok and res
                     if partial_ok:
-                        img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_GREEN)
+                        img = enforcer.draw_to(
+                            dst_img=img, line_width=2, color=ipc.C_GREEN
+                        )
                     else:
                         img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_RED)
-                        logger.error(f'{self. name}: check failed for ROI "{enforcer.name}""')
+                        logger.error(
+                            f'{self. name}: check failed for ROI "{enforcer.name}""'
+                        )
                 self.demo_image = img
                 wrapper.store_image(image=img, text=f"enforcers")
 

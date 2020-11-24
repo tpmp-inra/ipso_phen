@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base import ip_common as ipc
-from ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 class IptPrintColorSpaces(IptBase):
@@ -22,7 +22,9 @@ class IptPrintColorSpaces(IptBase):
         self.add_checkbox(name="normalize", desc="Normalize channels", default_value=0)
         self.add_checkbox(name="tag_images", desc="Add text to images", default_value=0)
         self.add_separator(name="sp_1")
-        self.add_checkbox(name="single", desc="Output data as single images", default_value=0)
+        self.add_checkbox(
+            name="single", desc="Output data as single images", default_value=0
+        )
         self.add_checkbox(name="mosaics", desc="Output data as mosaics", default_value=1)
 
     def store_image(self, wrapper, channel, idx, text):
@@ -30,7 +32,11 @@ class IptPrintColorSpaces(IptBase):
         if self.get_value_of("normalize") == 1:
             channel = cv2.equalizeHist(channel)
         wrapper.store_image(
-            image=channel, text=idx, text_overlay=text, force_store=True, font_color=ipc.C_CYAN,
+            image=channel,
+            text=idx,
+            text_overlay=text,
+            force_store=True,
+            font_color=ipc.C_CYAN,
         )
 
     def process_wrapper(self, **kwargs):

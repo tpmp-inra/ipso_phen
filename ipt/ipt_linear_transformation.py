@@ -5,10 +5,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptLinearTransformation(IptBaseAnalyzer):

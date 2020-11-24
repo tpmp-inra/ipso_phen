@@ -2,10 +2,10 @@ import inspect
 import sys
 import pkgutil
 
-import ipapi.class_pipelines as class_pipelines
-from ipapi.file_handlers.fh_base import file_handler_factory
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.common_functions import get_module_classes
+import ipso_phen.ipapi.class_pipelines as class_pipelines
+from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.common_functions import get_module_classes
 
 
 def ipo_factory(

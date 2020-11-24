@@ -219,37 +219,10 @@ def time_method(f):
     """
 
     def new_function(*args, **kwargs):
-        if (len(args) == 0) or not hasattr(args[0], "log_times") or args[0].log_times:
-            before = timer()
-            x = f(*args, **kwargs)
-            after = timer()
-            print(
-                '"{}" process time = {}'.format(f.__name__, format_time(after - before))
-            )
-        else:
-            x = f(*args, **kwargs)
-        return x
-
-    return new_function
-
-
-def forced_time_method(f):
-    """Decorator: prints execution time
-
-    Arguments:
-        f {function} -- function to decorate
-
-    Returns:
-        function -- created function
-    """
-
-    def new_function(*args, **kwargs):
         before = timer()
         x = f(*args, **kwargs)
         after = timer()
-        print(
-            f'"{type(args[0]).__name__}.{f.__name__}" process time: {format_time(after - before)}'
-        )
+        print('"{}" process time = {}'.format(f.__name__, format_time(after - before)))
         return x
 
     return new_function

@@ -5,11 +5,11 @@ import paramiko
 import pandas as pd
 from stat import S_ISDIR
 
-from ipapi.database.pandas_wrapper import PandasDbWrapper
-from ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
+from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
+from ipso_phen.ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 
     conf = dbc.get("phenopsis", {})
 except Exception as e:

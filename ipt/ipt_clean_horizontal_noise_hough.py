@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base import ip_common as ipc
 
 
 class IptCleanHorizontalNoiseHough(IptBase):
@@ -23,14 +23,14 @@ class IptCleanHorizontalNoiseHough(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Clean horizontal noise (Hough method):
-            Removes noise in the form of horizontal lines from masks using Hough transformation.
-            Used with light barriers
-            Real time: False
+        Clean horizontal noise (Hough method):
+        Removes noise in the form of horizontal lines from masks using Hough transformation.
+        Used with light barriers
+        Real time: False
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
-                * Votes threshold (votes_threshold): Threshold to allow a line
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Votes threshold (votes_threshold): Threshold to allow a line
         """
 
         wrapper = self.init_wrapper(**kwargs)
@@ -43,9 +43,7 @@ class IptCleanHorizontalNoiseHough(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    logger.error(
-                        f"FAIL {self.name}: mask must be initialized"
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
                 votes_threshold = self.get_value_of("votes_threshold", 100)
 
@@ -97,14 +95,18 @@ class IptCleanHorizontalNoiseHough(IptBase):
                                     t, b = min(y1, y2) - 2, max(y1, y2) + 2
                                     erosion_mask[t:b, l:r] = mask[t:b, l:r]
                         c_minus = wrapper.multi_and((255 - erosion_mask, mask))
-                        wrapper.store_image(lines_img, f"horizontal_lines iter {iter_count_}")
+                        wrapper.store_image(
+                            lines_img, f"horizontal_lines iter {iter_count_}"
+                        )
                         wrapper.store_image(
                             erosion_mask, f"horizontal_erosion_target iter {iter_count_}"
                         )
                         wrapper.store_image(
                             c_minus, f"horizontal_mask_minus_erosion iter {iter_count_}"
                         )
-                        erosion_mask = cv2.morphologyEx(erosion_mask, cv2.MORPH_OPEN, kernel)
+                        erosion_mask = cv2.morphologyEx(
+                            erosion_mask, cv2.MORPH_OPEN, kernel
+                        )
                         wrapper.store_image(
                             erosion_mask, f"horizontal_erosion_result iter {iter_count_}"
                         )
@@ -117,7 +119,9 @@ class IptCleanHorizontalNoiseHough(IptBase):
                         wrapper.data_output["hor_lines_removed"].append(lines_removed_)
                     else:
                         wrapper.data_output["hor_lines_removed"] = lines_removed_
-                wrapper.data_output["hor_pixels_removed"] = nz_pixels - np.count_nonzero(mask)
+                wrapper.data_output["hor_pixels_removed"] = nz_pixels - np.count_nonzero(
+                    mask
+                )
                 wrapper.data_output["hor_lines_removed_hit_plant"] = 0
                 wrapper.store_image(all_lines_img, "horizontal_all_eroded_lines")
 

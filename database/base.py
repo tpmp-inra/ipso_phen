@@ -5,7 +5,11 @@ import logging
 from sqlalchemy_utils import database_exists
 from tqdm import tqdm
 
-from ipapi.tools.common_functions import force_directories, make_safe_name, undefined_tqdm
+from ipso_phen.ipapi.tools.common_functions import (
+    force_directories,
+    make_safe_name,
+    undefined_tqdm,
+)
 
 logger = logging.getLogger(__name__)
 

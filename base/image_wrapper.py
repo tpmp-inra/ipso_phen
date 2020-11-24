@@ -1,7 +1,7 @@
 import os
 from datetime import datetime as dt
 
-import ipapi.file_handlers.fh_base as fh
+import ipso_phen.ipapi.file_handlers.fh_base as fh
 
 
 class ImageWrapper:

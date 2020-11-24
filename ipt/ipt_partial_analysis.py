@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 import logging

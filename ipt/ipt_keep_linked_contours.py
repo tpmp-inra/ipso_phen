@@ -1,8 +1,8 @@
 import logging
 
 logger = logging.getLogger(__name__)
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptKeepLinkedContours(IptBase):
@@ -93,9 +93,7 @@ class IptKeepLinkedContours(IptBase):
             img = self.wrapper.current_image
             mask = self.get_mask()
             if mask is None:
-                logger.error(
-                    f"FAIL {self.name}: mask must be initialized"
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             self.result = wrapper.keep_linked_contours(

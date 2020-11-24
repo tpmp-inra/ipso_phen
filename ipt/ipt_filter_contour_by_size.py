@@ -1,5 +1,5 @@
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools import regions
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools import regions
 import numpy as np
 import cv2
 
@@ -7,7 +7,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base import ip_common as ipc
 
 
 class IptFilterContourBySize(IptBase):
@@ -53,18 +53,20 @@ class IptFilterContourBySize(IptBase):
             if self.get_value_of("enabled") == 1:
                 mask = self.get_mask()
                 if mask is None:
-                    logger.error(
-                        f"FAIL {self.name}: mask must be initialized"
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
-                lt, ut = self.get_value_of("min_threshold"), self.get_value_of("max_threshold")
+                lt, ut = self.get_value_of("min_threshold"), self.get_value_of(
+                    "max_threshold"
+                )
 
                 # Get source contours
                 contours = [
                     c
                     for c in ipc.get_contours(
-                        mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+                        mask=mask,
+                        retrieve_mode=cv2.RETR_LIST,
+                        method=cv2.CHAIN_APPROX_SIMPLE,
                     )
                     if cv2.contourArea(c, True) < 0
                 ]
@@ -84,7 +86,8 @@ class IptFilterContourBySize(IptBase):
                     )
                 )
                 wrapper.store_image(
-                    image=dbg_img, text="all_contours",
+                    image=dbg_img,
+                    text="all_contours",
                 )
 
                 fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
@@ -95,10 +98,17 @@ class IptFilterContourBySize(IptBase):
                     y += h // 2
                     if area_ > 0:
                         cv2.putText(
-                            dbg_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 255), 2
+                            dbg_img,
+                            f"{area_}",
+                            (x, y),
+                            fnt[0],
+                            fnt[1],
+                            (255, 255, 255),
+                            2,
                         )
                 wrapper.store_image(
-                    image=dbg_img, text="all_contours_with_sizes",
+                    image=dbg_img,
+                    text="all_contours_with_sizes",
                 )
 
                 dbg_img = np.dstack(
@@ -124,7 +134,9 @@ class IptFilterContourBySize(IptBase):
                 size_cnts = np.dstack(
                     (np.zeros_like(mask), np.zeros_like(mask), np.zeros_like(mask))
                 )
-                for cnt in sorted(contours, key=lambda x: cv2.contourArea(x), reverse=True):
+                for cnt in sorted(
+                    contours, key=lambda x: cv2.contourArea(x), reverse=True
+                ):
                     area_ = cv2.contourArea(cnt)
                     if area_ < lt:
                         cv2.drawContours(size_cnts, [cnt], 0, ipc.C_RED, -1)
@@ -167,7 +179,13 @@ class IptFilterContourBySize(IptBase):
                         x += w // 2 - 10
                         y += h // 2
                         cv2.putText(
-                            dbg_img, f"{area_}", (x, y), fnt[0], fnt[1], ipc.C_RED, thickness=2,
+                            dbg_img,
+                            f"{area_}",
+                            (x, y),
+                            fnt[0],
+                            fnt[1],
+                            ipc.C_RED,
+                            thickness=2,
                         )
                 # Kept sizes
                 for cnt in contours:
@@ -186,7 +204,10 @@ class IptFilterContourBySize(IptBase):
                             thickness=2,
                         )
 
-                out_mask = cv2.bitwise_and(out_mask, mask,)
+                out_mask = cv2.bitwise_and(
+                    out_mask,
+                    mask,
+                )
 
                 # Apply ROIs if needed
                 rois = self.get_ipt_roi(
@@ -200,7 +221,8 @@ class IptFilterContourBySize(IptBase):
                         untouched_mask, regions.keep_rois(rois=rois, image=out_mask)
                     )
                     self.demo_image = cv2.bitwise_or(
-                        dbg_img, np.dstack((untouched_mask, untouched_mask, untouched_mask))
+                        dbg_img,
+                        np.dstack((untouched_mask, untouched_mask, untouched_mask)),
                     )
                 else:
                     self.result = out_mask

@@ -5,9 +5,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import MaskData
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import MaskData
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptAnalyzeObject(IptBaseAnalyzer):

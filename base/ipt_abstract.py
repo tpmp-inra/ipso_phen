@@ -13,9 +13,9 @@ from typing import Union
 import cv2
 import numpy as np
 
-from ipapi.base.ip_abstract import BaseImageProcessor
-from ipapi.tools.common_functions import make_safe_name
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.tools.common_functions import make_safe_name
+import ipso_phen.ipapi.base.ip_common as ipc
 
 CLASS_NAME_KEY = "class__name__"
 MODULE_NAME_KEY = "module__name__"
@@ -1375,7 +1375,9 @@ class IptBase(IptParamHolder, ABC):
         class_name = json_data[CLASS_NAME_KEY]
         module_name: str = json_data[MODULE_NAME_KEY].replace("ip_tools", "ipt")
         if "ipt" in module_name and "ipapi" not in module_name:
-            module_name = module_name.replace("ipt", "ipapi.ipt", 1)
+            module_name = module_name.replace("ipt", "ipso_phen.ipapi.ipt", 1)
+        if "ipapi" in module_name and "ipso_phen" not in module_name:
+            module_name = module_name.replace("ipapi", "ipso_phen.ipapi", 1)
         __import__(module_name)
         for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):
@@ -1821,7 +1823,7 @@ class IptBase(IptParamHolder, ABC):
     def code_imports(self, **kwargs):
         ret = [f"from {self.__module__} import {type(self).__name__}"]
         if kwargs.get("build_wrapper", "yes") is not False:
-            ret.append("from ipapi.base.ip_abstract import BaseImageProcessor")
+            ret.append("from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor")
         return ret
 
     def code_apply_roi(self, print_result=None, white_spaces=""):

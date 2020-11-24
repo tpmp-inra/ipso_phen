@@ -5,8 +5,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptHorizontalLineDetector(IptBase):
@@ -51,15 +51,15 @@ class IptHorizontalLineDetector(IptBase):
 
         Keyword Arguments (in parentheses, argument name):
             * Select source file type (source_file): no clue
-            * Channel (channel): 
+            * Channel (channel):
             * Apply ROIs to source image (is_apply_rois): If true ROIs will be applied to source image
             * Only detect isolated lines (fully_isolated): If true, 1 side lines will be ignored
-            * Min line size p only (min_line_size): 
+            * Min line size p only (min_line_size):
             * Build mosaic (build_mosaic): If true edges and result will be displayed side by side
-            * Morphology operator (morph_op): 
-            * Kernel size (kernel_size): 
-            * Kernel shape (kernel_shape): 
-            * Iterations (proc_times): 
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
         --------------
         """
 
@@ -91,7 +91,10 @@ class IptHorizontalLineDetector(IptBase):
                 wrapper.store_image(c, "source_channel")
 
             lr = wrapper.remove_hor_noise_lines(
-                mask=c, min_line_size=min_line_size, fully_isolated=fully_isolated, max_iter=100
+                mask=c,
+                min_line_size=min_line_size,
+                fully_isolated=fully_isolated,
+                max_iter=100,
             )
 
             all_lines = lr["lines"]
@@ -147,7 +150,9 @@ class IptHorizontalLineDetector(IptBase):
 
     @property
     def description(self):
-        return "Developped for Heliasen light barrier\n" "Removes horizontal noise lines\n"
+        return (
+            "Developped for Heliasen light barrier\n" "Removes horizontal noise lines\n"
+        )
 
     @property
     def package(self):

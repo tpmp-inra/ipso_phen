@@ -4,10 +4,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import resize_image
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.regions import AnnulusRegion, EmptyRegion
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ip_common import resize_image
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.regions import AnnulusRegion, EmptyRegion
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptAnnulusRoi(IptBase):

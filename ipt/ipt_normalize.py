@@ -1,6 +1,6 @@
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 import logging

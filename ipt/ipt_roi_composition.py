@@ -2,12 +2,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.regions import CompositeRegion, EmptyRegion
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.regions import CompositeRegion, EmptyRegion
 
 
 class IptRoiComposition(IptBase):
     def build_params(self):
+        self.add_roi_settings(default_name="unnamed_roi", default_type="keep")
         self.add_enabled_checkbox()
         self.add_roi_selector()
         self.add_combobox(
@@ -27,6 +28,9 @@ class IptRoiComposition(IptBase):
         Real time: True
 
         Keyword Arguments (in parentheses, argument name):
+            * ROI name (roi_name):
+            * Select action linked to ROI (roi_type): no clue
+            * Target IPT (tool_target): no clue
             * Activate tool (enabled): Toggle whether or not tool is active
             * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
             * ROI selection mode (roi_selection_mode):

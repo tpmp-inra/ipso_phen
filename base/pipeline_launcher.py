@@ -6,15 +6,15 @@ from timeit import default_timer as timer
 import random
 
 import pandas as pd
-from ipapi.database.base import DbInfo
+from ipso_phen.ipapi.database.base import DbInfo
 import tqdm
 
-import ipapi.database.base as dbb
-import ipapi.database.db_factory as dbf
-from ipapi.tools.common_functions import force_directories, format_time
-from ipapi.base.pipeline_processor import PipelineProcessor
-from ipapi.base.ipt_loose_pipeline import LoosePipeline
-from ipapi.file_handlers.fh_base import file_handler_factory
+import ipso_phen.ipapi.database.base as dbb
+import ipso_phen.ipapi.database.db_factory as dbf
+from ipso_phen.ipapi.tools.common_functions import force_directories, format_time
+from ipso_phen.ipapi.base.pipeline_processor import PipelineProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 
 
 logger = logging.getLogger(__name__)

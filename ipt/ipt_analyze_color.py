@@ -9,10 +9,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import get_hr_channel_name, channel_color
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily, enclose_image, C_BLACK
-from ipapi.tools import regions
+from ipso_phen.ipapi.base.ip_common import get_hr_channel_name, channel_color
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily, enclose_image, C_BLACK
+from ipso_phen.ipapi.tools import regions
 import os
 
 matplotlib.use("agg")

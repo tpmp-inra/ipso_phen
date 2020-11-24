@@ -1,26 +1,26 @@
 from typing import Union
 
-from ipapi.database.base import DbInfo, DbWrapper
+from ipso_phen.ipapi.database.base import DbInfo, DbWrapper
 
-from ipapi.database.sqlite_wrapper import SqLiteDbWrapper
-from ipapi.database.psql_wrapper import PgSqlDbWrapper
+from ipso_phen.ipapi.database.sqlite_wrapper import SqLiteDbWrapper
+from ipso_phen.ipapi.database.psql_wrapper import PgSqlDbWrapper
 
 try:
-    from ipapi.database.phenoserre_wrapper import PhenoserreDbWrapper
+    from ipso_phen.ipapi.database.phenoserre_wrapper import PhenoserreDbWrapper
 except Exception as e:
     is_phenoserre = False
 else:
     is_phenoserre = True
 
 try:
-    from ipapi.database.phenopsis_wrapper import PhenopsisDbWrapper
+    from ipso_phen.ipapi.database.phenopsis_wrapper import PhenopsisDbWrapper
 except Exception as e:
     is_phenopsis = False
 else:
     is_phenopsis = True
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 except Exception as e:
     dbc = {}
 

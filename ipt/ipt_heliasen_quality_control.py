@@ -5,9 +5,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import ipapi.base.ip_common as ipc
+import ipso_phen.ipapi.base.ip_common as ipc
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
 
 class IptHeliasenQualityControl(IptBaseAnalyzer):

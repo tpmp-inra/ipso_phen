@@ -2,8 +2,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptDefault(IptBaseAnalyzer):
@@ -71,9 +71,7 @@ class IptDefault(IptBaseAnalyzer):
             self.result = wrapper.mask
             res = True
         except Exception as e:
-            logger.error(
-                f'Failed to process {self. name}: "{repr(e)}"'
-            )
+            logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             res = False
         else:
             pass

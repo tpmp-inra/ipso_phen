@@ -6,10 +6,10 @@ import pandas as pd
 import sqlite3
 from sqlalchemy import exc
 
-from ipapi.database.base import DbInfo, QueryHandler, DbWrapper
-from ipapi.tools.common_functions import force_directories
-from ipapi.tools.image_list import ImageList
-from ipapi.file_handlers.fh_base import file_handler_factory
+from ipso_phen.ipapi.database.base import DbInfo, QueryHandler, DbWrapper
+from ipso_phen.ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.tools.image_list import ImageList
+from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 
 
 logger = logging.getLogger(__name__)

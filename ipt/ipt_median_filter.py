@@ -1,7 +1,7 @@
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily, ensure_odd
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 import logging

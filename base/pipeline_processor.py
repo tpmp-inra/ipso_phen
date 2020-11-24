@@ -13,11 +13,15 @@ import gc
 import pandas as pd
 from tqdm import tqdm
 
-from ipapi.file_handlers.fh_base import file_handler_factory
-from ipapi.tools.comand_line_wrapper import ArgWrapper
-from ipapi.tools.common_functions import time_method, force_directories, format_time
-from ipapi.tools.image_list import ImageList
-from ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
+from ipso_phen.ipapi.tools.comand_line_wrapper import ArgWrapper
+from ipso_phen.ipapi.tools.common_functions import (
+    time_method,
+    force_directories,
+    format_time,
+)
+from ipso_phen.ipapi.tools.image_list import ImageList
+from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.StreamHandler(sys.stdout))

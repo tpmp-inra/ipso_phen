@@ -7,9 +7,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
-from ipapi.base.ipt_abstract_merger import IptBaseMerger
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptQuickShift(IptBaseMerger):
@@ -76,13 +76,15 @@ class IptQuickShift(IptBaseMerger):
                 kernel_size += 1
 
             img = img_as_float(img)
-            labels = quickshift(img, kernel_size=kernel_size, max_dist=max_dist, ratio=ratio)
+            labels = quickshift(
+                img, kernel_size=kernel_size, max_dist=max_dist, ratio=ratio
+            )
             self.result = labels.copy()
 
             labels[labels == -1] = 0
-            labels = ((labels - labels.min()) / (labels.max() - labels.min()) * 255).astype(
-                np.uint8
-            )
+            labels = (
+                (labels - labels.min()) / (labels.max() - labels.min()) * 255
+            ).astype(np.uint8)
             water_img = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
 
             _, lbl_on_src = self.print_segmentation_labels(

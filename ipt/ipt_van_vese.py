@@ -5,19 +5,27 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptChanVese(IptBase):
     def build_params(self):
         self.add_channel_selector(default_value="h")
         self.add_slider(
-            name="max_iter", desc="Max iterations", default_value=100, minimum=0, maximum=500
+            name="max_iter",
+            desc="Max iterations",
+            default_value=100,
+            minimum=0,
+            maximum=500,
         )
         self.add_slider(name="mu", desc="mu", default_value=25, minimum=0, maximum=100)
-        self.add_slider(name="lambda1", desc="Lambda1", default_value=1, minimum=0, maximum=10)
-        self.add_slider(name="lambda2", desc="Lambda2", default_value=1, minimum=0, maximum=10)
+        self.add_slider(
+            name="lambda1", desc="Lambda1", default_value=1, minimum=0, maximum=10
+        )
+        self.add_slider(
+            name="lambda2", desc="Lambda2", default_value=1, minimum=0, maximum=10
+        )
         self.add_slider(name="dt", desc="dt", default_value=25, minimum=0, maximum=200)
 
     def process_wrapper(self, **kwargs):
@@ -49,7 +57,9 @@ class IptChanVese(IptBase):
 
         res = False
         try:
-            image = wrapper.get_channel(wrapper.current_image, channel, median_filter_size=3)
+            image = wrapper.get_channel(
+                wrapper.current_image, channel, median_filter_size=3
+            )
             cv = chan_vese(
                 image,
                 mu=mu,
@@ -62,8 +72,12 @@ class IptChanVese(IptBase):
                 extended_output=True,
             )
             cv_0 = cv[0] + 1
-            cv_0 = ((cv_0 - cv_0.min()) / (cv_0.max() - cv_0.min()) * 255).astype(np.uint8)
-            cv_1 = ((cv[1] - cv[1].min()) / (cv[1].max() - cv[1].min()) * 255).astype(np.uint8)
+            cv_0 = ((cv_0 - cv_0.min()) / (cv_0.max() - cv_0.min()) * 255).astype(
+                np.uint8
+            )
+            cv_1 = ((cv[1] - cv[1].min()) / (cv[1].max() - cv[1].min()) * 255).astype(
+                np.uint8
+            )
 
             wrapper.store_image(cv_1, f"Chan_Vese_final_level_set", text_overlay=False)
             wrapper.store_image(cv_0, f"Chan-Vese_segmentation", text_overlay=True)

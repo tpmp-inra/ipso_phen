@@ -132,3 +132,4 @@ dmypy.json
 logs/*
 stored_data/*
 *.log
+database/db_connect_data.py

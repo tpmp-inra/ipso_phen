@@ -6,12 +6,12 @@ import numpy as np
 import cv2
 import paramiko
 
-from ipapi.file_handlers.fh_base import FileHandlerBase
-import ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 
     conf = dbc.get("phenopsis", {})
 except Exception as e:

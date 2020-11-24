@@ -1,8 +1,8 @@
 import cv2
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base import ip_common as ipc
-import ipapi.tools.regions as regions
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base import ip_common as ipc
+import ipso_phen.ipapi.tools.regions as regions
 
 import logging
 
@@ -16,7 +16,10 @@ class IptCrop(IptBaseAnalyzer):
             name="source_selector",
             desc="Select source",
             default_value="current_image",
-            values={"current_image": "Current image", "mask": "Mask",},
+            values={
+                "current_image": "Current image",
+                "mask": "Mask",
+            },
             hint="Select which image will be used as source",
         )
         self.add_text_input(

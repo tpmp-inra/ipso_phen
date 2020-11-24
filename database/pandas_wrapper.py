@@ -5,8 +5,8 @@ from tqdm import tqdm
 
 import pandas as pd
 
-from ipapi.database.base import QueryHandler, DbWrapper
-from ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.database.base import QueryHandler, DbWrapper
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 logger = logging.getLogger(__name__)
 
@@ -144,11 +144,9 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
     def connect(self, auto_update: bool = True):
         if self.dataframe is None:
             self.dataframe = self.connect_from_cache()
-            cache_file_path = self.cache_file_path
             if self.dataframe is None:
                 self.dataframe = self.df_builder(self.db_info.display_name)
-                force_directories(self.cache_folder)
-                self.dataframe.to_csv(cache_file_path)
+                self.dataframe.to_csv(self.cache_file_path)
             temp_date_time = pd.DatetimeIndex(self.dataframe["date_time"])
             self.dataframe.insert(loc=4, column="Time", value=temp_date_time.time)
             self.dataframe.insert(loc=4, column="Date", value=temp_date_time.date)
@@ -184,8 +182,4 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
 
     @property
     def cache_folder(self):
-        return os.path.join(
-            os.path.dirname(os.path.abspath(__file__)),
-            "cache",
-            "",
-        )
+        return ipso_folders.get_path("db_cache", force_creation=True)

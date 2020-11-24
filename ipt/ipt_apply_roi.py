@@ -2,9 +2,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-import ipapi.base.ip_common as ipc
-import ipapi.tools.regions as regions
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
+import ipso_phen.ipapi.tools.regions as regions
 
 
 class IptApplyRoi(IptBase):

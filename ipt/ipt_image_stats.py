@@ -4,10 +4,16 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import get_hr_channel_name, CHANNELS_BY_SPACE, HSV, LAB, RGB
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import (
+    get_hr_channel_name,
+    CHANNELS_BY_SPACE,
+    HSV,
+    LAB,
+    RGB,
+)
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptImageStats(IptBaseAnalyzer):
@@ -86,16 +92,22 @@ class IptImageStats(IptBaseAnalyzer):
                     f"{avg_:.2f}",
                     True,
                 )
-                text_overlay.append(f"Avg value: {get_hr_channel_name(channel)}: {avg_:.2f}")
+                text_overlay.append(
+                    f"Avg value: {get_hr_channel_name(channel)}: {avg_:.2f}"
+                )
                 p_std = self.find_by_name(f"channel_{i+1}_std")
                 p_std.update_output(
                     label_text=f"Standard deviation for {get_hr_channel_name(channel)}",
                     output_value=f"{std_}",
                 )
                 self.add_value(
-                    f"Standard deviation for {get_hr_channel_name(channel)}", f"{std_}", True
+                    f"Standard deviation for {get_hr_channel_name(channel)}",
+                    f"{std_}",
+                    True,
                 )
-                text_overlay.append(f"Std value: {get_hr_channel_name(channel)}: {std_:.2f}")
+                text_overlay.append(
+                    f"Std value: {get_hr_channel_name(channel)}: {std_:.2f}"
+                )
             text_overlay = "\n".join(text_overlay)
 
             _mosaic_data = np.array([["c1", "c2"], ["used_source", "c3"]])

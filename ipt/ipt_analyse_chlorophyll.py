@@ -5,13 +5,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptAnalyzeChlorophyll(IptBaseAnalyzer):
     def build_params(self):
-        self.add_checkbox(name="chlorophyll_mean", desc="chlorophyll_mean", default_value=1)
+        self.add_checkbox(
+            name="chlorophyll_mean", desc="chlorophyll_mean", default_value=1
+        )
         self.add_checkbox(
             name="chlorophyll_std_dev", desc="chlorophyll_std_dev", default_value=1
         )

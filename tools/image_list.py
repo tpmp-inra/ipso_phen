@@ -1,8 +1,8 @@
 import os
 import random
 
-from ipapi.tools.common_functions import time_method
-from ipapi.base.image_wrapper import ImageWrapper
+from ipso_phen.ipapi.tools.common_functions import time_method
+from ipso_phen.ipapi.base.image_wrapper import ImageWrapper
 
 import logging
 
@@ -378,7 +378,9 @@ class ImageList:
                 result = self._group_by_filter(result, groups_[0])
                 if result and not actions_:
                     if flat_list_out:
-                        tmp_lst = [fw.file_path for item in result for fw in item["wrappers"]]
+                        tmp_lst = [
+                            fw.file_path for item in result for fw in item["wrappers"]
+                        ]
                     else:
                         tmp_lst = [
                             dict(

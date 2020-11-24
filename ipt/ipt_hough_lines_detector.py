@@ -6,10 +6,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.ipt.ipt_edge_detector import IptEdgeDetector
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import (
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.ipt.ipt_edge_detector import IptEdgeDetector
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import (
     ToolFamily,
     C_GREEN,
     C_LIME,
@@ -92,11 +92,21 @@ class IptHoughLines(IptBaseAnalyzer):
             hint="If true edges and result will be displayed side by side",
         )
         self.add_checkbox(
-            name="add_lines_detail", desc="Add line details to output data", default_value=0
+            name="add_lines_detail",
+            desc="Add line details to output data",
+            default_value=0,
         )
 
     def add_line(
-        self, src_img, index, x1: int, y1: int, x2: int, y2: int, kept_color, discarded_color
+        self,
+        src_img,
+        index,
+        x1: int,
+        y1: int,
+        x2: int,
+        y2: int,
+        kept_color,
+        discarded_color,
     ) -> bool:
 
         # if y1 < y2:
@@ -147,25 +157,25 @@ class IptHoughLines(IptBaseAnalyzer):
 
         Keyword Arguments (in parentheses, argument name):
             * Select source file type (source_file): no clue
-            * Channel (channel): 
+            * Channel (channel):
             * Apply ROIs to source image (is_apply_rois): If true ROIs will be applied to source image
-            * Method (method): 
+            * Method (method):
             * Votes threshold (P only) (votes_threshold): Probabilistic method only
             * Max line Gap (P only) (max_line_gap): Probabilistic method only
             * Min line size (P only) (min_line_size): Probabilistic method only
             * Minimum line angle (min_angle): 0 and 180 both define an horizontal line
             * Maximum line angle (max_angle): 0 and 180 both define an horizontal line
-            * Discarded lines display color (discarded_color): 
-            * Edge detection only (edge_only): 
-            * Select edge detection operator (operator): 
+            * Discarded lines display color (discarded_color):
+            * Edge detection only (edge_only):
+            * Select edge detection operator (operator):
             * Canny's sigma (canny_sigma): Sigma.
             * Canny's first Threshold (canny_first): First threshold for the hysteresis procedure.
             * Canny's second Threshold (canny_second): Second threshold for the hysteresis procedure.
-            * Kernel size (kernel_size): 
+            * Kernel size (kernel_size):
             * Threshold (threshold): Threshold for kernel based operators
-            * Apply threshold (apply_threshold): 
+            * Apply threshold (apply_threshold):
             * Build mosaic (build_mosaic): If true edges and result will be displayed side by side
-            * Add line details to output data (add_lines_detail): 
+            * Add line details to output data (add_lines_detail):
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -177,7 +187,9 @@ class IptHoughLines(IptBaseAnalyzer):
             max_line_gap = self.get_value_of("max_line_gap", 100)
             min_line_size = self.get_value_of("min_line_size", 100)
             is_apply_rois = self.get_value_of("is_apply_rois", "yes") == "yes"
-            is_probabilistic = self.get_value_of("method", "probabilistic") == "probabilistic"
+            is_probabilistic = (
+                self.get_value_of("method", "probabilistic") == "probabilistic"
+            )
             build_mosaic = self.get_value_of("build_mosaic") == 1
             discarded_color = self.get_value_of(key="discarded_color")
             if discarded_color != "none":
@@ -198,14 +210,19 @@ class IptHoughLines(IptBaseAnalyzer):
                 edges = wrapper.apply_rois(edges, f"ROIs_{self.input_params_as_str()}")
 
             src_img = self.wrapper.current_image
-            if self.get_value_of("source_file", "source") == "mask" and src_img is not None:
+            if (
+                self.get_value_of("source_file", "source") == "mask"
+                and src_img is not None
+            ):
                 src_img = wrapper.draw_image(
                     src_image=wrapper.current_image,
                     src_mask=src_img,
                     foreground="source",
                     background="bw",
                 )
-            elif len(src_img.shape) == 2 or (len(src_img.shape) == 3 and src_img.shape[2] == 1):
+            elif len(src_img.shape) == 2 or (
+                len(src_img.shape) == 3 and src_img.shape[2] == 1
+            ):
                 src_img = np.dstack((src_img, src_img, src_img))
             line_count = 0
             if is_probabilistic:
@@ -223,7 +240,14 @@ class IptHoughLines(IptBaseAnalyzer):
                     for i, line in enumerate(lines):
                         x1, y1, x2, y2 = line[0]
                         if self.add_line(
-                            src_img, line_count, x1, y1, x2, y2, colors[i], discarded_color
+                            src_img,
+                            line_count,
+                            x1,
+                            y1,
+                            x2,
+                            y2,
+                            colors[i],
+                            discarded_color,
                         ):
                             line_count += 1
             else:
@@ -247,7 +271,14 @@ class IptHoughLines(IptBaseAnalyzer):
                             x1, y1 = wrapper.constraint_to_image(x1, y1, edges)
                             x2, y2 = wrapper.constraint_to_image(x2, y2, edges)
                             if self.add_line(
-                                src_img, line_count, x1, y1, x2, y2, colors[i], discarded_color
+                                src_img,
+                                line_count,
+                                x1,
+                                y1,
+                                x2,
+                                y2,
+                                colors[i],
+                                discarded_color,
                             ):
                                 line_count += 1
             self.result = lines.copy() if lines is not None else None
@@ -261,7 +292,9 @@ class IptHoughLines(IptBaseAnalyzer):
                 w *= _mosaic_data.shape[0]
                 canvas = wrapper.build_mosaic((h, w, 3), _mosaic_data)
                 wrapper.store_image(
-                    canvas, f"lines_mosaic__{self.input_params_as_str()}", text_overlay=True
+                    canvas,
+                    f"lines_mosaic__{self.input_params_as_str()}",
+                    text_overlay=True,
                 )
 
             res = True
@@ -299,7 +332,4 @@ class IptHoughLines(IptBaseAnalyzer):
 
     @property
     def description(self):
-        return (
-            "Use the OpenCV functions HoughLines and HoughLinesP to detect lines in an image."
-        )
-
+        return "Use the OpenCV functions HoughLines and HoughLinesP to detect lines in an image."

@@ -7,7 +7,7 @@ if __name__ == "__main__":
     sys.path.append(os.path.join("..", ".."))
     sys.path.append(os.path.join(".", "app"))
 
-from ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.tools.common_functions import force_directories
 import platform
 
 try:
@@ -18,7 +18,7 @@ else:
     is_winapi = True
 
 try:
-    from ipapi.database.db_connect_data import db_connect_data as dbc
+    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
 
     conf = dbc.get("mass_storage", {})
 except Exception as e:
@@ -34,23 +34,25 @@ ROOT_IPSO_FOLDER = "ipso_phen"
 def get_mass_storage_path():
     global g_storage_path
     if not g_storage_path and is_winapi:
-        if platform.system().lower() == "windows" and conf:
-            drives = {}
+        if platform.system().lower() == "windows" and is_winapi and conf:
             for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
                 try:
-                    drives[win32api.GetVolumeInformation(drive)[0]] = drive
+                    for folder_name in conf["folder_names"]:
+                        if os.path.isdir(os.path.join(drive, folder_name)):
+                            g_storage_path = os.path.join(drive, folder_name)
+                            break
                 except Exception as e:
                     pass
-            for drive, subfolder in [
-                (d, n) for d, n in zip(conf["drive_names"], conf["folder_names"])
-            ]:
-                if drive in drives:
-                    g_storage_path = os.path.join(drives[drive], subfolder, "")
+                if g_storage_path:
                     break
-            else:
-                g_storage_path = ""
         elif platform.system().lower() == "linux" and conf:
-            g_storage_path = ""
+            for mnt in os.listdir("/mnt/"):
+                for fld in conf["folder_names"]:
+                    if os.path.isdir(os.path.join("/", "mnt", mnt, fld, "")):
+                        g_storage_path = os.path.join("/", "mnt", mnt, fld, "")
+                        break
+                if g_storage_path:
+                    break
         else:
             g_storage_path = ""
     return g_storage_path
@@ -168,6 +170,24 @@ ipso_folders = IpsoFolders(
                 "Documents",
                 ROOT_IPSO_FOLDER,
                 "sqlite_databases",
+                "",
+            )
+        ),
+        "logs": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "logs",
+                "",
+            )
+        ),
+        "db_cache": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "db_cache",
                 "",
             )
         ),

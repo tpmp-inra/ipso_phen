@@ -6,9 +6,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.tools.common_functions import make_safe_name
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.tools.common_functions import make_safe_name
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptImageSplitter(IptBase):

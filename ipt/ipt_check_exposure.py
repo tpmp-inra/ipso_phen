@@ -5,10 +5,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import all_colors_dict
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.base.ip_common import ToolFamily
-import ipapi.tools.regions as regions
+from ipso_phen.ipapi.base.ip_common import all_colors_dict
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ip_common import ToolFamily
+import ipso_phen.ipapi.tools.regions as regions
 
 
 class IptExposureChecker(IptBaseAnalyzer):
@@ -45,7 +45,9 @@ class IptExposureChecker(IptBaseAnalyzer):
             default_value="orange",
             enable_none=True,
         )
-        self.add_checkbox(name="show_grey_zones", desc="Display grey zones", default_value=0)
+        self.add_checkbox(
+            name="show_grey_zones", desc="Display grey zones", default_value=0
+        )
         self.add_spin_box(
             name="grey_zone_limit",
             desc="Grey if more than x apart: ",
@@ -78,7 +80,9 @@ class IptExposureChecker(IptBaseAnalyzer):
         self.add_text_output(
             is_single_line=True, name="src_brightness", desc="Source brightness:"
         )
-        self.add_text_output(is_single_line=True, name="src_contrast", desc="Source contrast:")
+        self.add_text_output(
+            is_single_line=True, name="src_contrast", desc="Source contrast:"
+        )
         self.add_combobox(
             name="average_as",
             desc="Use average brightness as:",
@@ -142,9 +146,13 @@ class IptExposureChecker(IptBaseAnalyzer):
                 res = True
                 wrapper.store_image(image=img, text="unaltered_image")
                 return
-            overexposed_limit = self.get_value_of(key="overexposed_limit", default_value=255)
+            overexposed_limit = self.get_value_of(
+                key="overexposed_limit", default_value=255
+            )
             over_color = self.get_value_of(key="over_color", default_value="red")
-            underexposed_limit = self.get_value_of(key="underexposed_limit", default_value=0)
+            underexposed_limit = self.get_value_of(
+                key="underexposed_limit", default_value=0
+            )
             under_color = self.get_value_of(key="under_color", default_value="orange")
 
             show_grey_zones = self.get_value_of("show_grey_zones", default_value=0) == 1
@@ -178,7 +186,8 @@ class IptExposureChecker(IptBaseAnalyzer):
                     )
                     return
                 wrapper.store_image(
-                    self.to_uint8(s), f'brightness_{self.get_value_of("source_brightness")}'
+                    self.to_uint8(s),
+                    f'brightness_{self.get_value_of("source_brightness")}',
                 )
                 s_tuple = cv2.meanStdDev(s.reshape(s.shape[1] * s.shape[0]))
                 self.update_output_from_dict(
@@ -215,10 +224,14 @@ class IptExposureChecker(IptBaseAnalyzer):
 
             # Handle over & under exposure
             mask_over = cv2.inRange(
-                img, (overexposed_limit, overexposed_limit, overexposed_limit), (255, 255, 255)
+                img,
+                (overexposed_limit, overexposed_limit, overexposed_limit),
+                (255, 255, 255),
             )
             mask_under = cv2.inRange(
-                img, (0, 0, 0), (underexposed_limit, underexposed_limit, underexposed_limit)
+                img,
+                (0, 0, 0),
+                (underexposed_limit, underexposed_limit, underexposed_limit),
             )
 
             if show_grey_zones and (mask_grey is not None):
@@ -250,7 +263,9 @@ class IptExposureChecker(IptBaseAnalyzer):
                 )
             else:
                 wrapper.store_image(
-                    self.result, f"exposure_{self.input_params_as_str()}", text_overlay=False
+                    self.result,
+                    f"exposure_{self.input_params_as_str()}",
+                    text_overlay=False,
                 )
 
             self.demo_image = self.result
@@ -291,4 +306,3 @@ class IptExposureChecker(IptBaseAnalyzer):
     @property
     def description(self):
         return "Displays over/under exposed parts of the image\nAlso displays average brightness of the image"
-

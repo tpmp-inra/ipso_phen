@@ -6,8 +6,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-import ipapi.base.ip_common as ipc
-from ipapi.base.ipt_abstract import IptBase
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 class IptRemovePlantGuide(IptBase):
@@ -103,20 +103,20 @@ class IptRemovePlantGuide(IptBase):
 
     def process_wrapper(self, **kwargs):
         """
-            Remove plant guide:
-            Removes plant guide. Built for Heliasen light barrier
-            Real time: False
+        Remove plant guide:
+        Removes plant guide. Built for Heliasen light barrier
+        Real time: False
 
-            Keyword Arguments (in parentheses, argument name):
-                * Activate tool (enabled): Toggle whether or not tool is active
-                * If narrower than that assume it's a guide (delete_too_narrow):
-                    Normally should be set to the actual width in pixels of the guide
-                * Expected minimal plant width (keep_and_stop_too_wide):
-                    If it is this wide it must be the plant
-                * Minimal width value to start investigating (investigate_lower_bound):
-                    If line width is between lower and upper bounds the algorithm will look closely.
-                * Maximal width value to start investigating (investigate_upper_bound):
-                    If line width is between lower and upper bounds the algorithm will look closely.
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * If narrower than that assume it's a guide (delete_too_narrow):
+                Normally should be set to the actual width in pixels of the guide
+            * Expected minimal plant width (keep_and_stop_too_wide):
+                If it is this wide it must be the plant
+            * Minimal width value to start investigating (investigate_lower_bound):
+                If line width is between lower and upper bounds the algorithm will look closely.
+            * Maximal width value to start investigating (investigate_upper_bound):
+                If line width is between lower and upper bounds the algorithm will look closely.
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -128,9 +128,7 @@ class IptRemovePlantGuide(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    logger.error(
-                        f"FAIL {self.name}: mask must be initialized"
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 wrapper.store_image(
@@ -171,7 +169,9 @@ class IptRemovePlantGuide(IptBase):
                         wrapper.data_output["expected_plant_top_position"] = plant_top_idx
                         break
                     elif (
-                        investigate_lower_bound_ < cur_ln_dt.nz_span < investigate_upper_bound_
+                        investigate_lower_bound_
+                        < cur_ln_dt.nz_span
+                        < investigate_upper_bound_
                     ):
                         # Look closely into it before deciding
                         guide_found_ = True
@@ -236,7 +236,9 @@ class IptRemovePlantGuide(IptBase):
                         stop_checking_ = True
                         cur_ln_dt.tag = "stop_checking"
                     elif (
-                        investigate_lower_bound_ < cur_ln_dt.nz_span < investigate_upper_bound_
+                        investigate_lower_bound_
+                        < cur_ln_dt.nz_span
+                        < investigate_upper_bound_
                     ):
                         # Look closely into it before deciding
                         guide_found_ = True

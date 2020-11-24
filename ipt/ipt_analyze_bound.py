@@ -5,10 +5,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ip_common import MaskData, C_RED
-from ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
-from ipapi.tools.regions import RectangleRegion
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ip_common import MaskData, C_RED
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.tools.regions import RectangleRegion
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptAnalyzeBound(IptBaseAnalyzer):
@@ -111,11 +111,15 @@ class IptAnalyzeBound(IptBaseAnalyzer):
 
                 self.add_value("above_bound_height", t_height)
                 self.add_value("above_bound_area", mask_data_top.area)
-                self.add_value("above_bound_percent_area", mask_data_top.area / area_ * 100)
+                self.add_value(
+                    "above_bound_percent_area", mask_data_top.area / area_ * 100
+                )
 
                 self.add_value("below_bound_height", b_height)
                 self.add_value("below_bound_area", mask_data_bottom.area)
-                self.add_value("below_bound_percent_area", mask_data_bottom.area / area_ * 100)
+                self.add_value(
+                    "below_bound_percent_area", mask_data_bottom.area / area_ * 100
+                )
 
                 self.add_value(
                     "shape_height",
@@ -150,7 +154,9 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                     height_thickness=4,
                     width_thickness=4,
                 )
-                cv2.line(p_img, (0, line_position), (wrapper.width, line_position), C_RED, 3)
+                cv2.line(
+                    p_img, (0, line_position), (wrapper.width, line_position), C_RED, 3
+                )
                 self.demo_image = p_img
                 wrapper.store_image(p_img, "bounds")
             res = True

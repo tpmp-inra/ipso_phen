@@ -6,8 +6,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base.ip_common import ToolFamily
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
 class IptSkeletonize(IptBase):
@@ -62,9 +62,7 @@ class IptSkeletonize(IptBase):
             # Build mask
             mask = self.get_mask()
             if mask is None:
-                logger.error(
-                    f"FAIL {self.name}: mask must be initialized"
-                )
+                logger.error(f"FAIL {self.name}: mask must be initialized")
                 return
 
             res = True
@@ -96,9 +94,7 @@ class IptSkeletonize(IptBase):
                     text_overlay=text_overlay,
                 )
             else:
-                logger.error(
-                    f"Unknown skeletonize mode {mode}"
-                )
+                logger.error(f"Unknown skeletonize mode {mode}")
 
             self.result = skeleton
 

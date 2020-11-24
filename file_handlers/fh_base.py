@@ -7,11 +7,12 @@ from abc import ABC, abstractclassmethod
 import cv2
 import numpy as np
 import paramiko
+import pandas as pd
 
-import ipapi.file_handlers
-import ipapi.base.ip_common as ipc
-from ipapi.tools.common_functions import get_module_classes, force_directories
-from ipapi.tools.folders import ipso_folders
+import ipso_phen.ipapi.file_handlers
+import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.tools.common_functions import get_module_classes, force_directories
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 import logging
 
@@ -422,6 +423,7 @@ class FileHandlerBase(ABC):
                 additional="ORDER BY date_time ASC",
                 FilePath=self.file_path,
             )[0]
+            self._date_time = pd.to_datetime(self._date_time)
         return self._date_time
 
     @property
@@ -581,7 +583,7 @@ class FileHandlerDefault(FileHandlerBase):
 def file_handler_factory(file_path: str, database) -> FileHandlerBase:
     # Build unique class list
     file_handlers_list = get_module_classes(
-        package=ipapi.file_handlers,
+        package=ipso_phen.ipapi.file_handlers,
         class_inherits_from=FileHandlerBase,
         remove_abstract=True,
     )

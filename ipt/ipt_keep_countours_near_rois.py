@@ -5,8 +5,8 @@ logger = logging.getLogger(__name__)
 import numpy as np
 import cv2
 
-from ipapi.base.ipt_abstract import IptBase
-from ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base import ip_common as ipc
 
 
 class IptKeepCountoursNearRois(IptBase):
@@ -75,7 +75,9 @@ class IptKeepCountoursNearRois(IptBase):
             labels = [item["label"] for item in contours[cnt_data["name"]]]
             if not labels:
                 continue
-            colors = ipc.build_color_steps(step_count=max(labels) + 1,)
+            colors = ipc.build_color_steps(
+                step_count=max(labels) + 1,
+            )
             for item in contours[cnt_data["name"]]:
                 cv2.drawContours(
                     image=canvas,
@@ -136,9 +138,7 @@ class IptKeepCountoursNearRois(IptBase):
                 img = wrapper.current_image
                 mask = self.get_mask()
                 if mask is None:
-                    logger.error(
-                        f"FAIL {self.name}: mask must be initialized"
-                    )
+                    logger.error(f"FAIL {self.name}: mask must be initialized")
                     return
 
                 # Get ROIs as mask
@@ -150,7 +150,9 @@ class IptKeepCountoursNearRois(IptBase):
                 if rois:
                     rois_mask = np.zeros_like(mask)
                     for roi in rois:
-                        rois_mask = roi.draw_to(dst_img=rois_mask, line_width=-1, color=255)
+                        rois_mask = roi.draw_to(
+                            dst_img=rois_mask, line_width=-1, color=255
+                        )
                 else:
                     self.result = mask
                     logger.error(f"Warning {self.name}: must have at least one ROI")
@@ -209,7 +211,11 @@ class IptKeepCountoursNearRois(IptBase):
                 tmp_img = np.zeros_like(mask)
                 for i, cnt in enumerate(contours):
                     cv2.drawContours(
-                        image=tmp_img, contours=[cnt], contourIdx=0, color=255, thickness=-1
+                        image=tmp_img,
+                        contours=[cnt],
+                        contourIdx=0,
+                        color=255,
+                        thickness=-1,
                     )
                     intersection = cv2.bitwise_and(tmp_img, rois_mask)
                     cv2.drawContours(
@@ -257,7 +263,9 @@ class IptKeepCountoursNearRois(IptBase):
                 ]
                 bck_img = wrapper.current_image
                 for roi in rois:
-                    bck_img = roi.draw_to(dst_img=bck_img, line_width=2, color=ipc.C_WHITE)
+                    bck_img = roi.draw_to(
+                        dst_img=bck_img, line_width=2, color=ipc.C_WHITE
+                    )
                 self.draw_contours(
                     canvas=bck_img,
                     contours=cnt_approx,
@@ -277,7 +285,9 @@ class IptKeepCountoursNearRois(IptBase):
                                 continue
                             if (
                                 left["label"] != right["label"]
-                                and wrapper.contours_min_distance(left["cnt"], right["cnt"])
+                                and wrapper.contours_min_distance(
+                                    left["cnt"], right["cnt"]
+                                )
                                 < root_merge_distance
                             ):
                                 right["label"] = left["label"]
