@@ -1376,6 +1376,8 @@ class IptBase(IptParamHolder, ABC):
         module_name: str = json_data[MODULE_NAME_KEY].replace("ip_tools", "ipt")
         if "ipt" in module_name and "ipapi" not in module_name:
             module_name = module_name.replace("ipt", "ipso_phen.ipapi.ipt", 1)
+        if "ipapi" in module_name and "ipso_phen" not in module_name:
+            module_name = module_name.replace("ipapi", "ipso_phen.ipapi", 1)
         __import__(module_name)
         for _, obj in inspect.getmembers(sys.modules[module_name]):
             if inspect.isclass(obj) and (obj.__name__ == class_name):

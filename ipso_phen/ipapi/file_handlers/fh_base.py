@@ -7,6 +7,7 @@ from abc import ABC, abstractclassmethod
 import cv2
 import numpy as np
 import paramiko
+import pandas as pd
 
 import ipso_phen.ipapi.file_handlers
 import ipso_phen.ipapi.base.ip_common as ipc
@@ -422,6 +423,7 @@ class FileHandlerBase(ABC):
                 additional="ORDER BY date_time ASC",
                 FilePath=self.file_path,
             )[0]
+            self._date_time = pd.to_datetime(self._date_time)
         return self._date_time
 
     @property

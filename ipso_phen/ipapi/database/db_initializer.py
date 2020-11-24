@@ -26,8 +26,6 @@ class DbType(Enum):
     CUSTOM_DB = "Custom databases"
 
 
-g_storage_path = ""
-
 available_db_dicts = defaultdict(list)
 
 if "psql_local" in dbc:

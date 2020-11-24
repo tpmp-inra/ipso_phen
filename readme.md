@@ -6,35 +6,7 @@ ___
 
 ![Sample pipeline](https://raw.githubusercontent.com/tpmp-inra/ipso_phen/master/docs/images/md_image_6.gif)
 
-- [IPSO Phen](#ipso-phen)
-  - [What is IPSO Phen](#what-is-ipso-phen)
-    - [Introduction](#introduction)
-    - [Image processing tools](#image-processing-tools)
-    - [Adding tools](#adding-tools)
-    - [Pipelines](#pipelines)
-    - [Testing](#testing)
-  - [Installing](#installing)
-    - [System requirements](#system-requirements)
-    - [Dependencies](#dependencies)
-    - [Install via pacakage manager](#install-via-pacakage-manager)
-    - [Install from source](#install-from-source)
-  - [First steps](#first-steps)
-    - [Launching IPSO Phen](#launching-ipso-phen)
-    - [Loading images](#loading-images)
-    - [About the tools](#about-the-tools)
-    - [Creating & using pipelines](#creating--using-pipelines)
-    - [Testing while building](#testing-while-building)
-    - [Building image data file](#building-image-data-file)
-      - [Launching the analysis](#launching-the-analysis)
-      - [Progress feedback](#progress-feedback)
-      - [CSV file](#csv-file)
-  - [Samples](#samples)
-    - [Arabidopsis top view](#arabidopsis-top-view)
-    - [Tomato side plant](#tomato-side-plant)
-  - [Authors](#authors)
-  
 Full documentation is available at our [read the docs site](https://ipso-phen.readthedocs.io/en/latest/)
-
 
 ## What is IPSO Phen
 
@@ -67,6 +39,8 @@ At any point, the user may choose to test the current tool or pipeline configura
 
 ## Installing
 
+In order to use PlantCV or to create new image processing tools, the program must be installed from the source code.
+
 ### System requirements
 
  IPSO Phen has been tested on:
@@ -93,6 +67,10 @@ Python packages:
 - SQLAlchemy-Utils
 - tqdm
 - Unidecode
+
+### PlantCV requirements
+
+If you want to use IPSO Phen with PlantCV, you must install it from the source code and modify *requirements.txt* so it installs OpenCV v3 instead of v4.
 
 ### Install via pacakage manager
 

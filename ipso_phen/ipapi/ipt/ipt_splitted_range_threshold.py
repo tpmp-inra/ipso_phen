@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.tools.common_functions import time_method
 
 
 class IptSplittedRangeThreshold(IptBase):
@@ -55,10 +56,10 @@ class IptSplittedRangeThreshold(IptBase):
         self.add_morphology_operator()
         self.add_text_overlay(0)
         self.add_checkbox(
-            name="build_mosaic",
-            desc="Build mosaic",
+            name="build_demo",
+            desc="Build demo image",
             default_value=0,
-            hint="If true edges and result will be displayed side by side",
+            hint="If true both outside and inside masks will be displayed with different colors.",
         )
         self.add_color_selector(
             name="background_color",
@@ -69,6 +70,7 @@ class IptSplittedRangeThreshold(IptBase):
             enable_none=True,
         )
 
+    # @time_method
     def process_wrapper(self, **kwargs):
         """
         Splitted range threshold:
@@ -93,7 +95,7 @@ class IptSplittedRangeThreshold(IptBase):
             * Kernel shape (kernel_shape):
             * Iterations (proc_times):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-            * Build mosaic (build_mosaic): If true edges and result will be displayed side by side
+            * Build demo image (build_demo): If true both outside and inside masks will be displayed with different colors
             * Background color (background_color):
                 Color to be used when printing masked image.
                 if "None" is selected standard mask will be printed.
@@ -122,9 +124,6 @@ class IptSplittedRangeThreshold(IptBase):
                     median_filter_size=self.get_value_of("median_filter_size"),
                 )
                 inside_mask = wrapper.keep_rois(src_mask=inside_mask, tags=rois)
-                wrapper.store_image(
-                    image=inside_mask, text=f"inside_mask_{self.get_value_of('channel')}"
-                )
 
                 # Build outside mask
                 outside_mask, _ = wrapper.get_mask(
@@ -135,66 +134,59 @@ class IptSplittedRangeThreshold(IptBase):
                     median_filter_size=self.get_value_of("median_filter_size"),
                 )
                 outside_mask = wrapper.delete_rois(src_mask=outside_mask, tags=rois)
-                wrapper.store_image(
-                    image=outside_mask,
-                    text=f"outside_mask_{self.get_value_of('channel')}",
-                )
 
                 # Merge masks
-                self.result = wrapper.multi_or(image_list=(inside_mask, outside_mask))
-                self.result = self.apply_morphology_from_params(self.result)
-
-                bck_color = self.get_value_of(key="background_color")
-                if bck_color != "none":
-                    bck_color = ipc.all_colors_dict[bck_color]
-                    masked_image = wrapper.draw_image(
-                        src_image=wrapper.current_image,
-                        src_mask=self.result,
-                        background=bck_color,
-                    )
-                    wrapper.store_image(masked_image, "masked_image")
-                    main_result_name = "masked_image"
-                    wrapper.store_image(self.result, "mask")
-                    main_image = masked_image
-                else:
-                    main_result_name = f"threshold_{self.input_params_as_str()}"
-                    main_image = self.result
-
-                if self.get_value_of("invert") == 1:
-                    main_image = 255 - main_image
-                    inside_mask = 255 - inside_mask
-                    outside_mask = 255 - outside_mask
-
-                dmo_img = np.dstack(
-                    (
-                        main_image,
-                        wrapper.keep_rois(src_mask=main_image, tags=rois),
-                        wrapper.delete_rois(src_mask=main_image, tags=rois),
-                    )
+                self.result = self.apply_morphology_from_params(
+                    wrapper.multi_or(image_list=(inside_mask, outside_mask))
                 )
-                for roi in rois:
-                    dmo_img = roi.draw_to(dmo_img, line_width=2, color=ipc.C_LIME)
-                self.demo_image = dmo_img
 
-                text_overlay = self.get_value_of("text_overlay") == 1
-                if text_overlay:
+                if self.get_value_of("build_demo") == 1:
+                    bck_color = self.get_value_of(key="background_color")
+                    if bck_color != "none":
+                        bck_color = ipc.all_colors_dict[bck_color]
+                        masked_image = wrapper.draw_image(
+                            src_image=wrapper.current_image,
+                            src_mask=self.result,
+                            background=bck_color,
+                        )
+                        wrapper.store_image(masked_image, "masked_image")
+                        main_result_name = "masked_image"
+                        wrapper.store_image(self.result, "mask")
+                        main_image = masked_image
+                    else:
+                        main_result_name = f"threshold_{self.input_params_as_str()}"
+                        main_image = self.result
+
+                    if self.get_value_of("invert") == 1:
+                        main_image = 255 - main_image
+                        inside_mask = 255 - inside_mask
+                        outside_mask = 255 - outside_mask
+
+                    dmo_img = np.dstack(
+                        (
+                            main_image,
+                            wrapper.keep_rois(src_mask=main_image, tags=rois),
+                            wrapper.delete_rois(src_mask=main_image, tags=rois),
+                        )
+                    )
+                    for roi in rois:
+                        dmo_img = roi.draw_to(dmo_img, line_width=2, color=ipc.C_LIME)
+                    self.demo_image = dmo_img
+
+                if self.get_value_of("text_overlay") == 1:
                     wrapper.store_image(
-                        main_image,
-                        main_result_name,
+                        self.result,
+                        "split_threshold",
                         text_overlay=self.input_params_as_str(
                             exclude_defaults=False, excluded_params=("progress_callback",)
                         ).replace(", ", "\n"),
                     )
                 else:
                     wrapper.store_image(
-                        main_image, main_result_name, text_overlay=text_overlay
+                        self.result,
+                        "split_threshold",
+                        text_overlay=False,
                     )
-
-                if self.get_value_of("build_mosaic") == 1:
-                    canvas = wrapper.build_mosaic(
-                        image_names=np.array(["current_image", main_result_name])
-                    )
-                    wrapper.store_image(canvas, "mosaic")
 
                 res = True
             else:
