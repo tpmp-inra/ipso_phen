@@ -10,7 +10,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptCleanHorizontalNoise(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Clean horizontal noise: Check that all use cases are allowed"""
         op = IptCleanHorizontalNoise()
         for uc in op.use_case:
             self.assertIn(
@@ -18,7 +18,7 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Clean horizontal noise: Test that class process_wrapper method has docstring"""
         op = IptCleanHorizontalNoise()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -27,11 +27,11 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Clean horizontal noise: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_mask_transformation(self):
-        """Test that when using the basic mask generated script this tool produces a mask"""
+        """Clean horizontal noise: Test that when using the basic mask generated script this tool produces a mask"""
         op = IptCleanHorizontalNoise()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
@@ -39,7 +39,8 @@ class TestIptCleanHorizontalNoise(unittest.TestCase):
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/18HP01U17-CAM11-20180712221558.bmp"
+            "./ipso_phen/ipapi/samples/images/18HP01U17-CAM11-20180712221558.bmp",
+            database=None,
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(

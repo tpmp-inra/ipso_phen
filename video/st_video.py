@@ -92,21 +92,21 @@ def build_image(wrapper):
     return build_atsys(wrapper=wrapper)
 
 
-def build_single_plant_video(arg):
-    plant = arg
+def build_single_plant_video(args):
+    plant, dst_folder_, db, dates_, experiment_, view_options_ = args
 
-    p_output = os.path.join(dst_folder, f"{plant}.mp4")
+    p_output = os.path.join(dst_folder_, f"{plant}.mp4")
     if os.path.isfile(p_output):
         return f"Plant {plant} already handled"
 
-    ret = current_database.query(
+    ret = db.query(
         command="SELECT",
         columns="FilePath",
         additional="ORDER BY date_time ASC",
-        date=dict(operator="IN", values=dates),
-        experiment=experiment,
+        date=dict(operator="IN", values=dates_),
+        experiment=experiment_,
         plant=plant,
-        view_option=view_options[0],
+        view_option=view_options_[0],
     )
     main_angle_image_list_ = [item[0] for item in ret]
 
@@ -115,25 +115,28 @@ def build_single_plant_video(arg):
     fnt = cv2.FONT_HERSHEY_DUPLEX
 
     for main_angle_image_ in main_angle_image_list_:
-        main_angle_wrapper_side = BaseImageProcessor(main_angle_image_)
+        main_angle_wrapper_side = BaseImageProcessor(
+            main_angle_image_,
+            db,
+        )
         try:
             img_main_angle = build_image(main_angle_wrapper_side)
             if img_main_angle is None:
                 continue
             main_angle_wrapper_side.store_image(
-                image=img_main_angle, text=view_options[0], force_store=True
+                image=img_main_angle, text=view_options_[0], force_store=True
             )
         except Exception as e:
             print(f'Exception "{repr(e)}" while handling {str(main_angle_wrapper_side)}')
 
         current_date_time = main_angle_wrapper_side.date_time
 
-        for secondary_angle in view_options[1:]:
-            secondary_angle_image_ = current_database.query_one(
+        for secondary_angle in view_options_[1:]:
+            secondary_angle_image_ = db.query_one(
                 command="SELECT",
                 columns="FilePath",
                 additional="ORDER BY date_time ASC",
-                experiment=experiment,
+                experiment=experiment_,
                 plant=plant,
                 view_option=secondary_angle,
                 date_time=dict(
@@ -157,7 +160,7 @@ def build_single_plant_video(arg):
                     )
 
         mosaic = main_angle_wrapper_side.build_mosaic(
-            (video_height, video_width, 3), view_options
+            (video_height, video_width, 3), view_options_
         )
         cv2.putText(
             mosaic,
@@ -378,15 +381,36 @@ if job_choice != "Please make your choice...":
                 for i, _ in enumerate(
                     pool.imap_unordered(
                         build_single_plant_video,
-                        (plant_ for plant_ in plants),
+                        (
+                            (
+                                plant_,
+                                dst_folder,
+                                current_database.copy(),
+                                dates,
+                                experiment,
+                                view_options,
+                            )
+                            for plant_ in plants
+                        ),
                         chunky_size_,
                     )
                 ):
                     current_progress.progress((i + 1) / total_)
             else:
                 for i, plant in enumerate(plants):
-                    build_single_plant_video(plant)
+                    build_single_plant_video(
+                        plant,
+                        dst_folder,
+                        current_database.copy(),
+                        dates,
+                        experiment,
+                        view_options,
+                    )
                     current_progress.progress((i + 1) / total_)
+
+            current_progress.progress(1 / 1)
+            st.subheader("Done")
+            st.balloons()
 
     elif job_choice == "Side by side comparison":
         view_option = st.selectbox("View option", view_option_lst)
@@ -398,6 +422,6 @@ if job_choice != "Please make your choice...":
 
             build_sbs_video()
 
-    current_progress.progress(1 / 1)
-    st.subheader("Done")
-    st.balloons()
+            current_progress.progress(1 / 1)
+            st.subheader("Done")
+            st.balloons()

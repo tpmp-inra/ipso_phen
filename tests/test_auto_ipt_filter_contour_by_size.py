@@ -10,7 +10,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptFilterContourBySize(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Filter contour by size: Check that all use cases are allowed"""
         op = IptFilterContourBySize()
         for uc in op.use_case:
             self.assertIn(
@@ -18,7 +18,7 @@ class TestIptFilterContourBySize(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Filter contour by size: Test that class process_wrapper method has docstring"""
         op = IptFilterContourBySize()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -27,11 +27,11 @@ class TestIptFilterContourBySize(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Filter contour by size: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_mask_transformation(self):
-        """Test that when using the basic mask generated script this tool produces a mask"""
+        """Filter contour by size: Test that when using the basic mask generated script this tool produces a mask"""
         op = IptFilterContourBySize()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
@@ -39,7 +39,8 @@ class TestIptFilterContourBySize(unittest.TestCase):
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(

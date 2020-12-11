@@ -23,10 +23,11 @@ from ipso_phen.ipapi.tools.common_functions import (
 from ipso_phen.ipapi.tools.image_list import ImageList
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 
-logger = logging.getLogger(__name__)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+USE_TQDM = True
 
-USE_TQDM = False
+logger = logging.getLogger(__name__)
+if USE_TQDM is False:
+    logger.addHandler(logging.StreamHandler(sys.stdout))
 
 
 def _dummy_worker(args):

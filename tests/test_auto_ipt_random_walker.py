@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptRandomWalker(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Random Walker: Check that all use cases are allowed"""
         op = IptRandomWalker()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptRandomWalker(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Random Walker: Test that class process_wrapper method has docstring"""
         op = IptRandomWalker()
         if not op.is_wip:
             self.assertIsNotNone(

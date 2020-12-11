@@ -67,6 +67,8 @@ class PandasQueryHandler(QueryHandler):
                         res_df = res_df[
                             (res_df[k] >= v["date_min"]) & (res_df[k] <= v["date_max"])
                         ]
+                    elif v["operator"].lower() == "in":
+                        res_df = res_df[res_df[k].isin(v["values"])]
                     else:
                         logger.error(f"Unknown operator: {v['operator']}")
                 else:

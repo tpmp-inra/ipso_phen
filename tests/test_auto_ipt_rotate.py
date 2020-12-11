@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptRotate(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Rotate: Check that all use cases are allowed"""
         op = IptRotate()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptRotate(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Rotate: Test that class process_wrapper method has docstring"""
         op = IptRotate()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -25,26 +25,28 @@ class TestIptRotate(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Rotate: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_image_transformation(self):
-        """Test that when an image is in an image goes out"""
+        """Rotate: Test that when an image is in an image goes out"""
         op = IptRotate()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Rotate")
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Rotate")
 
     def test_visualization(self):
-        """Test that visualization tools add images to list"""
+        """Rotate: Test that visualization tools add images to list"""
         op = IptRotate()
         op.apply_test_values_overrides(use_cases=("Visualization",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)

@@ -11,7 +11,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptImageSplitter(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Image slicer: Check that all use cases are allowed"""
         op = IptImageSplitter()
         for uc in op.use_case:
             self.assertIn(
@@ -19,7 +19,7 @@ class TestIptImageSplitter(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Image slicer: Test that class process_wrapper method has docstring"""
         op = IptImageSplitter()
         if not op.is_wip:
             self.assertIsNotNone(

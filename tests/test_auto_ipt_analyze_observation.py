@@ -11,7 +11,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptAnalyseObservation(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Observation data: Check that all use cases are allowed"""
         op = IptAnalyseObservation()
         for uc in op.use_case:
             self.assertIn(
@@ -19,7 +19,7 @@ class TestIptAnalyseObservation(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Observation data: Test that class process_wrapper method has docstring"""
         op = IptAnalyseObservation()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -27,11 +27,11 @@ class TestIptAnalyseObservation(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Observation data: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_feature_out(self):
-        """Test that when using the basic mask generated script this tool extracts features"""
+        """Observation data: "Test that when using the basic mask generated script this tool extracts features"""
         op = IptAnalyseObservation()
         op.apply_test_values_overrides(use_cases=("",))
         script = LoosePipeline.load(
@@ -39,7 +39,8 @@ class TestIptAnalyseObservation(unittest.TestCase):
         )
         script.add_module(operator=op, target_group="grp_test_extractors")
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertIsInstance(

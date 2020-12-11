@@ -79,6 +79,7 @@ class IptRoiComposition(IptBase):
                 roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
                 selection_mode=self.get_value_of("roi_selection_mode"),
             ),
+            name=self.get_value_of("roi_name"),
             op=self.get_value_of("op"),
             width=wrapper.width,
             height=wrapper.height,

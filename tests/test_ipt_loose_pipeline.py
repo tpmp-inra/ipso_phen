@@ -26,7 +26,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
     )
 
     def test_load(self):
-        """Try loading all test pipelines"""
+        """Loose pipeline: Try loading all test pipelines"""
         for file_name in [
             "test_cleaners.json",
             "sample_pipeline_arabidopsis.json",
@@ -44,7 +44,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             )
 
     def test_cleaners_pipeline(self):
-        """Test cleaner's test pipeline"""
+        """Loose pipeline: Test cleaner's test pipeline"""
         pipeline = LoosePipeline.load(
             os.path.join(
                 self.pipeline_dir_path,
@@ -60,7 +60,8 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
                 "samples",
                 "images",
                 "arabido_small.jpg",
-            )
+            ),
+            database=None,
         )
         res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(
@@ -77,7 +78,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
         )
 
     def test_extractors_pipeline(self):
-        """Test extractors's test pipeline"""
+        """Loose pipeline: Test extractors's test pipeline"""
         pipeline = LoosePipeline.load(
             os.path.join(
                 self.pipeline_dir_path,
@@ -93,7 +94,8 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
                 "samples",
                 "images",
                 "arabido_small.jpg",
-            )
+            ),
+            database=None,
         )
         res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(
@@ -110,7 +112,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
         )
 
     def test_sample_pipeline(self):
-        """Test sample pipeline"""
+        """Loose pipeline: Test sample pipeline"""
         pipeline = LoosePipeline.load(
             os.path.join(
                 self.pipeline_dir_path,
@@ -126,7 +128,8 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
                 "samples",
                 "images",
                 "arabido_small.jpg",
-            )
+            ),
+            database=None,
         )
         res = pipeline.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(

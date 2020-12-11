@@ -10,7 +10,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptKeepCountoursNearRois(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Keep countours near ROIs: Check that all use cases are allowed"""
         op = IptKeepCountoursNearRois()
         for uc in op.use_case:
             self.assertIn(
@@ -18,7 +18,7 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Keep countours near ROIs: Test that class process_wrapper method has docstring"""
         op = IptKeepCountoursNearRois()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -27,11 +27,11 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Keep countours near ROIs: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_mask_transformation(self):
-        """Test that when using the basic mask generated script this tool produces a mask"""
+        """Keep countours near ROIs: Test that when using the basic mask generated script this tool produces a mask"""
         op = IptKeepCountoursNearRois()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
@@ -39,7 +39,8 @@ class TestIptKeepCountoursNearRois(unittest.TestCase):
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(

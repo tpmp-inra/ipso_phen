@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptPyramidMeanShift(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Pyramid mean shift: Check that all use cases are allowed"""
         op = IptPyramidMeanShift()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptPyramidMeanShift(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Pyramid mean shift: Test that class process_wrapper method has docstring"""
         op = IptPyramidMeanShift()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -25,15 +25,16 @@ class TestIptPyramidMeanShift(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Pyramid mean shift: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_image_transformation(self):
-        """Test that when an image is in an image goes out"""
+        """Pyramid mean shift: Test that when an image is in an image goes out"""
         op = IptPyramidMeanShift()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Pyramid mean shift")

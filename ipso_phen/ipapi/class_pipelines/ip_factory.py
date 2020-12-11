@@ -1,7 +1,3 @@
-import inspect
-import sys
-import pkgutil
-
 import ipso_phen.ipapi.class_pipelines as class_pipelines
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
@@ -13,7 +9,10 @@ def ipo_factory(
 ):
     if force_abstract:
         return BaseImageProcessor(
-            file_path, options, database=data_base, scale_factor=scale_factor
+            file_path,
+            options,
+            database=data_base,
+            scale_factor=scale_factor,
         )
     else:
         # Build unique class list
@@ -33,9 +32,15 @@ def ipo_factory(
                 dict(experiment=fh.experiment, robot=fh.__class__.__name__)
             ):
                 return cls(
-                    file_path, options, database=data_base, scale_factor=scale_factor
+                    file_path,
+                    options,
+                    database=data_base,
+                    scale_factor=scale_factor,
                 )
 
         return BaseImageProcessor(
-            file_path, options, database=data_base, scale_factor=scale_factor
+            file_path,
+            options,
+            database=data_base,
+            scale_factor=scale_factor,
         )

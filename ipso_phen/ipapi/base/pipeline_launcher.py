@@ -17,7 +17,7 @@ from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("Pipeline launcher")
 
 IS_LOG_DATA = True
 IS_USE_MULTI_THREAD = True
@@ -128,6 +128,7 @@ def launch(**kwargs):
     res = restore_state(blob=stored_state, overrides=kwargs)
 
     def exit_error_message(msg: str) -> None:
+        print(msg)
         logger.error(msg)
 
     # Retrieve images

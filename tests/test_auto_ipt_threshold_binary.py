@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptThreshold(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Range threshold: Check that all use cases are allowed"""
         op = IptThreshold()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptThreshold(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Range threshold: Test that class process_wrapper method has docstring"""
         op = IptThreshold()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -25,15 +25,16 @@ class TestIptThreshold(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Range threshold: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_mask_generation(self):
-        """Test that when an image is in a mask goes out"""
+        """Range threshold: Test that when an image is in a mask goes out"""
         op = IptThreshold()
         op.apply_test_values_overrides(use_cases=("Threshold",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Range threshold")

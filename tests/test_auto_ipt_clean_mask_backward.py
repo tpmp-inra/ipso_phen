@@ -10,7 +10,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptCleanMaskBackward(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Clean mask with previous mask: Check that all use cases are allowed"""
         op = IptCleanMaskBackward()
         for uc in op.use_case:
             self.assertIn(
@@ -18,7 +18,7 @@ class TestIptCleanMaskBackward(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Clean mask with previous mask: Test that class process_wrapper method has docstring"""
         op = IptCleanMaskBackward()
         if not op.is_wip:
             self.assertIsNotNone(

@@ -25,7 +25,7 @@ else:
 
 class TestIptHolder(unittest.TestCase):
     def test_tools_folder(self):
-        """ Check that tools folder is present"""
+        """IPT Holder: Check that tools folder is present"""
         print(__file__)
         tool_fld = os.path.join(
             os.path.dirname(__file__),
@@ -41,7 +41,7 @@ class TestIptHolder(unittest.TestCase):
         )
 
     def test_objects(self):
-        """Check objects are created"""
+        """IPT Holder: Check objects are created"""
         for cls in get_module_classes(
             package=ipt, class_inherits_from=IptBase, remove_abstract=True
         ):
@@ -53,7 +53,7 @@ class TestIptHolder(unittest.TestCase):
 
     def test_script_files(self):
         """
-        Check that for every file in ipt, there's a corresponding file in the test's folder.
+        IPT Holder: Check that for every file in ipt, there's a corresponding file in the test's folder.
         WIP tools will be excluded.
         """
 

@@ -8,7 +8,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptPrintColorSpaces(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Print color spaces: Check that all use cases are allowed"""
         op = IptPrintColorSpaces()
         for uc in op.use_case:
             self.assertIn(
@@ -16,7 +16,7 @@ class TestIptPrintColorSpaces(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Print color spaces: Test that class process_wrapper method has docstring"""
         op = IptPrintColorSpaces()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -24,15 +24,16 @@ class TestIptPrintColorSpaces(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Print color spaces: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_visualization(self):
-        """Test that visualization tools add images to list"""
+        """Print color spaces: Test that visualization tools add images to list"""
         op = IptPrintColorSpaces()
         op.apply_test_values_overrides(use_cases=("Visualization",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)

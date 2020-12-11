@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptFixPerspective(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Fix perspective: Check that all use cases are allowed"""
         op = IptFixPerspective()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptFixPerspective(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Fix perspective: Test that class process_wrapper method has docstring"""
         op = IptFixPerspective()
         if not op.is_wip:
             self.assertIsNotNone(

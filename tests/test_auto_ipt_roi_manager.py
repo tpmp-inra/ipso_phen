@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptRoiManager(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """ROI manager (deprecated): Check that all use cases are allowed"""
         op = IptRoiManager()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptRoiManager(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """ROI manager (deprecated): Test that class process_wrapper method has docstring"""
         op = IptRoiManager()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -26,15 +26,16 @@ class TestIptRoiManager(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """ROI manager (deprecated): Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_roi_out(self):
-        """Test that tool generates an ROI"""
+        """ROI manager (deprecated): Test that tool generates an ROI"""
         op = IptRoiManager()
         op.apply_test_values_overrides(use_cases=("Create an ROI",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(
@@ -45,11 +46,12 @@ class TestIptRoiManager(unittest.TestCase):
         self.assertIsInstance(r, regions.AbstractRegion, "ROI must be of type Region")
 
     def test_visualization(self):
-        """Test that visualization tools add images to list"""
+        """ROI manager (deprecated): Test that visualization tools add images to list"""
         op = IptRoiManager()
         op.apply_test_values_overrides(use_cases=("Visualization",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)

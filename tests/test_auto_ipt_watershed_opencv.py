@@ -12,7 +12,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptWatershedOpenCv(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Watershed OpenCV: Check that all use cases are allowed"""
         op = IptWatershedOpenCv()
         for uc in op.use_case:
             self.assertIn(
@@ -20,7 +20,7 @@ class TestIptWatershedOpenCv(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Watershed OpenCV: Test that class process_wrapper method has docstring"""
         op = IptWatershedOpenCv()
         if not op.is_wip:
             self.assertIsNotNone(

@@ -8,7 +8,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptCheckSource(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Check source image: Check that all use cases are allowed"""
         op = IptCheckSource()
         for uc in op.use_case:
             self.assertIn(
@@ -16,7 +16,7 @@ class TestIptCheckSource(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Check source image: Test that class process_wrapper method has docstring"""
         op = IptCheckSource()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -24,15 +24,16 @@ class TestIptCheckSource(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Check source image: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_bool_out(self):
-        """Test that tool returns a boolean"""
+        """Check source image: Test that tool returns a boolean"""
         op = IptCheckSource()
         op.apply_test_values_overrides(use_cases=("Assert...",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Check source image")

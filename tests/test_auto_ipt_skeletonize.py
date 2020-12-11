@@ -10,7 +10,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptSkeletonize(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Skeletonize: Check that all use cases are allowed"""
         op = IptSkeletonize()
         for uc in op.use_case:
             self.assertIn(
@@ -18,7 +18,7 @@ class TestIptSkeletonize(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Skeletonize: Test that class process_wrapper method has docstring"""
         op = IptSkeletonize()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -26,11 +26,11 @@ class TestIptSkeletonize(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Skeletonize: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_mask_transformation(self):
-        """Test that when using the basic mask generated script this tool produces a mask"""
+        """Skeletonize: Test that when using the basic mask generated script this tool produces a mask"""
         op = IptSkeletonize()
         op.apply_test_values_overrides(use_cases=("Mask cleanup",))
         script = LoosePipeline.load(
@@ -38,7 +38,8 @@ class TestIptSkeletonize(unittest.TestCase):
         )
         script.add_module(operator=op, target_group="grp_test_cleaners")
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = script.execute(src_image=wrapper, silent_mode=True)
         self.assertTrue(res, "Failed to process Skeletonize with test script")

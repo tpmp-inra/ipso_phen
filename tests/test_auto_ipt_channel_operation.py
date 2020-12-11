@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptChannelOperation(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Channel operation: Check that all use cases are allowed"""
         op = IptChannelOperation()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptChannelOperation(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Channel operation: Test that class process_wrapper method has docstring"""
         op = IptChannelOperation()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -25,15 +25,16 @@ class TestIptChannelOperation(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Channel operation: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_image_transformation(self):
-        """Test that when an image is in an image goes out"""
+        """Channel operation: Test that when an image is in an image goes out"""
         op = IptChannelOperation()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Channel operation")

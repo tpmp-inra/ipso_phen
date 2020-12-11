@@ -812,7 +812,7 @@ class BaseImageProcessor(ImageWrapper):
             logger.error(f"Warning: {repr(self.name)} Invalid contour.")
             return None, None
 
-    @time_method
+    # @time_method
     def analyze_object(self, img: Any, mask: Any):
         """Outputs numeric properties for an input object (contour or grouped contours).
         Inputs:
@@ -1085,7 +1085,7 @@ class BaseImageProcessor(ImageWrapper):
 
         return True
 
-    @time_method
+    # @time_method
     def analyze_bound(
         self,
         img: Any,
@@ -1286,7 +1286,7 @@ class BaseImageProcessor(ImageWrapper):
         else:
             return True
 
-    @time_method
+    # @time_method
     def analyze_color(
         self,
         img: Any,
@@ -1605,7 +1605,7 @@ class BaseImageProcessor(ImageWrapper):
         else:
             return last_chance_(cmp_hull)
 
-    @time_method
+    # @time_method
     def keep_biggest_contour(self, **kwargs):
         """
         Keep contours inside the beggest contour
@@ -1722,7 +1722,7 @@ class BaseImageProcessor(ImageWrapper):
 
         return src_mask
 
-    @time_method
+    # @time_method
     def keep_linked_contours(self, **kwargs) -> object:
         """
         Keep contours only linked to the root position
@@ -1963,19 +1963,27 @@ class BaseImageProcessor(ImageWrapper):
             x, y, w, h = cv2.boundingRect(gh)
             x += w // 2 - 10
             y += h // 2
-            area_ = cv2.contourArea(gh)
             cv2.drawContours(hull_img, [gh], -1, KLC_FULLY_INSIDE["color"], 8)
-            if area_ > 0:
-                cv2.putText(
-                    hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 0), 2
-                )
         for uh in unknown_hulls:
             x, y, w, h = cv2.boundingRect(uh)
             x += w // 2 - 10
             y += h // 2
-            area_ = cv2.contourArea(uh)
             cv2.drawContours(hull_img, [uh], -1, KLC_OUTSIDE["color"], 8)
-            if area_ > 10:
+        for gh in good_hulls:
+            area_ = cv2.contourArea(gh)
+            if area_ > 0:
+                x, y, w, h = cv2.boundingRect(gh)
+                x += w // 2 - 10
+                y += h // 2
+                cv2.putText(
+                    hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 255, 0), 2
+                )
+        for uh in unknown_hulls:
+            area_ = cv2.contourArea(uh)
+            if area_ > 0:
+                x, y, w, h = cv2.boundingRect(uh)
+                x += w // 2 - 10
+                y += h // 2
                 cv2.putText(
                     hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2
                 )
@@ -2023,7 +2031,7 @@ class BaseImageProcessor(ImageWrapper):
 
         return src_mask
 
-    @time_method
+    # @time_method
     def prepare_analysis(self, img: Any, mask: Any):
         """Builds objects and mask needed for analysis
 
@@ -2069,7 +2077,7 @@ class BaseImageProcessor(ImageWrapper):
 
         return obj, msk
 
-    @time_method
+    # @time_method
     def analyse(
         self,
         img: Any,
@@ -2117,7 +2125,7 @@ class BaseImageProcessor(ImageWrapper):
             )
         return res
 
-    @time_method
+    # @time_method
     def extract_image_data(
         self,
         mask: Any,
@@ -3374,7 +3382,7 @@ class BaseImageProcessor(ImageWrapper):
     def _params_to_string(**kwargs):
         return "".join([f"[{k}:{v}]" for k, v in kwargs.items()])
 
-    @time_method
+    # @time_method
     def default_process(self, **kwargs):
         res = True
         self.rois_list = []
@@ -3473,7 +3481,7 @@ class BaseImageProcessor(ImageWrapper):
             boundary_position=boundary_position,
         )
 
-    @time_method
+    # @time_method
     def process_image(self, **kwargs):
         """
         Process image using default settings

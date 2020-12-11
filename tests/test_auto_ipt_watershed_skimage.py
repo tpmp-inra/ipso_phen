@@ -12,7 +12,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptWatershedSkimage(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Watershed Skimage: Check that all use cases are allowed"""
         op = IptWatershedSkimage()
         for uc in op.use_case:
             self.assertIn(
@@ -20,7 +20,7 @@ class TestIptWatershedSkimage(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Watershed Skimage: Test that class process_wrapper method has docstring"""
         op = IptWatershedSkimage()
         if not op.is_wip:
             self.assertIsNotNone(

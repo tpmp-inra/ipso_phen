@@ -1,3 +1,4 @@
+import os
 from datetime import datetime as dt
 
 from sqlalchemy import Column, String, DATETIME
@@ -6,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from ipso_phen.ipapi.tools.common_functions import force_directories
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 TABLE_ANNOTATIONS = "TABLE_ANNOTATIONS"
 
@@ -66,7 +68,11 @@ class OrmAnnotation(BaseOrmClass):
 class OrmAnnotationsDbWrapper:
     def __init__(self, prefix):
         force_directories("saved_data")
-        engine = create_engine(f"sqlite:///./saved_data/{prefix}_annotations.db")
+        db_path = os.path.join(
+            ipso_folders.get_path("saved_data", force_creation=True),
+            f"{prefix}_annotations.db",
+        )
+        engine = create_engine(f"sqlite:///{db_path}")
 
         Session = sessionmaker(bind=engine)
         self.session = Session()

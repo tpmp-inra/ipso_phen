@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptRotatedRectangleRoi(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Rotated rectangle ROI: Check that all use cases are allowed"""
         op = IptRotatedRectangleRoi()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptRotatedRectangleRoi(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Rotated rectangle ROI: Test that class process_wrapper method has docstring"""
         op = IptRotatedRectangleRoi()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -26,15 +26,16 @@ class TestIptRotatedRectangleRoi(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Rotated rectangle ROI: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_roi_out(self):
-        """Test that tool generates an ROI"""
+        """Rotated rectangle ROI: Test that tool generates an ROI"""
         op = IptRotatedRectangleRoi()
         op.apply_test_values_overrides(use_cases=("Create an ROI",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(

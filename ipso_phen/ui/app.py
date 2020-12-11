@@ -2300,7 +2300,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
                 settings_.setValue(
                     "last_image_browser_state",
-                    "./saved_data/last_image_browser_state.csv",
+                    os.path.join(
+                        ipso_folders.get_path("saved_data", force_creation=False),
+                        "last_image_browser_state.csv",
+                    ),
                 )
             else:
                 settings_.setValue("last_image_browser_state", "")
@@ -2551,6 +2554,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             f.write("- Home: index.md\n")
             f.write("- Installation: installation.md\n")
             f.write("- First steps: first_steps.md\n")
+            f.write("- Command line interface: command_line.md\n")
             f.write("- User interface: user_interface.md\n")
             f.write("- Tools:\n")
             f.write("  - Overview (by category): tools.md\n")

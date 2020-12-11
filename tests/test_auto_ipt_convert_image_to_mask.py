@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptConvertImageToMask(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Convert image to mask: Check that all use cases are allowed"""
         op = IptConvertImageToMask()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptConvertImageToMask(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Convert image to mask: Test that class process_wrapper method has docstring"""
         op = IptConvertImageToMask()
         if not op.is_wip:
             self.assertIsNotNone(

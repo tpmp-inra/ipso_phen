@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptDummyThreshold(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Dummy threshold: Check that all use cases are allowed"""
         op = IptDummyThreshold()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptDummyThreshold(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Dummy threshold: Test that class process_wrapper method has docstring"""
         op = IptDummyThreshold()
         if not op.is_wip:
             self.assertIsNotNone(

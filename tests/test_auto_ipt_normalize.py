@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptNormalize(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Normalize Image: Check that all use cases are allowed"""
         op = IptNormalize()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptNormalize(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Normalize Image: Test that class process_wrapper method has docstring"""
         op = IptNormalize()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -25,15 +25,16 @@ class TestIptNormalize(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Normalize Image: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_image_transformation(self):
-        """Test that when an image is in an image goes out"""
+        """Normalize Image: Test that when an image is in an image goes out"""
         op = IptNormalize()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Normalize Image")

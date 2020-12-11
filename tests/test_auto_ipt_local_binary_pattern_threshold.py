@@ -11,7 +11,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptLocalBinaryPatternThreshold(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Local binary pattern threshold: Check that all use cases are allowed"""
         op = IptLocalBinaryPatternThreshold()
         for uc in op.use_case:
             self.assertIn(
@@ -19,7 +19,7 @@ class TestIptLocalBinaryPatternThreshold(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Local binary pattern threshold: Test that class process_wrapper method has docstring"""
         op = IptLocalBinaryPatternThreshold()
         if not op.is_wip:
             self.assertIsNotNone(

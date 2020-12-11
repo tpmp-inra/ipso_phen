@@ -37,6 +37,7 @@ setup(
     keywords="image processing Python OpenCV",
     packages=find_packages(exclude=("tests", "docs", "video")),
     include_package_data=True,
+    test_suite="tests",
     install_requires=[
         "matplotlib",
         "numpy==1.19.2",
@@ -55,4 +56,5 @@ setup(
         "Unidecode",
     ],
     entry_points={"console_scripts": ["ipso_phen=ipso_phen.__main__:main"]},
+    scripts=["ipso_cli.py"],
 )

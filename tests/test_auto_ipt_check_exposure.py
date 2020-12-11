@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptExposureChecker(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Check exposure: Check that all use cases are allowed"""
         op = IptExposureChecker()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptExposureChecker(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Check exposure: Test that class process_wrapper method has docstring"""
         op = IptExposureChecker()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -25,15 +25,16 @@ class TestIptExposureChecker(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Check exposure: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_image_transformation(self):
-        """Test that when an image is in an image goes out"""
+        """Check exposure: Test that when an image is in an image goes out"""
         op = IptExposureChecker()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Check exposure")

@@ -380,9 +380,7 @@ class RectangleRegion(AbstractRegion):
         self.height = height
 
     def __repr__(self) -> str:
-        return f"""
-        Rect:[l:{self.left},w:{self.width}/t:{self.top},h:{self.bottom} - name:{self.name}, tag:{self.tag}]
-        """
+        return f"Rect:[l:{self.left},w:{self.width}/t:{self.top},h:{self.bottom} - name:{self.name}, tag:{self.tag}]"
 
     def to_opencv(self):
         return self.left, self.top, self.width, self.height
@@ -646,9 +644,7 @@ class RotatedRectangle(AbstractRegion):
         self.angle = kwargs.get("angle", 0)
 
     def __repr__(self) -> str:
-        return f"""
-        Rect:[l:{self._left},w:{self._width}/t:{self._top},h:{self._height},a:{self.angle} - name:{self.name}, tag:{self.tag}]
-        """
+        return f"Rect:[l:{self._left},w:{self._width}/t:{self._top},h:{self._height},a:{self.angle} - name:{self.name}, tag:{self.tag}]"
 
     def inflate(self, dl, dr, dt, db):
         """Inflates self by d- in each direction"""
@@ -747,9 +743,9 @@ class CircleRegion(AbstractRegion):
         self.radius = kwargs.get("radius")
 
     def __repr__(self) -> str:
-        return f"""
-        Circle:[c:{self.center},r:{self.radius} - name:{self.name}, tag:{self.tag}]
-        """
+        return (
+            f"Circle:[c:{self.center},r:{self.radius} - name:{self.name}, tag:{self.tag}]"
+        )
 
     def to_opencv(self):
         return (self.center.x, self.center.y), self.radius
@@ -910,9 +906,7 @@ class AnnulusRegion(CircleRegion):
         self.in_radius = kwargs.get("in_radius")
 
     def __repr__(self) -> str:
-        return f"""
-        Annulus:[c:{self.center},r:{self.radius},r_in:{self.in_radius} - name:{self.name}, tag:{self.tag}]
-        """
+        return f"Annulus:[c:{self.center},r:{self.radius},r_in:{self.in_radius} - name:{self.name}, tag:{self.tag}]"
 
     def to_mask(self, width, height):
         mask = cv2.circle(
@@ -1024,7 +1018,9 @@ class CompositeRegion(AbstractRegion):
             mask = ipc.morphological_gradient(image=mask, kernel_size=line_width)
         if len(dst_img.shape) == 3 and dst_img.shape[2] == 3:
             mask = np.dstack((mask, mask, mask))
-        mask = cv2.inRange(mask, (1, 1, 1), (255, 255, 255))
+            mask = cv2.inRange(mask, (1, 1, 1), (255, 255, 255))
+        else:
+            cv2.inRange(mask, 1, 255)
         res = dst_img.copy()
         res[mask > 0] = color
         return res

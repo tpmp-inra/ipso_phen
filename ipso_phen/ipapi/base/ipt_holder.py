@@ -134,7 +134,7 @@ class IptHolder(object):
         )
         f.write(f"{spaces}script.add_module(operator=op, target_group='{group_uuid}')\n")
         f.write(
-            f"{spaces}wrapper = BaseImageProcessor('{self.path_to_sample_image(test_image)}')\n"
+            f"{spaces}wrapper = BaseImageProcessor('{self.path_to_sample_image(test_image)}', database=None,)\n"
         )
         f.write(f"{spaces}res = script.execute(src_image=wrapper, silent_mode=True)\n")
         return spaces
@@ -152,7 +152,7 @@ class IptHolder(object):
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}op.apply_test_values_overrides(use_cases=('{use_case}',))\n")
         f.write(
-            f"{spaces}wrapper = BaseImageProcessor('{self.path_to_sample_image(test_image)}')\n"
+            f"{spaces}wrapper = BaseImageProcessor('{self.path_to_sample_image(test_image)}', database=None,)\n"
         )
         if store_images:
             f.write(f"{spaces}wrapper.store_images = True\n")
@@ -185,7 +185,7 @@ class IptHolder(object):
     def write_test_use_case(self, f, op, spaces):
         f.write(f"{spaces}def test_use_case(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Check that all use cases are allowed"""\n')
+        f.write(f'{spaces}"""{op.name}: Check that all use cases are allowed"""\n')
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}for uc in op.use_case:\n")
         spaces = add_tab(spaces)
@@ -197,7 +197,9 @@ class IptHolder(object):
     def write_test_docstring(self, f, op, spaces):
         f.write(f"{spaces}def test_docstring(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that class process_wrapper method has docstring"""\n')
+        f.write(
+            f'{spaces}"""{op.name}: Test that class process_wrapper method has docstring"""\n'
+        )
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(f"{spaces}if not op.is_wip:\n")
         spaces = add_tab(spaces)
@@ -209,7 +211,9 @@ class IptHolder(object):
     def write_test_needed_param(self, f, op, param_name, spaces):
         f.write(f"{spaces}def test_needed_param(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that class has needed param {param_name}"""\n')
+        f.write(
+            f'{spaces}"""{op.name}: Test that class has needed param {param_name}"""\n'
+        )
         f.write(f"{spaces}op = {op.__class__.__name__}()\n")
         f.write(
             f'{spaces}self.assertTrue(op.has_param("{param_name}"), "Missing needed param path for {op.name}")\n\n'
@@ -220,7 +224,7 @@ class IptHolder(object):
         f.write(f"{spaces}def test_has_test_function(self):\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}"""Check that at list one test function has been generated"""\n'
+            f'{spaces}"""{op.name}: Check that at least one test function has been generated"""\n'
         )
         if found_fun:
             f.write(
@@ -235,7 +239,9 @@ class IptHolder(object):
     def write_test_mask_generation(self, f, op, spaces):
         f.write(f"{spaces}def test_mask_generation(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that when an image is in a mask goes out"""\n')
+        f.write(
+            f'{spaces}"""{op.name}: Test that when an image is in a mask goes out"""\n'
+        )
         self.write_init_operator(
             f=f,
             use_case=ipc.ToolFamily.THRESHOLD,
@@ -261,7 +267,9 @@ class IptHolder(object):
     def write_test_image_transformation(self, f, op, spaces):
         f.write(f"{spaces}def test_image_transformation(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that when an image is in an image goes out"""\n')
+        f.write(
+            f'{spaces}"""{op.name}: Test that when an image is in an image goes out"""\n'
+        )
         self.write_init_operator(
             f=f,
             use_case=ipc.ToolFamily.PRE_PROCESSING,
@@ -282,7 +290,7 @@ class IptHolder(object):
         f.write(f"{spaces}def test_mask_transformation(self):\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}"""Test that when using the basic mask generated script this tool produces a mask"""\n'
+            f'{spaces}"""{op.name}: Test that when using the basic mask generated script this tool produces a mask"""\n'
         )
         spaces = self.write_init_pipeline(
             f=f,
@@ -313,7 +321,7 @@ class IptHolder(object):
         f.write(f"{spaces}def test_feature_out(self):\n")
         spaces = add_tab(spaces)
         f.write(
-            f'{spaces}"""Test that when using the basic mask generated script this tool extracts features"""\n'
+            f'{spaces}"""{op.name}: "Test that when using the basic mask generated script this tool extracts features"""\n'
         )
         spaces = self.write_init_pipeline(
             f=f,
@@ -344,7 +352,7 @@ class IptHolder(object):
     def write_test_roi_out(self, f, op, spaces):
         f.write(f"{spaces}def test_roi_out(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that tool generates an ROI"""\n')
+        f.write(f'{spaces}"""{op.name}: Test that tool generates an ROI"""\n')
         self.write_init_operator(
             f=f,
             use_case=ipc.ToolFamily.ROI,
@@ -368,7 +376,7 @@ class IptHolder(object):
     def write_test_bool_out(self, f, op, spaces):
         f.write(f"{spaces}def test_bool_out(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that tool returns a boolean"""\n')
+        f.write(f'{spaces}"""{op.name}: Test that tool returns a boolean"""\n')
         self.write_init_operator(
             f=f,
             use_case=ipc.ToolFamily.ASSERT,
@@ -388,7 +396,9 @@ class IptHolder(object):
     def write_test_visualization(self, f, op, spaces):
         f.write(f"{spaces}def test_visualization(self):\n")
         spaces = add_tab(spaces)
-        f.write(f'{spaces}"""Test that visualization tools add images to list"""\n')
+        f.write(
+            f'{spaces}"""{op.name}: Test that visualization tools add images to list"""\n'
+        )
         self.write_init_operator(
             f=f,
             use_case=ipc.ToolFamily.VISUALIZATION,

@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptHoughCircles(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Hough circles detector: Check that all use cases are allowed"""
         op = IptHoughCircles()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptHoughCircles(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Hough circles detector: Test that class process_wrapper method has docstring"""
         op = IptHoughCircles()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -26,15 +26,16 @@ class TestIptHoughCircles(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Hough circles detector: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_roi_out(self):
-        """Test that tool generates an ROI"""
+        """Hough circles detector: Test that tool generates an ROI"""
         op = IptHoughCircles()
         op.apply_test_values_overrides(use_cases=("Create an ROI",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(

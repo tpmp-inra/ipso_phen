@@ -9,7 +9,7 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 class TestIptPartialPosterizerV2(unittest.TestCase):
     def test_use_case(self):
-        """Check that all use cases are allowed"""
+        """Partial posterizer v2: Check that all use cases are allowed"""
         op = IptPartialPosterizerV2()
         for uc in op.use_case:
             self.assertIn(
@@ -17,7 +17,7 @@ class TestIptPartialPosterizerV2(unittest.TestCase):
             )
 
     def test_docstring(self):
-        """Test that class process_wrapper method has docstring"""
+        """Partial posterizer v2: Test that class process_wrapper method has docstring"""
         op = IptPartialPosterizerV2()
         if not op.is_wip:
             self.assertIsNotNone(
@@ -26,15 +26,16 @@ class TestIptPartialPosterizerV2(unittest.TestCase):
             )
 
     def test_has_test_function(self):
-        """Check that at list one test function has been generated"""
+        """Partial posterizer v2: Check that at least one test function has been generated"""
         self.assertTrue(True, "No compatible test function was generated")
 
     def test_image_transformation(self):
-        """Test that when an image is in an image goes out"""
+        """Partial posterizer v2: Test that when an image is in an image goes out"""
         op = IptPartialPosterizerV2()
         op.apply_test_values_overrides(use_cases=("Pre processing",))
         wrapper = BaseImageProcessor(
-            "./ipso_phen/ipapi/samples/images/arabido_small.jpg"
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
         )
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Partial posterizer v2")
