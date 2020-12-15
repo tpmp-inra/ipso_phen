@@ -34,7 +34,7 @@ class StoreTrueOnly(argparse.Action):
         setattr(namespace, self.dest, True)
 
 
-def exec_cli():
+def run_cli():
 
     parser = argparse.ArgumentParser(
         description="Command line interface for pipelines built with IPSO Phen",
@@ -156,11 +156,8 @@ def exec_cli():
     for k, v in args.items():
         logger.info(f"  * {k}: {v}")
 
-    return launch(**args)
+    res = launch(**args)
 
-
-if __name__ == "__main__":
-    res = exec_cli()
     if res == 0:
         logger.info("Closing IPSO CLI")
     else:
@@ -168,4 +165,9 @@ if __name__ == "__main__":
     logger.info(
         "_________________________________________________________________________"
     )
-    sys.exit(res)
+
+    return res
+
+
+if __name__ == "__main__":
+    sys.exit(run_cli())

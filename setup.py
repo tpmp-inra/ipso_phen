@@ -55,6 +55,10 @@ setup(
         "tqdm",
         "Unidecode",
     ],
-    entry_points={"console_scripts": ["ipso_phen=ipso_phen.__main__:main"]},
-    scripts=["ipso_cli.py"],
+    entry_points={
+        "console_scripts": [
+            "ipso_phen=ipso_phen:launch_ui",
+            "ipso_cli=ipso_phen:cli",
+        ]
+    },
 )

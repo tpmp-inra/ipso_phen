@@ -2,20 +2,10 @@
 
 IPSO Phen can be used as a CLI.  
 
-## OS details
-
-### Windows
-
-At the time of writing you will have to launch the script named *ipso_cli.py* that is located inside your *.\env\Scripts*.
-
-### Linux/Mac OS
-
-I haven't have the chance to test the CLI on them.
-
 ## Using
 
 All command line arguments are optional, but, they must form a understandable blob.
-Python environment must be activated or in path in order for the CLI to work.
+Python environment must be activated in order for the CLI to work.
 
 ### Using a stored state
 
@@ -24,7 +14,7 @@ Python environment must be activated or in path in order for the CLI to work.
 **Example:**
 
 ```console
-(env) foo@bar:~$/ipso_cli/> python ipso_cli.py --stored-state my_stored_state.json
+(env) foo@bar:~$> ipso_cli --stored-state my_stored_state.json
 ```
 
 ### Using separated arguments
@@ -43,7 +33,7 @@ If _--image_ and _--image-list_ are both present, all images available will be p
 **Example:**
 
 ```console
-(env) foo@bar:~$/ipso_cli/> python ipso_cli.py --image my_image.tiff --script my_script.json --output-folder a_folder --csv-file-name my_csv_file_name.csv
+(env) foo@bar:~$/> ipso_cli --image my_image.tiff --script my_script.json --output-folder a_folder --csv-file-name my_csv_file_name.csv
 ```
 
 ### Overrides
@@ -68,7 +58,7 @@ If you've linked IPSO Phen to a database (contact me for help on how to link IPS
 **Example:**
 
 ``` console
-ipso_cli --database mydatabase --experiment myexperiment --output-folder ./myoutputfolder --script .\myscript.json
+(env) foo@bar:~$/>ipso_cli --database mydatabase --experiment myexperiment --output-folder ./myoutputfolder --script .\myscript.json
 ```
 
 ### Final notes
