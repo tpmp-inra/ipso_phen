@@ -459,7 +459,7 @@ class ModuleNode(Node):
         wrapper = self.root.parent.wrapper
 
         if not self.last_result:
-            if hasattr(self.tool, "output_path") and self.root.parent.image_output_path:
+            if self.root.parent.image_output_path:
                 self.tool.output_path = self.root.parent.image_output_path
             if target_module == self.uuid and grid_search_mode:
                 self._execute_grid_search(call_back=call_back)

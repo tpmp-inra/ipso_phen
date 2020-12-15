@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from collections import defaultdict
 from enum import Enum, unique
@@ -9,9 +10,14 @@ from ipso_phen.ipapi.database.phenopsis_wrapper import get_phenopsis_exp_list
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
 
-try:
-    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
-except Exception as e:
+dbc_path = os.path.join(
+    ipso_folders.get_path("db_connect_data", force_creation=False),
+    "db_connect_data.json",
+)
+if os.path.isfile(dbc_path):
+    with open(dbc_path, "r") as f:
+        dbc = json.load(f)
+else:
     dbc = {}
 
 logger = logging.getLogger(__name__)

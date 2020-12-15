@@ -1,3 +1,5 @@
+import os
+import json
 import paramiko
 import pandas as pd
 from io import StringIO
@@ -6,9 +8,16 @@ from tqdm import tqdm
 
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 
-try:
-    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
-except Exception as e:
+from ipso_phen.ipapi.tools.folders import ipso_folders
+
+dbc_path = os.path.join(
+    ipso_folders.get_path("db_connect_data", force_creation=False),
+    "db_connect_data.json",
+)
+if os.path.isfile(dbc_path):
+    with open(dbc_path, "r") as f:
+        dbc = json.load(f)
+else:
     dbc = {}
 
 logger = logging.getLogger(__name__)

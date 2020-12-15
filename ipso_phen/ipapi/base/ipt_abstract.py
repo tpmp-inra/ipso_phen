@@ -1314,6 +1314,8 @@ class IptBase(IptParamHolder, ABC):
         self.demo_image = None
         self._old_lock_state = False
 
+        self.output_path = ""
+
     def __repr__(self):
         return (
             f"{type(self).__name__}("

@@ -1,9 +1,24 @@
+import os
+import json
 from typing import Union
 
 from ipso_phen.ipapi.database.base import DbInfo, DbWrapper
 
 from ipso_phen.ipapi.database.sqlite_wrapper import SqLiteDbWrapper
 from ipso_phen.ipapi.database.psql_wrapper import PgSqlDbWrapper
+
+from ipso_phen.ipapi.tools.folders import ipso_folders
+
+
+dbc_path = os.path.join(
+    ipso_folders.get_path("db_connect_data", force_creation=False),
+    "db_connect_data.json",
+)
+if os.path.isfile(dbc_path):
+    with open(dbc_path, "r") as f:
+        dbc = json.load(f)
+else:
+    dbc = {}
 
 try:
     from ipso_phen.ipapi.database.phenoserre_wrapper import PhenoserreDbWrapper
@@ -18,11 +33,6 @@ except Exception as e:
     is_phenopsis = False
 else:
     is_phenopsis = True
-
-try:
-    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
-except Exception as e:
-    dbc = {}
 
 
 def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:

@@ -17,18 +17,13 @@ except Exception as e:
 else:
     is_winapi = True
 
-try:
-    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
-
-    conf = dbc.get("mass_storage", {})
-except Exception as e:
-    conf = {}
-
 
 g_storage_path = ""
 
 
 ROOT_IPSO_FOLDER = "ipso_phen"
+
+conf = {"folder_names": ["images", "input"]}
 
 
 def get_mass_storage_path():
@@ -188,6 +183,24 @@ ipso_folders = IpsoFolders(
                 "Documents",
                 ROOT_IPSO_FOLDER,
                 "db_cache",
+                "",
+            )
+        ),
+        "db_connect_data": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "db_connect_data",
+                "",
+            )
+        ),
+        "database_builders": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "database_builders",
                 "",
             )
         ),

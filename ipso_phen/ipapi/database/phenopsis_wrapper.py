@@ -1,5 +1,7 @@
 import logging
 from collections import defaultdict
+import os
+import json
 
 import paramiko
 import pandas as pd
@@ -7,14 +9,17 @@ from stat import S_ISDIR
 
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 from ipso_phen.ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
-try:
-    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
-
-    conf = dbc.get("phenopsis", {})
-except Exception as e:
-    conf = {}
-
+dbc_path = os.path.join(
+    ipso_folders.get_path("db_connect_data", force_creation=False),
+    "db_connect_data.json",
+)
+if os.path.isfile(dbc_path):
+    with open(dbc_path, "r") as f:
+        dbc = json.load(f)
+else:
+    dbc = {}
 logger = logging.getLogger(__name__)
 
 
@@ -27,10 +32,10 @@ def connect_to_phenodb():
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
     p.connect(
-        conf["address"],
-        port=conf["port"],
-        username=conf["user"],
-        password=conf["password"],
+        dbc["address"],
+        port=dbc["port"],
+        username=dbc["user"],
+        password=dbc["password"],
     )
     return p
 
@@ -40,7 +45,7 @@ def get_pheno_db_ftp():
 
 
 def get_phenopsis_exp_list() -> list:
-    assert conf, "Unable to connect to phenoserre"
+    assert dbc, "Unable to connect to phenoserre"
     try:
         ftp = get_pheno_db_ftp()
         exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
@@ -91,9 +96,9 @@ class PhenopsisDbWrapper(PandasDbWrapper):
         return ret
 
     def get_local_df(self, exp_name) -> pd.DataFrame:
-        csv_path = (
-            "C:/Users/fmavianemac/Documents/Felicia/Python/database/data_out/phenopsis/"
-            + f"{exp_name.lower()}.dst.csv"
+        csv_path = os.path.join(
+            ipso_folders.get_path("database_builders", force_creation=True),
+            f"{exp_name.lower()}.dst.csv",
         )
         dataframe = pd.read_csv(csv_path)
         dataframe["Experiment"] = dataframe["experiment"].str.lower()

@@ -2,7 +2,6 @@ import os
 from abc import ABC, abstractmethod, abstractproperty
 import logging
 
-from sqlalchemy_utils import database_exists
 from tqdm import tqdm
 
 from ipso_phen.ipapi.tools.common_functions import (
@@ -202,7 +201,7 @@ class DbWrapper(ABC):
             self._tqdm.stop()
 
     def is_exists(self):
-        return database_exists(self.db_url)
+        return False
 
     def reset(self):
         logger.warning(f"Not implemented for {self.__class__.__name__}")

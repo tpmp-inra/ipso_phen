@@ -1,21 +1,23 @@
 from datetime import datetime as dt
 import datetime
 import os
-
-import numpy as np
-import cv2
-import paramiko
+import json
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 import ipso_phen.ipapi.base.ip_common as ipc
 
 
-try:
-    from ipso_phen.ipapi.database.db_connect_data import db_connect_data as dbc
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
-    conf = dbc.get("phenopsis", {})
-except Exception as e:
-    conf = {}
+dbc_path = os.path.join(
+    ipso_folders.get_path("db_connect_data", force_creation=False),
+    "db_connect_data.json",
+)
+if os.path.isfile(dbc_path):
+    with open(dbc_path, "r") as f:
+        dbc = json.load(f)
+else:
+    dbc = {}
 
 import logging
 
@@ -28,7 +30,7 @@ class FileHandlerPhenopsis(FileHandlerBase):
 
         self._database = kwargs.get("database", None)
         self.db_linked = (
-            conf
+            dbc
             and self._database is not None
             and self._database.db_info.target == "phenopsis"
         ) is True
@@ -63,10 +65,10 @@ class FileHandlerPhenopsis(FileHandlerBase):
     def load_source_file(self):
         if self.db_linked:
             return self.load_from_database(
-                address=conf["address"],
-                port=conf["port"],
-                user=conf["user"],
-                pwd=conf["password"],
+                address=dbc["address"],
+                port=dbc["port"],
+                user=dbc["user"],
+                pwd=dbc["password"],
             )
         else:
             return self.load_from_harddrive()
@@ -79,7 +81,7 @@ class FileHandlerPhenopsis(FileHandlerBase):
             and (";" in cls.extract_file_name(file_path))
         ):
             return 100
-        elif conf and database is not None and database.db_info.target == "phenopsis":
+        elif dbc and database is not None and database.db_info.target == "phenopsis":
             return 100
         else:
             return 0

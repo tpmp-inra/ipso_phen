@@ -238,7 +238,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     dataframe.loc[i] = [v["channel_name"]] + list(v["hist"].flatten())
                 dataframe.to_csv(
                     path_or_buf=os.path.join(
-                        "C:\\Users\\fmavianemac\\Documents\\Presentations\\IMean_2019_11\\resources\\histograms",
+                        self.output_path,
                         f"{wrapper.plant}_histograms.csv",
                     ),
                     index=False,

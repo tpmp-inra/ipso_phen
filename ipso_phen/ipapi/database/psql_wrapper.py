@@ -3,7 +3,6 @@ import os
 
 from sqlalchemy import create_engine, exc
 from sqlalchemy.sql import text
-from sqlalchemy_utils import database_exists
 
 import pandas as pd
 
@@ -139,13 +138,14 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         self.port = kwargs.get("port", 5432)
         self.password = kwargs.get("password", "")
         self.user = kwargs.get("user", "")
+        self.engine_path = kwargs.get("engine_path", "")
 
     def connect(self, auto_update: bool = True):
         missing_data = False
 
         # Check database exists
         db_url = self.db_url
-        if not database_exists(db_url):
+        if not self.is_exists():
             engine = create_engine("postgres://postgres@/postgres")
             conn = engine.connect()
             conn.execute("commit")
@@ -200,8 +200,19 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         self.connexion = self.engine.connect()
         return self.connexion is not None
 
+    def is_exists(self):
+        pwd = f"-W {self.password}" if self.password else ""
+        user = f"-U {self.user}" if self.user else ""
+        return self.db_qualified_name in [
+            line.split("|")[0]
+            for line in os.popen(f"psql -l -t -A {user} {pwd}").read().split("\n")
+            if "|" in line
+        ]
+
     def update(
-        self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+        self,
+        src_files_path="",
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
     ):
         if not self.connect(auto_update=False):
             return -1
