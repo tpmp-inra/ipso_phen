@@ -96,6 +96,14 @@ pip install -r requirements.txt
 
 To run IPSO Phen just type
 
+If installing from PyPi, after activating, run the following command from the shell.
+
+```shell
+ipso_phen
+```
+
+If installing from git, after activating, run the following command from the shell.
+
 ```shell
 python -m ipso_phen
 ```
