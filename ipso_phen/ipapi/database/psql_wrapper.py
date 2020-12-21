@@ -203,8 +203,8 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
     def is_exists(self):
         pwd = f"-W {self.password}" if self.password else ""
         user = f"-U {self.user}" if self.user else ""
-        return self.db_qualified_name in [
-            line.split("|")[0]
+        return self.db_qualified_name.lower() in [
+            line.lower().split("|")[0]
             for line in os.popen(f"psql -l -t -A {user} {pwd}").read().split("\n")
             if "|" in line
         ]

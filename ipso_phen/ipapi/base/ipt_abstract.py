@@ -1057,8 +1057,7 @@ class IptParamHolder(object):
         if output_name_mode == "as_source":
             dst_name = wrapper.file_handler.file_name_no_ext
         elif output_name_mode == "hash":
-            var_name = "hash_val"
-            dst_name = self.get_short_hash(add_plant_name=False)
+            dst_name = self.hash_luid()
         elif output_name_mode == "suffix":
             var_name = self.get_value_of("prefix_suffix")
             dst_name = wrapper.file_handler.file_name_no_ext + "_" + var_name
@@ -1586,7 +1585,10 @@ class IptBase(IptParamHolder, ABC):
         return cv2.bitwise_and(image, image, mask=mask)
 
     def match_image_size_to_source(
-        self, img, source_mode: str = "source_file", ignore_list: tuple = ()
+        self,
+        img,
+        source_mode: str = "source_file",
+        ignore_list: tuple = (),
     ):
         if not (source_mode in ignore_list):
             source_type = self.get_value_of(source_mode, "source")
@@ -1603,7 +1605,10 @@ class IptBase(IptParamHolder, ABC):
             return img
 
     def get_ipt_roi(
-        self, wrapper, roi_names: list = [], selection_mode: str = "all_linked"
+        self,
+        wrapper,
+        roi_names: list = [],
+        selection_mode: str = "all_linked",
     ) -> list:
         res = []
         for roi in wrapper.rois_list:
@@ -1621,7 +1626,9 @@ class IptBase(IptParamHolder, ABC):
         return res
 
     def get_short_hash(
-        self, exclude_list: tuple = (), add_plant_name: bool = True
+        self,
+        exclude_list: tuple = (),
+        add_plant_name: bool = True,
     ) -> Union[str, None]:
         wrapper = self.wrapper
         if wrapper is None:
@@ -1644,6 +1651,15 @@ class IptBase(IptParamHolder, ABC):
             return make_safe_name(
                 str(base64.urlsafe_b64encode(long_hash.digest()[0:20]))
             ).replace("_", "")
+
+    def hash_luid(self):
+        return make_safe_name(
+            str(
+                base64.urlsafe_b64encode(
+                    hashlib.sha1(self.wrapper.luid.encode("utf-8")).digest()[0:20]
+                )
+            )
+        ).replace("_", "")
 
     def apply_binary_threshold(self, wrapper, img, channel):
         min_ = self.get_value_of("min_t")

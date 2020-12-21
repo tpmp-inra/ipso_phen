@@ -19,7 +19,7 @@ from ipso_phen.ipapi.tools.regions import (
     Point,
     AbstractRegion,
 )
-from ipso_phen.ipapi.tools.common_functions import time_method, force_directories
+from ipso_phen.ipapi.tools.common_functions import force_directories
 
 matplotlib.use("agg")
 

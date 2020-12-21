@@ -111,6 +111,7 @@ class PipelineProcessor:
 
     def __init__(self, database, **kwargs):
         """ Initializes command line wrapper an properties """
+        self._report_progress = kwargs.pop("report_progress", True)
         self.options = ArgWrapper(**kwargs)
         self._target_database = database
         self._process_errors = 0
@@ -223,7 +224,9 @@ class PipelineProcessor:
         self._progress_step += 1
 
     def init_progress(self, total: int, desc: str = "", yield_mode: bool = False) -> None:
-        if yield_mode is True:
+        if self._report_progress is False:
+            pass
+        elif yield_mode is True:
             pass
         elif self.progress_callback is None:
             if USE_TQDM:
@@ -234,7 +237,9 @@ class PipelineProcessor:
         self._progress_step = 0
 
     def update_progress(self):
-        if self.progress_callback is None:
+        if self._report_progress is False:
+            pass
+        elif self.progress_callback is None:
             if USE_TQDM:
                 self._tqdm.update(1)
         else:

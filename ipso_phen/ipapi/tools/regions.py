@@ -419,10 +419,14 @@ class RectangleRegion(AbstractRegion):
 
     def inflate(self, dl, dr, dt, db):
         """Inflates self by d- in each direction"""
-        self.left -= dl
-        self.right += dr
-        self.top -= dt
-        self.bottom += db
+        old_left = self.left
+        old_right = self.right
+        old_top = self.top
+        old_bottom = self.bottom
+        self.left = old_left - dl
+        self.right = old_right + dr
+        self.top = old_top - dt
+        self.bottom = old_bottom + db
 
     def expand(self, n):
         self.left -= n

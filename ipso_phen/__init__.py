@@ -1,21 +1,23 @@
 import sys
 import logging
 
-version = "0.7.102.532"
-logger = logging.getLogger("entry point")
+version = "0.7.103.534"
 
-from ipso_phen.ipso_cli import run_cli
+
+def cli():
+    from ipso_phen.ipso_cli import run_cli
+
+    sys.exit(run_cli())
+
 
 try:
     from PySide2.QtWidgets import QApplication
-    from ipso_phen.ui.app import IpsoMainForm
-except:
-    logger.info("No UI available")
-else:
-    logger.info("Starting in UI mode")
 
     def launch_ui():
-        """Launch IPSO Phen with Qt UI"""
+        from ipso_phen.ui.app import IpsoMainForm
+
+        logger = logging.getLogger("entry point")
+        logger.info("Starting UI")
         app = QApplication(sys.argv)
         IpsoMainForm().show()
         ret = app.exec_()
@@ -23,5 +25,7 @@ else:
         sys.exit(ret)
 
 
-def cli():
-    sys.exit(run_cli())
+except:
+    logger = logging.getLogger("entry point")
+    logger.info("No UI available")
+    sys.exit(-1)

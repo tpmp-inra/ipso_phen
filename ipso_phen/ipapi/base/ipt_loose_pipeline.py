@@ -694,7 +694,8 @@ class GroupNode(Node):
         wrapper = self.root.parent.wrapper
 
         wrapper.current_image = self.get_source_image(
-            source=self.source, call_back=call_back
+            source=self.source,
+            call_back=call_back,
         )
 
         rois = []
@@ -1496,11 +1497,11 @@ class LoosePipeline(object):
                     "build_mask",
                 ],
                 [
-                    ipc.ToolFamily.ROI_RAW_IMAGE_STR,
+                    # [ipc.ToolFamily.ROI_RAW_IMAGE_STR],
                     [ipc.ToolFamily.WHITE_BALANCE, ipc.ToolFamily.EXPOSURE_FIXING],
-                    ipc.ToolFamily.PRE_PROCESSING,
-                    ipc.ToolFamily.ROI_PP_IMAGE_STR,
-                    ipc.ToolFamily.THRESHOLD,
+                    [ipc.ToolFamily.PRE_PROCESSING],
+                    ["ROI on pre processed image"],
+                    [ipc.ToolFamily.THRESHOLD],
                 ],
             ):
                 src_group = tmp.get_operators(constraints={"kind": kinds})
@@ -1517,14 +1518,7 @@ class LoosePipeline(object):
                 else ipc.MERGE_MODE_OR
             )
 
-            rois = tmp.get_operators(
-                constraints={
-                    "kind": [
-                        ipc.ToolFamily.ROI_PP_IMAGE_STR,
-                        ipc.ToolFamily.ROI_RAW_IMAGE_STR,
-                    ]
-                }
-            )
+            rois = tmp.get_operators(constraints={"kind": [ipc.ToolFamily.ROI]})
             dst_group = res.root.find_by_uuid(uuid="apply_roi")
             for tool_dict in rois:
                 ipt = tool_dict["tool"]

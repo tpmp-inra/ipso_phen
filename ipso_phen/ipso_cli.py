@@ -74,6 +74,13 @@ def run_cli():
         dest="image_list",
     )
     parser.add_argument(
+        "--image-folder",
+        required=False,
+        help="Folder containing the images to be processed",
+        default=None,
+        dest="image_folder",
+    )
+    parser.add_argument(
         "--thread-count",
         required=False,
         help="Override number of concurrent processes",

@@ -15,6 +15,7 @@ from ipso_phen.ipapi.tools.common_functions import force_directories, format_tim
 from ipso_phen.ipapi.base.pipeline_processor import PipelineProcessor
 from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
+from ipso_phen.ipapi.tools.image_list import ImageList
 
 
 logger = logging.getLogger("Pipeline launcher")
@@ -23,37 +24,10 @@ IS_LOG_DATA = True
 IS_USE_MULTI_THREAD = True
 
 
-def save_state(
-    output_folder: str,
-    csv_file_name: str,
-    overwrite_existing: bool,
-    sub_folder_name: str,
-    append_time_stamp: bool,
-    script,
-    generate_series_id: bool,
-    series_id_time_delta: int,
-    images: list,
-    database_data=None,
-    thread_count: int = 1,
-    build_annotation_csv: bool = False,
+def restore_state(
+    blob: Union[str, dict, None],
+    overrides: dict = {},
 ) -> dict:
-    return dict(
-        output_folder=output_folder,
-        csv_file_name=csv_file_name,
-        overwrite_existing=overwrite_existing,
-        sub_folder_name=sub_folder_name,
-        append_time_stamp=append_time_stamp,
-        script=script,
-        generate_series_id=generate_series_id,
-        series_id_time_delta=series_id_time_delta,
-        images=images,
-        thread_count=thread_count,
-        database_data=database_data,
-        build_annotation_csv=build_annotation_csv,
-    )
-
-
-def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     # Attempt to load state
     if isinstance(blob, str) and os.path.isfile(blob):
         with open(blob, "r") as f:
@@ -83,7 +57,6 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     return dict(
         output_folder=_get_key("output_folder", res, overrides),
         csv_file_name=_get_key("csv_file_name", res, overrides),
-        overwrite_existing=_get_key("overwrite_existing", res, overrides, False),
         sub_folder_name=_get_key("sub_folder_name", res, overrides, ""),
         append_time_stamp=_get_key("append_time_stamp", res, overrides, False),
         script=_get_key("script", res, overrides),
@@ -96,13 +69,17 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         excluded=_get_key("excluded", res, overrides, []),
         overwrite=_get_key("overwrite", res, overrides, False),
         build_annotation_csv=_get_key("build_annotation_csv", res, overrides, False),
-        database=_get_key("database", res, overrides, ""),
+        database=_get_key("database", res, overrides, None),
         experiment=_get_key("experiment", res, overrides, ""),
         randomize=_get_key("randomize", res, overrides, False),
     )
 
 
 def launch(**kwargs):
+    def exit_error_message(msg: str) -> None:
+        print(msg)
+        logger.error(msg)
+
     start = timer()
 
     # Script
@@ -114,32 +91,43 @@ def launch(**kwargs):
 
     # Image(s)
     image = kwargs.get("image", None)
-    images = kwargs.get("images", None)
-    if image is not None and images is not None:
-        kwargs["images"] = images + [image]
-    elif image is None and images is not None:
-        kwargs["images"] = images
-    elif image is not None and images is None:
+    image_list = kwargs.get("image_list", None)
+    image_folder = kwargs.get("image_folder", None)
+    src_count = len([src for src in [image, image_list, image_folder] if src is not None])
+    if src_count == 0:
+        exit_error_message("Missing source images")
+        return 1
+    elif src_count > 1:
+        exit_error_message("Missing source images")
+        return 1
+
+    if image is not None:
         kwargs["images"] = [image]
+    elif image_list is not None:
+        with open(image_list, "r") as f:
+            kwargs["images"] = [img.os.replace("\n", "") for img in f.readlines()]
+    elif image_folder is not None:
+        img_lst = ImageList((".jpg", ".tiff", ".png", ".bmp"))
+        img_lst.add_folder(image_folder)
+        kwargs["images"] = img_lst.filter(masks=None)
+    else:
+        exit_error_message("Missing source images")
+        return 1
 
     # State
     stored_state = kwargs.pop("stored_state", None)
 
     res = restore_state(blob=stored_state, overrides=kwargs)
 
-    def exit_error_message(msg: str) -> None:
-        print(msg)
-        logger.error(msg)
-
     # Retrieve images
     image_list_ = res.get("images", None)
 
     # Build database
     db_data = res.get("database_data", None)
+    database = res.get("database", None)
+    experiment = res.get("experiment", None)
     if db_data is None:
-        database = res.get("database", None)
-        experiment = res.get("experiment", None)
-        if database is None or experiment is None:
+        if database is None:
             db = None
         else:
             db = dbf.db_info_to_database(
@@ -149,12 +137,14 @@ def launch(**kwargs):
                     dbms="pandas",
                 )
             )
-            if "sub_folder_name" not in res or not res["sub_folder_name"]:
-                res["sub_folder_name"] = experiment
-            if "csv_file_name" not in res or not res["csv_file_name"]:
-                res["csv_file_name"] = f"{experiment.lower()}_raw_data"
     else:
         db = dbf.db_info_to_database(dbb.DbInfo(**db_data))
+
+    if experiment is not None:
+        if "sub_folder_name" not in res or not res["sub_folder_name"]:
+            res["sub_folder_name"] = experiment
+        if "csv_file_name" not in res or not res["csv_file_name"]:
+            res["csv_file_name"] = f"{experiment.lower()}_raw_data"
 
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
@@ -192,12 +182,13 @@ def launch(**kwargs):
 
     # Build pipeline processor
     pp = PipelineProcessor(
-        database=db.copy(),
+        database=None if db is None else db.copy(),
         dst_path=output_folder_,
-        overwrite=res["overwrite_existing"],
+        overwrite=res["overwrite"],
         seed_output=res["append_time_stamp"],
         group_by_series=res["generate_series_id"],
         store_images=False,
+        report_progress=kwargs.get("report_progress", True),
     )
     if not image_list_:
         pp.grab_files_from_data_base(
@@ -215,7 +206,7 @@ def launch(**kwargs):
     logger.info(f'database: {res.get("database_data", None)}')
     logger.info(f'Output folder: {res["output_folder"]}')
     logger.info(f'CSV file name: {res["csv_file_name"]}')
-    logger.info(f'Overwrite data: {res["overwrite_existing"]}')
+    logger.info(f'Overwrite data: {res["overwrite"]}')
     logger.info(f'Subfolder name: {res["sub_folder_name"]}')
     logger.info(f'Append timestamp to root folder: {res["append_time_stamp"]}')
     logger.info(f'Generate series ID: {res["generate_series_id"]}')

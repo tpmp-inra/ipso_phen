@@ -192,6 +192,7 @@ IPSO_Phen.egg-info/
 /ui_qt/main_form.py
 logs/
 saved_data/
+tests/output_files
 ipapi/database/phenoserre_access.py
 ipso_phen/ipapi/database/db_connect_data.py
 test-output.xml
