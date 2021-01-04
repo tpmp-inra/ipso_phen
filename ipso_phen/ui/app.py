@@ -183,6 +183,7 @@ from ipso_phen.ui.qt_mvc import (
 from ipso_phen.ui.q_thread_handlers import IpsoCsvBuilder, IpsoMassRunner, IpsoRunnable
 from ipso_phen.ui.main import Ui_MainWindow
 from ipso_phen.ui.qt_custom_widgets import QLogger
+from ipso_phen import version
 
 _DATE_FORMAT = "%Y/%m/%d"
 _TIME_FORMAT = "%H:%M:%S"
@@ -191,9 +192,9 @@ _TAB_TOOLS = "tab_tools"
 _TAB_PIPELINE_V2 = "tb_pipeline_v2"
 
 _PRAGMA_NAME = "IPSO Phen"
+_PRAGMA_FULL_NAME = f"{_PRAGMA_NAME} - v{version}"
 _PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json)
 ;;JSON compatible pipeline (*.json)"""
-__version__ = "0.6.547b"
 
 
 def excepthook(excType, excValue, tracebackobj):
@@ -235,7 +236,7 @@ def log_method_execution_time(f):
 
 class AboutDialog(Ui_about_dialog):
     def set_version(self):
-        self.lb_version.setText(f"Version: {__version__}")
+        self.lb_version.setText(f"Version: {version}")
 
     def set_copyright(self):
         self.lbl_copyright.setText("Unpublished work (c) 2018-2020 INRA.")
@@ -771,7 +772,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 10, splash_pic_.height() - 20, splash_pic_.width() - 20, 18
             )
             self._lbl_splash = QLabel(self._splash)
-            self._lbl_splash.setText(f"{_PRAGMA_NAME}")
+            self._lbl_splash.setText(f"{_PRAGMA_FULL_NAME}")
             self._lbl_splash.setFont(QFont("Times", 40, QFont.Bold))
             self._lbl_splash.setGeometry(
                 splash_pic_.width() - 340,
@@ -2344,7 +2345,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         process: psutil.Process = psutil.Process(os.getpid())
         mem_data = f"""[Memory: Used/Free%{process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
 
-        self.setWindowTitle(f"{_PRAGMA_NAME} -- {mem_data}")
+        self.setWindowTitle(f"{_PRAGMA_FULL_NAME} -- {mem_data}")
 
         # Update status bar
         if status_message:
@@ -5246,13 +5247,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     )
                 except Exception as e:
                     self._file_name = ""
-                    self.setWindowTitle(f"{_PRAGMA_NAME} -- Select input file")
+                    self.setWindowTitle(f"{_PRAGMA_FULL_NAME} -- Select input file")
                     logger.exception(f"Failed to load/save annotation: {repr(e)}")
                 finally:
                     self._updating_process_modes = False
             else:
                 self._file_name = ""
-                self.setWindowTitle(f"{_PRAGMA_NAME} -- Select input file")
+                self.setWindowTitle(f"{_PRAGMA_FULL_NAME} -- Select input file")
 
     @property
     def current_tool(self):

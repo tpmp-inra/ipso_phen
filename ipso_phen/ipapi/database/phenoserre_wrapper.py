@@ -7,8 +7,12 @@ import logging
 from tqdm import tqdm
 
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
-
 from ipso_phen.ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.database.db_consts import (
+    GENOLOGIN_ADDRESS,
+    TPMP_PORT,
+    PHENODB_ADDRESS,
+)
 
 dbc_path = os.path.join(
     ipso_folders.get_path("db_connect_data", force_creation=False),
@@ -16,14 +20,11 @@ dbc_path = os.path.join(
 )
 if os.path.isfile(dbc_path):
     with open(dbc_path, "r") as f:
-        dbc = json.load(f)
+        dbc = json.load(f)["phenoserre"]
 else:
     dbc = {}
 
 logger = logging.getLogger(__name__)
-
-
-conf = dbc.get("phenoserre", {})
 
 
 def _split_camera_label(cam_label: str) -> tuple:
@@ -121,22 +122,22 @@ def _split_camera_label(cam_label: str) -> tuple:
 
 def _query_phenoserre(query: str) -> pd.DataFrame:
 
-    assert conf, "Unable to connect to phenoserre"
+    assert dbc, "Unable to connect to phenoserre"
 
     # Create jump ssh connexion
     jump_connexion = paramiko.SSHClient()
     jump_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     jump_connexion.connect(
-        conf["jump_address"],
-        port=conf["port"],
-        username=conf["user"],
-        password=conf["password"],
+        GENOLOGIN_ADDRESS,
+        port=TPMP_PORT,
+        username=dbc["user"],
+        password=dbc["password"],
     )
 
     # Create transport
     jump_transport = jump_connexion.get_transport()
-    dest_addr = (conf["target_address"], conf["port"])
-    local_addr = (conf["jump_address"], conf["port"])
+    dest_addr = (PHENODB_ADDRESS, TPMP_PORT)
+    local_addr = (GENOLOGIN_ADDRESS, TPMP_PORT)
     jump_channel = jump_transport.open_channel(
         "direct-tcpip",
         dest_addr,
@@ -147,25 +148,32 @@ def _query_phenoserre(query: str) -> pd.DataFrame:
     host_connexion = paramiko.SSHClient()
     host_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     host_connexion.connect(
-        conf["target_address"],
-        username=conf["user"],
-        password=conf["password"],
+        PHENODB_ADDRESS,
+        username=dbc["user"],
+        password=dbc["password"],
         sock=jump_channel,
     )
 
     # Query and return result
-    _, stdout, _ = host_connexion.exec_command(f'{conf["query_root"]} "{query}"')
+    _, stdout, _ = host_connexion.exec_command(
+        'psql -A -F , -q -P "footer=off" -d LemnaTecOptimalogTest -U phenodbpg -c '
+        + f'"{query}"'
+    )
     output = stdout.readlines()
     output = "".join(output)
     return pd.read_csv(StringIO(output))
 
 
 def get_phenoserre_exp_list() -> list:
-    assert conf, "Unable to connect to phenoserre"
+    assert dbc, "Unable to connect to phenoserre"
     try:
-        exp_list = sorted(_query_phenoserre(conf["exp_list_query"]).iloc[:, 0].to_list())
+        exp_list = sorted(
+            _query_phenoserre("select distinct measurement_label from snapshot")
+            .iloc[:, 0]
+            .to_list()
+        )
     except Exception as e:
-        logger.error("Unable to connect to Phenoserre")
+        logger.error(f"Unable to connect to Phenoserre: {repr(e)}")
         return []
     else:
         return exp_list

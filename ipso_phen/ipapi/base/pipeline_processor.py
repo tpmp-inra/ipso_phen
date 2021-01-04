@@ -51,13 +51,6 @@ def _pipeline_worker(arg):
 
     start_time = timer()
     try:
-        # wrapper = BaseImageProcessor(
-        #     file_path,
-        #     options=options,
-        #     database=db,
-        # )
-        # bool_res = wrapper.check_source_image()
-
         bool_res = script.execute(
             src_image=file_path if isinstance(file_path, str) else file_path[0],
             silent_mode=True,

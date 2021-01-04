@@ -5,6 +5,7 @@ import json
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 from ipso_phen.ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.database.db_consts import GENOLOGIN_ADDRESS, TPMP_PORT
 
 dbc_path = os.path.join(
     ipso_folders.get_path("db_connect_data", force_creation=False),
@@ -12,7 +13,8 @@ dbc_path = os.path.join(
 )
 if os.path.isfile(dbc_path):
     with open(dbc_path, "r") as f:
-        dbc = json.load(f)
+        dbc = json.load(f)["phenoserre"]
+
 else:
     dbc = {}
 
@@ -45,8 +47,8 @@ class FileHandlerPhenoserre(FileHandlerBase):
     def load_source_file(self):
         if self.db_linked:
             return self.load_from_database(
-                address=dbc["jump_address"],
-                port=dbc["port"],
+                address=GENOLOGIN_ADDRESS,
+                port=TPMP_PORT,
                 user=dbc["user"],
                 pwd=dbc["password"],
             )

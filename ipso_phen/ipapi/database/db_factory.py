@@ -9,6 +9,8 @@ from ipso_phen.ipapi.database.psql_wrapper import PgSqlDbWrapper
 
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
+from ipso_phen.ipapi.database.phenoserre_wrapper import PhenoserreDbWrapper
+from ipso_phen.ipapi.database.phenopsis_wrapper import PhenopsisDbWrapper
 
 dbc_path = os.path.join(
     ipso_folders.get_path("db_connect_data", force_creation=False),
@@ -19,20 +21,6 @@ if os.path.isfile(dbc_path):
         dbc = json.load(f)
 else:
     dbc = {}
-
-try:
-    from ipso_phen.ipapi.database.phenoserre_wrapper import PhenoserreDbWrapper
-except Exception as e:
-    is_phenoserre = False
-else:
-    is_phenoserre = True
-
-try:
-    from ipso_phen.ipapi.database.phenopsis_wrapper import PhenopsisDbWrapper
-except Exception as e:
-    is_phenopsis = False
-else:
-    is_phenopsis = True
 
 
 def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
@@ -57,12 +45,12 @@ def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
             progress_call_back=kwargs.get("progress_call_back", None),
             db_folder_name=info.db_folder_name,
         )
-    elif info.target == "phenoserre" and is_phenoserre is True:
+    elif info.target == "phenoserre":
         return PhenoserreDbWrapper(
             db_info=info.copy(),
             progress_call_back=kwargs.get("progress_call_back", None),
         )
-    elif info.target == "phenopsis" and is_phenopsis is True:
+    elif info.target == "phenopsis":
         return PhenopsisDbWrapper(
             db_info=info.copy(),
             progress_call_back=kwargs.get("progress_call_back", None),

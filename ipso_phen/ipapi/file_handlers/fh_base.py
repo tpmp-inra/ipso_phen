@@ -75,6 +75,8 @@ class FileHandlerBase(ABC):
                     if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
                         force_directories(os.path.dirname(self.cache_file_path))
                         cv2.imwrite(self.cache_file_path, src_img)
+            except Exception as e:
+                logger.exception(f"FTP error: {repr(e)}")
             finally:
                 ftp.close()
             p.close()

@@ -10,6 +10,7 @@ from stat import S_ISDIR
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 from ipso_phen.ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
 from ipso_phen.ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.database.db_consts import TPMP_PORT, GENOLOGIN_ADDRESS
 
 dbc_path = os.path.join(
     ipso_folders.get_path("db_connect_data", force_creation=False),
@@ -17,7 +18,7 @@ dbc_path = os.path.join(
 )
 if os.path.isfile(dbc_path):
     with open(dbc_path, "r") as f:
-        dbc = json.load(f)
+        dbc = json.load(f)["phenopsis"]
 else:
     dbc = {}
 logger = logging.getLogger(__name__)
@@ -32,8 +33,8 @@ def connect_to_phenodb():
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
     p.connect(
-        dbc["address"],
-        port=dbc["port"],
+        GENOLOGIN_ADDRESS,
+        port=TPMP_PORT,
         username=dbc["user"],
         password=dbc["password"],
     )
@@ -51,7 +52,7 @@ def get_phenopsis_exp_list() -> list:
         exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
         ftp.close()
     except Exception as e:
-        logger.error("Unable to reach Phenopsis")
+        logger.error(f"Unable to reach Phenopsis: {repr(e)}")
         return []
     else:
         return [exp for exp in exp_lst if exp != "csv"]
