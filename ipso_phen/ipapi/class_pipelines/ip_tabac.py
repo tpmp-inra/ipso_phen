@@ -28,7 +28,12 @@ class TpmpImageProcessorTabac(BaseImageProcessor):
                     (1440, 2560, 3),
                     np.array(
                         [
-                            ["source", "fix_wb_0_50", "mask_vab", "mask_erode_3_2_times"],
+                            [
+                                "source",
+                                "fix_wb_0_50",
+                                "mask_vab",
+                                "mask_erode_3_2_times",
+                            ],
                             [
                                 "mask_dilate_3_2_times",
                                 "mask_rois_applyed",
@@ -170,7 +175,9 @@ class TpmpImageProcessorTabac(BaseImageProcessor):
             self.store_image(mask_a_med, stored_img, self.rois_list, mosaic_line_1)
 
             # Build noisy leaf mask
-            mask_a_coarse, stored_img = self.get_mask(img, "a", 145, 255, self.rois_list)
+            mask_a_coarse, stored_img = self.get_mask(
+                img, "a", 145, 255, self.rois_list
+            )
             self.store_image(mask_a_coarse, stored_img, self.rois_list, mosaic_line_1)
 
             # Merge masks and apply ROIs

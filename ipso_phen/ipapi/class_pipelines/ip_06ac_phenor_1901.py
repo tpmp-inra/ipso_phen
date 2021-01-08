@@ -61,8 +61,8 @@ class Ip06acPhenor1901(BaseImageProcessor):
             self.error_holder.add_error("HANDLED FAILURE color checker")
             return False
 
-        # if self.is_msp and (self.retrieve_msp_images() != 8):
-        #     self.error_holder.add_error(f'Wrong number of MSP files expected 8, received {self.retrieve_msp_images()}',
+        # if self.is_msp and (self.retrieve_linked_images() != 8):
+        #     self.error_holder.add_error(f'Wrong number of MSP files expected 8, received {self.retrieve_linked_images()}',
         #                                 new_error_kind='source_issue')
         #     return False
 

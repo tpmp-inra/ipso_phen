@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import cv2
 import matplotlib
@@ -7,7 +8,7 @@ import pandas as pd
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import get_hr_channel_name, channel_color
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
@@ -20,7 +21,11 @@ matplotlib.use("agg")
 
 class IptAnalyzeColor(IptBaseAnalyzer):
     def build_params(self):
-        self.add_checkbox(name="normalize", desc="Normalize histograms", default_value=0)
+        self.add_checkbox(
+            name="normalize",
+            desc="Normalize histograms",
+            default_value=0,
+        )
         self.add_spin_box(
             name="remove_outliers",
             desc="Remove top and bottom % values",
@@ -224,7 +229,8 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                         a_cnv=canvas,
                         img=v["data"][np.ix_(mask.any(1), mask.any(0))],
                         rect=regions.RectangleRegion(
-                            width=fig_shape[1], height=fig_shape[0]
+                            width=fig_shape[1],
+                            height=fig_shape[0],
                         ),
                         frame_width=0,
                     )

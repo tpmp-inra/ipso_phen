@@ -1,5 +1,6 @@
-from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from abc import ABC, abstractproperty
+
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
 class IptBaseAnalyzer(IptBase, ABC):

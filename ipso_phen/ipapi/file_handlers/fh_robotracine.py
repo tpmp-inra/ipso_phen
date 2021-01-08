@@ -5,7 +5,7 @@ from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class FileHandlerRobotRacine(FileHandlerBase):

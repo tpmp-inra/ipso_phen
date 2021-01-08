@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from scipy.special import expit
 
@@ -21,9 +22,15 @@ class IptCustomChannel(IptBase):
         )
         self.add_source_selector(default_value="source")
         self.add_separator("sep_1")
-        self.add_channel_selector(name="channel_1", desc="Channel 1:", default_value="bl")
+        self.add_channel_selector(
+            name="channel_1",
+            desc="Channel 1:",
+            default_value="bl",
+        )
         self.add_checkbox(
-            name="invert_channel_1", desc="Invert channel 1", default_value=0
+            name="invert_channel_1",
+            desc="Invert channel 1",
+            default_value=0,
         )
         self.add_combobox(
             name="transformation_channel_1",
@@ -32,9 +39,15 @@ class IptCustomChannel(IptBase):
             values=dict(none="None", sigmoid="Sigmoid", normalize="Normalize"),
         )
         self.add_separator("sep_2")
-        self.add_channel_selector(name="channel_2", desc="Channel 2:", default_value="gr")
+        self.add_channel_selector(
+            name="channel_2",
+            desc="Channel 2:",
+            default_value="gr",
+        )
         self.add_checkbox(
-            name="invert_channel_2", desc="Invert channel 2", default_value=0
+            name="invert_channel_2",
+            desc="Invert channel 2",
+            default_value=0,
         )
         self.add_combobox(
             name="transformation_channel_2",
@@ -43,9 +56,15 @@ class IptCustomChannel(IptBase):
             values=dict(none="None", sigmoid="Sigmoid", normalize="Normalize"),
         )
         self.add_separator("sep_3")
-        self.add_channel_selector(name="channel_3", desc="Channel 3:", default_value="rd")
+        self.add_channel_selector(
+            name="channel_3",
+            desc="Channel 3:",
+            default_value="rd",
+        )
         self.add_checkbox(
-            name="invert_channel_3", desc="Invert channel 3", default_value=0
+            name="invert_channel_3",
+            desc="Invert channel 3",
+            default_value=0,
         )
         self.add_combobox(
             name="transformation_channel_3",

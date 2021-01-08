@@ -691,7 +691,11 @@ class IpHeliasen(BaseImageProcessor):
                     line_color = ipc.C_ORANGE
                 cv2.line(dbg_img, (0, line_height), (10, line_height), line_color, 1)
                 cv2.line(
-                    dbg_img, (x_to - 10, line_height), (x_to, line_height), line_color, 1
+                    dbg_img,
+                    (x_to - 10, line_height),
+                    (x_to, line_height),
+                    line_color,
+                    1,
                 )
             self.store_image(dbg_img, "quality_control_report")
 

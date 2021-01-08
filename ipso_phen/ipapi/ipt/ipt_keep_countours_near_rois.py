@@ -1,6 +1,7 @@
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 import numpy as np
 import cv2
@@ -162,7 +163,9 @@ class IptKeepCountoursNearRois(IptBase):
 
                 # Get source contours
                 contours = ipc.get_contours(
-                    mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+                    mask=mask,
+                    retrieve_mode=cv2.RETR_LIST,
+                    method=cv2.CHAIN_APPROX_SIMPLE,
                 )
 
                 # Dilate ROIs
@@ -219,7 +222,11 @@ class IptKeepCountoursNearRois(IptBase):
                     )
                     intersection = cv2.bitwise_and(tmp_img, rois_mask)
                     cv2.drawContours(
-                        image=tmp_img, contours=[cnt], contourIdx=0, color=0, thickness=-1
+                        image=tmp_img,
+                        contours=[cnt],
+                        contourIdx=0,
+                        color=0,
+                        thickness=-1,
                     )
                     if np.sum(intersection[intersection != 0]) > 0:
                         if cv2.contourArea(cnt) > init_min_size:
@@ -382,7 +389,9 @@ class IptKeepCountoursNearRois(IptBase):
 
                 # Clean mask
                 contours = ipc.get_contours(
-                    mask=mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+                    mask=mask,
+                    retrieve_mode=cv2.RETR_LIST,
+                    method=cv2.CHAIN_APPROX_SIMPLE,
                 )
                 src_image = wrapper.current_image
                 for cnt in contours:

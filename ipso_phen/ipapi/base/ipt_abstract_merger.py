@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import cv2
 from abc import ABC, abstractproperty
@@ -8,7 +9,7 @@ from skimage.future import graph
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class IptBaseMerger(IptBase, ABC):

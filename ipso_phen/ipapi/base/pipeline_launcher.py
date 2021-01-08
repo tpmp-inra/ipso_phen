@@ -93,7 +93,9 @@ def launch(**kwargs):
     image = kwargs.get("image", None)
     image_list = kwargs.get("image_list", None)
     image_folder = kwargs.get("image_folder", None)
-    src_count = len([src for src in [image, image_list, image_folder] if src is not None])
+    src_count = len(
+        [src for src in [image, image_list, image_folder] if src is not None]
+    )
     if src_count == 0:
         exit_error_message("Missing source images")
         return 1
@@ -242,7 +244,10 @@ def launch(**kwargs):
             else:
                 wrappers = [
                     file_handler_factory(f, db)
-                    for f in tqdm.tqdm(groups_to_process, desc="Building annotation CSV")
+                    for f in tqdm.tqdm(
+                        groups_to_process,
+                        desc="Building annotation CSV",
+                    )
                 ]
             pd.DataFrame.from_dict(
                 {

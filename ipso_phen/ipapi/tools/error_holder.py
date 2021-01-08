@@ -1,3 +1,4 @@
+import os
 from typing import Any, Union
 from datetime import datetime as dt
 import logging
@@ -5,7 +6,7 @@ import logging
 
 ERR_LVL_EXCEPTION = 35
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 def error_level_to_str(error_level: int) -> str:
@@ -87,9 +88,10 @@ class ErrorHolder(object):
         :param target_logger:
         """
         if new_error_text:
-            error_level_to_logger(error_level=new_error_level, target_logger=target_logger,)(
-                new_error_text
-            )
+            error_level_to_logger(
+                error_level=new_error_level,
+                target_logger=target_logger,
+            )(new_error_text)
 
     def clear(self):
         logger.warning("ErrorHolder - Deprecated class - called method: clear")
@@ -99,7 +101,9 @@ class ErrorHolder(object):
         return False
 
     def get_count_by_level(self, level: int) -> int:
-        logger.warning("ErrorHolder - Deprecated class - called method: get_count_by_level")
+        logger.warning(
+            "ErrorHolder - Deprecated class - called method: get_count_by_level"
+        )
         return 0
 
     def is_error_over_or(self, level):
@@ -107,7 +111,9 @@ class ErrorHolder(object):
         return False
 
     def is_error_under_or(self, level):
-        logger.warning("ErrorHolder - Deprecated class - called method: is_error_under_or")
+        logger.warning(
+            "ErrorHolder - Deprecated class - called method: is_error_under_or"
+        )
         return False
 
     @property

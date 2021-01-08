@@ -10,7 +10,7 @@ from ipso_phen.ipapi.tools.common_functions import (
     undefined_tqdm,
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class DbInfo:
@@ -97,7 +97,11 @@ class QueryHandler(ABC):
         **kwargs,
     ):
         ret = self.query(
-            command=command, columns=columns, table=table, additional=additional, **kwargs
+            command=command,
+            columns=columns,
+            table=table,
+            additional=additional,
+            **kwargs,
         )
         if (ret is not None) and (len(ret) > 0):
             return ret[0]
@@ -152,7 +156,9 @@ class DbWrapper(ABC):
 
     @abstractmethod
     def update(
-        self, db_qualified_name="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+        self,
+        db_qualified_name="",
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
     ):
         pass
 

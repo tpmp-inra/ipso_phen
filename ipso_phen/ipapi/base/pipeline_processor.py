@@ -25,7 +25,7 @@ from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 
 USE_TQDM = True
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 if USE_TQDM is False:
     logger.addHandler(logging.StreamHandler(sys.stdout))
 
@@ -216,7 +216,12 @@ class PipelineProcessor:
         }
         self._progress_step += 1
 
-    def init_progress(self, total: int, desc: str = "", yield_mode: bool = False) -> None:
+    def init_progress(
+        self,
+        total: int,
+        desc: str = "",
+        yield_mode: bool = False,
+    ) -> None:
         if self._report_progress is False:
             pass
         elif yield_mode is True:
@@ -385,12 +390,15 @@ class PipelineProcessor:
         self.init_progress(total=len(csv_lst), desc="Merging CSV files")
 
         dataframe = pd.DataFrame()
+        merge_errors_count = 0
         for csv_file in csv_lst:
             try:
                 dataframe = dataframe.append(pd.read_csv(csv_file))
             except Exception as e:
-                logger.exception("Merge error")
+                merge_errors_count += 1
             self.update_progress()
+        if merge_errors_count > 0:
+            logger.warning(f"{merge_errors_count} merge errors")
 
         def put_column_in_front(col_name: str, dataframe):
             df_cols = list(dataframe.columns)

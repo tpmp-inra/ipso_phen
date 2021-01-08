@@ -33,7 +33,7 @@ KLC_NO_CLOSE_ENOUGH = dict(val=6, color=ipc.C_ORANGE)
 KLC_OUTSIDE = dict(val=7, color=ipc.C_RED)
 KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE = dict(val=8, color=ipc.C_LIME)
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class ImageListHolder:
@@ -46,7 +46,7 @@ class ImageListHolder:
     def __len__(self):
         return len(self.image_list)
 
-    def retrieve_image(self, key, value):
+    def retrieve_image(self, key, value, transformations: dict):
         """Return an image based on key value
 
         :param key: one of the wrapper properties
@@ -55,7 +55,20 @@ class ImageListHolder:
         """
         for fh in self.image_list:
             if value in fh.value_of(key):
-                return fh.load_source_file()
+                img = fh.load_source_file()
+                for t in transformations:
+                    if t["action"] == "crop":
+                        img = t["roi"].crop(
+                            src_image=img,
+                            fixed_width=t["fixed_width"],
+                            fixed_height=t["fixed_height"],
+                        )
+                    elif t["action"] == "scale":
+                        img = ipc.scale_image(
+                            src_img=img,
+                            scale_factor=t["scale_factor"],
+                        )
+                return img
         return None
 
 
@@ -90,10 +103,11 @@ class BaseImageProcessor(ImageWrapper):
         self._rois_list = []
         self._mosaic_data = None
         self.data_output = {}
+        self.image_transformations = []
 
         self.good_image = False
         self.owner = None
-        self.msp_images_holder = None
+        self.linked_images_holder = None
 
         self._built_channels = {}
 
@@ -116,6 +130,7 @@ class BaseImageProcessor(ImageWrapper):
         self.data_output = {}
         self._mosaic_data = None
         self.store_mosaic = "none"
+        self.image_transformations = []
         self._current_image = self.source_image
 
     def init_csv_writer(self):
@@ -148,13 +163,7 @@ class BaseImageProcessor(ImageWrapper):
         if self.good_image:
             src_img = self._fix_source_image(src_img)
             if self.scale_factor != 1:
-                src_img = ipc.resize_image(
-                    src_img=src_img,
-                    width=round(src_img.shape[1] * self.scale_factor),
-                    height=round(src_img.shape[0] * self.scale_factor),
-                    keep_aspect_ratio=False,
-                    output_as_bgr=False,
-                )
+                src_img = ipc.scale_image(src_img=src_img, scale_factor=self.scale_factor)
             if store_source:
                 self.store_image(src_img, "source")
         else:
@@ -162,20 +171,20 @@ class BaseImageProcessor(ImageWrapper):
 
         return src_img
 
-    def retrieve_msp_images(self):
+    def retrieve_linked_images(self):
         """On first call builds the wrappers corresponding to MSP images linked to observation
 
         :return: Number of MSP images available
         """
-        if self.msp_images_holder is None:
-            self.msp_images_holder = ImageListHolder(
+        if self.linked_images_holder is None:
+            self.linked_images_holder = ImageListHolder(
                 self.file_handler.linked_images,
                 self.target_database,
             )
-        if self.msp_images_holder is None:
+        if self.linked_images_holder is None:
             return 0
         else:
-            return len(self.msp_images_holder)
+            return len(self.linked_images_holder)
 
     @staticmethod
     def draw_text(
@@ -383,7 +392,11 @@ class BaseImageProcessor(ImageWrapper):
                 if straight_bounding_rec_thickness > 0:
                     x, y, w, h = cv2.boundingRect(obj)
                     cv2.rectangle(
-                        img, (x, y), (x + w, y + h), ipc.C_PURPLE, bounding_rec_thickness
+                        img,
+                        (x, y),
+                        (x + w, y + h),
+                        ipc.C_PURPLE,
+                        bounding_rec_thickness,
                     )
                 if enclosing_circle_thickness > 0:
                     (x, y), radius = cv2.minEnclosingCircle(obj)
@@ -800,7 +813,10 @@ class BaseImageProcessor(ImageWrapper):
 
             if self.store_images:
                 dbg_img = self.draw_image(
-                    src_image=ori_img, src_mask=mask, background="bw", foreground="source"
+                    src_image=ori_img,
+                    src_mask=mask,
+                    background="bw",
+                    foreground="source",
                 )
                 cv2.drawContours(dbg_img, group, -1, (255, 0, 0), 6)
                 for cnt in contours:
@@ -830,7 +846,8 @@ class BaseImageProcessor(ImageWrapper):
         """
 
         obj, mask = self.prepare_analysis(
-            self.draw_image(src_mask=mask, background="silver", foreground="source"), mask
+            self.draw_image(src_mask=mask, background="silver", foreground="source"),
+            mask,
         )
 
         # Valid objects can only be analyzed if they have >= 5 vertices
@@ -851,8 +868,16 @@ class BaseImageProcessor(ImageWrapper):
             # Store Shape Data
             self.csv_data_holder.update_csv_value("area", area)
             if self.csv_data_holder.has_csv_key("centroid"):
-                self.csv_data_holder.update_csv_value("centroid_x", cmx, force_pair=True)
-                self.csv_data_holder.update_csv_value("centroid_y", cmy, force_pair=True)
+                self.csv_data_holder.update_csv_value(
+                    "centroid_x",
+                    cmx,
+                    force_pair=True,
+                )
+                self.csv_data_holder.update_csv_value(
+                    "centroid_y",
+                    cmy,
+                    force_pair=True,
+                )
                 self.csv_data_holder.data_list.pop("centroid", None)
 
             hull_area = cv2.contourArea(hull)
@@ -1513,7 +1538,9 @@ class BaseImageProcessor(ImageWrapper):
         tolerance_area=None,
         tolerance_distance=None,
         dilation_iter=0,
-        trusted_safe_zone=False,
+        keep_safe_close_enough=False,
+        keep_safe_big_enough=False,
+        safe_roi=None,
         area_override_size=0,
     ):
         """Compares to hulls
@@ -1527,38 +1554,32 @@ class BaseImageProcessor(ImageWrapper):
         """
 
         def last_chance_(test_cnt):
+            roi = self.get_roi(roi_name=safe_roi, exists_only=True)
+
             ok_size = (tolerance_area is not None) and (
                 (tolerance_area < 0) or cv2.contourArea(test_cnt) >= tolerance_area
             )
+            if ok_size and keep_safe_big_enough and roi.intersects_contour(test_cnt):
+                return KLC_PROTECTED_SIZE_OK
+
             ok_dist = (tolerance_distance is not None) and (
                 tolerance_distance < 0 or min_dist <= tolerance_distance
             )
+            if ok_dist and keep_safe_close_enough and roi.intersects_contour(test_cnt):
+                return KLC_PROTECTED_DIST_OK
+
             if ok_size and ok_dist:
                 return KLC_OK_TOLERANCE
-            elif ok_size:
-                if self.rois_intersects("safe", test_cnt):
-                    return KLC_PROTECTED_SIZE_OK
-                else:
-                    res_ = KLC_NO_CLOSE_ENOUGH
-            elif ok_dist:
-                if self.rois_intersects("safe", test_cnt) and cv2.contourArea(
-                    test_cnt
-                ) > pow(dilation_iter * 2, 2):
-                    return KLC_PROTECTED_DIST_OK
-                else:
-                    res_ = KLC_NO_BIG_ENOUGH
-            elif trusted_safe_zone and self.rois_intersects("safe", test_cnt):
-                return KLC_OK_TOLERANCE
-            else:
-                res_ = KLC_OUTSIDE
-
-            # Check area override limit
-            if (area_override_size > 0) and (
-                cv2.contourArea(test_cnt) > area_override_size
+            elif (
+                area_override_size > 0 and cv2.contourArea(test_cnt) > area_override_size
             ):
                 return KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
-            else:
-                return res_
+            elif not ok_size and not ok_dist:
+                return KLC_OUTSIDE
+            elif not ok_size:
+                return KLC_NO_BIG_ENOUGH
+            elif not ok_dist:
+                return KLC_NO_CLOSE_ENOUGH
 
         # Check hull intersection
         if (dilation_iter < 0) and (
@@ -1631,6 +1652,10 @@ class BaseImageProcessor(ImageWrapper):
         root_position = kwargs.get("root_position", "BOTTOM_CENTER")
         trusted_safe_zone = kwargs.get("trusted_safe_zone", False)
 
+        safe_roi_name = kwargs.get("safe_roi_name")
+        keep_safe_close_enough = kwargs.get("keep_safe_close_enough")
+        keep_safe_big_enough = kwargs.get("keep_safe_big_enough")
+
         if dilation_iter > 0:
             dil_mask = self.dilate(src_mask, proc_times=dilation_iter)
         elif dilation_iter < 0:
@@ -1702,7 +1727,9 @@ class BaseImageProcessor(ImageWrapper):
                 cmp_hull=hull,
                 master_hull=main_hull,
                 dilation_iter=dilation_iter,
-                trusted_safe_zone=trusted_safe_zone,
+                keep_safe_big_enough=keep_safe_big_enough,
+                keep_safe_close_enough=keep_safe_close_enough,
+                safe_roi=safe_roi_name,
             )
             if res in [
                 KLC_FULLY_INSIDE,
@@ -1756,6 +1783,10 @@ class BaseImageProcessor(ImageWrapper):
         area_override_size = kwargs.get("area_override_size", 0)
         delete_all_bellow = kwargs.get("delete_all_bellow", 0)
 
+        safe_roi_name = kwargs.get("safe_roi_name")
+        keep_safe_close_enough = kwargs.get("keep_safe_close_enough")
+        keep_safe_big_enough = kwargs.get("keep_safe_big_enough")
+
         if tolerance_distance != int(tolerance_distance) or tolerance_area != int(
             tolerance_area
         ):
@@ -1766,7 +1797,9 @@ class BaseImageProcessor(ImageWrapper):
         if delete_all_bellow > 0:
             fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
             contours = ipc.get_contours(
-                mask=src_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+                mask=src_mask,
+                retrieve_mode=cv2.RETR_LIST,
+                method=cv2.CHAIN_APPROX_SIMPLE,
             )
             small_img = src_mask.copy()
             small_img = np.dstack((small_img, small_img, small_img))
@@ -1880,7 +1913,9 @@ class BaseImageProcessor(ImageWrapper):
                 tolerance_area=tolerance_area,
                 tolerance_distance=tolerance_distance,
                 dilation_iter=dilation_iter,
-                trusted_safe_zone=trusted_safe_zone,
+                keep_safe_big_enough=keep_safe_big_enough,
+                keep_safe_close_enough=keep_safe_close_enough,
+                safe_roi=safe_roi_name,
                 area_override_size=area_override_size,
             )
             cv2.drawContours(hull_img, [hull], 0, res["color"], 2)
@@ -1923,7 +1958,9 @@ class BaseImageProcessor(ImageWrapper):
                         tolerance_area=tolerance_area,
                         tolerance_distance=tolerance_distance,
                         dilation_iter=dilation_iter,
-                        trusted_safe_zone=trusted_safe_zone,
+                        keep_safe_big_enough=keep_safe_big_enough,
+                        keep_safe_close_enough=keep_safe_close_enough,
+                        safe_roi=safe_roi_name,
                         area_override_size=area_override_size,
                     )
                     if res == KLC_FULLY_INSIDE:
@@ -1988,7 +2025,9 @@ class BaseImageProcessor(ImageWrapper):
                     hull_img, f"{area_}", (x, y), fnt[0], fnt[1], (255, 0, 255), 2
                 )
         self.store_image(
-            image=hull_img, text="src_img_with_cnt_after_agg_iter_last", force_store=True
+            image=hull_img,
+            text="src_img_with_cnt_after_agg_iter_last",
+            force_store=True,
         )
 
         # At this point we have the zone were the contours are allowed to be
@@ -2006,7 +2045,9 @@ class BaseImageProcessor(ImageWrapper):
                     tolerance_area=tolerance_area,
                     tolerance_distance=tolerance_distance,
                     dilation_iter=dilation_iter,
-                    trusted_safe_zone=trusted_safe_zone,
+                    keep_safe_big_enough=keep_safe_big_enough,
+                    keep_safe_close_enough=keep_safe_close_enough,
+                    safe_roi=safe_roi_name,
                     area_override_size=area_override_size,
                 )
                 if res in [
@@ -2974,9 +3015,13 @@ class BaseImageProcessor(ImageWrapper):
             )
             c = ((c - c.min()) / (c.max() - c.min()) * 255).astype(np.uint8)
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.MSP]:
-            if self.is_msp and (self.retrieve_msp_images() != 0):
+            if self.is_msp and (self.retrieve_linked_images() != 0):
                 _, wl = channel.split("_")
-                img = self.msp_images_holder.retrieve_image("view_option", wl)
+                img = self.linked_images_holder.retrieve_image(
+                    key="view_option",
+                    value=wl,
+                    transformations=self.image_transformations,
+                )
                 if img is not None:
                     b, g, r = cv2.split(img)
                     lpo1 = r * 0.299 + g * 0.587 + b * 0.114
@@ -2986,7 +3031,7 @@ class BaseImageProcessor(ImageWrapper):
             else:
                 return None
         elif channel in ipc.CHANNELS_BY_SPACE[ipc.NDVI]:
-            if self.is_msp and (self.retrieve_msp_images() != 0):
+            if self.is_msp and (self.retrieve_linked_images() != 0):
                 r = self.get_channel(channel="rd")
                 nir = self.get_channel(channel=channel.replace("ndvi", "wl"))
                 if r is not None and nir is not None:
@@ -3416,9 +3461,9 @@ class BaseImageProcessor(ImageWrapper):
             )
             return False
 
-        if self.is_msp and (self.retrieve_msp_images() != 8):
+        if self.is_msp and (self.retrieve_linked_images() != 8):
             logger.error(
-                f"Wrong number of MSP files expected 8, received {self.retrieve_msp_images()}"
+                f"Wrong number of MSP files expected 8, received {self.retrieve_linked_images()}"
             )
 
         if self.is_corrupted:

@@ -2,8 +2,9 @@ import numpy as np
 from skimage.filters import threshold_niblack
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import ToolFamily
@@ -13,7 +14,10 @@ class IptNiblack(IptBase):
     def build_params(self):
         self.add_channel_selector(default_value="l")
         self.add_checkbox(
-            name="invert_mask", desc="Invert mask", default_value=0, hint="Invert result"
+            name="invert_mask",
+            desc="Invert mask",
+            default_value=0,
+            hint="Invert result",
         )
         self.add_slider(
             name="window_size",
@@ -23,7 +27,11 @@ class IptNiblack(IptBase):
             maximum=100,
         )
         self.add_slider(
-            name="k", desc="k threshold formula", default_value=80, minimum=0, maximum=100
+            name="k",
+            desc="k threshold formula",
+            default_value=80,
+            minimum=0,
+            maximum=100,
         )
         self.add_morphology_operator()
         self.add_text_overlay()

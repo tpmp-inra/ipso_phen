@@ -1,6 +1,7 @@
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import ipso_phen.ipapi.base.ip_common as ipc
@@ -74,7 +75,14 @@ class IptApplyRoi(IptBase):
                     selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 roi_type = self.get_value_of("roi_type")
-                if roi_type not in ["keep", "delete", "erode", "dilate", "open", "close"]:
+                if roi_type not in [
+                    "keep",
+                    "delete",
+                    "erode",
+                    "dilate",
+                    "open",
+                    "close",
+                ]:
                     return
                 erase_outside = self.get_value_of("erase_outside") == 1
                 for roi in rois:

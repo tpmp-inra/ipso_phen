@@ -1,9 +1,9 @@
 import numpy as np
-import cv2
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import ipso_phen.ipapi.base.ip_common as ipc
@@ -178,7 +178,8 @@ class IptSplittedRangeThreshold(IptBase):
                         self.result,
                         "split_threshold",
                         text_overlay=self.input_params_as_str(
-                            exclude_defaults=False, excluded_params=("progress_callback",)
+                            exclude_defaults=False,
+                            excluded_params=("progress_callback",),
                         ).replace(", ", "\n"),
                     )
                 else:

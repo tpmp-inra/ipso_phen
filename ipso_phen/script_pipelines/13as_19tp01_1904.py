@@ -282,7 +282,11 @@ def main():
     # __________________
     mask_list = []
     current_mask_ = call_ipt(
-        ipt_id="IptThreshold", source=wrapper, return_type="result", channel="l", min_t=15
+        ipt_id="IptThreshold",
+        source=wrapper,
+        return_type="result",
+        channel="l",
+        min_t=15,
     )
     mask_list.append(current_mask_)
 
@@ -355,7 +359,9 @@ def main():
                 roi_img = np.dstack((np.zeros_like(mask), mask, np.zeros_like(mask)))
             else:
                 roi_img = np.dstack((np.zeros_like(mask), np.zeros_like(mask), mask))
-            background_img = cv2.bitwise_and(wrapper.mask, wrapper.mask, mask=255 - mask)
+            background_img = cv2.bitwise_and(
+                wrapper.mask, wrapper.mask, mask=255 - mask
+            )
             img = cv2.bitwise_or(
                 roi_img, np.dstack((background_img, background_img, background_img))
             )

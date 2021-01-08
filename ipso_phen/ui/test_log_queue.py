@@ -3,12 +3,13 @@ import logging
 import random
 import sys
 import time
+import os
 
 from PySide2 import QtCore, QtGui, QtWidgets
 
 Signal = QtCore.Signal
 Slot = QtCore.Slot
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 #

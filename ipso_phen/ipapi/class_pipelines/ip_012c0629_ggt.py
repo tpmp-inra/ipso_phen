@@ -88,7 +88,8 @@ class Ip012c0629ggt(BaseImageProcessor):
             res = not self.is_over_exposed
             if not res:
                 self.error_holder.add_error(
-                    "HANDLED FAILURE Image is over exposed", new_error_kind="source_issue"
+                    "HANDLED FAILURE Image is over exposed",
+                    new_error_kind="source_issue",
                 )
         if res:
             res = not (self.is_cf_calc and self.is_cover_missing)
@@ -116,7 +117,9 @@ class Ip012c0629ggt(BaseImageProcessor):
     def init_csv_data(self, source_image):
         [treatment_1, treatment_2, plant_id_] = self.plant.split("_")
         self.csv_data_holder.update_csv_value("plant_id", plant_id_)
-        self.csv_data_holder.update_csv_value("treatment", f"{treatment_1}_{treatment_2}")
+        self.csv_data_holder.update_csv_value(
+            "treatment", f"{treatment_1}_{treatment_2}"
+        )
         self.csv_data_holder.update_csv_value("has_cover", not self.is_cover_missing)
         self.csv_data_holder.update_csv_value("bad_cover", self.is_cover_bad)
 
@@ -159,7 +162,10 @@ class Ip012c0629ggt(BaseImageProcessor):
     def build_channel_mask(self, source_image, **kwargs):
         try:
             if self.is_cf_calc:
-                params_dict = [dict(channel="v", min_t=50), dict(channel="bl", min_t=50)]
+                params_dict = [
+                    dict(channel="v", min_t=50),
+                    dict(channel="bl", min_t=50),
+                ]
                 op = "multi_or"
                 mask = self.build_mask(
                     source_image,
@@ -179,7 +185,9 @@ class Ip012c0629ggt(BaseImageProcessor):
                     mask = self.build_mask(
                         source_image,
                         **dict(
-                            is_store_images=True, merge_action=op, params_list=params_dict
+                            is_store_images=True,
+                            merge_action=op,
+                            params_list=params_dict,
                         ),
                     )
                     mask = self.multi_or(
@@ -236,7 +244,9 @@ class Ip012c0629ggt(BaseImageProcessor):
                     mask_outer = self.build_mask(
                         source_image,
                         **dict(
-                            is_store_images=True, merge_action=op, params_list=params_dict
+                            is_store_images=True,
+                            merge_action=op,
+                            params_list=params_dict,
                         ),
                     )
 

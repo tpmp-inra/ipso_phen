@@ -20,7 +20,7 @@ if os.path.isfile(dbc_path):
 else:
     dbc = {}
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 @unique

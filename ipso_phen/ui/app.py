@@ -134,7 +134,7 @@ logging.basicConfig(
     ],
 )
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 logger.info("")
 logger.info("______________________Starting session________________________________")
 logger.info("")
@@ -256,7 +256,7 @@ class AboutDialog(Ui_about_dialog):
 
 class NewToolDialog(QDialog):
 
-    folder_path = "./ipapi/ipt"
+    folder_path = "./ipso_phen/ipapi/ipt"
 
     def __init__(self, parent=None, flags=0):
         super().__init__(parent)
@@ -366,8 +366,11 @@ class NewToolDialog(QDialog):
                 inh_class_name_ = "IptBase"
             f.write("\n\n")
 
+            f.write("import os\n")
             f.write("import logging\n")
-            f.write("logger = logging.getLogger(__name__)\n\n")
+            f.write(
+                "logger = logging.getLogger(os.path.splitext(__name__)[-1].replace('.', ''))\n\n"
+            )
 
             # Class
             f.write(f"{spaces}class {self.ui.le_class_name.text()}({inh_class_name_}):\n")
@@ -390,14 +393,14 @@ class NewToolDialog(QDialog):
                 spaces = remove_tab(spaces)
                 f.write(f"{spaces})\n")
             if self.check_boxes[ipc.ToolFamily.IMAGE_GENERATOR].isChecked():
-                f.write(f"{spaces}self.add_text_input(\n")
-                spaces = add_tab(spaces)
-                f.write(f'{spaces}name="path",\n')
-                f.write(f'{spaces}desc="Target folder",\n')
-                f.write(f'{spaces}default_value="",\n')
-                f.write(f'{spaces}hint="Can be overridden at process call",\n')
-                spaces = remove_tab(spaces)
-                f.write(f"{spaces})\n")
+                f.write(
+                    f'{spaces}self.add_checkbox(name="save_image", desc="Save generated image", default_value=0)\n'
+                )
+                f.write(
+                    f'{spaces}self.add_text_input(name="img_name", desc="Name in csv", default_value="img")\n'
+                )
+                f.write(f"{spaces}self.add_file_naming()\n")
+                f.write("\n")
             f.write("\n")
 
             # Process image
@@ -733,9 +736,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._updating_process_modes = False
         self._updating_image_browser = False
 
-        self._batch_stop_current = False
-        self._batch_is_in_progress = False
-        self._batch_last_processed = False
         self._batch_is_active = False
         self.ui.mnu_db_action_group = None
 
@@ -1235,9 +1235,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return
             else:
                 model = self.get_image_model()
-                dataframe = model.images
+                src_df = model.images
                 old_row_count = model.rowCount()
-                model.images = dataframe[~dataframe["Luid"].isin(dataframe["Luid"])]
+                model.images = src_df[~src_df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 self.update_feedback(
@@ -1250,9 +1250,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return
             else:
                 model = self.get_image_model()
-                dataframe = model.images
+                src_df = model.images
                 old_row_count = model.rowCount()
-                model.images = dataframe[dataframe["Luid"].isin(dataframe["Luid"])]
+                model.images = src_df[src_df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 self.update_feedback(
@@ -1491,7 +1491,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         **kwargs,
     ):
         ret = self.query_current_database(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
         if (ret is not None) and (len(ret) > 0):
             return ret[0]
@@ -2087,7 +2091,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             # Fill pipeline processor
             self.ui.le_pp_output_folder.setText(
                 settings_.value(
-                    "pipeline_processor/output_folder", self.ui.le_pp_output_folder.text()
+                    "pipeline_processor/output_folder",
+                    self.ui.le_pp_output_folder.text(),
                 )
             )
             self.ui.cb_pp_overwrite.setChecked(
@@ -2342,10 +2347,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         log_level: int = 20,
         target_logger=logger,
     ):
-        process: psutil.Process = psutil.Process(os.getpid())
-        mem_data = f"""[Memory: Used/Free%{process.memory_percent():02.2f}/{100 - psutil.virtual_memory().percent:02.2f}%]"""
-
-        self.setWindowTitle(f"{_PRAGMA_FULL_NAME} -- {mem_data}")
 
         # Update status bar
         if status_message:
@@ -2373,6 +2374,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     log_level=log_level,
                     target_logger=target_logger,
                 )
+        process: psutil.Process = psutil.Process(os.getpid())
         if (
             not self._collecting_garbage
             and (timer() - self._last_garbage_collected > 60)
@@ -2459,7 +2461,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             f.write("```python\n")
             f.write(
                 call_ipt_code(
-                    ipt=self.current_tool, file_name=f"{self._src_image_wrapper.name}.jpg"
+                    ipt=self.current_tool,
+                    file_name=f"{self._src_image_wrapper.name}.jpg",
                 )
             )
             f.write("```\n\n")
@@ -2515,6 +2518,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if not self.ui.dk_log.isVisible():
                 self.ui.dk_log.setVisible(True)
             self.ui.dk_log.setWindowTitle("Log: last error - " + line)
+        if hasattr(self, "_status_label"):
+            self._status_label.setText("Last log entry: " + line)
+            self.process_events()
 
     def on_action_build_ipso_phen_documentation(self):
         # Build tools overview
@@ -3770,7 +3776,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             ]
             if luids:
                 self.update_image_browser(
-                    dataframe=pd.DataFrame(data=dict(Luid=luids)), mode="keep"
+                    dataframe=pd.DataFrame(data=dict(Luid=luids)),
+                    mode="keep",
                 )
         finally:
             self.end_edit_image_browser()
@@ -5198,11 +5205,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         self._src_image_wrapper = None
                     else:
                         self.ui.gv_source_image.main_image = ci
+                    self.setWindowTitle(
+                        f"{_PRAGMA_FULL_NAME} -- {self._src_image_wrapper.name}"
+                    )
                 except Exception as e:
                     self._src_image_wrapper = None
                     logger.exception(f"Failed to load image: {repr(e)}")
+                    self.setWindowTitle(
+                        f"{_PRAGMA_FULL_NAME} -- EXCEPTION WHILE LOADING IMAGE"
+                    )
             else:
                 self._src_image_wrapper = None
+                self.setWindowTitle(f"{_PRAGMA_FULL_NAME} -- NO IMAGE")
 
             try:
                 # Restore annotation

@@ -86,7 +86,9 @@ class IpsoFolders(dict):
 
     def set_path(self, key: str, path: str):
         if key in self.keys():
-            assert self[key].dynamic is True, f"Can not set '{self[key]}' path is static"
+            assert (
+                self[key].dynamic is True
+            ), f"Can not set '{self[key]}' path is static"
             self[key].set_path(path)
 
     def add_static(self, key, path, user_folder=""):

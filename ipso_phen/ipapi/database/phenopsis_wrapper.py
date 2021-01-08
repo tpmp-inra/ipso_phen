@@ -21,7 +21,7 @@ if os.path.isfile(dbc_path):
         dbc = json.load(f)["phenopsis"]
 else:
     dbc = {}
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 PHENOPSIS_ROOT_FOLDER = "./phenopsis"
@@ -176,6 +176,6 @@ class PhenopsisDbWrapper(PandasDbWrapper):
                     "blob_path",
                 ]
             ]
-
-        ftp.close()
+        finally:
+            ftp.close()
         return dataframe

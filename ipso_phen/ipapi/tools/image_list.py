@@ -6,7 +6,7 @@ from ipso_phen.ipapi.base.image_wrapper import ImageWrapper
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class ImageList:
@@ -66,7 +66,16 @@ class ImageList:
                 if cmd["action"].lower() == "cut_at_date":
                     cut_at_date_ = cmd["data"]
 
-        return flts_, post_flts_, grps_, acts_, pick_, exclusions_, forced_, cut_at_date_
+        return (
+            flts_,
+            post_flts_,
+            grps_,
+            acts_,
+            pick_,
+            exclusions_,
+            forced_,
+            cut_at_date_,
+        )
 
     @staticmethod
     def _clean_mask(mask):

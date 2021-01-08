@@ -8,11 +8,34 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import (
+    QCoreApplication,
+    QDate,
+    QDateTime,
+    QMetaObject,
+    QObject,
+    QPoint,
+    QRect,
+    QSize,
+    QTime,
+    QUrl,
+    Qt,
+)
+from PySide2.QtGui import (
+    QBrush,
+    QColor,
+    QConicalGradient,
+    QCursor,
+    QFont,
+    QFontDatabase,
+    QIcon,
+    QKeySequence,
+    QLinearGradient,
+    QPalette,
+    QPainter,
+    QPixmap,
+    QRadialGradient,
+)
 from PySide2.QtWidgets import *
 
 
@@ -33,7 +56,7 @@ class Ui_folder_selector(object):
 
         self.btn_box = QDialogButtonBox(folder_selector)
         self.btn_box.setObjectName(u"btn_box")
-        self.btn_box.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        self.btn_box.setStandardButtons(QDialogButtonBox.Cancel | QDialogButtonBox.Ok)
 
         self.gridLayout.addWidget(self.btn_box, 4, 2, 1, 1)
 
@@ -81,24 +104,51 @@ class Ui_folder_selector(object):
 
         self.gridLayout.addWidget(self.label_2, 0, 1, 1, 2)
 
-
         self.retranslateUi(folder_selector)
 
         QMetaObject.connectSlotsByName(folder_selector)
+
     # setupUi
 
     def retranslateUi(self, folder_selector):
-        folder_selector.setWindowTitle(QCoreApplication.translate("folder_selector", u"Select folder and options", None))
+        folder_selector.setWindowTitle(
+            QCoreApplication.translate(
+                "folder_selector", u"Select folder and options", None
+            )
+        )
         self.bt_select_folder.setText("")
-        self.label_3.setText(QCoreApplication.translate("folder_selector", u"Database name:", None))
-        self.cb_dbms.setItemText(0, QCoreApplication.translate("folder_selector", u"None - Won't be serialized", None))
-        self.cb_dbms.setItemText(1, QCoreApplication.translate("folder_selector", u"Sqlite", None))
+        self.label_3.setText(
+            QCoreApplication.translate("folder_selector", u"Database name:", None)
+        )
+        self.cb_dbms.setItemText(
+            0,
+            QCoreApplication.translate(
+                "folder_selector", u"None - Won't be serialized", None
+            ),
+        )
+        self.cb_dbms.setItemText(
+            1, QCoreApplication.translate("folder_selector", u"Sqlite", None)
+        )
 
-        self.label.setText(QCoreApplication.translate("folder_selector", u"Folder:", None))
-#if QT_CONFIG(tooltip)
-        self.label_4.setToolTip(QCoreApplication.translate("folder_selector", u"Database management system", None))
-#endif // QT_CONFIG(tooltip)
-        self.label_4.setText(QCoreApplication.translate("folder_selector", u"DBMS:", None))
-        self.label_2.setText(QCoreApplication.translate("folder_selector", u"<b>WARNING</b>: Folder parsing is recusrsive !!!", None))
+        self.label.setText(
+            QCoreApplication.translate("folder_selector", u"Folder:", None)
+        )
+        # if QT_CONFIG(tooltip)
+        self.label_4.setToolTip(
+            QCoreApplication.translate(
+                "folder_selector", u"Database management system", None
+            )
+        )
+        # endif // QT_CONFIG(tooltip)
+        self.label_4.setText(
+            QCoreApplication.translate("folder_selector", u"DBMS:", None)
+        )
+        self.label_2.setText(
+            QCoreApplication.translate(
+                "folder_selector",
+                u"<b>WARNING</b>: Folder parsing is recusrsive !!!",
+                None,
+            )
+        )
+
     # retranslateUi
-

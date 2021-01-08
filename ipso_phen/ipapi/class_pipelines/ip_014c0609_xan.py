@@ -80,7 +80,9 @@ class Ip014c0609Xan(BaseImageProcessor):
             "plant_location", f"P{plant_id // 36 + 1}_A{plant_id % 36}"
         )
         self.csv_data_holder.update_csv_value("ecotype", plant_data.ecotype)
-        self.csv_data_holder.update_csv_value("infection_type", plant_data.infection_type)
+        self.csv_data_holder.update_csv_value(
+            "infection_type", plant_data.infection_type
+        )
         self.csv_data_holder.update_csv_value("age", plant_data.age)
         self.csv_data_holder.update_csv_value("strain", plant_data.strain)
 
@@ -181,7 +183,9 @@ class Ip014c0609Xan(BaseImageProcessor):
                             ],
                         ),
                     )
-                    mask_outer = self.delete_roi(mask_outer, "safe_ish_roi", "mask_outer")
+                    mask_outer = self.delete_roi(
+                        mask_outer, "safe_ish_roi", "mask_outer"
+                    )
                     mask_outer = self.open(
                         mask_outer, kernel_size=5, proc_times=2, dbg_text="mask_open"
                     )
@@ -255,7 +259,9 @@ class Ip014c0609Xan(BaseImageProcessor):
                 mask_outer = self.delete_roi(mask_outer, "safe_ish_roi", "mask_outer")
 
                 mask = self.multi_or((mask_inner, mask_outer))
-                mask = self.open(mask, kernel_size=5, proc_times=1, dbg_text="mask_open")
+                mask = self.open(
+                    mask, kernel_size=5, proc_times=1, dbg_text="mask_open"
+                )
         except Exception as e:
             self.error_holder.add_error(
                 f'Failed to build channel mask because "{repr(e)}"'

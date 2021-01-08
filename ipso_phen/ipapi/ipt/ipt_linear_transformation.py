@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import C_WHITE, C_FUCHSIA, C_ORANGE
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer

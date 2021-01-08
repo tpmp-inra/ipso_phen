@@ -1,3 +1,4 @@
+import os
 import cv2
 import numpy as np
 import random
@@ -8,7 +9,7 @@ from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class ToolFamily:
@@ -507,6 +508,16 @@ def resize_image(src_img, **kwargs):
     src_img = cv2.resize(src_img, (n_w, n_h), interpolation=cv2.INTER_CUBIC)
 
     return src_img
+
+
+def scale_image(src_img, scale_factor):
+    return resize_image(
+        src_img=src_img,
+        width=round(src_img.shape[1] * scale_factor),
+        height=round(src_img.shape[0] * scale_factor),
+        keep_aspect_ratio=False,
+        output_as_bgr=False,
+    )
 
 
 def enclose_image(a_cnv, img, rect, frame_width: int = 0):

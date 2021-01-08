@@ -1,8 +1,9 @@
 import cv2
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
@@ -19,7 +20,11 @@ class IptClahe(IptBase):
             maximum=51,
         )
         self.add_slider(
-            name="clip_limit", desc="Clip limit", default_value=2, minimum=2, maximum=100
+            name="clip_limit",
+            desc="Clip limit",
+            default_value=2,
+            minimum=2,
+            maximum=100,
         )
         self.add_slider(
             name="tile_grid_size",

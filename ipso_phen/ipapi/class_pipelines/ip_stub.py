@@ -1,8 +1,9 @@
+import os
 import numpy as np
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 from ipso_phen.ipapi.base.ip_common import DefaultCsvWriter
@@ -80,7 +81,8 @@ class IpStub(BaseImageProcessor):
             pass
         except Exception as e:
             self.error_holder.add_error(
-                f'Failed to build channel mask because "{repr(e)}"', target_logger=logger
+                f'Failed to build channel mask because "{repr(e)}"',
+                target_logger=logger,
             )
             return False
         else:

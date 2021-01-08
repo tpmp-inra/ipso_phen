@@ -13,7 +13,9 @@ class FileHandlerHeliasen(FileHandlerBase):
                     "-"
                 )
             else:
-                exp_name_, self._camera, date_time_str = self.file_name_no_ext.split("-")
+                exp_name_, self._camera, date_time_str = self.file_name_no_ext.split(
+                    "-"
+                )
             self._exp = exp_name_[0:6]
             self._plant = exp_name_[6:]
             self._date_time = dt.strptime(date_time_str, "%Y%m%d%H%M%S")

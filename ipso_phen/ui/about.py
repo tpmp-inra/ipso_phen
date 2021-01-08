@@ -115,18 +115,25 @@ class Ui_about_dialog(object):
     # setupUi
 
     def retranslateUi(self, about_dialog):
-        about_dialog.setWindowTitle(QCoreApplication.translate("about_dialog", u"About", None))
-        self.lb_version.setText(QCoreApplication.translate("about_dialog", u"version", None))
-        self.lbl_authors.setText(QCoreApplication.translate("about_dialog", u"Authors", None))
+        about_dialog.setWindowTitle(
+            QCoreApplication.translate("about_dialog", u"About", None)
+        )
+        self.lb_version.setText(
+            QCoreApplication.translate("about_dialog", u"version", None)
+        )
+        self.lbl_authors.setText(
+            QCoreApplication.translate("about_dialog", u"Authors", None)
+        )
         self.lbl_image.setText("")
         self.lbl_copyright.setText(
             QCoreApplication.translate("about_dialog", u"Copyright", None)
         )
-        self.lbl_title.setText(QCoreApplication.translate("about_dialog", u"IPSO Phen", None))
+        self.lbl_title.setText(
+            QCoreApplication.translate("about_dialog", u"IPSO Phen", None)
+        )
         self.lbl_license_text.setText(
             QCoreApplication.translate("about_dialog", u"Used packages", None)
         )
         self.label.setText("")
 
     # retranslateUi
-

@@ -72,7 +72,11 @@ class IpBrachySymStd(BaseImageProcessor):
         :param dict_data: Dictionary containing filter data
         :return: True if current class can process data
         """
-        return dict_data["experiment"] in ["022s1806_sym", "018s1804_sym", "024s1809_sym"]
+        return dict_data["experiment"] in [
+            "022s1806_sym",
+            "018s1804_sym",
+            "024s1809_sym",
+        ]
 
     def init_csv_writer(self):
         if self.experiment in ["022s1806_sym", "018s1804_sym"]:

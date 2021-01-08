@@ -4,8 +4,9 @@ from skimage import img_as_float
 from skimage.morphology import reconstruction
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import ToolFamily
@@ -119,7 +120,8 @@ class IptRegionalMaximaFiltering(IptBase):
                         self.result,
                         img_name,
                         text_overlay=self.input_params_as_str(
-                            exclude_defaults=False, excluded_params=("progress_callback",)
+                            exclude_defaults=False,
+                            excluded_params=("progress_callback",),
                         ).replace(", ", "\n"),
                     )
                 else:

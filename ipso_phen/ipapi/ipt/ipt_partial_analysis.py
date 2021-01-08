@@ -6,8 +6,9 @@ import ipso_phen.ipapi.base.ip_common as ipc
 
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class IptPartialAnalysis(IptBaseAnalyzer):

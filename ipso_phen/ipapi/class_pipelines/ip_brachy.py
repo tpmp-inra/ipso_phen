@@ -54,7 +54,9 @@ class TpmpImageProcessorBrachy(BaseImageProcessor):
         self.store_image(mask, "mask", self.rois_list)
         self.mask = mask
 
-        mask = self.erode(mask, 5, cv2.MORPH_ELLIPSE, self.get_rois({"erode"}), "ellipse")
+        mask = self.erode(
+            mask, 5, cv2.MORPH_ELLIPSE, self.get_rois({"erode"}), "ellipse"
+        )
         self.store_image(mask, "mask_eroded", self.rois_list)
 
         # Apply all ROI at once
@@ -96,7 +98,9 @@ class TpmpImageProcessorBrachy(BaseImageProcessor):
         self.store_image(mask, "mask_b_and_s", self.rois_list)
 
         # Apply erosion to selected zones
-        mask = self.erode(mask, 7, cv2.MORPH_ELLIPSE, self.get_rois({"erode"}), "ellipse")
+        mask = self.erode(
+            mask, 7, cv2.MORPH_ELLIPSE, self.get_rois({"erode"}), "ellipse"
+        )
         self.store_image(mask, "mask_eroded", self.rois_list)
 
         # Apply all ROI at once
@@ -154,7 +158,9 @@ class TpmpImageProcessorBrachy(BaseImageProcessor):
         Returns:
             boolean -- always tru to avoid unneeded exceptions
         """
-        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(img, self.rois_list)
+        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(
+            img, self.rois_list
+        )
         self.store_image(mosaic_image_, "full_channel_mosaic")
         return True, None
 
@@ -186,7 +192,9 @@ class TpmpImageProcessorBrachy(BaseImageProcessor):
         # Clean
         mask_bl = self.keep_roi(mask_bl, roi_sticker, "mask_blue")
         mask_bl = 255 - mask_bl
-        self.store_image(mask_bl, "mask_not_bl_{}_{}".format(min_bl, max_bl), [roi_main])
+        self.store_image(
+            mask_bl, "mask_not_bl_{}_{}".format(min_bl, max_bl), [roi_main]
+        )
         # Merge masks
         mask = cv2.bitwise_and(mask_bl, mask)
         self.store_image(mask, "mask_(a_or_rd)_and_bl", [roi_main])

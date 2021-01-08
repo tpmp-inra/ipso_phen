@@ -1,8 +1,9 @@
 import numpy as np
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from scipy.spatial import distance as dist
 from skimage import measure
@@ -357,7 +358,8 @@ class IptFixPerspective(IptBase):
                 # Transform the image
                 mat = cv2.getPerspectiveTransform(
                     src=np.array(
-                        [top_left, top_right, bottom_right, bottom_left], dtype="float32"
+                        [top_left, top_right, bottom_right, bottom_left],
+                        dtype="float32",
                     ),
                     dst=np.array(
                         [

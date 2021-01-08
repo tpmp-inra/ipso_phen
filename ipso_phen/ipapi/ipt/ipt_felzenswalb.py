@@ -4,8 +4,9 @@ from skimage.segmentation import felzenszwalb
 from skimage.util import img_as_float
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
 from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
@@ -72,10 +73,18 @@ class IptFelzenswalb(IptBaseMerger):
             self.result = cv2.applyColorMap(255 - labels, DEFAULT_COLOR_MAP)
             wrapper.store_image(self.result, "felsenszwalb", text_overlay=True)
 
-            self.print_segmentation_labels(self.result, labels, dbg_suffix="felsenszwalb")
+            self.print_segmentation_labels(
+                self.result,
+                labels,
+                dbg_suffix="felsenszwalb",
+            )
 
             if post_process == "merge_labels":
-                self.result = self._merge_labels(img.copy(), labels=post_labels, **kwargs)
+                self.result = self._merge_labels(
+                    img.copy(),
+                    labels=post_labels,
+                    **kwargs,
+                )
 
             res = True
 

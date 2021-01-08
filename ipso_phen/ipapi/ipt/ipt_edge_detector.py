@@ -3,8 +3,9 @@ from skimage.feature import canny
 from skimage.filters import sobel, sobel_h, sobel_v, roberts, prewitt
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 import ipso_phen.ipapi.base.ip_common as ipc
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
@@ -173,7 +174,8 @@ class IptEdgeDetector(IptBase):
                         self.result,
                         img_name,
                         text_overlay=self.input_params_as_str(
-                            exclude_defaults=False, excluded_params=("progress_callback",)
+                            exclude_defaults=False,
+                            excluded_params=("progress_callback",),
                         ).replace(", ", "\n"),
                     )
                 else:

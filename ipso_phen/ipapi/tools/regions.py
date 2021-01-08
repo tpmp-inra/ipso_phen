@@ -180,6 +180,13 @@ class AbstractRegion(object):
     def copy(self):
         return self.__class__(**self.__dict__)
 
+    def intersects_contour(self, contour) -> bool:
+        for pt in contour:
+            if self.contains(Point(pt[0][0], pt[0][1])):
+                return True
+        else:
+            return False
+
     def point_at_position(self, position: str, round_position: bool = False) -> Point:
         """Return a point on the shape at a position
 
@@ -248,15 +255,36 @@ class AbstractRegion(object):
         cr = self.fill(cr, 0)
         return cv2.bitwise_and(cp, cp, mask=cr)
 
-    def crop(self, src_image, erase_outside_if_not_rect: bool = False):
+    def crop(
+        self,
+        src_image,
+        erase_outside_if_not_rect: bool = False,
+        fixed_width: int = 0,
+        fixed_height: int = 0,
+    ):
+        if (fixed_width != 0) and (fixed_width != self.width):
+            width_delta = fixed_width - self.width
+            dl = width_delta // 2
+            dr = width_delta // 2 + (1 if width_delta % 2 != 0 else 0)
+        else:
+            dl = 0
+            dr = 0
+        if (fixed_height != 0) and (fixed_height != self.width):
+            height_delta = fixed_height - self.width
+            dt = height_delta // 2
+            db = height_delta // 2 + (1 if height_delta % 2 != 0 else 0)
+        else:
+            dt = 0
+            db = 0
+        tmp_roi = self.copy()
+        tmp_roi.inflate(dl=dl, dr=dr, dt=dt, db=db)
+
         if erase_outside_if_not_rect is True:
-            img = self.keep(src_image)
+            img = tmp_roi.keep(src_image)
         else:
             img = src_image.copy()
-        r = self.as_rect()
-        if r is None:
-            return None
-        return img[r.top : r.bottom, r.left : r.right].copy(order="C")
+        tmp_roi = tmp_roi.as_rect()
+        return img[tmp_roi.top : tmp_roi.bottom, tmp_roi.left : tmp_roi.right].copy(order="C")
 
 
 class EmptyRegion(AbstractRegion):

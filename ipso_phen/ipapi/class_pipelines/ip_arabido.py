@@ -85,7 +85,9 @@ class TpmpImageProcessorArabido(BaseImageProcessor):
 
         mask_a, stored_name = self.get_mask(img, "a", 0, 130, self.rois_list, False, 5)
         self.store_image(mask_a, stored_name, self.rois_list)
-        mask_b, stored_name = self.get_mask(img, "b", 130, 255, self.rois_list, False, 5)
+        mask_b, stored_name = self.get_mask(
+            img, "b", 130, 255, self.rois_list, False, 5
+        )
         self.store_image(mask_b, stored_name, self.rois_list)
 
         mask = cv2.bitwise_and(mask_h, mask_a)

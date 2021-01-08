@@ -9,7 +9,7 @@ import ipso_phen.ipapi.tools.regions as regions
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class IptCrop(IptBaseAnalyzer):
@@ -62,6 +62,12 @@ class IptCrop(IptBaseAnalyzer):
             minimum=0,
             maximum=10000,
         )
+        self.add_checkbox(
+            name="store_transformation",
+            desc="Store transformation",
+            default_value=1,
+            hint="Store transformation so it will be applied to linked images",
+        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -108,32 +114,25 @@ class IptCrop(IptBaseAnalyzer):
                 elif isinstance(roi_list[0], regions.RectangleRegion):
                     roi: regions.RectangleRegion = roi_list[0]
                 else:
-                    logger.warning("ROI has been converted to rectangle rectangle")
                     roi: regions.RectangleRegion = roi_list[0].as_rect()
 
                 # Crop image
                 additional_images = {}
                 if roi is not None:
-                    fixed_width = self.get_value_of("fixed_width")
-                    if (fixed_width != 0) and (fixed_width != roi.width):
-                        width_delta = fixed_width - roi.width
-                        dl = width_delta // 2
-                        dr = width_delta // 2 + (1 if width_delta % 2 != 0 else 0)
-                    else:
-                        dl = 0
-                        dr = 0
-                    fixed_height = self.get_value_of("fixed_height")
-                    if (fixed_height != 0) and (fixed_height != roi.width):
-                        height_delta = fixed_height - roi.width
-                        dt = height_delta // 2
-                        db = height_delta // 2 + (1 if height_delta % 2 != 0 else 0)
-                    else:
-                        dt = 0
-                        db = 0
-                    new_roi = roi.copy()
-                    new_roi.inflate(dl=dl, dr=dr, dt=dt, db=db)
-
-                    self.result = new_roi.crop(src_image=img)
+                    if self.get_value_of("store_transformation") == 1:
+                        wrapper.image_transformations.append(
+                            {
+                                "action": "crop",
+                                "roi": roi,
+                                "fixed_width": self.get_value_of("fixed_width"),
+                                "fixed_height": self.get_value_of("fixed_height"),
+                            }
+                        )
+                    self.result = roi.crop(
+                        src_image=img,
+                        fixed_width=self.get_value_of("fixed_width"),
+                        fixed_height=self.get_value_of("fixed_height"),
+                    )
                     if self.get_value_of("grab_linked_images") == 1:
                         for lnk_img in wrapper.file_handler.linked_images:
                             try:
@@ -141,8 +140,10 @@ class IptCrop(IptBaseAnalyzer):
                                     lnk_img,
                                     database=wrapper.target_database,
                                 )
-                                additional_images[fh.view_option] = new_roi.crop(
-                                    src_image=fh.load_source_file()
+                                additional_images[fh.view_option] = roi.crop(
+                                    src_image=fh.load_source_file(),
+                                    fixed_width=self.get_value_of("fixed_width"),
+                                    fixed_height=self.get_value_of("fixed_height"),
                                 )
                                 wrapper.store_image(
                                     image=additional_images[fh.view_option],
@@ -156,38 +157,7 @@ class IptCrop(IptBaseAnalyzer):
 
                 # Finalize
                 if self.get_value_of("save_image") != 0:
-                    dst_path = self.build_output_filename()
-                    self.add_value(
-                        key=self.get_value_of("img_name"),
-                        value=os.path.basename(dst_path),
-                        force_add=True,
-                    )
-                    force_directories(self.output_path)
-                    cv2.imwrite(filename=dst_path, img=self.result)
-                    # Add linked images
-                    if (
-                        self.get_value_of("grab_linked_images") == 1
-                    ) and additional_images:
-                        file_ext = (
-                            wrapper.file_handler.file_ext
-                            if self.get_value_of("output_format") == "source"
-                            else f".{self.get_value_of('output_format')}"
-                        )
-                        base_name, _ = os.path.splitext(os.path.basename(dst_path))
-                        root_folder = os.path.join(os.path.dirname(dst_path), "")
-
-                        for k, v in additional_images.items():
-                            self.add_value(
-                                key=f'{self.get_value_of("img_name")}_{k}',
-                                value=f"{base_name}_{k}{file_ext}",
-                                force_add=True,
-                            )
-                            cv2.imwrite(
-                                filename=os.path.join(
-                                    root_folder, f"{base_name}_{k}{file_ext}"
-                                ),
-                                img=v,
-                            )
+                    self.save_images(additional_images=additional_images, **kwargs)
                 wrapper.store_image(self.result, "cropped_image")
                 self.demo_image = self.result
                 res = True
@@ -244,4 +214,4 @@ class IptCrop(IptBaseAnalyzer):
 
     @property
     def output_type(self):
-        return ipc.IO_IMAGE if self.get_value_of("save_image") == 0 else ipc.IO_DATA
+        return ipc.IO_IMAGE

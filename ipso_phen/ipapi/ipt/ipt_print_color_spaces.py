@@ -2,8 +2,9 @@ import numpy as np
 import cv2
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base import ip_common as ipc
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
@@ -13,19 +14,48 @@ class IptPrintColorSpaces(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
         self.add_separator(name="sp_0")
-        self.add_checkbox(name="rgb", desc="RGB", default_value=1)
-        self.add_checkbox(name="lab", desc="LAB", default_value=1)
-        self.add_checkbox(name="hsv", desc="HSV", default_value=1)
         self.add_checkbox(
-            name="msp", desc="MSP", default_value=1, hint="Only for multispectral images"
+            name="rgb",
+            desc="RGB",
+            default_value=1,
         )
-        self.add_checkbox(name="normalize", desc="Normalize channels", default_value=0)
-        self.add_checkbox(name="tag_images", desc="Add text to images", default_value=0)
+        self.add_checkbox(
+            name="lab",
+            desc="LAB",
+            default_value=1,
+        )
+        self.add_checkbox(
+            name="hsv",
+            desc="HSV",
+            default_value=1,
+        )
+        self.add_checkbox(
+            name="msp",
+            desc="MSP",
+            default_value=1,
+            hint="Only for multispectral images",
+        )
+        self.add_checkbox(
+            name="normalize",
+            desc="Normalize channels",
+            default_value=0,
+        )
+        self.add_checkbox(
+            name="tag_images",
+            desc="Add text to images",
+            default_value=0,
+        )
         self.add_separator(name="sp_1")
         self.add_checkbox(
-            name="single", desc="Output data as single images", default_value=0
+            name="single",
+            desc="Output data as single images",
+            default_value=0,
         )
-        self.add_checkbox(name="mosaics", desc="Output data as mosaics", default_value=1)
+        self.add_checkbox(
+            name="mosaics",
+            desc="Output data as mosaics",
+            default_value=1,
+        )
 
     def store_image(self, wrapper, channel, idx, text):
         text = text if self.get_value_of("tag_images") else False

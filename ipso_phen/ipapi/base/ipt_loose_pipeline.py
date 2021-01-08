@@ -21,7 +21,7 @@ from ipso_phen.ipapi.tools.common_functions import format_time
 from ipso_phen.ipapi.tools.regions import RectangleRegion
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 last_script_version = "0.2.0.0"
 
 
@@ -125,12 +125,16 @@ class Node(object):
         self.last_result = {}
 
     def get_relevant_image(self, exclude_demo: bool = False):
+        ri = None
+
         if not exclude_demo:
             demo_image = self.last_result.get("demo_image", None)
             if demo_image is not None:
                 ri = demo_image
 
-        if self.output_type == ipc.IO_IMAGE:
+        if ri is not None:
+            pass
+        elif self.output_type == ipc.IO_IMAGE:
             ri = self.last_result.get(
                 "image", np.full((100, 100, 3), ipc.C_FUCHSIA, np.uint8)
             )
@@ -1615,7 +1619,9 @@ class LoosePipeline(object):
     @show_tool_result.setter
     def show_tool_result(self, value):
         self.settings.set_value_of(
-            key="show_tool_result", value=1 if value is True else 0, update_widgets=False
+            key="show_tool_result",
+            value=1 if value is True else 0,
+            update_widgets=False,
         )
 
     @property
@@ -1625,7 +1631,9 @@ class LoosePipeline(object):
     @show_group_result.setter
     def show_group_result(self, value):
         self.settings.set_value_of(
-            key="show_group_result", value=1 if value is True else 0, update_widgets=False
+            key="show_group_result",
+            value=1 if value is True else 0,
+            update_widgets=False,
         )
 
     @property

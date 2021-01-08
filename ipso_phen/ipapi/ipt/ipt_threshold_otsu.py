@@ -2,8 +2,9 @@ import cv2
 import numpy as np
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
@@ -14,7 +15,10 @@ class IptOtsu(IptBase):
         self.add_source_selector(default_value="source")
         self.add_channel_selector(default_value="h")
         self.add_checkbox(
-            name="invert_mask", desc="Invert mask", default_value=0, hint="Invert result"
+            name="invert_mask",
+            desc="Invert mask",
+            default_value=0,
+            hint="Invert result",
         )
         self.add_checkbox(
             name="build_mosaic",

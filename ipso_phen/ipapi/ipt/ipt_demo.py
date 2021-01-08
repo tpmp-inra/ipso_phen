@@ -1,6 +1,7 @@
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_functional import call_ipt
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
@@ -59,7 +60,9 @@ class IptDemo(IptBase):
             desc="Sample combobox",
             default_value="a",
             values=dict(
-                a="First sample choice", b="Second sample choice", c="Third sample choice"
+                a="First sample choice",
+                b="Second sample choice",
+                c="Third sample choice",
             ),
             hint="This is a sample combobox",
         )
@@ -149,7 +152,10 @@ class IptDemo(IptBase):
 
         res = False
         try:
-            wrapper.store_image(image=255 - wrapper.current_image, text="inverted_image")
+            wrapper.store_image(
+                image=255 - wrapper.current_image,
+                text="inverted_image",
+            )
             res = True
         except Exception as e:
             logger.error(f'Failed to execute: "{repr(e)}"')

@@ -8,7 +8,7 @@ import pandas as pd
 from ipso_phen.ipapi.database.base import QueryHandler, DbWrapper
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class PandasQueryHandler(QueryHandler):
@@ -108,7 +108,11 @@ class PandasQueryHandler(QueryHandler):
             return None
 
         ret = self.query(
-            command=command, columns=columns, table=table, additional=additional, **kwargs
+            command=command,
+            columns=columns,
+            table=table,
+            additional=additional,
+            **kwargs,
         )
         if (ret is not None) and (len(ret) > 0):
             return ret[0]

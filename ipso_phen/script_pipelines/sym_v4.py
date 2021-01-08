@@ -16,7 +16,7 @@ from ipso_phen.ipapi.base.ipt_functional import call_ipt, call_ipt_func
 from ipso_phen.ipapi.tools.csv_writer import AbstractCsvWriter
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 def main():

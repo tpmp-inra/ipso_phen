@@ -1,9 +1,10 @@
 import cv2
 import numpy as np
+import os
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import MaskData
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer

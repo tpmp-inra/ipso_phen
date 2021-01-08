@@ -12,7 +12,7 @@ from ipso_phen.ipapi.tools.image_list import ImageList
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 def adapt_time_object(time_object):
@@ -95,7 +95,11 @@ class QueryHandlerSQLite(QueryHandler):
             return None
 
         sql_, params_ = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
         if self.open_connexion():
@@ -133,7 +137,11 @@ class QueryHandlerSQLite(QueryHandler):
             return None
 
         sql_, params_ = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
         if self.open_connexion():

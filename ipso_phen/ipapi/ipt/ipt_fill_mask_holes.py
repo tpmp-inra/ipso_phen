@@ -2,8 +2,9 @@ import numpy as np
 import cv2
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import ipso_phen.ipapi.base.ip_common as ipc

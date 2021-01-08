@@ -123,9 +123,15 @@ class Ip02asMappi11810(BaseImageProcessor):
             )
             self.store_image(mask_bottom, "mask_bottom", self.rois_list)
 
-            mask_middle = self.keep_roi(mask_middle, self.get_roi(roi_name="middle_zone"))
+            mask_middle = self.keep_roi(
+                mask_middle,
+                self.get_roi(roi_name="middle_zone"),
+            )
             self.store_image(mask_middle, "mask_middle", self.rois_list)
-            mask_bottom = self.keep_roi(mask_bottom, self.get_roi(roi_name="bottom_zone"))
+            mask_bottom = self.keep_roi(
+                mask_bottom,
+                self.get_roi(roi_name="bottom_zone"),
+            )
             self.store_image(mask_bottom, "mask_bottom", self.rois_list)
 
             mask = self.erode(

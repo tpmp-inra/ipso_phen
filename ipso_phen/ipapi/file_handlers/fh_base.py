@@ -16,7 +16,9 @@ from ipso_phen.ipapi.tools.folders import ipso_folders
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
+
+call_back = None
 
 
 class FileHandlerBase(ABC):
@@ -56,7 +58,7 @@ class FileHandlerBase(ABC):
             return self.load_from_harddrive(self.cache_file_path)
         src_img = None
         try:
-            logger.debug(f"Cache default, retrieving from server: {str(self)}")
+            logger.info(f"Downloading {self.name}, please wait...")
             p = paramiko.SSHClient()
             p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
             p.connect(
@@ -82,9 +84,10 @@ class FileHandlerBase(ABC):
             p.close()
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
-            logger.exception(f"Failed to load {repr(self)} because {repr(e)}")
+            logger.exception(f"Failed to download {repr(self)} because {repr(e)}")
             return None
         else:
+            logger.info(f"Download succeeded for  {self.name}")
             return src_img
 
     def load_from_harddrive(self, override_path: str = None):

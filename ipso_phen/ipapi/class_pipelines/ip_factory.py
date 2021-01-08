@@ -5,7 +5,11 @@ from ipso_phen.ipapi.tools.common_functions import get_module_classes
 
 
 def ipo_factory(
-    file_path, options=None, force_abstract: bool = False, data_base=None, scale_factor=1
+    file_path,
+    options=None,
+    force_abstract: bool = False,
+    data_base=None,
+    scale_factor=1,
 ):
     if force_abstract:
         return BaseImageProcessor(

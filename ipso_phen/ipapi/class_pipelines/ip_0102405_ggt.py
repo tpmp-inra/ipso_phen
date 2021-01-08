@@ -97,7 +97,9 @@ class Ip0102405ggt(BaseImageProcessor):
     def init_csv_data(self, source_image):
         [treatment_1, treatment_2, plant_id_] = self.plant.split("_")
         self.csv_data_holder.update_csv_value("plant_id", plant_id_)
-        self.csv_data_holder.update_csv_value("treatment", f"{treatment_1}_{treatment_2}")
+        self.csv_data_holder.update_csv_value(
+            "treatment", f"{treatment_1}_{treatment_2}"
+        )
 
     def init_rois(self):
         if self.is_cf_calc:
@@ -123,7 +125,10 @@ class Ip0102405ggt(BaseImageProcessor):
     def build_channel_mask(self, source_image, **kwargs):
         try:
             if self.is_cf_calc:
-                params_dict = [dict(channel="v", min_t=50), dict(channel="bl", min_t=50)]
+                params_dict = [
+                    dict(channel="v", min_t=50),
+                    dict(channel="bl", min_t=50),
+                ]
                 op = "multi_or"
             else:
                 params_dict = [

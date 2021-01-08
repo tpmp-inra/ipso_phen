@@ -3,7 +3,7 @@ import pickle
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 import cv2
 import numpy as np
@@ -171,7 +171,7 @@ class IptHoughCircles(IptBase):
             * Allow retrieving data from cache (enable_cache): Data will be retrieved only if params are identical.
             * ROI name (roi_name):
             * Select action linked to ROI (roi_type): no clue
-            * Select ROI shape (roi_shape): no clue
+            * Select ROI shape (c): no clue
             * Target IPT (tool_target): no clue
             * Name of ROI to be used (crop_roi_name): Circles will only be detected inside ROI
             * Channel (channel):
@@ -208,11 +208,68 @@ class IptHoughCircles(IptBase):
 
         res = False
         try:
+            # Read params
+            min_radius = self.get_value_of(
+                "min_radius",
+                scale_factor=wrapper.scale_factor,
+            )
+            max_radius = self.get_value_of(
+                "max_radius",
+                scale_factor=wrapper.scale_factor,
+            )
+            step_radius = self.get_value_of(
+                "step_radius",
+                scale_factor=wrapper.scale_factor,
+            )
+            max_peaks = self.get_value_of("max_peaks")
+            max_peaks = max_peaks if max_peaks > 0 else np.inf
+            min_distance = self.get_value_of(
+                "min_distance",
+                scale_factor=wrapper.scale_factor,
+            )
+            line_width = self.get_value_of(
+                "line_width",
+                scale_factor=wrapper.scale_factor,
+            )
+            draw_candidates = self.get_value_of("draw_candidates") == 1
+            input_kind = self.get_value_of("source_selector")
+
             edge_only = self.get_value_of("edge_only") == 1
+
+            roi = self.get_ipt_roi(
+                wrapper=wrapper,
+                roi_names=[self.get_value_of("crop_roi_name")],
+                selection_mode="all_named",
+            )
+            roi = roi[0] if roi else None
+
+            if input_kind == "mask":
+                img = self.get_mask()
+            elif input_kind == "current_image":
+                img = wrapper.current_image
+            else:
+                img = None
+                logger.error(f"Unknown source: {input_kind}")
+                self.result = None
+                return
+
             pkl_file = os.path.join(
                 ipso_folders.get_path("stored_data"),
                 self.get_short_hash(
-                    exclude_list=("annulus_size", "roi_name", "tool_target", "roi_shape")
+                    exclude_list=(
+                        "roi_name",
+                        "roi_type",
+                        "roi_shape",
+                        "tool_target",
+                        "annulus_size",
+                        "line_width",
+                        "keep_only_one",
+                        "target_position",
+                        "max_dist_to_root",
+                        "draw_boundaries",
+                        "draw_candidates",
+                        "expand_circle",
+                    )
                 )
                 + ".pkl",
             )
@@ -222,11 +279,7 @@ class IptHoughCircles(IptBase):
                 and os.path.isfile(pkl_file)
             ):
                 with open(pkl_file, "rb") as f:
-                    self.result = pickle.load(f)
-                img = self.wrapper.current_image
-                line_width = self.get_value_of(
-                    "line_width", scale_factor=wrapper.scale_factor
-                )
+                    accu, cx, cy, radii = pickle.load(f)
             else:
                 # Get the edge
                 with IptEdgeDetector(wrapper=wrapper, **self.params_to_dict()) as (
@@ -241,32 +294,6 @@ class IptHoughCircles(IptBase):
                         self.demo_image = self.result
                         return True
 
-                # Read params
-                min_radius = self.get_value_of(
-                    "min_radius", scale_factor=wrapper.scale_factor
-                )
-                max_radius = self.get_value_of(
-                    "max_radius", scale_factor=wrapper.scale_factor
-                )
-                step_radius = self.get_value_of(
-                    "step_radius", scale_factor=wrapper.scale_factor
-                )
-                max_peaks = self.get_value_of("max_peaks")
-                max_peaks = max_peaks if max_peaks > 0 else np.inf
-                min_distance = self.get_value_of(
-                    "min_distance", scale_factor=wrapper.scale_factor
-                )
-                line_width = self.get_value_of(
-                    "line_width", scale_factor=wrapper.scale_factor
-                )
-                draw_candidates = self.get_value_of("draw_candidates") == 1
-
-                roi = self.get_ipt_roi(
-                    wrapper=wrapper,
-                    roi_names=[self.get_value_of("crop_roi_name")],
-                    selection_mode="all_named",
-                )
-                roi = roi[0] if roi else None
                 if roi is not None:
                     edges = wrapper.crop_to_roi(
                         img=edges,
@@ -274,17 +301,6 @@ class IptHoughCircles(IptBase):
                         erase_outside_if_circle=True,
                         dbg_str="cropped_edges",
                     )
-
-                input_kind = self.get_value_of("source_selector")
-                if input_kind == "mask":
-                    img = self.get_mask()
-                elif input_kind == "current_image":
-                    img = wrapper.current_image
-                else:
-                    img = None
-                    logger.error(f"Unknown source: {input_kind}")
-                    self.result = None
-                    return
 
                 # Detect circles
                 hough_radii = np.arange(min_radius, max_radius, step_radius)
@@ -302,82 +318,82 @@ class IptHoughCircles(IptBase):
                     min_ydistance=min_distance,
                     total_num_peaks=max_peaks,
                 )
-                if roi is not None:
-                    roi = roi.as_rect()
-                    cx += roi.left
-                    cy += roi.top
-                if self.get_value_of("keep_only_one") == 1:
-                    candidates = [[a, x, y, z] for a, x, y, z in zip(accu, cx, cy, radii)]
-                    h, w = img.shape[:2]
-                    roi = RectangleRegion(left=0, right=w, top=0, bottom=h)
-                    roi_root = roi.point_at_position(
-                        self.get_value_of("target_position"), True
-                    )
-                    min_dist = h * w
-                    min_idx = -1
-                    min_accu = -1
-                    i = 0
-                    colors = ipc.build_color_steps(step_count=len(candidates))
-                    max_dist_to_root = self.get_value_of(
-                        "max_dist_to_root", scale_factor=wrapper.scale_factor
-                    )
-                    for c_accu, center_x, center_y, radius in candidates:
-                        if draw_candidates:
-                            cv2.circle(
-                                img,
-                                (center_x, center_y),
-                                radius,
-                                colors[i],
-                                max(1, line_width // 2),
-                            )
-                        cur_dist = roi_root.distance_to(Point(center_x, center_y))
-                        if (
-                            (cur_dist < min_dist)
-                            and (cur_dist < max_dist_to_root)
-                            and (
-                                (cur_dist / min_dist > min_accu / c_accu)
-                                or (min_accu == -1)
-                            )
-                        ):
-                            min_dist = cur_dist
-                            min_idx = i
-                            min_accu = c_accu
-
-                        i += 1
-                    if min_idx >= 0:
-                        self.result = [
-                            [
-                                candidates[min_idx][1],
-                                candidates[min_idx][2],
-                                candidates[min_idx][3],
-                            ]
-                        ]
-                        self.result[0][2] += self.get_value_of(
-                            "expand_circle", scale_factor=wrapper.scale_factor
-                        )
-                        if self.get_value_of("draw_boundaries") == 1:
-                            cv2.circle(
-                                img,
-                                (roi_root.x, roi_root.y),
-                                min_radius,
-                                ipc.C_RED,
-                                line_width + 4,
-                            )
-                            cv2.circle(
-                                img,
-                                (roi_root.x, roi_root.y),
-                                max_radius,
-                                ipc.C_BLUE,
-                                line_width + 4,
-                            )
-                    else:
-                        self.result = None
-                else:
-                    self.result = [[x, y, r] for x, y, r in zip(cx, cy, radii)]
 
                 if self.get_value_of("enable_cache") == 1:
                     with open(pkl_file, "wb") as f:
-                        pickle.dump(self.result, f)
+                        pickle.dump((accu, cx, cy, radii), f)
+
+            if roi is not None:
+                roi = roi.as_rect()
+                cx += roi.left
+                cy += roi.top
+            if self.get_value_of("keep_only_one") == 1:
+                candidates = [[a, x, y, z] for a, x, y, z in zip(accu, cx, cy, radii)]
+                h, w = img.shape[:2]
+                roi = RectangleRegion(left=0, right=w, top=0, bottom=h)
+                roi_root = roi.point_at_position(
+                    self.get_value_of("target_position"), True
+                )
+                min_dist = h * w
+                min_idx = -1
+                min_accu = -1
+                i = 0
+                colors = ipc.build_color_steps(step_count=len(candidates))
+                max_dist_to_root = self.get_value_of(
+                    "max_dist_to_root", scale_factor=wrapper.scale_factor
+                )
+                for c_accu, center_x, center_y, radius in candidates:
+                    if draw_candidates:
+                        cv2.circle(
+                            img,
+                            (center_x, center_y),
+                            radius,
+                            colors[i],
+                            max(1, line_width // 2),
+                        )
+                    cur_dist = roi_root.distance_to(Point(center_x, center_y))
+                    if (
+                        (cur_dist < min_dist)
+                        and (cur_dist < max_dist_to_root)
+                        and (
+                            (cur_dist / min_dist > min_accu / c_accu) or (min_accu == -1)
+                        )
+                    ):
+                        min_dist = cur_dist
+                        min_idx = i
+                        min_accu = c_accu
+
+                    i += 1
+                if min_idx >= 0:
+                    self.result = [
+                        [
+                            candidates[min_idx][1],
+                            candidates[min_idx][2],
+                            candidates[min_idx][3],
+                        ]
+                    ]
+                    self.result[0][2] += self.get_value_of(
+                        "expand_circle", scale_factor=wrapper.scale_factor
+                    )
+                    if self.get_value_of("draw_boundaries") == 1:
+                        cv2.circle(
+                            img,
+                            (roi_root.x, roi_root.y),
+                            min_radius,
+                            ipc.C_RED,
+                            line_width + 4,
+                        )
+                        cv2.circle(
+                            img,
+                            (roi_root.x, roi_root.y),
+                            max_radius,
+                            ipc.C_BLUE,
+                            line_width + 4,
+                        )
+                else:
+                    self.result = None
+            else:
+                self.result = [[x, y, r] for x, y, r in zip(cx, cy, radii)]
 
             if self.result is not None:
                 colors = ipc.build_color_steps(step_count=len(self.result))

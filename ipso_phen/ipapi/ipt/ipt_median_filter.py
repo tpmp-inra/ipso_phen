@@ -5,8 +5,9 @@ from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class IptMedianFilter(IptBase):

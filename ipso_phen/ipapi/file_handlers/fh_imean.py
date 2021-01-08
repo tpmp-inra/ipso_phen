@@ -16,7 +16,9 @@ class FileHandlerIMean(FileHandlerBase):
         self._file_path = kwargs.get("file_path", "")
         file_, self._camera = os.path.splitext(self.file_name)
         if file_:
-            _, date_time_str, self._exp, self._plant, self._view_option = file_.split("_")
+            _, date_time_str, self._exp, self._plant, self._view_option = file_.split(
+                "_"
+            )
             self._date_time = dt.strptime(date_time_str, "%Y%m%d%H%M%S")
 
         self.update(**kwargs)

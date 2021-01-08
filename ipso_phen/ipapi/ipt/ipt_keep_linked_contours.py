@@ -1,6 +1,7 @@
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import ToolFamily
 
@@ -59,6 +60,23 @@ class IptKeepLinkedContours(IptBase):
             maximum=50000,
             hint="The more smaller contours are delete, the faster the algorithm",
         )
+        self.add_text_input(
+            name="safe_roi_name",
+            desc="Safe ROI name",
+            default_value="",
+        )
+        self.add_checkbox(
+            name="keep_safe_close_enough",
+            desc="Keep close contours inside safe ROI",
+            default_value=0,
+            hint="If a contour is inside the safe zone keep it if it's close enough regardless of size",
+        )
+        self.add_checkbox(
+            name="keep_safe_big_enough",
+            desc="Keep big contours inside safe ROI",
+            default_value=0,
+            hint="If a contour is inside the safe zone keep it if it's big enough regardless of distance",
+        )
         self.add_channel_selector(default_value="l", desc="Pseudo color channel")
 
     def process_wrapper(self, **kwargs):
@@ -105,6 +123,9 @@ class IptKeepLinkedContours(IptBase):
                 root_position=root_position,
                 area_override_size=area_override_size,
                 delete_all_bellow=delete_all_bellow,
+                safe_roi_name=self.get_value_of("safe_roi_name"),
+                keep_safe_close_enough=self.get_value_of("keep_safe_close_enough") == 1,
+                keep_safe_big_enough=self.get_value_of("keep_safe_big_enough") == 1,
             )
             wrapper.store_image(self.result, "mask", text_overlay=False)
             self.demo_image = wrapper.retrieve_stored_image(

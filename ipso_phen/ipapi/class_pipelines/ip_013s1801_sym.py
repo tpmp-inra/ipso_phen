@@ -69,7 +69,9 @@ class Ip013s1801sym(BaseImageProcessor):
                 "acquisition_note", "wide_angle_overexposed"
             )
         elif self.is_between_dates("2018_02_07", "2018_02_28"):
-            self.csv_data_holder.update_csv_value("acquisition_note", "bad_white_balance")
+            self.csv_data_holder.update_csv_value(
+                "acquisition_note", "bad_white_balance"
+            )
         elif self.is_between_dates("2018_02_28", "2018_03_20"):
             self.csv_data_holder.update_csv_value(
                 "acquisition_note", "bad_white_balance_cage"
@@ -134,7 +136,11 @@ class Ip013s1801sym(BaseImageProcessor):
                         channel="h", min_t=10, max_t=90, morph_op="close", kernel_size=3
                     ),
                     dict(
-                        channel="b", min_t=130, max_t=165, morph_op="close", kernel_size=3
+                        channel="b",
+                        min_t=130,
+                        max_t=165,
+                        morph_op="close",
+                        kernel_size=3,
                     ),
                 ]
                 self.mask = self.build_mask(

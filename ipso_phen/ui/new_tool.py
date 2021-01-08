@@ -156,7 +156,9 @@ class Ui_dlg_new_tool(object):
 
         self.verticalLayout_4.addWidget(self.gb_pipeline_tool_groups)
 
-        self.verticalSpacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer = QSpacerItem(
+            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding
+        )
 
         self.verticalLayout_4.addItem(self.verticalSpacer)
 
@@ -196,7 +198,9 @@ class Ui_dlg_new_tool(object):
 
         self.verticalLayout_3.addWidget(self.gb_no_pipeline_tool_groups)
 
-        self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        self.verticalSpacer_2 = QSpacerItem(
+            20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding
+        )
 
         self.verticalLayout_3.addItem(self.verticalSpacer_2)
 
@@ -204,7 +208,9 @@ class Ui_dlg_new_tool(object):
 
         self.horizontalLayout = QHBoxLayout()
         self.horizontalLayout.setObjectName(u"horizontalLayout")
-        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        self.horizontalSpacer = QSpacerItem(
+            40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum
+        )
 
         self.horizontalLayout.addItem(self.horizontalSpacer)
 
@@ -240,22 +246,42 @@ class Ui_dlg_new_tool(object):
                 None,
             )
         )
-        self.label.setText(QCoreApplication.translate("dlg_new_tool", u"Tool name:", None))
+        self.label.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Tool name:", None)
+        )
         self.lbl_file_exists.setText("")
-        self.label_5.setText(QCoreApplication.translate("dlg_new_tool", u"File name:", None))
+        self.label_5.setText(
+            QCoreApplication.translate("dlg_new_tool", u"File name:", None)
+        )
         self.chk_mask_required.setText(
             QCoreApplication.translate("dlg_new_tool", u"Requires mask in input", None)
         )
         self.label_4.setText(u"\ud83e\udc62")
         self.label_6.setText(u"\ud83e\udc62")
-        self.label_3.setText(QCoreApplication.translate("dlg_new_tool", u"Class name", None))
-        self.label_2.setText(QCoreApplication.translate("dlg_new_tool", u"Description:", None))
-        self.label_7.setText(QCoreApplication.translate("dlg_new_tool", u"Package:", None))
-        self.groupBox.setTitle(QCoreApplication.translate("dlg_new_tool", u"Output:", None))
-        self.rb_output_image.setText(QCoreApplication.translate("dlg_new_tool", u"Image", None))
-        self.rb_output_mask.setText(QCoreApplication.translate("dlg_new_tool", u"Mask", None))
-        self.rb_output_data.setText(QCoreApplication.translate("dlg_new_tool", u"Data", None))
-        self.rb_output_none.setText(QCoreApplication.translate("dlg_new_tool", u"None", None))
+        self.label_3.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Class name", None)
+        )
+        self.label_2.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Description:", None)
+        )
+        self.label_7.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Package:", None)
+        )
+        self.groupBox.setTitle(
+            QCoreApplication.translate("dlg_new_tool", u"Output:", None)
+        )
+        self.rb_output_image.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Image", None)
+        )
+        self.rb_output_mask.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Mask", None)
+        )
+        self.rb_output_data.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Data", None)
+        )
+        self.rb_output_none.setText(
+            QCoreApplication.translate("dlg_new_tool", u"None", None)
+        )
         self.gb_pipeline_tool_groups.setTitle(
             QCoreApplication.translate(
                 "dlg_new_tool", u"Groups that can be added to pipelines", None
@@ -266,14 +292,20 @@ class Ui_dlg_new_tool(object):
         )
         self.rb_rt_yes.setText(QCoreApplication.translate("dlg_new_tool", u"Yes", None))
         self.rb_rt_no.setText(QCoreApplication.translate("dlg_new_tool", u"No", None))
-        self.rb_rt_widget.setText(QCoreApplication.translate("dlg_new_tool", u"Widget", None))
+        self.rb_rt_widget.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Widget", None)
+        )
         self.rb_rt_property.setText(
             QCoreApplication.translate("dlg_new_tool", u"Property", None)
         )
         self.gb_no_pipeline_tool_groups.setTitle(
-            QCoreApplication.translate("dlg_new_tool", u"Groups forbiden in pipelines", None)
+            QCoreApplication.translate(
+                "dlg_new_tool", u"Groups forbiden in pipelines", None
+            )
         )
         self.bt_save.setText(QCoreApplication.translate("dlg_new_tool", u"Save", None))
-        self.bt_cancel.setText(QCoreApplication.translate("dlg_new_tool", u"Close", None))
+        self.bt_cancel.setText(
+            QCoreApplication.translate("dlg_new_tool", u"Close", None)
+        )
 
     # retranslateUi

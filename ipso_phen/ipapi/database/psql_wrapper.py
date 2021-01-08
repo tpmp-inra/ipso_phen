@@ -11,7 +11,7 @@ from ipso_phen.ipapi.tools.image_list import ImageList
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class QueryHandlerPostgres(QueryHandler):
@@ -75,7 +75,11 @@ class QueryHandlerPostgres(QueryHandler):
             return None
 
         s, param_dict = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
         if self.open_connexion():
@@ -112,7 +116,11 @@ class QueryHandlerPostgres(QueryHandler):
             return None
 
         s, param_dict = self._prepare_query(
-            command=command, table=table, columns=columns, additional=additional, **kwargs
+            command=command,
+            table=table,
+            columns=columns,
+            additional=additional,
+            **kwargs,
         )
 
         if self.open_connexion():

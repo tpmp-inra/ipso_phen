@@ -1,3 +1,4 @@
+import os
 from datetime import datetime as dt
 from typing import Union
 import logging
@@ -52,7 +53,7 @@ from ipso_phen.annotations.orm_annotations import OrmAnnotation, OrmAnnotationsD
 import cv2
 from ipso_phen.ipapi.tools.regions import RectangleRegion
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 class TreeNode(object):

@@ -2,8 +2,9 @@ import numpy as np
 import cv2
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base import ip_common as ipc
@@ -99,7 +100,8 @@ class IptCleanHorizontalNoiseHough(IptBase):
                             lines_img, f"horizontal_lines iter {iter_count_}"
                         )
                         wrapper.store_image(
-                            erosion_mask, f"horizontal_erosion_target iter {iter_count_}"
+                            erosion_mask,
+                            f"horizontal_erosion_target iter {iter_count_}",
                         )
                         wrapper.store_image(
                             c_minus, f"horizontal_mask_minus_erosion iter {iter_count_}"
@@ -108,7 +110,8 @@ class IptCleanHorizontalNoiseHough(IptBase):
                             erosion_mask, cv2.MORPH_OPEN, kernel
                         )
                         wrapper.store_image(
-                            erosion_mask, f"horizontal_erosion_result iter {iter_count_}"
+                            erosion_mask,
+                            f"horizontal_erosion_result iter {iter_count_}",
                         )
                         mask = wrapper.multi_or((c_minus, erosion_mask))
                         wrapper.store_image(mask, f"horizontal_mask iter {iter_count_}")

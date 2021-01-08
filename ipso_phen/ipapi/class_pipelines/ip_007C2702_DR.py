@@ -103,7 +103,11 @@ class Ip007C2702dr(BaseImageProcessor):
                     ),
                     dict(channel="s", max_t=105, morph_op="open", kernel_size=5),
                     dict(
-                        channel="a", min_t=100, max_t=130, morph_op="open", kernel_size=5
+                        channel="a",
+                        min_t=100,
+                        max_t=130,
+                        morph_op="open",
+                        kernel_size=5,
                     ),
                     dict(
                         channel="b",
@@ -123,12 +127,18 @@ class Ip007C2702dr(BaseImageProcessor):
                 mask = self.keep_roi(mask, "safe_roi")
             elif self.is__exposed:
                 params_dict = [
-                    dict(channel="h", min_t=5, max_t=75, morph_op="open", kernel_size=5),
+                    dict(
+                        channel="h", min_t=5, max_t=75, morph_op="open", kernel_size=5
+                    ),
                     dict(
                         channel="a", min_t=95, max_t=135, morph_op="open", kernel_size=5
                     ),
                     dict(
-                        channel="b", min_t=125, max_t=175, morph_op="open", kernel_size=5
+                        channel="b",
+                        min_t=125,
+                        max_t=175,
+                        morph_op="open",
+                        kernel_size=5,
                     ),
                 ]
                 mask = self.build_mask(
@@ -157,9 +167,15 @@ class Ip007C2702dr(BaseImageProcessor):
                 mask_inner = self.keep_roi(mask_inner, "safe_roi", "mask_inner")
 
                 params_dict = [
-                    dict(channel="h", min_t=20, max_t=60, morph_op="open", kernel_size=5),
                     dict(
-                        channel="s", min_t=35, max_t=130, morph_op="erode", kernel_size=5
+                        channel="h", min_t=20, max_t=60, morph_op="open", kernel_size=5
+                    ),
+                    dict(
+                        channel="s",
+                        min_t=35,
+                        max_t=130,
+                        morph_op="erode",
+                        kernel_size=5,
                     ),
                     dict(channel="a", max_t=130, morph_op="open", kernel_size=5),
                 ]

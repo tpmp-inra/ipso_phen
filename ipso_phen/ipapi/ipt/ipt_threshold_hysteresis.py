@@ -3,8 +3,9 @@ import numpy as np
 from skimage.filters import apply_hysteresis_threshold
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.ipt.ipt_edge_detector import IptEdgeDetector
@@ -89,7 +90,9 @@ class IptHysteresis(IptBase):
 
             self.result = hyst.astype(np.uint8)
             wrapper.store_image(
-                self.result, f"hysteresis_{self.input_params_as_str()}", text_overlay=True
+                self.result,
+                f"hysteresis_{self.input_params_as_str()}",
+                text_overlay=True,
             )
 
         except Exception as e:

@@ -11,7 +11,7 @@ import numpy as np
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 from ipso_phen.ipapi.base.ip_common import AVAILABLE_FEATURES, C_RED, ToolFamily
@@ -364,7 +364,11 @@ class IptStrictPipeline(object):
         if (param is None) or ((param.name == "bound_level") and (param.value >= 0)):
             img = src_wrapper.current_image
             cv2.line(
-                img, (0, param.value), (src_wrapper.width, self.bound_position), C_RED, 3
+                img,
+                (0, param.value),
+                (src_wrapper.width, self.bound_position),
+                C_RED,
+                3,
             )
         elif (
             (param is None)
@@ -585,7 +589,8 @@ class IptStrictPipeline(object):
                         tool["last_result"] = roi
                 else:
                     wrapper.error_list.add_error(
-                        f'Unable to extract ROI from "{tool.name}"', target_logger=logger
+                        f'Unable to extract ROI from "{tool.name}"',
+                        target_logger=logger,
                     )
             if progress_callback is not None and total_steps > 0:
                 current_step = self.add_progress(
@@ -802,7 +807,11 @@ class IptStrictPipeline(object):
                     img=wrapper.mask, rois=rois_list, print_dbg=self.display_images
                 )
                 current_step = self.add_progress(
-                    progress_callback, current_step, total_steps, "Applied ROIs", wrapper
+                    progress_callback,
+                    current_step,
+                    total_steps,
+                    "Applied ROIs",
+                    wrapper,
                 )
 
                 # Clean mask
@@ -911,7 +920,11 @@ class IptStrictPipeline(object):
                     print_dbg=self.display_images,
                 )
                 current_step = self.add_progress(
-                    progress_callback, current_step, total_steps, "Applied ROIs", wrapper
+                    progress_callback,
+                    current_step,
+                    total_steps,
+                    "Applied ROIs",
+                    wrapper,
                 )
                 res = True
 

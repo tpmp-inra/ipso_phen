@@ -90,7 +90,9 @@ class Ui_MainWindow(object):
         self.actionAdd_channel_mask = QAction(MainWindow)
         self.actionAdd_channel_mask.setObjectName(u"actionAdd_channel_mask")
         self.actionAdd_white_balance_fixer = QAction(MainWindow)
-        self.actionAdd_white_balance_fixer.setObjectName(u"actionAdd_white_balance_fixer")
+        self.actionAdd_white_balance_fixer.setObjectName(
+            u"actionAdd_white_balance_fixer"
+        )
         self.action_script_merge_select_and = QAction(MainWindow)
         self.action_script_merge_select_and.setObjectName(
             u"action_script_merge_select_and"
@@ -98,7 +100,9 @@ class Ui_MainWindow(object):
         self.action_script_merge_select_and.setCheckable(True)
         self.action_script_merge_select_and.setChecked(True)
         self.action_script_merge_select_or = QAction(MainWindow)
-        self.action_script_merge_select_or.setObjectName(u"action_script_merge_select_or")
+        self.action_script_merge_select_or.setObjectName(
+            u"action_script_merge_select_or"
+        )
         self.action_script_merge_select_or.setCheckable(True)
         self.actionSet_contour_cleaner = QAction(MainWindow)
         self.actionSet_contour_cleaner.setObjectName(u"actionSet_contour_cleaner")
@@ -227,7 +231,9 @@ class Ui_MainWindow(object):
             u"actionFix_ROI_display_color_issue_for_rectangles"
         )
         self.actionAdd_more_colors_for_ROI = QAction(MainWindow)
-        self.actionAdd_more_colors_for_ROI.setObjectName(u"actionAdd_more_colors_for_ROI")
+        self.actionAdd_more_colors_for_ROI.setObjectName(
+            u"actionAdd_more_colors_for_ROI"
+        )
         self.action_create_wrapper_before = QAction(MainWindow)
         self.action_create_wrapper_before.setObjectName(u"action_create_wrapper_before")
         self.action_create_wrapper_before.setCheckable(True)
@@ -259,7 +265,9 @@ class Ui_MainWindow(object):
         self.action_video_5_second.setObjectName(u"action_video_5_second")
         self.action_video_5_second.setCheckable(True)
         self.action_video_stack_and_jitter = QAction(MainWindow)
-        self.action_video_stack_and_jitter.setObjectName(u"action_video_stack_and_jitter")
+        self.action_video_stack_and_jitter.setObjectName(
+            u"action_video_stack_and_jitter"
+        )
         self.action_video_stack_and_jitter.setCheckable(True)
         self.action_video_stack_and_jitter.setChecked(False)
         self.action_video_half_second = QAction(MainWindow)
@@ -305,7 +313,9 @@ class Ui_MainWindow(object):
         self.action_video_bkg_color_white.setObjectName(u"action_video_bkg_color_white")
         self.action_video_bkg_color_white.setCheckable(True)
         self.action_video_bkg_color_silver = QAction(MainWindow)
-        self.action_video_bkg_color_silver.setObjectName(u"action_video_bkg_color_silver")
+        self.action_video_bkg_color_silver.setObjectName(
+            u"action_video_bkg_color_silver"
+        )
         self.action_video_bkg_color_silver.setCheckable(True)
         self.act_parse_folder_memory = QAction(MainWindow)
         self.act_parse_folder_memory.setObjectName(u"act_parse_folder_memory")
@@ -1489,7 +1499,9 @@ class Ui_MainWindow(object):
         self.menuCode_generation_mode.addAction(
             self.action_object_oriented_wrapped_with_a_with_clause
         )
-        self.menuCode_generation_mode.addAction(self.action_standard_object_oriented_call)
+        self.menuCode_generation_mode.addAction(
+            self.action_standard_object_oriented_call
+        )
         self.mnu_debug.addAction(self.action_use_multithreading)
         self.menuPipeline_builder.addAction(
             self.menu_source_image_scale_factor.menuAction()
@@ -1841,7 +1853,9 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"New sheet", None)
         )
         self.action_de_create_sheet_from_selection.setText(
-            QCoreApplication.translate("MainWindow", u"Create sheet from selection", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Create sheet from selection", None
+            )
         )
         self.action_de_create_sheet_from_query.setText(
             QCoreApplication.translate("MainWindow", u"Create sheet from query", None)
@@ -1891,7 +1905,9 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Build test files", None)
         )
         self.action_add_white_balance_corrector.setText(
-            QCoreApplication.translate("MainWindow", u"Add white balance corrector", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Add white balance corrector", None
+            )
         )
         self.action_build_roi_with_raw_image.setText(
             QCoreApplication.translate("MainWindow", u"Build with raw image", None)
@@ -1904,7 +1920,9 @@ class Ui_MainWindow(object):
         self.chk_experiment.setText(
             QCoreApplication.translate("MainWindow", u"Experiment:", None)
         )
-        self.chk_plant.setText(QCoreApplication.translate("MainWindow", u"Plant:", None))
+        self.chk_plant.setText(
+            QCoreApplication.translate("MainWindow", u"Plant:", None)
+        )
         self.chk_date.setText(QCoreApplication.translate("MainWindow", u"Date:", None))
         self.chk_camera.setText(
             QCoreApplication.translate("MainWindow", u"Camera:", None)
@@ -2078,7 +2096,9 @@ class Ui_MainWindow(object):
         self.bt_pp_select_tool.setText("")
         # if QT_CONFIG(tooltip)
         self.bt_pp_invalidate.setToolTip(
-            QCoreApplication.translate("MainWindow", u"Clear cache pipeline cache", None)
+            QCoreApplication.translate(
+                "MainWindow", u"Clear cache pipeline cache", None
+            )
         )
         # endif // QT_CONFIG(tooltip)
         self.bt_pp_invalidate.setText("")
@@ -2177,8 +2197,12 @@ class Ui_MainWindow(object):
         self.cb_queue_auto_scroll.setText(
             QCoreApplication.translate("MainWindow", u"Auto scroll", None)
         )
-        self.bt_pp_reset.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
-        self.bt_pp_start.setText(QCoreApplication.translate("MainWindow", u"Start", None))
+        self.bt_pp_reset.setText(
+            QCoreApplication.translate("MainWindow", u"Reset", None)
+        )
+        self.bt_pp_start.setText(
+            QCoreApplication.translate("MainWindow", u"Start", None)
+        )
         self.chk_pp_show_last_item.setText(
             QCoreApplication.translate(
                 "MainWindow", u"Show last processed item (performance hit)", None
@@ -2208,7 +2232,9 @@ class Ui_MainWindow(object):
         # if QT_CONFIG(tooltip)
         self.menuVideo.setToolTip("")
         # endif // QT_CONFIG(tooltip)
-        self.menuVideo.setTitle(QCoreApplication.translate("MainWindow", u"Video", None))
+        self.menuVideo.setTitle(
+            QCoreApplication.translate("MainWindow", u"Video", None)
+        )
         self.menuFrame_duration.setTitle(
             QCoreApplication.translate("MainWindow", u"Frame duration", None)
         )
@@ -2221,11 +2247,15 @@ class Ui_MainWindow(object):
         self.menuBackground_color.setTitle(
             QCoreApplication.translate("MainWindow", u"Background color", None)
         )
-        self.menu_theme.setTitle(QCoreApplication.translate("MainWindow", u"Theme", None))
+        self.menu_theme.setTitle(
+            QCoreApplication.translate("MainWindow", u"Theme", None)
+        )
         self.menuCode_generation_mode.setTitle(
             QCoreApplication.translate("MainWindow", u"Code generation", None)
         )
-        self.mnu_debug.setTitle(QCoreApplication.translate("MainWindow", u"Debug", None))
+        self.mnu_debug.setTitle(
+            QCoreApplication.translate("MainWindow", u"Debug", None)
+        )
         self.menuPipeline_builder.setTitle(
             QCoreApplication.translate("MainWindow", u"Pipeline builder", None)
         )

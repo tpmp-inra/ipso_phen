@@ -4,7 +4,7 @@ import numpy as np
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipso_phen.ipapi.tools.common_functions import force_directories

@@ -5,8 +5,9 @@ from skimage.feature import peak_local_max
 from skimage.morphology import watershed
 
 import logging
+import os
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import (
     DEFAULT_COLOR_MAP,

@@ -5,7 +5,7 @@ import logging
 import numpy as np
 
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from PySide2.QtCore import Slot, Signal, QObject, QRunnable
 
@@ -492,7 +492,12 @@ class IpsoCsvBuilder(QRunnable):
         self.signals_holder.on_progress.emit(step, total)
         return self.is_continue()
 
-    def do_feedback(self, status_msg: str, log_msg: str, use_status_as_log: bool) -> bool:
+    def do_feedback(
+        self,
+        status_msg: str,
+        log_msg: str,
+        use_status_as_log: bool,
+    ) -> bool:
         self.signals_holder.on_feedback_log_str.emit(
             status_msg, log_msg, use_status_as_log
         )

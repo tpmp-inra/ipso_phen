@@ -1,8 +1,9 @@
 import numpy as np
+import os
 
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import ipso_phen.ipapi.base.ip_common as ipc
@@ -67,7 +68,11 @@ class IptAssertMaskPosition(IptBase):
                             dst_img=img, line_width=2, color=ipc.C_GREEN
                         )
                     else:
-                        img = enforcer.draw_to(dst_img=img, line_width=2, color=ipc.C_RED)
+                        img = enforcer.draw_to(
+                            dst_img=img,
+                            line_width=2,
+                            color=ipc.C_RED,
+                        )
                         logger.error(
                             f'{self. name}: check failed for ROI "{enforcer.name}""'
                         )

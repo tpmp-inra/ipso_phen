@@ -8,11 +8,34 @@
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (QCoreApplication, QDate, QDateTime, QMetaObject,
-    QObject, QPoint, QRect, QSize, QTime, QUrl, Qt)
-from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
-    QFontDatabase, QIcon, QKeySequence, QLinearGradient, QPalette, QPainter,
-    QPixmap, QRadialGradient)
+from PySide2.QtCore import (
+    QCoreApplication,
+    QDate,
+    QDateTime,
+    QMetaObject,
+    QObject,
+    QPoint,
+    QRect,
+    QSize,
+    QTime,
+    QUrl,
+    Qt,
+)
+from PySide2.QtGui import (
+    QBrush,
+    QColor,
+    QConicalGradient,
+    QCursor,
+    QFont,
+    QFontDatabase,
+    QIcon,
+    QKeySequence,
+    QLinearGradient,
+    QPalette,
+    QPainter,
+    QPixmap,
+    QRadialGradient,
+)
 from PySide2.QtWidgets import *
 
 
@@ -63,7 +86,6 @@ class Ui_MainWindow(object):
 
         self.gridLayout.addWidget(self.comboBox_2, 2, 1, 1, 1)
 
-
         self.verticalLayout_3.addWidget(self.groupBox)
 
         self.groupBox_2 = QGroupBox(self.widget)
@@ -85,9 +107,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.label_6)
 
-
         self.verticalLayout_3.addWidget(self.groupBox_2)
-
 
         self.verticalLayout.addWidget(self.widget)
 
@@ -103,17 +123,34 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         QMetaObject.connectSlotsByName(MainWindow)
+
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
-        self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"GroupBox", None))
+        MainWindow.setWindowTitle(
+            QCoreApplication.translate("MainWindow", u"MainWindow", None)
+        )
+        self.groupBox.setTitle(
+            QCoreApplication.translate("MainWindow", u"GroupBox", None)
+        )
         self.label.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-        self.label_2.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-        self.groupBox_2.setTitle(QCoreApplication.translate("MainWindow", u"GroupBox", None))
-        self.label_4.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-        self.label_5.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-        self.label_6.setText(QCoreApplication.translate("MainWindow", u"TextLabel", None))
-    # retranslateUi
+        self.label_2.setText(
+            QCoreApplication.translate("MainWindow", u"TextLabel", None)
+        )
+        self.label_3.setText(
+            QCoreApplication.translate("MainWindow", u"TextLabel", None)
+        )
+        self.groupBox_2.setTitle(
+            QCoreApplication.translate("MainWindow", u"GroupBox", None)
+        )
+        self.label_4.setText(
+            QCoreApplication.translate("MainWindow", u"TextLabel", None)
+        )
+        self.label_5.setText(
+            QCoreApplication.translate("MainWindow", u"TextLabel", None)
+        )
+        self.label_6.setText(
+            QCoreApplication.translate("MainWindow", u"TextLabel", None)
+        )
 
+    # retranslateUi
