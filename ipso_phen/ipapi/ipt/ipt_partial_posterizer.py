@@ -94,7 +94,6 @@ class IptPartialPosterizer(IptBase):
             * Red channel threshold value (post_red_value): Red pixel value threshold (as percentage)
             * Build mosaic (build_mosaic): Choose mosaic type to display
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

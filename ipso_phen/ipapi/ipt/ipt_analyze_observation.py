@@ -58,7 +58,6 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             * Split plant name into multiple variables (split_plant_name):
             * Character to use as separator (separator):
             * Names of new variables (new_column_names): names separate by "," with no spaces
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

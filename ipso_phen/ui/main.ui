@@ -7,8 +7,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1028</width>
-    <height>913</height>
+    <width>1045</width>
+    <height>902</height>
    </rect>
   </property>
   <property name="font">
@@ -40,7 +40,7 @@
        <enum>QTabWidget::Rounded</enum>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_pipeline_builder">
        <attribute name="title">
@@ -1104,8 +1104,8 @@
                           <rect>
                            <x>0</x>
                            <y>0</y>
-                           <width>98</width>
-                           <height>28</height>
+                           <width>692</width>
+                           <height>148</height>
                           </rect>
                          </property>
                          <layout class="QGridLayout" name="gridLayout_17">
@@ -1212,7 +1212,7 @@
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
-              <widget class="QFrame" name="frm_src_img">
+              <widget class="QFrame" name="frm_src_and_data">
                <property name="frameShape">
                 <enum>QFrame::StyledPanel</enum>
                </property>
@@ -1222,16 +1222,41 @@
                <property name="lineWidth">
                 <number>1</number>
                </property>
+               <layout class="QVBoxLayout" name="verticalLayout_5">
+                <item>
+                 <widget class="QSplitter" name="spl_hor_src_data_params">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <widget class="QFrame" name="frm_src_img">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                  </widget>
+                  <widget class="QFrame" name="frm_data">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                  </widget>
+                  <widget class="QFrame" name="frm_params">
+                   <property name="frameShape">
+                    <enum>QFrame::StyledPanel</enum>
+                   </property>
+                   <property name="frameShadow">
+                    <enum>QFrame::Raised</enum>
+                   </property>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
               </widget>
               <widget class="QFrame" name="frm_res_img">
-               <property name="frameShape">
-                <enum>QFrame::StyledPanel</enum>
-               </property>
-               <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
-               </property>
-              </widget>
-              <widget class="QFrame" name="frm_data">
                <property name="frameShape">
                 <enum>QFrame::StyledPanel</enum>
                </property>
@@ -1767,7 +1792,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1028</width>
+     <width>1045</width>
      <height>21</height>
     </rect>
    </property>

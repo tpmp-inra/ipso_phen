@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-# Form generated from reading UI file 'main.ui'
-#
-# Created by: Qt User Interface Compiler version 5.15.0
-#
-# WARNING! All changes made in this file will be lost when recompiling UI file!
+## Form generated from reading UI file 'main.ui'
+##
+## Created by: Qt User Interface Compiler version 5.15.2
+##
+## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
 from PySide2.QtCore import QCoreApplication, QMetaObject, QRect, QSize, Qt
@@ -52,7 +52,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1028, 913)
+        MainWindow.resize(1045, 902)
         font = QFont()
         font.setFamily(u"Consolas")
         MainWindow.setFont(font)
@@ -90,9 +90,7 @@ class Ui_MainWindow(object):
         self.actionAdd_channel_mask = QAction(MainWindow)
         self.actionAdd_channel_mask.setObjectName(u"actionAdd_channel_mask")
         self.actionAdd_white_balance_fixer = QAction(MainWindow)
-        self.actionAdd_white_balance_fixer.setObjectName(
-            u"actionAdd_white_balance_fixer"
-        )
+        self.actionAdd_white_balance_fixer.setObjectName(u"actionAdd_white_balance_fixer")
         self.action_script_merge_select_and = QAction(MainWindow)
         self.action_script_merge_select_and.setObjectName(
             u"action_script_merge_select_and"
@@ -100,9 +98,7 @@ class Ui_MainWindow(object):
         self.action_script_merge_select_and.setCheckable(True)
         self.action_script_merge_select_and.setChecked(True)
         self.action_script_merge_select_or = QAction(MainWindow)
-        self.action_script_merge_select_or.setObjectName(
-            u"action_script_merge_select_or"
-        )
+        self.action_script_merge_select_or.setObjectName(u"action_script_merge_select_or")
         self.action_script_merge_select_or.setCheckable(True)
         self.actionSet_contour_cleaner = QAction(MainWindow)
         self.actionSet_contour_cleaner.setObjectName(u"actionSet_contour_cleaner")
@@ -231,9 +227,7 @@ class Ui_MainWindow(object):
             u"actionFix_ROI_display_color_issue_for_rectangles"
         )
         self.actionAdd_more_colors_for_ROI = QAction(MainWindow)
-        self.actionAdd_more_colors_for_ROI.setObjectName(
-            u"actionAdd_more_colors_for_ROI"
-        )
+        self.actionAdd_more_colors_for_ROI.setObjectName(u"actionAdd_more_colors_for_ROI")
         self.action_create_wrapper_before = QAction(MainWindow)
         self.action_create_wrapper_before.setObjectName(u"action_create_wrapper_before")
         self.action_create_wrapper_before.setCheckable(True)
@@ -265,9 +259,7 @@ class Ui_MainWindow(object):
         self.action_video_5_second.setObjectName(u"action_video_5_second")
         self.action_video_5_second.setCheckable(True)
         self.action_video_stack_and_jitter = QAction(MainWindow)
-        self.action_video_stack_and_jitter.setObjectName(
-            u"action_video_stack_and_jitter"
-        )
+        self.action_video_stack_and_jitter.setObjectName(u"action_video_stack_and_jitter")
         self.action_video_stack_and_jitter.setCheckable(True)
         self.action_video_stack_and_jitter.setChecked(False)
         self.action_video_half_second = QAction(MainWindow)
@@ -313,9 +305,7 @@ class Ui_MainWindow(object):
         self.action_video_bkg_color_white.setObjectName(u"action_video_bkg_color_white")
         self.action_video_bkg_color_white.setCheckable(True)
         self.action_video_bkg_color_silver = QAction(MainWindow)
-        self.action_video_bkg_color_silver.setObjectName(
-            u"action_video_bkg_color_silver"
-        )
+        self.action_video_bkg_color_silver.setObjectName(u"action_video_bkg_color_silver")
         self.action_video_bkg_color_silver.setCheckable(True)
         self.act_parse_folder_memory = QAction(MainWindow)
         self.act_parse_folder_memory.setObjectName(u"act_parse_folder_memory")
@@ -975,7 +965,7 @@ class Ui_MainWindow(object):
         self.scrollArea_2.setWidgetResizable(True)
         self.scrollAreaWidgetContents_4 = QWidget()
         self.scrollAreaWidgetContents_4.setObjectName(u"scrollAreaWidgetContents_4")
-        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 80, 26))
+        self.scrollAreaWidgetContents_4.setGeometry(QRect(0, 0, 692, 148))
         self.gridLayout_17 = QGridLayout(self.scrollAreaWidgetContents_4)
         self.gridLayout_17.setObjectName(u"gridLayout_17")
         self.gl_tool_params = QGridLayout()
@@ -1051,22 +1041,40 @@ class Ui_MainWindow(object):
         self.spl_ver_src_res_data = QSplitter(self.frame)
         self.spl_ver_src_res_data.setObjectName(u"spl_ver_src_res_data")
         self.spl_ver_src_res_data.setOrientation(Qt.Horizontal)
-        self.frm_src_img = QFrame(self.spl_ver_src_res_data)
+        self.frm_src_and_data = QFrame(self.spl_ver_src_res_data)
+        self.frm_src_and_data.setObjectName(u"frm_src_and_data")
+        self.frm_src_and_data.setFrameShape(QFrame.StyledPanel)
+        self.frm_src_and_data.setFrameShadow(QFrame.Raised)
+        self.frm_src_and_data.setLineWidth(1)
+        self.verticalLayout_5 = QVBoxLayout(self.frm_src_and_data)
+        self.verticalLayout_5.setObjectName(u"verticalLayout_5")
+        self.spl_hor_src_data_params = QSplitter(self.frm_src_and_data)
+        self.spl_hor_src_data_params.setObjectName(u"spl_hor_src_data_params")
+        self.spl_hor_src_data_params.setOrientation(Qt.Vertical)
+        self.frm_src_img = QFrame(self.spl_hor_src_data_params)
         self.frm_src_img.setObjectName(u"frm_src_img")
         self.frm_src_img.setFrameShape(QFrame.StyledPanel)
         self.frm_src_img.setFrameShadow(QFrame.Raised)
-        self.frm_src_img.setLineWidth(1)
-        self.spl_ver_src_res_data.addWidget(self.frm_src_img)
+        self.spl_hor_src_data_params.addWidget(self.frm_src_img)
+        self.frm_data = QFrame(self.spl_hor_src_data_params)
+        self.frm_data.setObjectName(u"frm_data")
+        self.frm_data.setFrameShape(QFrame.StyledPanel)
+        self.frm_data.setFrameShadow(QFrame.Raised)
+        self.spl_hor_src_data_params.addWidget(self.frm_data)
+        self.frm_params = QFrame(self.spl_hor_src_data_params)
+        self.frm_params.setObjectName(u"frm_params")
+        self.frm_params.setFrameShape(QFrame.StyledPanel)
+        self.frm_params.setFrameShadow(QFrame.Raised)
+        self.spl_hor_src_data_params.addWidget(self.frm_params)
+
+        self.verticalLayout_5.addWidget(self.spl_hor_src_data_params)
+
+        self.spl_ver_src_res_data.addWidget(self.frm_src_and_data)
         self.frm_res_img = QFrame(self.spl_ver_src_res_data)
         self.frm_res_img.setObjectName(u"frm_res_img")
         self.frm_res_img.setFrameShape(QFrame.StyledPanel)
         self.frm_res_img.setFrameShadow(QFrame.Raised)
         self.spl_ver_src_res_data.addWidget(self.frm_res_img)
-        self.frm_data = QFrame(self.spl_ver_src_res_data)
-        self.frm_data.setObjectName(u"frm_data")
-        self.frm_data.setFrameShape(QFrame.StyledPanel)
-        self.frm_data.setFrameShadow(QFrame.Raised)
-        self.spl_ver_src_res_data.addWidget(self.frm_data)
 
         self.verticalLayout.addWidget(self.spl_ver_src_res_data)
 
@@ -1382,7 +1390,7 @@ class Ui_MainWindow(object):
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QMenuBar(MainWindow)
         self.menubar.setObjectName(u"menubar")
-        self.menubar.setGeometry(QRect(0, 0, 1028, 21))
+        self.menubar.setGeometry(QRect(0, 0, 1045, 21))
         self.menu_file = QMenu(self.menubar)
         self.menu_file.setObjectName(u"menu_file")
         self.mnu_recent_parsed_folders = QMenu(self.menu_file)
@@ -1434,7 +1442,6 @@ class Ui_MainWindow(object):
         self.dockWidgetContents.setObjectName(u"dockWidgetContents")
         self.horizontalLayout_12 = QHBoxLayout(self.dockWidgetContents)
         self.horizontalLayout_12.setObjectName(u"horizontalLayout_12")
-
         self.dk_log.setWidget(self.dockWidgetContents)
         MainWindow.addDockWidget(Qt.BottomDockWidgetArea, self.dk_log)
 
@@ -1499,9 +1506,7 @@ class Ui_MainWindow(object):
         self.menuCode_generation_mode.addAction(
             self.action_object_oriented_wrapped_with_a_with_clause
         )
-        self.menuCode_generation_mode.addAction(
-            self.action_standard_object_oriented_call
-        )
+        self.menuCode_generation_mode.addAction(self.action_standard_object_oriented_call)
         self.mnu_debug.addAction(self.action_use_multithreading)
         self.menuPipeline_builder.addAction(
             self.menu_source_image_scale_factor.menuAction()
@@ -1853,9 +1858,7 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"New sheet", None)
         )
         self.action_de_create_sheet_from_selection.setText(
-            QCoreApplication.translate(
-                "MainWindow", u"Create sheet from selection", None
-            )
+            QCoreApplication.translate("MainWindow", u"Create sheet from selection", None)
         )
         self.action_de_create_sheet_from_query.setText(
             QCoreApplication.translate("MainWindow", u"Create sheet from query", None)
@@ -1905,9 +1908,7 @@ class Ui_MainWindow(object):
             QCoreApplication.translate("MainWindow", u"Build test files", None)
         )
         self.action_add_white_balance_corrector.setText(
-            QCoreApplication.translate(
-                "MainWindow", u"Add white balance corrector", None
-            )
+            QCoreApplication.translate("MainWindow", u"Add white balance corrector", None)
         )
         self.action_build_roi_with_raw_image.setText(
             QCoreApplication.translate("MainWindow", u"Build with raw image", None)
@@ -1920,9 +1921,7 @@ class Ui_MainWindow(object):
         self.chk_experiment.setText(
             QCoreApplication.translate("MainWindow", u"Experiment:", None)
         )
-        self.chk_plant.setText(
-            QCoreApplication.translate("MainWindow", u"Plant:", None)
-        )
+        self.chk_plant.setText(QCoreApplication.translate("MainWindow", u"Plant:", None))
         self.chk_date.setText(QCoreApplication.translate("MainWindow", u"Date:", None))
         self.chk_camera.setText(
             QCoreApplication.translate("MainWindow", u"Camera:", None)
@@ -2096,9 +2095,7 @@ class Ui_MainWindow(object):
         self.bt_pp_select_tool.setText("")
         # if QT_CONFIG(tooltip)
         self.bt_pp_invalidate.setToolTip(
-            QCoreApplication.translate(
-                "MainWindow", u"Clear cache pipeline cache", None
-            )
+            QCoreApplication.translate("MainWindow", u"Clear cache pipeline cache", None)
         )
         # endif // QT_CONFIG(tooltip)
         self.bt_pp_invalidate.setText("")
@@ -2197,12 +2194,8 @@ class Ui_MainWindow(object):
         self.cb_queue_auto_scroll.setText(
             QCoreApplication.translate("MainWindow", u"Auto scroll", None)
         )
-        self.bt_pp_reset.setText(
-            QCoreApplication.translate("MainWindow", u"Reset", None)
-        )
-        self.bt_pp_start.setText(
-            QCoreApplication.translate("MainWindow", u"Start", None)
-        )
+        self.bt_pp_reset.setText(QCoreApplication.translate("MainWindow", u"Reset", None))
+        self.bt_pp_start.setText(QCoreApplication.translate("MainWindow", u"Start", None))
         self.chk_pp_show_last_item.setText(
             QCoreApplication.translate(
                 "MainWindow", u"Show last processed item (performance hit)", None
@@ -2232,9 +2225,7 @@ class Ui_MainWindow(object):
         # if QT_CONFIG(tooltip)
         self.menuVideo.setToolTip("")
         # endif // QT_CONFIG(tooltip)
-        self.menuVideo.setTitle(
-            QCoreApplication.translate("MainWindow", u"Video", None)
-        )
+        self.menuVideo.setTitle(QCoreApplication.translate("MainWindow", u"Video", None))
         self.menuFrame_duration.setTitle(
             QCoreApplication.translate("MainWindow", u"Frame duration", None)
         )
@@ -2247,15 +2238,11 @@ class Ui_MainWindow(object):
         self.menuBackground_color.setTitle(
             QCoreApplication.translate("MainWindow", u"Background color", None)
         )
-        self.menu_theme.setTitle(
-            QCoreApplication.translate("MainWindow", u"Theme", None)
-        )
+        self.menu_theme.setTitle(QCoreApplication.translate("MainWindow", u"Theme", None))
         self.menuCode_generation_mode.setTitle(
             QCoreApplication.translate("MainWindow", u"Code generation", None)
         )
-        self.mnu_debug.setTitle(
-            QCoreApplication.translate("MainWindow", u"Debug", None)
-        )
+        self.mnu_debug.setTitle(QCoreApplication.translate("MainWindow", u"Debug", None))
         self.menuPipeline_builder.setTitle(
             QCoreApplication.translate("MainWindow", u"Pipeline builder", None)
         )

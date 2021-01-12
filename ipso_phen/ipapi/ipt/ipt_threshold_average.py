@@ -126,7 +126,6 @@ class IptCustomChannel(IptBase):
             * Grey scale palette: (color_map): Grey scale palette (grey scale output only)
             * Build mosaic (build_mosaic): Choose mosaic type to display
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

@@ -114,7 +114,6 @@ class IptMultiRangeThreshold(IptBase):
             * ROI selection mode (roi_selection_mode):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
             * Build mosaic (build_mosaic): If true edges and result will be displayed side by side
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

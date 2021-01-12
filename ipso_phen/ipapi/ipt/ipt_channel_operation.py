@@ -84,7 +84,6 @@ class IptChannelOperation(IptBase):
             * use color palette (use_palette): Use color palette in postprocessing
             * Build mosaic (build_mosaic): Choose mosaic type to display
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

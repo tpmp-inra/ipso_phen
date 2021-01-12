@@ -199,7 +199,6 @@ class IptHoughCircles(IptBase):
             * Threshold (threshold): Threshold for kernel based operators
             * Apply threshold (apply_threshold):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

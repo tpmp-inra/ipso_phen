@@ -190,7 +190,7 @@ class IptDataViz(IptBaseAnalyzer):
                 )
 
                 if self.get_value_of("save_image") != 0:
-                    dst_path = self.build_output_filename()
+                    dst_path = self.build_output_path()
                     self.add_value(
                         key=self.get_value_of("img_name"),
                         value=dst_path,

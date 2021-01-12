@@ -106,7 +106,6 @@ class IptThresholdDistance(IptBase):
             * Select pseudo color map (color_map):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
             * Displayed output (build_mosaic): Choose mosaic type to display
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

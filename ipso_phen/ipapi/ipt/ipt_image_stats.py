@@ -21,24 +21,6 @@ class IptImageStats(IptBaseAnalyzer):
     def build_params(self):
         self.add_source_selector(default_value="source")
         self.add_color_space(default_value="LAB")
-        self.add_text_output(
-            is_single_line=True, name="channel_1_avg", desc="-", default_value="-"
-        )
-        self.add_text_output(
-            is_single_line=True, name="channel_1_std", desc="-", default_value="-"
-        )
-        self.add_text_output(
-            is_single_line=True, name="channel_2_avg", desc="-", default_value="-"
-        )
-        self.add_text_output(
-            is_single_line=True, name="channel_2_std", desc="-", default_value="-"
-        )
-        self.add_text_output(
-            is_single_line=True, name="channel_3_avg", desc="-", default_value="-"
-        )
-        self.add_text_output(
-            is_single_line=True, name="channel_3_std", desc="-", default_value="-"
-        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -49,13 +31,6 @@ class IptImageStats(IptBaseAnalyzer):
         Keyword Arguments (in parentheses, argument name):
             * Select source file type (source_file): no clue
             * Color space (color_space): no clue
-        --------------
-            * output  (channel_1_avg): -
-            * output  (channel_1_std): -
-            * output  (channel_2_avg): -
-            * output  (channel_2_std): -
-            * output  (channel_3_avg): -
-            * output  (channel_3_std): -
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -83,11 +58,6 @@ class IptImageStats(IptBaseAnalyzer):
                 cc = wrapper.get_channel(img, channel=channel)
                 wrapper.store_image(cc, f"c{i+1}")
                 avg_, std_ = wrapper.get_channel_stats(channel=cc)
-                p_avg = self.find_by_name(f"channel_{i+1}_avg")
-                p_avg.update_output(
-                    label_text=f"Average pixel value for {get_hr_channel_name(channel)}",
-                    output_value=f"{avg_:.2f}",
-                )
                 self.add_value(
                     f"Average pixel value for {get_hr_channel_name(channel)}",
                     f"{avg_:.2f}",
@@ -95,11 +65,6 @@ class IptImageStats(IptBaseAnalyzer):
                 )
                 text_overlay.append(
                     f"Avg value: {get_hr_channel_name(channel)}: {avg_:.2f}"
-                )
-                p_std = self.find_by_name(f"channel_{i+1}_std")
-                p_std.update_output(
-                    label_text=f"Standard deviation for {get_hr_channel_name(channel)}",
-                    output_value=f"{std_}",
                 )
                 self.add_value(
                     f"Standard deviation for {get_hr_channel_name(channel)}",

@@ -110,7 +110,6 @@ class IptAugmentData(IptBaseAnalyzer):
             * flip horizontally (flip_h):
             * flip vertically (flip_v):
             * Gamma values (same syntax as grid search) (gamma_values):
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

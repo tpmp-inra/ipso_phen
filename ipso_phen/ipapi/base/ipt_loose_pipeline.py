@@ -429,11 +429,8 @@ class ModuleNode(Node):
         wrapper = self.root.parent.wrapper
 
         for i, p in enumerate(procs):
-            res = self._execute_standard(
-                tool=self.tool.__class__(
-                    **{k: (int(v) if str.isdigit(v) else v) for k, v in zip(keys, p)}
-                ),
-            )
+            params = {k: (int(v) if str.isdigit(v) else v) for k, v in zip(keys, p)}
+            res = self._execute_standard(tool=self.tool.__class__(**params))
             inner_call_back(
                 res="GRID_SEARCH_OK" if res else "GRID_SEARCH_NOK",
                 msg="Failed to process element",
@@ -443,6 +440,7 @@ class ModuleNode(Node):
                     "image": self.get_feedback_image(res),
                     "data": res.get("data", {}),
                     "luid": wrapper.luid,
+                    "params": params,
                 },
                 step=i + 1,
                 total=size,

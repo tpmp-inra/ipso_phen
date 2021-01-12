@@ -69,7 +69,6 @@ class IptAnalyzeBound(IptBaseAnalyzer):
             * Percentage area below bound level (below_bound_percent_area):
             * Horizontal bound position (line_position): Horizontal bound normally used to separate above from below ground
             * Channel (channel):
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

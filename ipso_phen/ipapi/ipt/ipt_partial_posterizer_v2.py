@@ -79,7 +79,6 @@ class IptPartialPosterizerV2(IptBase):
             * Green channel threshold value (post_green_value): Green pixel value threshold (as percentage)
             * Color to use to replace red dominant pixels (red_color): Replace value of pixels where red is dominant and represents more than % value by selected color
             * Red channel threshold value (post_red_value): Red pixel value threshold (as percentage)
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

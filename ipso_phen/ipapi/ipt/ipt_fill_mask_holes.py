@@ -56,7 +56,6 @@ class IptFillMaskHoles(IptBase):
             * Invert mask before filling (invert): Mask will be inverted once again at the end
             * Max contour size (max_size): Contour above this size will be ignored
             * Min contour size (min_size): Contour below this size will be ignored
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

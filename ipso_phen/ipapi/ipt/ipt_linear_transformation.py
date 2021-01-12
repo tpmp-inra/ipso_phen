@@ -85,15 +85,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
                 p2="Luminance (perceived option 2, slower to calculate)",
             ),
         )
-        self.add_table_output(
-            name="tb_output",
-            desc=(
-                "Image",
-                "Brightness average",
-                "Contrast average",
-                "Brightness min/max",
-            ),
-        )
         self.add_text_overlay()
 
     @staticmethod
@@ -124,8 +115,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
             * Show over an under exposed parts (show_over_under):
             * Brightness calculation mode (brg_calc):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-        --------------
-            * output  (tb_output): ('Image', 'Brightness average', 'Contrast average', 'Brightness min/max')
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -247,8 +236,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     self.add_value("mod_brightness_min_max", (r.min(), r.max()), True)
                 else:
                     br_dict = None
-                p = self.find_by_name("tb_output")
-                p.update_output(output_value=br_dict)
 
                 if self.get_value_of("show_over_under") == 1:
                     mask_over = cv2.inRange(self.result, (255, 255, 255), (255, 255, 255))

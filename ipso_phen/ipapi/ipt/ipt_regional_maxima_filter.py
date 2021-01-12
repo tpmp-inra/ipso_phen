@@ -77,7 +77,6 @@ class IptRegionalMaximaFiltering(IptBase):
             * use color palette (use_palette): Use color palette in postprocessing
             * Normalize channel (normalize):
             * Real time (real_time): Set if tool reacts in real time
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

@@ -14,38 +14,7 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 class IptLoadMask(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
-        self.add_text_input(
-            name="source_folder",
-            desc="Path to masks folder",
-            default_value="",
-        )
-        self.add_text_input(
-            name="prefix",
-            desc="Prefix",
-            default_value="",
-            hint="Use text as prefix",
-        )
-        self.add_text_input(
-            name="suffix",
-            desc="Suffix",
-            default_value="",
-            hint="Use text as suffix",
-        )
-        self.add_text_input(
-            name="extension",
-            desc="Mask file extension",
-            default_value="png",
-        )
-        self.add_checkbox(
-            name="fuzzy_match",
-            desc="Use fuzzy match",
-            default_value=1,
-        )
-        self.add_checkbox(
-            name="safe_check",
-            desc="Match name with safe name",
-            default_value=1,
-        )
+        self.add_file_naming()
         self.add_checkbox(
             name="invert_mask",
             desc="Invert mask",
@@ -96,38 +65,9 @@ class IptLoadMask(IptBase):
             if self.get_value_of("enabled") == 1:
 
                 # Get variables
-                folder_path = self.get_value_of("source_folder")
-                base_file_name = wrapper.file_handler.file_name_no_ext
-                if self.get_value_of("safe_check") == 1:
-                    base_file_name = make_safe_name(base_file_name)
-                prefix = self.get_value_of("prefix")
-                suffix = self.get_value_of("suffix")
-                extension = self.get_value_of("extension")
+                mask_path = self.build_output_path()
                 scale_direction = self.get_value_of("scale_direction")
                 scale_factor = self.get_value_of("scale_factor")
-
-                # Retrieve source folder
-                if not os.path.isdir(folder_path):
-                    logger.error(f"Missing source folder: {folder_path}")
-                    self.result = None
-                    return
-
-                if self.get_value_of("fuzzy_match") == 1:
-                    candidates = glob.glob(
-                        pathname=os.path.join(
-                            folder_path,
-                            f"*{prefix}*{base_file_name}*{suffix}*.{extension}",
-                        )
-                    )
-                    if candidates:
-                        mask_path = candidates[0]
-                    else:
-                        mask_path = ""
-                else:
-                    mask_path = os.path.join(
-                        folder_path,
-                        f"{prefix}{base_file_name}{suffix}.{extension}",
-                    )
 
                 if os.path.isfile(mask_path):
                     mask = cv2.imread(filename=mask_path)

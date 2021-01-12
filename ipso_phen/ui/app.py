@@ -792,6 +792,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         layout = QVBoxLayout()
         self.ui.frm_src_img.setLayout(layout)
+        layout.addWidget(QLabel("Source image"))
         self.ui.gv_source_image = QMouseGraphicsView(self.ui.frm_src_img)
         layout.addWidget(self.ui.gv_source_image)
         layout.setSpacing(0)
@@ -806,6 +807,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         layout = QVBoxLayout()
         self.ui.frm_data.setLayout(layout)
+
+        layout.addWidget(QLabel("Output data"))
         self.ui.tw_script_sim_output = QtWidgets.QTableWidget(self.ui.frm_data)
         layout.addWidget(self.ui.tw_script_sim_output)
         layout.setSpacing(0)
@@ -831,6 +834,34 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.tw_script_sim_output.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch
         )
+
+        layout = QVBoxLayout()
+        self.ui.frm_params.setLayout(layout)
+
+        layout.addWidget(QLabel("Param values"))
+        self.ui.tw_params = QtWidgets.QTableWidget(self.ui.frm_params)
+        layout.addWidget(self.ui.tw_params)
+        layout.setSpacing(0)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        self.ui.tw_params.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.ui.tw_params.setAlternatingRowColors(True)
+        self.ui.tw_params.setObjectName("ui.tw_params")
+        self.ui.tw_params.setColumnCount(2)
+        self.ui.tw_params.setRowCount(0)
+        item = QtWidgets.QTableWidgetItem()
+        self.ui.tw_params.setHorizontalHeaderItem(0, item)
+        item = QtWidgets.QTableWidgetItem()
+        self.ui.tw_params.setHorizontalHeaderItem(1, item)
+        self.ui.tw_params.horizontalHeader().setStretchLastSection(True)
+        self.ui.tw_params.verticalHeader().setStretchLastSection(False)
+        self.ui.tw_params.setSortingEnabled(False)
+        item = self.ui.tw_params.horizontalHeaderItem(0)
+        item.setText("Param")
+        item = self.ui.tw_params.horizontalHeaderItem(1)
+        item.setText("Value")
+        self.ui.tw_params.horizontalHeader().setStretchLastSection(True)
+        self.ui.tw_params.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
 
         # Data editor
         self.gv_de_image = QMouseGraphicsView(self.ui.spl_de_left)
@@ -1887,11 +1918,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
             # Three way splitter between source, result and data panels in pipeline builder
             spl_state = settings_.value("ui.spl_ver_src_res_data", None)
-            if spl_state is not None:
+            if False and spl_state is not None:
                 self.ui.spl_ver_src_res_data.restoreState(spl_state)
             else:
                 w = ((available_width - 50) // 8 * 5) // 6
-                self.ui.spl_ver_src_res_data.setSizes((w, w * 4, w))
+                self.ui.spl_ver_src_res_data.setSizes((w * 2, w * 4))
+
+            # Three way splitter between source, result and data panels in pipeline builder
+            spl_state = settings_.value("ui.spl_hor_src_data_params", None)
+            if spl_state is not None:
+                self.ui.spl_hor_src_data_params.restoreState(spl_state)
+            else:
+                w = (available_height - 50) // 3
+                self.ui.spl_hor_src_data_params.setSizes((w, w, w))
 
             # Three way splitter for left side panels in pipeline builder
             spl_state = settings_.value("spl_hor_pb_left", None)
@@ -2632,6 +2671,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         "image": data.get_feedback_image(data.last_result),
                         "data": data.last_result.get("data", {}),
                         "luid": data.root.parent.wrapper.luid,
+                        "params": data.tool.params_to_dict(),
                     },
                 )
                 self.ui.cb_available_outputs.setCurrentIndex(
@@ -3455,6 +3495,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             twi = QTableWidgetItem(f"{v}")
             twi.setToolTip(f"{v}")
             self.ui.tw_script_sim_output.setItem(insert_pos, 1, twi)
+
+    def update_params_tab(self, data_dict):
+        while self.ui.tw_params.rowCount() > 0:
+            self.ui.tw_params.removeRow(0)
+        for k, v in data_dict.items():
+            insert_pos = self.ui.tw_params.rowCount()
+            self.ui.tw_params.insertRow(insert_pos)
+            twi = QTableWidgetItem(f"{k}")
+            twi.setToolTip(f"{k}")
+            self.ui.tw_params.setItem(insert_pos, 0, twi)
+            twi = QTableWidgetItem(f"{v}")
+            twi.setToolTip(f"{v}")
+            self.ui.tw_params.setItem(insert_pos, 1, twi)
 
     def do_thread_started(self, mode: str, is_batch_process: bool):
         if mode == "param":
@@ -4457,10 +4510,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         ):
             self._image_dict = self.ui.cb_available_outputs.itemData(idx)
             self.ui.gv_output_image.main_image = self._image_dict["image"]
-            if "data" in self._image_dict:
-                self.update_output_tab(self._image_dict["data"])
-            else:
-                self.update_output_tab({})
+            self.update_params_tab(
+                self._image_dict["params"] if "params" in self._image_dict else {}
+            )
+            self.update_output_tab(
+                self._image_dict["data"] if "data" in self._image_dict else {}
+            )
             if "luid" in self._image_dict:
                 self.ui.bt_set_as_selected.setEnabled(True)
                 self._selected_output_image_luid = self._image_dict["luid"]
@@ -5500,3 +5555,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     },
                     reset_selection=reset_selection,
                 )
+                if changed_:
+                    logger.info("Removing old images in browser")
+                    self.on_bt_clear_selection()

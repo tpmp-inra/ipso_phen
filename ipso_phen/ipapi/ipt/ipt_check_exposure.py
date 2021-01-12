@@ -78,12 +78,6 @@ class IptExposureChecker(IptBaseAnalyzer):
                 p2="Luminance (perceived option 2, slower to calculate)",
             ),
         )
-        self.add_text_output(
-            is_single_line=True, name="src_brightness", desc="Source brightness:"
-        )
-        self.add_text_output(
-            is_single_line=True, name="src_contrast", desc="Source contrast:"
-        )
         self.add_combobox(
             name="average_as",
             desc="Use average brightness as:",
@@ -129,9 +123,6 @@ class IptExposureChecker(IptBaseAnalyzer):
             * Name of ROI to be used (roi_names): Operation will only be applied inside of ROI
             * ROI selection mode (roi_selection_mode):
             * Overlay text on top of images (text_overlay): Draw description text on top of images
-        --------------
-            * output  (src_brightness): Source brightness:
-            * output  (src_contrast): Source contrast:
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -191,12 +182,6 @@ class IptExposureChecker(IptBaseAnalyzer):
                     f'brightness_{self.get_value_of("source_brightness")}',
                 )
                 s_tuple = cv2.meanStdDev(s.reshape(s.shape[1] * s.shape[0]))
-                self.update_output_from_dict(
-                    dict(
-                        src_brightness=f"{s_tuple[0][0][0]:.2f}",
-                        src_contrast=f"{s_tuple[1][0][0]:.2f}",
-                    )
-                )
                 self.add_value("src_brightness", f"{s_tuple[0][0][0]:.2f}", True)
                 self.add_value("src_contrast", f"{s_tuple[1][0][0]:.2f}", True)
 

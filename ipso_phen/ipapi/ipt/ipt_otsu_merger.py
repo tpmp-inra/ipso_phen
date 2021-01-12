@@ -70,7 +70,6 @@ class IptOtsuOverthinked(IptBase):
             * Select pseudo color map (color_map):
             * Normalize channel (normalize):
             * Build mosaic (build_mosaic): Choose mosaic type to display
-        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:

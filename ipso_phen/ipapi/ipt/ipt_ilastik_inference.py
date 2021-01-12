@@ -41,8 +41,7 @@ class IptIlastikInference(IptBase):
     def process_wrapper(self, **kwargs):
         """
         Ilastik inference:
-        Use an Ilastik project to generate a mask for the current image or an image loaded from harddrive
-        Ilastik must be installed on your computer in order for the inference to work
+        'Use an Ilastik project to generate a mask for the current image or an image loaded from harddrive
         Real time: False
 
         Keyword Arguments (in parentheses, argument name):
@@ -55,14 +54,15 @@ class IptIlastikInference(IptBase):
             * Prefix (src_prefix): Use text as prefix
             * Suffix (src_suffix): Use text as suffix
             * Replace unsafe caracters (src_make_safe_name): Will replace *"/\[]:;|=,<> with "_"
-            * Overwrite existing mask (overwrite):
             * Image output format (dst_output_format):
             * Subfolders (dst_subfolders): Subfolder names separated byt ","
             * Output naming convention (dst_output_name):
             * Prefix (dst_prefix): Use text as prefix
             * Suffix (dst_suffix): Use text as suffix
             * Replace unsafe caracters (dst_make_safe_name): Will replace *"/\[]:;|=,<> with "_"
+            * Overwrite existing mask (overwrite):
         """
+
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -70,7 +70,7 @@ class IptIlastikInference(IptBase):
         res = False
         try:
             if self.get_value_of("enabled") == 1:
-                dst_path = self.build_output_filename(file_prefix="dst_")
+                dst_path = self.build_output_path(file_prefix="dst_")
                 if os.path.isfile(dst_path) and self.get_value_of("overwrite") == 0:
                     pass
                 else:
@@ -78,14 +78,14 @@ class IptIlastikInference(IptBase):
                         [
                             os.path.join(
                                 self.get_value_of("ilastik_path"),
-                                f"run_ilastik.{'exe' if platform.system() == 'Windows' else 'sh'}",
+                                f"run-ilastik.{'bat' if platform.system() == 'Windows' else 'sh'}",
                             ),
                             "--headless",
                             f'--project={self.get_value_of("project_path")}',
                             f'--output_format={self.get_value_of("dst_output_format")}',
-                            '--export_source="Simple Segmentation"',
-                            f"--output_filename_format={self.build_output_filename(file_prefix='dst_')}",
-                            self.build_output_filename(file_prefix="src_"),
+                            "--export_source=simple segmentation",
+                            f"--output_filename_format={self.build_output_path(file_prefix='dst_')}",
+                            self.build_output_path(file_prefix="src_"),
                         ]
                     )
 

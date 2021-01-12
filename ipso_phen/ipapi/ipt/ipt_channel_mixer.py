@@ -72,7 +72,6 @@ class IptChannelMixer(IptBase):
             * Output mode: (post_process):
             * Grey scale palette: (color_map): Grey scale palette (grey scale output only)
             * Build mosaic (build_mosaic):
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

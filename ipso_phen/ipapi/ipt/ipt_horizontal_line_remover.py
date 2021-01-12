@@ -61,7 +61,6 @@ class IptHorizontalLineDetector(IptBase):
             * Kernel size (kernel_size):
             * Kernel shape (kernel_shape):
             * Iterations (proc_times):
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

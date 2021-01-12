@@ -1197,6 +1197,22 @@ class PipelineModel(TreeModel):
                     return f"{nd.name}\nsrc: {source}\n{in_t} ->{out}\nmerge: {merge}\nDouble click to edit"
                 elif isinstance(nd, ModuleNode):
                     return nd.tool.hint
+                elif (
+                    isinstance(nd, dict)
+                    and "name" in nd.keys()
+                    and nd["name"] == "Grid search"
+                ):
+                    return "\n".join(
+                        [
+                            "Grid search:",
+                            "Perform an exhaustive test within the selected params",
+                            "- Single values will generate one value",
+                            "- Comma separated values will generate a value for each combination",
+                            "- To explore a range write the first and las values separated by '|' then a ';' and finally the step value.",
+                            "  For example '0|30;10' will generate 'O,10,20,30'",
+                            "One output will be generated for every possible combination.",
+                        ]
+                    )
                 elif isinstance(nd, dict) and "name" in nd.keys():
                     return nd["name"]
                 else:

@@ -44,7 +44,6 @@ class IptAnalyzeChlorophyll(IptBaseAnalyzer):
             * chlorophyll_std_dev (chlorophyll_std_dev):
             * Select pseudo color map (color_map):
             * Debug image background (background):
-        --------------
         """
         wrapper = super().init_wrapper(**kwargs)
         if wrapper is None:

@@ -106,7 +106,6 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             * Channel (channel):
             * Debug image background (background):
             * Select pseudo color map (color_map):
-        --------------
         """
 
         wrapper = self.init_wrapper(**kwargs)

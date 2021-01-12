@@ -277,14 +277,16 @@ class AbstractRegion(object):
             dt = 0
             db = 0
         tmp_roi = self.copy()
-        tmp_roi.inflate(dl=dl, dr=dr, dt=dt, db=db)
-
-        if erase_outside_if_not_rect is True:
+        if erase_outside_if_not_rect is True and not isinstance(self, RectangleRegion):
             img = tmp_roi.keep(src_image)
         else:
             img = src_image.copy()
         tmp_roi = tmp_roi.as_rect()
-        return img[tmp_roi.top : tmp_roi.bottom, tmp_roi.left : tmp_roi.right].copy(order="C")
+        tmp_roi.inflate(dl=dl, dr=dr, dt=dt, db=db)
+
+        return img[tmp_roi.top : tmp_roi.bottom, tmp_roi.left : tmp_roi.right].copy(
+            order="C"
+        )
 
 
 class EmptyRegion(AbstractRegion):
@@ -771,7 +773,11 @@ class RotatedRectangle(AbstractRegion):
 class CircleRegion(AbstractRegion):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.center = Point(kwargs.get("cx"), kwargs.get("cy"))
+
+        self.center = kwargs.get(
+            "center",
+            Point(kwargs.get("cx"), kwargs.get("cy")),
+        )
         self.radius = kwargs.get("radius")
 
     def __repr__(self) -> str:

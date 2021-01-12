@@ -101,7 +101,7 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 )
                 img = wrapper.apply_roi_list(img=img, rois=rois)
 
-                dst_path = self.build_output_filename()
+                dst_path = self.build_output_path()
 
                 # Add image to list
                 wrapper.store_image(image=img, text="copied_or_renamed_image")
