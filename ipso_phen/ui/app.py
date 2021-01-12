@@ -16,6 +16,7 @@ import subprocess
 import logging
 import webbrowser
 from typing import Union, Any
+import locale
 
 import cv2
 import numpy as np
@@ -246,7 +247,14 @@ class AboutDialog(Ui_about_dialog):
 
     def set_used_packages(self):
         self.txt_brw_used_packages.clear()
-        with open(os.path.join(os.getcwd(), "extra", "licenses.html")) as licenses_:
+        with open(
+            os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "licenses.html",
+            ),
+            "r",
+            encoding=locale.getdefaultlocale()[1],
+        ) as licenses_:
             self.txt_brw_used_packages.insertHtml(licenses_.read())
             self.txt_brw_used_packages.verticalScrollBar().setValue(
                 self.txt_brw_used_packages.verticalScrollBar().minimum()
@@ -334,10 +342,26 @@ class NewToolDialog(QDialog):
         # Update icon
         if os.path.isfile(os.path.join(self.folder_path, target_file_path)):
             self.ui.bt_save.setEnabled(False)
-            self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/Error.png"))
+            self.ui.lbl_file_exists.setPixmap(
+                QPixmap(
+                    os.path.join(
+                        os.path.dirname(os.path.abspath(__file__)),
+                        "resources",
+                        "Error.png",
+                    )
+                )
+            )
         else:
             self.ui.bt_save.setEnabled(True)
-            self.ui.lbl_file_exists.setPixmap(QPixmap("./resources/OK.png"))
+            self.ui.lbl_file_exists.setPixmap(
+                QPixmap(
+                    os.path.join(
+                        os.path.dirname(os.path.abspath(__file__)),
+                        "resources",
+                        "OK.png",
+                    )
+                )
+            )
 
     def build_file(self):
         def add_tab(sc: str) -> str:
@@ -683,6 +707,44 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     @log_method_execution_time
     def __init__(self):
         super(IpsoMainForm, self).__init__()
+
+        # Start splash screen
+        if ui_consts.DISABLE_SPLASH_SCREEN:
+            splash_pic_ = QPixmap(
+                os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "resources",
+                    "splash_600px.png",
+                )
+            )
+            self._splash = QSplashScreen(self, splash_pic_, Qt.WindowStaysOnTopHint)
+            self._pg_splash = QProgressBar(self._splash)
+            self._pg_splash.setMaximum(100)
+            self._pg_splash.setGeometry(
+                10, splash_pic_.height() - 20, splash_pic_.width() - 20, 18
+            )
+            self._lbl_splash = QLabel(self._splash)
+            self._lbl_splash.setText(f"{_PRAGMA_FULL_NAME}")
+            self._lbl_splash.setFont(QFont("Times", 24, QFont.Bold))
+            self._lbl_splash.setGeometry(
+                splash_pic_.width() - 440,
+                splash_pic_.height() - 150,
+                splash_pic_.width() - 20,
+                80,
+            )
+            self._lbl_splash_text = QLabel(self._splash)
+            self._lbl_splash_text.setText("Splashing the screen")
+            self._lbl_splash_text.setFont(QFont("Times", 12))
+            self._lbl_splash_text.setGeometry(
+                splash_pic_.width() - 440,
+                splash_pic_.height() - 120,
+                splash_pic_.width() - 20,
+                80,
+            )
+            self._splash.show()
+        else:
+            self._splash = None
+
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
@@ -762,27 +824,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             "Drops rebuilds current database (Only local databases)"
         )
 
-        # Start splash screen
-        if not ui_consts.DISABLE_SPLASH_SCREEN:
-            splash_pic_ = QPixmap("./resources/splash_600px.png")
-            self._splash = QSplashScreen(self, splash_pic_, Qt.WindowStaysOnTopHint)
-            self._pg_splash = QProgressBar(self._splash)
-            self._pg_splash.setMaximum(100)
-            self._pg_splash.setGeometry(
-                10, splash_pic_.height() - 20, splash_pic_.width() - 20, 18
-            )
-            self._lbl_splash = QLabel(self._splash)
-            self._lbl_splash.setText(f"{_PRAGMA_FULL_NAME}")
-            self._lbl_splash.setFont(QFont("Times", 40, QFont.Bold))
-            self._lbl_splash.setGeometry(
-                splash_pic_.width() - 340,
-                splash_pic_.height() - 150,
-                splash_pic_.width() - 20,
-                80,
-            )
-            self._splash.show()
-        else:
-            self._splash = None
+        self.global_progress_update(
+            step=0,
+            total=100,
+            process_events=True,
+            msg="Finalizing UI",
+            force_update=True,
+        )
 
         self.text_color = QColor(0, 0, 0)
         self.background_color = QColor(255, 255, 255)
@@ -879,10 +927,25 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.pp_threads_step = 0
         self.pp_pipeline = None
 
-        self.setWindowIcon(QIcon("./resources/leaf-24.ico"))
+        self.setWindowIcon(
+            QIcon(
+                os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "resources",
+                    "leaf-24.ico",
+                )
+            )
+        )
 
         self.statusBar().addWidget(self._status_label, stretch=0)
 
+        self.global_progress_update(
+            step=10,
+            total=100,
+            process_events=True,
+            msg="Load tools",
+            force_update=True,
+        )
         self._ip_tools_holder = IptHolder()
         self.build_tools_selectors()
 
@@ -891,6 +954,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.distant_databases = []
         self.image_databases = defaultdict(list)
         self.recent_folders = []
+
+        self.global_progress_update(
+            step=20,
+            total=100,
+            process_events=True,
+            msg="Connect events",
+            force_update=True,
+        )
 
         # Make the connections
         # SQL checkboxes
@@ -1583,13 +1654,21 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         except Exception as e:
             logger.exception(f"Failed to init global progress bar: {repr(e)}")
 
-    def global_progress_update(self, step, total, process_events: bool = False):
-        if timer() - self._last_progress_update > 0.2:
+    def global_progress_update(
+        self,
+        step,
+        total,
+        process_events: bool = False,
+        msg: str = "",
+        force_update: bool = False,
+    ):
+        if force_update or (timer() - self._last_progress_update > 0.2):
             if self._splash is not None:
                 if total == 0:
                     self._pg_splash.setValue(0)
                 else:
                     self._pg_splash.setValue(step / total * 100)
+                self._lbl_splash_text.setText(msg)
             elif self._global_progress_bar is not None:
                 if step == 0 and total == 0:
                     self._global_progress_bar.setFormat("Starting")
@@ -1844,11 +1923,25 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         Returns:
             None --
         """
+        self.global_progress_update(
+            step=30,
+            total=100,
+            process_events=True,
+            msg="Loading settings",
+            force_update=True,
+        )
         settings_ = self.lock_settings()
         try:
             res = True
 
             # Theme
+            self.global_progress_update(
+                step=40,
+                total=100,
+                process_events=True,
+                msg="Setting theme",
+                force_update=True,
+            )
             self._selected_theme = settings_.value("selected_theme", "dark")
             act_grp = QActionGroup(self)
             act_grp.setExclusive(True)
@@ -1890,6 +1983,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
             self.apply_theme(style=self._selected_style, theme=self._selected_theme)
 
+            self.global_progress_update(
+                step=50,
+                total=100,
+                process_events=True,
+                msg="Restore geometry",
+                force_update=True,
+            )
             geom = settings_.value("main_geometry", None)
             if geom is not None:
                 self.restoreGeometry(geom)
@@ -1986,6 +2086,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
             # Retrieve last active database
+            self.global_progress_update(
+                step=60,
+                total=100,
+                process_events=True,
+                msg="Restore database",
+                force_update=True,
+            )
             last_db = dbb.DbInfo(
                 display_name=settings_.value("current_data_base/display_name", ""),
                 db_qualified_name=settings_.value(
@@ -2064,6 +2171,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self.current_database = ldb
 
             # Fill check options
+            self.global_progress_update(
+                step=70,
+                total=100,
+                process_events=True,
+                msg="Restore check states",
+                force_update=True,
+            )
             self.ui.chk_experiment.setChecked(
                 settings_.value(
                     "checkbox_status/experiment_checkbox_state", "true"
@@ -2110,6 +2224,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
             # Fill image list
+            self.global_progress_update(
+                step=80,
+                total=100,
+                process_events=True,
+                msg="Restore image list",
+                force_update=True,
+            )
             file_path_ = settings_.value("last_image_browser_state", "")
             if file_path_ and os.path.isfile(file_path_):
                 self.init_image_browser(pd.read_csv(file_path_))
@@ -2170,6 +2291,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
             # Fill selected plant
+            self.global_progress_update(
+                step=90,
+                total=100,
+                process_events=True,
+                msg="Restore selected plant",
+                force_update=True,
+            )
             self.select_image_from_luid(settings_.value("selected_plant_luid", ""))
 
             # Load last pipeline
@@ -2373,6 +2501,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def showEvent(self, a0: QShowEvent):
         if self._splash is not None:
             self._pg_splash.setValue(100)
+            self._lbl_splash_text.setText("Almost Ready")
             self._splash.finish(self)
             self._splash = None
             self._pg_splash = None
@@ -2663,16 +2792,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     if data.is_root
                     else data.name
                 )
+                output_dict = {
+                    "plant_name": data.root.parent.wrapper.plant,
+                    "name": display_name,
+                    "image": data.get_feedback_image(data.last_result),
+                    "data": data.last_result.get("data", {}),
+                    "luid": data.root.parent.wrapper.luid,
+                }
+                if isinstance(data, ModuleNode):
+                    output_dict["params"] = data.tool.params_to_dict()
                 self.ui.cb_available_outputs.addItem(
                     display_name,
-                    {
-                        "plant_name": data.root.parent.wrapper.plant,
-                        "name": display_name,
-                        "image": data.get_feedback_image(data.last_result),
-                        "data": data.last_result.get("data", {}),
-                        "luid": data.root.parent.wrapper.luid,
-                        "params": data.tool.params_to_dict(),
-                    },
+                    output_dict,
                 )
                 self.ui.cb_available_outputs.setCurrentIndex(
                     self.ui.cb_available_outputs.count() - 1
@@ -3043,7 +3174,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if threading.current_thread() is not threading.main_thread():
             logger.warning("do_pp_progress: NOT MAIN THREAD")
         self.global_progress_update(
-            step=step, total=total, process_events=not self.multithread
+            step=step,
+            total=total,
+            process_events=not self.multithread,
         )
 
     def do_pp_check_abort(self):

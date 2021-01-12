@@ -6,12 +6,16 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>614</width>
-    <height>513</height>
+    <width>1117</width>
+    <height>745</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>About</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>resources/leaf-24.ico</normaloff>resources/leaf-24.ico</iconset>
   </property>
   <property name="modal">
    <bool>true</bool>
@@ -46,7 +50,7 @@
       <pixmap>resources/leaf-24.ico</pixmap>
      </property>
      <property name="alignment">
-      <set>Qt::AlignCenter</set>
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
    </item>

@@ -3,39 +3,13 @@
 ################################################################################
 ## Form generated from reading UI file 'about.ui'
 ##
-## Created by: Qt User Interface Compiler version 5.15.0
+## Created by: Qt User Interface Compiler version 5.15.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
 
-from PySide2.QtCore import (
-    QCoreApplication,
-    QDate,
-    QDateTime,
-    QMetaObject,
-    QObject,
-    QPoint,
-    QRect,
-    QSize,
-    QTime,
-    QUrl,
-    Qt,
-)
-from PySide2.QtGui import (
-    QBrush,
-    QColor,
-    QConicalGradient,
-    QCursor,
-    QFont,
-    QFontDatabase,
-    QIcon,
-    QKeySequence,
-    QLinearGradient,
-    QPalette,
-    QPainter,
-    QPixmap,
-    QRadialGradient,
-)
+from PySide2.QtCore import *
+from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 
@@ -43,7 +17,10 @@ class Ui_about_dialog(object):
     def setupUi(self, about_dialog):
         if not about_dialog.objectName():
             about_dialog.setObjectName(u"about_dialog")
-        about_dialog.resize(614, 513)
+        about_dialog.resize(1200, 745)
+        icon = QIcon()
+        icon.addFile(u"resources/leaf-24.ico", QSize(), QIcon.Normal, QIcon.Off)
+        about_dialog.setWindowIcon(icon)
         about_dialog.setModal(True)
         self.gridLayout = QGridLayout(about_dialog)
         self.gridLayout.setObjectName(u"gridLayout")
@@ -62,7 +39,7 @@ class Ui_about_dialog(object):
         self.lbl_image = QLabel(about_dialog)
         self.lbl_image.setObjectName(u"lbl_image")
         self.lbl_image.setPixmap(QPixmap(u"resources/leaf-24.ico"))
-        self.lbl_image.setAlignment(Qt.AlignCenter)
+        self.lbl_image.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
 
         self.gridLayout.addWidget(self.lbl_image, 0, 0, 1, 1)
 

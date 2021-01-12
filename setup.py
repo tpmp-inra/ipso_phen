@@ -1,6 +1,9 @@
 import pathlib
 from setuptools import find_packages, setup
+import platform
+
 from ipso_phen import version
+
 
 # The directory containing this file
 HERE = pathlib.Path(__file__).parent
@@ -36,25 +39,32 @@ setup(
     platforms=["Any"],
     keywords="image processing Python OpenCV",
     packages=find_packages(exclude=("tests", "docs", "video")),
+    package_dir={"ipso_phen": "ipso_phen"},
+    package_data={
+        "ipso_phen": ["ui/resources/*", "ui/*.ui", "ui/*.qrc", "ui/licenses.html"],
+    },
     include_package_data=True,
     test_suite="tests",
-    install_requires=[
-        "matplotlib",
-        "numpy==1.19.2",
-        "opencv-contrib-python",
-        "pandas",
-        "paramiko",
-        "psutil",
-        "psycopg2-binary",
-        "PySide2",
-        "scikit-image",
-        "scikit-learn",
-        "seaborn",
-        "SQLAlchemy",
-        "SQLAlchemy-Utils",
-        "tqdm",
-        "Unidecode",
-    ],
+    install_requires=(
+        [
+            "matplotlib",
+            "numpy",
+            "opencv-contrib-python",
+            "pandas",
+            "paramiko",
+            "psutil",
+            "psycopg2-binary",
+            "PySide2",
+            "scikit-image",
+            "scikit-learn",
+            "seaborn",
+            "SQLAlchemy",
+            "SQLAlchemy-Utils",
+            "tqdm",
+            "Unidecode",
+        ]
+        + (["win32api"] if platform.system() == "Windows" else [])
+    ),
     entry_points={
         "console_scripts": [
             "ipso_phen=ipso_phen:launch_ui",
