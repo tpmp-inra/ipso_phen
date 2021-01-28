@@ -72,7 +72,7 @@ class IptIlastikInference(IptBase):
             if self.get_value_of("enabled") == 1:
                 dst_path = self.build_output_path(file_prefix="dst_")
                 if os.path.isfile(dst_path) and self.get_value_of("overwrite") == 0:
-                    pass
+                    logger.info("Retrived already inferred mask")
                 else:
                     subprocess.run(
                         [
@@ -85,6 +85,8 @@ class IptIlastikInference(IptBase):
                             f'--output_format={self.get_value_of("dst_output_format")}',
                             "--export_source=simple segmentation",
                             f"--output_filename_format={self.build_output_path(file_prefix='dst_')}",
+                            "--pipeline_result_drange=(1.0,2.0)",
+                            "--export_drange=(0,255)",
                             self.build_output_path(file_prefix="src_"),
                         ]
                     )

@@ -8,12 +8,11 @@ import os
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
-from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
 
-class IptSlic(IptBaseMerger):
+class IptSlic(IptBaseAnalyzer):
     def build_params(self):
-        self.add_source_selector(default_value="source")
         self.add_slider(
             name="n_segments",
             desc="Segment count",
@@ -29,15 +28,12 @@ class IptSlic(IptBaseMerger):
             maximum=100,
         )
         self.add_slider(
-            name="sigma", desc="Sigma", default_value=100, minimum=0, maximum=100
+            name="sigma",
+            desc="Sigma",
+            default_value=100,
+            minimum=0,
+            maximum=100,
         )
-        self.add_combobox(
-            name="post_process",
-            desc="Post process",
-            default_value="none",
-            values=dict(none="none", merge_labels="merge labels"),
-        )
-        self.add_hierarchy_threshold()
 
     def process_wrapper(self, **kwargs):
         """
@@ -60,7 +56,6 @@ class IptSlic(IptBaseMerger):
         n_segments = self.get_value_of("n_segments")
         compactness = self.get_value_of("compactness")
         sigma = self.get_value_of("sigma") / 100
-        post_process = self.get_value_of("post_process")
 
         res = False
         try:
@@ -68,10 +63,6 @@ class IptSlic(IptBaseMerger):
             labels = slic(
                 img, n_segments=n_segments, compactness=compactness, sigma=sigma
             )
-            if post_process != "none":
-                post_labels = labels.copy()
-            else:
-                post_labels = None
 
             self.result = labels.copy()
             labels[labels == -1] = 0
@@ -85,14 +76,12 @@ class IptSlic(IptBaseMerger):
                 text_overlay=True,
             )
 
-            self.print_segmentation_labels(
-                slick_img, labels, dbg_suffix="slic", source_image=img.copy()
+            self.demo_image = self.print_segmentation_labels(
+                slick_img,
+                labels,
+                dbg_suffix="slic",
             )
-
-            if post_process == "merge_labels":
-                res = self._merge_labels(img.copy(), labels=post_labels, **kwargs)
-            else:
-                res = True
+            self.result = self.demo_image
 
         except Exception as e:
             res = False
@@ -124,7 +113,7 @@ class IptSlic(IptBaseMerger):
 
     @property
     def use_case(self):
-        return [ToolFamily.CLUSTERING]
+        return [ToolFamily.CLUSTERING, ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

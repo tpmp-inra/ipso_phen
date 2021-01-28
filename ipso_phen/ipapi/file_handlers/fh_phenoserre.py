@@ -4,19 +4,9 @@ import os
 import json
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
-from ipso_phen.ipapi.tools.folders import ipso_folders
 from ipso_phen.ipapi.database.db_consts import GENOLOGIN_ADDRESS, TPMP_PORT
+from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
 
-dbc_path = os.path.join(
-    ipso_folders.get_path("db_connect_data", force_creation=False),
-    "db_connect_data.json",
-)
-if os.path.isfile(dbc_path):
-    with open(dbc_path, "r") as f:
-        dbc = json.load(f)["phenoserre"]
-
-else:
-    dbc = {}
 
 import logging
 
@@ -29,7 +19,7 @@ class FileHandlerPhenoserre(FileHandlerBase):
 
         self._database = kwargs.get("database", None)
         self.db_linked = (
-            dbc
+            check_password(key="phenoserre")
             and self._database is not None
             and self._database.db_info.target == "phenoserre"
         ) is True
@@ -46,11 +36,12 @@ class FileHandlerPhenoserre(FileHandlerBase):
 
     def load_source_file(self):
         if self.db_linked:
+            user, pwd = get_user_and_password(key="phenoserre")
             return self.load_from_database(
                 address=GENOLOGIN_ADDRESS,
                 port=TPMP_PORT,
-                user=dbc["user"],
-                pwd=dbc["password"],
+                user=user,
+                pwd=pwd,
             )
         else:
             return self.load_from_harddrive()
@@ -69,7 +60,11 @@ class FileHandlerPhenoserre(FileHandlerBase):
             and (")--(" in cls.extract_file_name(file_path))
         ):
             return 100
-        elif dbc and database is not None and database.db_info.target == "phenoserre":
+        elif (
+            check_password(key="phenoserre")
+            and database is not None
+            and database.db_info.target == "phenoserre"
+        ):
             return 100
         else:
             return 0

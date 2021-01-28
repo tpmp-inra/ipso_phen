@@ -3,6 +3,7 @@ import cv2
 from ipso_phen.ipapi.tools.common_functions import force_directories
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipso_phen.ipapi.base import ip_common as ipc
+from ipso_phen.ipapi.base.ipt_functional import call_ipt
 
 import logging
 import os
@@ -179,8 +180,13 @@ class IptDataViz(IptBaseAnalyzer):
         res = False
         try:
             if self.get_value_of("enabled") == 1:
+                if self.get_value_of("normalize") == 1:
+                    img = call_ipt(ipt_id="IptNormalize", source=wrapper)
+                else:
+                    img = wrapper.current_image
+
                 self.result = wrapper.draw_image(
-                    src_image=wrapper.current_image,
+                    src_image=img,
                     src_mask=self.get_mask(),
                     **self.params_to_dict(
                         include_input=True,

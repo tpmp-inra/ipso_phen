@@ -278,6 +278,7 @@ class IptHoughCircles(IptBase):
                 and os.path.isfile(pkl_file)
             ):
                 with open(pkl_file, "rb") as f:
+                    logger.info("Retrieved circle from cache")
                     accu, cx, cy, radii = pickle.load(f)
             else:
                 # Get the edge
@@ -331,7 +332,8 @@ class IptHoughCircles(IptBase):
                 h, w = img.shape[:2]
                 roi = RectangleRegion(left=0, right=w, top=0, bottom=h)
                 roi_root = roi.point_at_position(
-                    self.get_value_of("target_position"), True
+                    position=self.get_value_of("target_position"),
+                    round_position=True,
                 )
                 min_dist = h * w
                 min_idx = -1
@@ -339,7 +341,8 @@ class IptHoughCircles(IptBase):
                 i = 0
                 colors = ipc.build_color_steps(step_count=len(candidates))
                 max_dist_to_root = self.get_value_of(
-                    "max_dist_to_root", scale_factor=wrapper.scale_factor
+                    "max_dist_to_root",
+                    scale_factor=wrapper.scale_factor,
                 )
                 for c_accu, center_x, center_y, radius in candidates:
                     if draw_candidates:
@@ -396,6 +399,10 @@ class IptHoughCircles(IptBase):
 
             if self.result is not None:
                 colors = ipc.build_color_steps(step_count=len(self.result))
+                if input_kind == "mask":
+                    img = wrapper.current_image
+                if len(img.shape) == 2 or (len(img.shape) == 3 and img.shape[2] == 1):
+                    img = np.dstack((img, img, img))
                 i = 0
                 annulus_size = self.get_value_of("annulus_size")
                 for center_x, center_y, radius in self.result:

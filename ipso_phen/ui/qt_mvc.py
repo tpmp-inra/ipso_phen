@@ -1349,16 +1349,6 @@ class PipelineModel(TreeModel):
         )
         self.moveRow(root.parent(), root.row(), target_parent, target_index)
         self.endMoveRows()
-        # nd = root.internalPointer().node_data
-        # if not (isinstance(nd, ModuleNode) or isinstance(nd, GroupNode)):
-        #     return False
-        # parent: PipelineNode = root.parent().internalPointer()
-        # target_parent_node: PipelineNode = target_parent.internalPointer()
-        # self.beginMoveRows(root.parent(), root.row(), root.row(), target_parent, target_index)
-        # parent.move_children(
-        #     index=root.row(), target_parent=target_parent_node, target_index=target_index
-        # )
-        # self.endMoveRows()
         self.layoutChanged.emit()
 
     def move_down(self, selected_items):

@@ -16,6 +16,7 @@ from ipso_phen.ipapi.base.pipeline_processor import PipelineProcessor
 from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 from ipso_phen.ipapi.tools.image_list import ImageList
+import ipso_phen.ipapi.database.db_passwords as dbp
 
 
 logger = logging.getLogger("Pipeline launcher")
@@ -24,10 +25,7 @@ IS_LOG_DATA = True
 IS_USE_MULTI_THREAD = True
 
 
-def restore_state(
-    blob: Union[str, dict, None],
-    overrides: dict = {},
-) -> dict:
+def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     # Attempt to load state
     if isinstance(blob, str) and os.path.isfile(blob):
         with open(blob, "r") as f:
@@ -82,6 +80,9 @@ def launch(**kwargs):
 
     start = timer()
 
+    if "user" in kwargs and "password" in kwargs:
+        dbp.master_password = kwargs.pop("user"), kwargs.pop("password")
+
     # Script
     script = kwargs.get("script", None)
     if script is not None and os.path.isfile(script):
@@ -93,14 +94,16 @@ def launch(**kwargs):
     image = kwargs.get("image", None)
     image_list = kwargs.get("image_list", None)
     image_folder = kwargs.get("image_folder", None)
-    src_count = len(
-        [src for src in [image, image_list, image_folder] if src is not None]
+    src_count = (
+        len([src for src in [image, image_list, image_folder] if src is not None]) + 1
+        if "experiment" in kwargs and "database" in kwargs
+        else 0
     )
     if src_count == 0:
         exit_error_message("Missing source images")
         return 1
     elif src_count > 1:
-        exit_error_message("Missing source images")
+        exit_error_message("Too many sources")
         return 1
 
     if image is not None:
@@ -112,9 +115,6 @@ def launch(**kwargs):
         img_lst = ImageList((".jpg", ".tiff", ".png", ".bmp"))
         img_lst.add_folder(image_folder)
         kwargs["images"] = img_lst.filter(masks=None)
-    else:
-        exit_error_message("Missing source images")
-        return 1
 
     # State
     stored_state = kwargs.pop("stored_state", None)
@@ -147,6 +147,8 @@ def launch(**kwargs):
             res["sub_folder_name"] = experiment
         if "csv_file_name" not in res or not res["csv_file_name"]:
             res["csv_file_name"] = f"{experiment.lower()}_raw_data"
+    else:
+        db = dbf.db_info_to_database(dbb.DbInfo(**db_data))
 
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
@@ -190,7 +192,6 @@ def launch(**kwargs):
         seed_output=res["append_time_stamp"],
         group_by_series=res["generate_series_id"],
         store_images=False,
-        report_progress=kwargs.get("report_progress", True),
     )
     if not image_list_:
         pp.grab_files_from_data_base(
@@ -244,10 +245,7 @@ def launch(**kwargs):
             else:
                 wrappers = [
                     file_handler_factory(f, db)
-                    for f in tqdm.tqdm(
-                        groups_to_process,
-                        desc="Building annotation CSV",
-                    )
+                    for f in tqdm.tqdm(groups_to_process, desc="Building annotation CSV")
                 ]
             pd.DataFrame.from_dict(
                 {

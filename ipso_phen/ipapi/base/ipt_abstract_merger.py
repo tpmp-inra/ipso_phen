@@ -82,9 +82,7 @@ class IptBaseMerger(IptBase, ABC):
             ).astype(np.uint8)
             res = cv2.applyColorMap(255 - labels2, DEFAULT_COLOR_MAP)
             self._wrapper.store_image(res, f"rag_vis", text_overlay=True)
-            self.print_segmentation_labels(
-                res, labels2, dbg_suffix="rag", source_image=source_image
-            )
+            self.print_segmentation_labels(res, labels2, dbg_suffix="rag")
 
         except Exception as e:
             logger.exception(f'FAIL label merging, exception: "{repr(e)}"')

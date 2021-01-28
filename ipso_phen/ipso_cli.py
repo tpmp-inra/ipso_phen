@@ -5,6 +5,8 @@ import os
 import logging
 from datetime import datetime as dt
 
+sys.path.insert(0, os.getcwd())
+
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
 logging.basicConfig(
@@ -58,6 +60,20 @@ def run_cli():
         help="File containing an IPSO Phen pipeline",
         default=None,
         dest="script",
+    )
+    parser.add_argument(
+        "--user",
+        required=False,
+        help="Database user name",
+        default=None,
+        dest="user",
+    )
+    parser.add_argument(
+        "--password",
+        required=False,
+        help="Password for database",
+        default=None,
+        dest="password",
     )
     parser.add_argument(
         "--image",

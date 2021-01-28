@@ -74,7 +74,7 @@ def build_widgets(
 
         bt_af = QPushButtonWthParam(tool=tool, param=param, allow_real_time=False)
         bt_af.setIcon(QIcon(":/common/resources/Lightning.png"))
-        bt_af.setToolTip("Auto fill gris search params")
+        bt_af.setToolTip("Auto fill grid search params")
         param.gs_auto_fill = bt_af
         layout.addWidget(bt_af)
 

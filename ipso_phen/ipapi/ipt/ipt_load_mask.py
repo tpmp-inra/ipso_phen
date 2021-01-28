@@ -71,6 +71,7 @@ class IptLoadMask(IptBase):
 
                 if os.path.isfile(mask_path):
                     mask = cv2.imread(filename=mask_path)
+                    mask[mask != 0] = 255
                     if scale_direction != "none" and scale_factor != 1:
                         mask = scale_image(
                             src_img=mask,
@@ -83,7 +84,7 @@ class IptLoadMask(IptBase):
 
                     if self.get_value_of("invert_mask"):
                         mask = 255 - mask
-                    mask[mask != 0] = 255
+
                     self.result = mask
                     res = True
                 else:

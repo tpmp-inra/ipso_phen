@@ -767,6 +767,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.multithread = True
         self.use_pipeline_cache = True
         self._selected_output_image_luid = None
+        self._pipeline_changed = False
 
         self.last_pipeline_path = ""
 
@@ -1267,11 +1268,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         model = self.get_image_model()
         if model is not None:
-            self.update_feedback(
-                status_message=f"Added {model.rowCount()} items to image browser",
-                use_status_as_log=True,
-                log_level=logging.INFO,
-            )
+            logger.info(f"Added {model.rowCount()} items to image browser",)
             hh: QHeaderView = self.ui.tv_image_browser.horizontalHeader()
             hh.setMaximumSectionSize(150)
             hh.setMinimumSectionSize(70)
@@ -1327,11 +1324,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model.images = model.images.append(dataframe)
                 new_row_count = model.rowCount()
                 self.update_images_queue()
-                self.update_feedback(
-                    status_message=f"Added {new_row_count - old_row_count} items to image browser",
-                    use_status_as_log=True,
-                    log_level=logging.INFO,
-                )
+                logger.info(f"Added {new_row_count - old_row_count} items to image browser")
         elif mode == "remove":
             if not self.has_image_dataframe():
                 return
@@ -1342,11 +1335,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model.images = src_df[~src_df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
-                self.update_feedback(
-                    status_message=f"Removed {old_row_count - new_row_count} items to image browser",
-                    use_status_as_log=True,
-                    log_level=logging.INFO,
-                )
+                logger.info(f"Removed {old_row_count - new_row_count} items to image browser")
         elif mode == "keep":
             if not self.has_image_dataframe():
                 return
@@ -1357,11 +1346,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model.images = src_df[src_df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
-                self.update_feedback(
-                    status_message=f"Removed {old_row_count - new_row_count} items to image browser",
-                    use_status_as_log=True,
-                    log_level=logging.INFO,
-                )
+                logger.info(f"Removed {old_row_count - new_row_count} items to image browser")
         elif mode == "clear":
             self.init_image_browser(None)
         else:
@@ -1474,13 +1459,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 ldb = None
                 for ldb in self.image_databases[dbi.DbType.CUSTOM_DB]:
                     if (ldb.src_files_path == dlg.folder_path) and (dlg.dbms == ldb.dbms):
-                        self.update_feedback(
-                            status_message="Database already exists",
-                            log_message=f"""
+                        logger.warning(f"""
                             There's already a database named {ldb.display_name}
                             pointing to {ldb.src_files_path} using {ldb.dbms}.
-                            Existing database will be used.""",
-                            log_level=logging.WARNING,
+                            Existing database will be used."""
                         )
                         self.current_database = dbf.db_info_to_database(ldb)
                         return
@@ -1515,11 +1497,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def update_database(self, db_wrapper: dbb.DbWrapper):
         if db_wrapper is None or not isinstance(db_wrapper, dbb.DbWrapper):
             return False
-        self.update_feedback(
-            status_message="Building image database",
-            log_message=f"Building image database for {repr(db_wrapper)}",
-            log_level=logging.INFO,
-        )
+        logger.info("Building image database")
         if not self._initializing:
             self.global_progress_start(add_stop_button=True)
             db_wrapper.progress_call_back = self.global_progress_update
@@ -1722,11 +1700,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif isinstance(tag, str):
             luid = tag
         else:
-            self.update_feedback(
-                status_message="Failed to retrieve annotation data",
-                log_message=f"unable to retrieve annotation data for {str(tag)}",
-                log_level=logging.ERROR,
-            )
+            logger.error(f"unable to retrieve annotation data for {str(tag)}")
             self.ui.bt_delete_annotation.setEnabled(False)
             return
         data = id.get_annotation(luid=luid, experiment=experiment)
@@ -1877,11 +1851,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
                 palette.setColor(QPalette.Highlight, QColor(*ipc.bgr_to_rgb(ipc.C_RED)))
             else:
-                self.update_feedback(
-                    status_message="Unknown theme",
-                    log_message=f'Unknown theme "{theme}" ignored',
-                    log_level=logging.ERROR,
-                )
+                logger.error(f'Unknown theme "{theme}" ignored')
                 return
 
             self.text_color = palette.color(QPalette.Text)
@@ -2490,13 +2460,41 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.unlock_settings()
         return res
 
+    def save_pipeline_before(self, title: str, message: str):
+        if self._pipeline_changed:
+            res = QtWidgets.QMessageBox.question(
+                self,
+                title,
+                message,
+                QtWidgets.QMessageBox.Yes
+                | QtWidgets.QMessageBox.No
+                | QtWidgets.QMessageBox.Cancel,
+            )
+            if res == QtWidgets.QMessageBox.Yes:
+                self.on_bt_pp_save()
+            return res
+        else:
+            return QtWidgets.QMessageBox.Yes
+
     @staticmethod
     def close_application():
         sys.exit()
 
-    def closeEvent(self, *args, **kwargs):
-        self.save_settings()
-        super(QtWidgets.QMainWindow, self).closeEvent(*args, **kwargs)
+    def closeEvent(self, event):
+        if self._pipeline_changed:
+            logger.warning("Loading pipeline, while pipeline has been changed")
+            close = self.save_pipeline_before(
+                title="QUIT",
+                message="There are unsaved modifications in pipeline, do you want save before quiting?",
+            )
+            if close == QtWidgets.QMessageBox.Cancel:
+                event.ignore()
+            else:
+                event.accept()
+                self.save_settings()
+        else:
+            event.accept()
+            self.save_settings()
 
     def showEvent(self, a0: QShowEvent):
         if self._splash is not None:
@@ -2516,32 +2514,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         target_logger=logger,
     ):
 
-        # Update status bar
-        if status_message:
-            self._status_label.setText(status_message)
-            if log_message is None:
-                eh.log_data(
-                    log_msg=f"(Status) {status_message}",
-                    log_level=log_level,
-                    target_logger=target_logger,
-                )
-        else:
-            self._status_label.setText("")
-
         # Update log
-        if self.ui.actionEnable_log.isChecked():
-            if log_message is not None and isinstance(log_message, str):
-                eh.log_data(
-                    log_msg=log_message,
-                    log_level=log_level,
-                    target_logger=target_logger,
-                )
-            elif use_status_as_log and status_message:
-                eh.log_data(
-                    log_msg=status_message,
-                    log_level=log_level,
-                    target_logger=target_logger,
-                )
+        if log_message is not None:
+            eh.log_data(
+                log_msg=log_message,
+                log_level=log_level,
+                target_logger=target_logger,
+            )
+        elif status_message:
+            eh.log_data(
+                log_msg=status_message,
+                log_level=log_level,
+                target_logger=target_logger,
+            )
         process: psutil.Process = psutil.Process(os.getpid())
         if (
             not self._collecting_garbage
@@ -2872,10 +2857,24 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.pp_set_spanning()
 
     def on_bt_pp_new(self):
-        pp = LoosePipeline(name="None", description="Double click to edit description")
-        self.pipeline = pp
+        clear_pipeline = self.save_pipeline_before(
+            title="New",
+            message="Save pipeline before creating new one?",
+        )
+        if clear_pipeline == QtWidgets.QMessageBox.Cancel:
+            return
+        self.pipeline = LoosePipeline(
+            name="None",
+            description="Double click to edit description",
+        )
 
     def on_bt_pp_load(self):
+        clear_pipeline = self.save_pipeline_before(
+            title="Load pipeline",
+            message="Save pipeline before loading pipeline?",
+        )
+        if clear_pipeline == QtWidgets.QMessageBox.Cancel:
+            return
         file_name_ = QFileDialog.getOpenFileName(
             parent=self,
             caption="Load pipeline",
@@ -2887,6 +2886,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 "pipeline", os.path.join(os.path.dirname(file_name_), "")
             )
             try:
+                self._pipeline_changed = False
                 self.pipeline = LoosePipeline.load(file_name=file_name_)
             except Exception as e:
                 logger.exception(f'Unable to load pipeline: "{repr(e)}"')
@@ -2913,6 +2913,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     use_status_as_log=True,
                 )
                 self.last_pipeline_path = file_name_
+                self._pipeline_changed = False
             else:
                 self.update_feedback(
                     status_message="Failed to save pipline, cf. log for more details",
@@ -4901,6 +4902,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def do_after_process_param_changed(self, widget):
         tool = widget.tool
+        self._pipeline_changed = True
         if hasattr(tool, "owner") and isinstance(tool.owner, ModuleNode):
             tool.owner.root.invalidate(tool.owner)
             if widget.allow_real_time and tool.real_time and not tool.block_feedback:
@@ -5642,6 +5644,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.pp_set_spanning()
         else:
             self._update_pp_pipeline_state(default_process=True, pipeline=False)
+        self._pipeline_changed = False
 
     @property
     def current_database(self) -> dbb.DbWrapper:

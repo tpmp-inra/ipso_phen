@@ -92,6 +92,16 @@ class IptImageScaler(IptBaseAnalyzer):
                             "scale_factor": sf,
                         }
                     )
+                self.add_value(
+                    "scaled_width",
+                    value=self.result.shape[1],
+                    force_add=True,
+                )
+                self.add_value(
+                    "scaled_height",
+                    value=self.result.shape[0],
+                    force_add=True,
+                )
 
                 if self.get_value_of("save_image") != 0:
                     self.save_images(additional_images=[], **kwargs)

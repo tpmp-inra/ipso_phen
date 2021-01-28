@@ -11,16 +11,8 @@ from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 from ipso_phen.ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
 from ipso_phen.ipapi.tools.folders import ipso_folders
 from ipso_phen.ipapi.database.db_consts import TPMP_PORT, GENOLOGIN_ADDRESS
+from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
 
-dbc_path = os.path.join(
-    ipso_folders.get_path("db_connect_data", force_creation=False),
-    "db_connect_data.json",
-)
-if os.path.isfile(dbc_path):
-    with open(dbc_path, "r") as f:
-        dbc = json.load(f)["phenopsis"]
-else:
-    dbc = {}
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
@@ -32,11 +24,12 @@ IMAGE_EXTENSIONS = (".jpg", ".tiff", ".png", ".bmp", ".tif", ".pim", ".csv")
 def connect_to_phenodb():
     p = paramiko.SSHClient()
     p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+    user, pwd = get_user_and_password(key="phenopsis")
     p.connect(
         GENOLOGIN_ADDRESS,
         port=TPMP_PORT,
-        username=dbc["user"],
-        password=dbc["password"],
+        username=user,
+        password=pwd,
     )
     return p
 
@@ -46,7 +39,7 @@ def get_pheno_db_ftp():
 
 
 def get_phenopsis_exp_list() -> list:
-    assert dbc, "Unable to connect to phenoserre"
+    assert check_password("phenopsis"), "Unable to connect to phenoserre"
     try:
         ftp = get_pheno_db_ftp()
         exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))

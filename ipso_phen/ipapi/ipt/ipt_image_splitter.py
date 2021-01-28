@@ -6,14 +6,15 @@ import logging
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
-from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipso_phen.ipapi.tools.common_functions import make_safe_name
 from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 
-class IptImageSplitter(IptBase):
+class IptImageSplitter(IptBaseAnalyzer):
     def build_params(self):
         self.add_source_selector(default_value="source")
+        self.add_file_naming()
         self.add_text_input(
             name="exp",
             desc="Experiment name",
@@ -89,28 +90,20 @@ class IptImageSplitter(IptBase):
 
             img = self.wrapper.current_image
 
-            fn, ext = os.path.splitext(wrapper.file_name)
             h, w = img.shape[:2]
             h_step, w_step = h // line_count, w // column_count
 
-            if not self.output_path:
-                logger.error("Failed : Missing folder parameter")
-            else:
-                for i in range(0, line_count):
-                    for j in range(0, column_count):
-                        file_name = make_safe_name(
-                            f"gridsplit_{exp}_t{tray_id}-l{i+1}-c{j+1}-p{i*column_count + j + 1}"
-                        )
-                        slice_ = img[
-                            i * h_step + padding_ver : i * h_step + h_step - padding_ver,
-                            j * w_step + padding_hor : j * w_step + w_step - padding_hor,
-                        ]
-                        wrapper.store_image(slice_, file_name)
-                        if write_to_disc:
-                            cv2.imwrite(
-                                os.path.join(self.output_path, f"{file_name}{ext}"),
-                                slice_,
-                            )
+            for i in range(0, line_count):
+                for j in range(0, column_count):
+                    salt = f"_{exp}_t{tray_id}-l{i+1}-c{j+1}-p{i*column_count + j + 1}"
+                    file_name = self.build_output_path(salt=salt)
+                    slice_ = img[
+                        i * h_step + padding_ver : i * h_step + h_step - padding_ver,
+                        j * w_step + padding_hor : j * w_step + w_step - padding_hor,
+                    ]
+                    wrapper.store_image(slice_, salt)
+                    if write_to_disc:
+                        cv2.imwrite(file_name, slice_)
 
                 res = True
         except Exception as e:

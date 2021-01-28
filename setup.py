@@ -45,26 +45,23 @@ setup(
     },
     include_package_data=True,
     test_suite="tests",
-    install_requires=(
-        [
-            "matplotlib",
-            "numpy",
-            "opencv-contrib-python",
-            "pandas",
-            "paramiko",
-            "psutil",
-            "psycopg2-binary",
-            "PySide2",
-            "scikit-image",
-            "scikit-learn",
-            "seaborn",
-            "SQLAlchemy",
-            "SQLAlchemy-Utils",
-            "tqdm",
-            "Unidecode",
-        ]
-        + (["win32api"] if platform.system() == "Windows" else [])
-    ),
+    install_requires=[
+        "matplotlib",
+        "numpy",
+        "opencv-contrib-python",
+        "pandas",
+        "paramiko",
+        "psutil",
+        "psycopg2-binary",
+        "PySide2",
+        "scikit-image",
+        "scikit-learn",
+        "seaborn",
+        "SQLAlchemy",
+        "SQLAlchemy-Utils",
+        "tqdm",
+        "Unidecode",
+    ],
     entry_points={
         "console_scripts": [
             "ipso_phen=ipso_phen:launch_ui",

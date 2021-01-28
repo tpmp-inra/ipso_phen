@@ -11,12 +11,11 @@ from ipso_phen.ipapi.base.ip_common import (
     DEFAULT_COLOR_MAP,
     ToolFamily,
 )
-from ipso_phen.ipapi.base.ipt_abstract_merger import IptBaseMerger
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 
 
-class IptWatershedOpenCv(IptBaseMerger):
+class IptWatershedOpenCv(IptBaseAnalyzer):
     def build_params(self):
-        self.add_source_selector(default_value="source")
         self.add_slider(
             name="dilate_iter",
             desc="Dilation iterations count",
@@ -37,12 +36,6 @@ class IptWatershedOpenCv(IptBaseMerger):
             default_value=100,
             minimum=0,
             maximum=255,
-        )
-        self.add_combobox(
-            name="post_process",
-            desc="Post process",
-            default_value="none",
-            values=dict(none="none", merge_labels="merge labels"),
         )
         self.add_hierarchy_threshold()
 
@@ -68,7 +61,6 @@ class IptWatershedOpenCv(IptBaseMerger):
         distance_threshold = self.get_value_of("distance_threshold")
         source_type = self.get_value_of("source_file")
         min_area = self.get_value_of("min_area")
-        post_process = self.get_value_of("post_process")
 
         res = True
         try:
@@ -122,10 +114,6 @@ class IptWatershedOpenCv(IptBaseMerger):
 
             labels = labels.astype(np.int32)
             cv2.watershed(src_img, labels)
-            if post_process != "none":
-                post_labels = labels.copy()
-            else:
-                post_labels = None
 
             self.result = labels.copy()
             labels[labels == -1] = 0
@@ -137,18 +125,14 @@ class IptWatershedOpenCv(IptBaseMerger):
                 text_overlay=True,
             )
 
-            self.print_segmentation_labels(
+            self.demo_image = self.print_segmentation_labels(
                 water_img,
                 labels,
                 dbg_suffix="watershed_opencv",
-                source_image=src_img.copy(),
                 min_size=min_area,
             )
 
-            if post_process == "merge_labels":
-                res = self._merge_labels(src_img.copy(), labels=post_labels, **kwargs)
-            else:
-                res = True
+            res = True
 
         except Exception as e:
             res = False

@@ -7,22 +7,12 @@ import logging
 from tqdm import tqdm
 
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
-from ipso_phen.ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
 from ipso_phen.ipapi.database.db_consts import (
     GENOLOGIN_ADDRESS,
     TPMP_PORT,
     PHENODB_ADDRESS,
 )
-
-dbc_path = os.path.join(
-    ipso_folders.get_path("db_connect_data", force_creation=False),
-    "db_connect_data.json",
-)
-if os.path.isfile(dbc_path):
-    with open(dbc_path, "r") as f:
-        dbc = json.load(f)["phenoserre"]
-else:
-    dbc = {}
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
@@ -122,16 +112,17 @@ def _split_camera_label(cam_label: str) -> tuple:
 
 def _query_phenoserre(query: str) -> pd.DataFrame:
 
-    assert dbc, "Unable to connect to phenoserre"
+    assert check_password(key="phenoserre"), "Unable to connect to phenoserre"
 
     # Create jump ssh connexion
     jump_connexion = paramiko.SSHClient()
     jump_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    user, pwd = get_user_and_password(key="phenoserre")
     jump_connexion.connect(
         GENOLOGIN_ADDRESS,
         port=TPMP_PORT,
-        username=dbc["user"],
-        password=dbc["password"],
+        username=user,
+        password=pwd,
     )
 
     # Create transport
@@ -149,8 +140,8 @@ def _query_phenoserre(query: str) -> pd.DataFrame:
     host_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     host_connexion.connect(
         PHENODB_ADDRESS,
-        username=dbc["user"],
-        password=dbc["password"],
+        username=user,
+        password=pwd,
         sock=jump_channel,
     )
 
@@ -165,7 +156,7 @@ def _query_phenoserre(query: str) -> pd.DataFrame:
 
 
 def get_phenoserre_exp_list() -> list:
-    assert dbc, "Unable to connect to phenoserre"
+    assert check_password(key="phenoserre"), "Unable to connect to phenoserre"
     try:
         exp_list = sorted(
             _query_phenoserre("select distinct measurement_label from snapshot")
