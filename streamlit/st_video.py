@@ -399,12 +399,14 @@ if job_choice != "Please make your choice...":
             else:
                 for i, plant in enumerate(plants):
                     build_single_plant_video(
-                        plant,
-                        dst_folder,
-                        current_database.copy(),
-                        dates,
-                        experiment,
-                        view_options,
+                        (
+                            plant,
+                            dst_folder,
+                            current_database.copy(),
+                            dates,
+                            experiment,
+                            view_options,
+                        )
                     )
                     current_progress.progress((i + 1) / total_)
 

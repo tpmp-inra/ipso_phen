@@ -15,7 +15,7 @@ class IptKeepCountoursNearRois(IptBase):
         self.add_enabled_checkbox()
         self.add_roi_selector()
         self.add_separator(name="sp_1")
-        self.add_label(name="lbl_init_phase", desc="Initialization phase")
+        self.add_label(desc="Initialization phase")
         self.add_spin_box(
             name="init_max_distance",
             desc="Maximum distance to ROI",
@@ -43,7 +43,7 @@ class IptKeepCountoursNearRois(IptBase):
             The more smaller contours are delete, the faster the algorithm""",
         )
         self.add_separator(name="sp_2")
-        self.add_label(name="lbl_agg_phase", desc="Aggregation phase")
+        self.add_label(desc="Aggregation phase")
         self.add_spin_box(
             name="root_merge_distance",
             desc="Merge distance for root contours",

@@ -41,7 +41,9 @@ class TestIptChanVese(unittest.TestCase):
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Chan Vese")
         self.assertEqual(len(op.result.shape), 2, "Masks can only have one channel")
         self.assertEqual(
-            np.sum(op.result[op.result != 255]), 0, "Masks values can only be 0 or 255"
+            np.sum(op.result[op.result != 255]),
+            0,
+            "Masks values can only be 0 or 255",
         )
 
     def test_documentation(self):

@@ -183,6 +183,10 @@ class IptHoughEllipses(IptBaseAnalyzer):
         return self.get_value_of("edge_only") == 1
 
     @property
+    def is_wip(self):
+        return True
+
+    @property
     def result_name(self):
         return "ellipses"
 

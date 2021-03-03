@@ -146,8 +146,7 @@ class IpsoRunnable(QRunnable):
             after = timer()
             if res:
                 status_message = f"Successfully processed {self.ipt.name} in {format_time(after - before)}"
-                log_message = f"""Successfully processed {self.ipt.name}
-                for "{wrapper.name}" in {format_time(after - before)}"""
+                log_message = f"Successfully processed {self.ipt.name} for {wrapper.name} in {format_time(after - before)}"
             else:
                 status_message = (
                     f"{self.ipt.name} processing failed: in {format_time(after - before)}"
@@ -264,6 +263,7 @@ class IpsoGroupProcessor(QRunnable):
                 call_back=None,
                 index=self.index,
                 total=self.total,
+                save_mosaic=self.options.save_mosaics,
             )
         except Exception as e:
             logger.exception(f"Failed to process {file_name} because {repr(e)}")
@@ -431,11 +431,8 @@ class IpsoMassRunner(QRunnable):
         self,
         status_msg: str,
         log_msg: str,
-        use_status_as_log: bool,
     ) -> bool:
-        self.signals_holder.on_feedback_log_str.emit(
-            status_msg, log_msg, use_status_as_log
-        )
+        self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg)
         return self.is_continue()
 
 
@@ -496,11 +493,8 @@ class IpsoCsvBuilder(QRunnable):
         self,
         status_msg: str,
         log_msg: str,
-        use_status_as_log: bool,
     ) -> bool:
-        self.signals_holder.on_feedback_log_str.emit(
-            status_msg, log_msg, use_status_as_log
-        )
+        self.signals_holder.on_feedback_log_str.emit(status_msg, log_msg)
         return self.is_continue()
 
     def run(self):

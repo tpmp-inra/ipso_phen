@@ -13,7 +13,11 @@ from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 class IptImageSplitter(IptBaseAnalyzer):
     def build_params(self):
-        self.add_source_selector(default_value="source")
+        self.add_checkbox(
+            name="save_image",
+            desc="Save generated image",
+            default_value=0,
+        )
         self.add_file_naming()
         self.add_text_input(
             name="exp",
@@ -30,14 +34,14 @@ class IptImageSplitter(IptBaseAnalyzer):
         self.add_slider(
             name="line_count", desc="Line count", default_value=1, minimum=1, maximum=20
         )
-        self.add_slider(
+        self.add_spin_box(
             name="column_count",
             desc="Column count",
             default_value=1,
             minimum=1,
             maximum=20,
         )
-        self.add_slider(
+        self.add_spin_box(
             name="padding_hor",
             desc="Horizontal padding",
             default_value=0,
@@ -45,7 +49,7 @@ class IptImageSplitter(IptBaseAnalyzer):
             maximum=100,
             hint="Horizontal padding applied to the slices, will apply crop",
         )
-        self.add_slider(
+        self.add_spin_box(
             name="padding_ver",
             desc="Vertical padding",
             default_value=0,
@@ -53,27 +57,28 @@ class IptImageSplitter(IptBaseAnalyzer):
             maximum=100,
             hint="Vertical padding applied to the slices, will apply crop",
         )
-        self.add_checkbox(
-            name="write_to_disc", desc="Save images to disc", default_value=1
-        )
 
     def process_wrapper(self, **kwargs):
         """
         Image slicer:
         Splits image into sub images using grid pattern
-        Real time : False
+        Real time: False
 
         Keyword Arguments (in parentheses, argument name):
-            * Select source file type (source_file): no clue
+            * Save generated image (save_image):
+            * Image output format (output_format):
+            * Subfolders (subfolders): Subfolder names separated byt ","
+            * Output naming convention (output_name):
+            * Prefix (prefix): Use text as prefix
+            * Suffix (suffix): Use text as suffix
+            * Replace unsafe caracters (make_safe_name): Will replace *"/\[]:;|=,<> with "_"
             * Experiment name (exp): Enter experiment used for naming, only alphanumerical values
             * Tray Id (tray_id): Enter plaque Id, only alphanumerical values
             * Line count (line_count):
             * Column count (column_count):
             * Horizontal padding (padding_hor): Horizontal padding applied to the slices, will apply crop
             * Vertical padding (padding_ver): Vertical padding applied to the slices, will apply crop
-            * Save images to disc (write_to_disc):
         """
-
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -86,7 +91,7 @@ class IptImageSplitter(IptBaseAnalyzer):
             column_count = self.get_value_of("column_count")
             padding_hor = self.get_value_of("padding_hor")
             padding_ver = self.get_value_of("padding_ver")
-            write_to_disc = self.get_value_of("write_to_disc") == 1
+            save_image = self.get_value_of("save_image") == 1
 
             img = self.wrapper.current_image
 
@@ -102,7 +107,7 @@ class IptImageSplitter(IptBaseAnalyzer):
                         j * w_step + padding_hor : j * w_step + w_step - padding_hor,
                     ]
                     wrapper.store_image(slice_, salt)
-                    if write_to_disc:
+                    if save_image:
                         cv2.imwrite(file_name, slice_)
 
                 res = True

@@ -1273,6 +1273,12 @@ class Ui_MainWindow(object):
 
         self.gridLayout_11.addWidget(self.cb_pp_overwrite, 2, 0, 1, 3)
 
+        self.cb_pp_save_mosaics = QCheckBox(self.groupBox)
+        self.cb_pp_save_mosaics.setObjectName(u"cb_pp_save_mosaics")
+        self.cb_pp_save_mosaics.setFont(font1)
+
+        self.gridLayout_11.addWidget(self.cb_pp_save_mosaics, 5, 0, 1, 1)
+
         self.verticalLayout_4.addWidget(self.groupBox)
 
         self.gridLayout_10 = QGridLayout()
@@ -2185,6 +2191,9 @@ class Ui_MainWindow(object):
         )
         self.cb_pp_overwrite.setText(
             QCoreApplication.translate("MainWindow", u"Overwrite existing files?", None)
+        )
+        self.cb_pp_save_mosaics.setText(
+            QCoreApplication.translate("MainWindow", u"Save mosaics", None)
         )
         self.label_6.setText(
             QCoreApplication.translate(

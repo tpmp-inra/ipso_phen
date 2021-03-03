@@ -173,6 +173,10 @@ class IptCrop(IptBaseAnalyzer):
         finally:
             return res
 
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if ipc.ToolFamily.PRE_PROCESSING not in use_cases:
+            self.set_value_of("save_image", 1)
+
     @property
     def name(self):
         return "Crop"

@@ -12,13 +12,19 @@ class IptAnalyseObservation(IptBaseAnalyzer):
         self.add_checkbox(name="experiment", desc="Experiment", default_value=1)
         self.add_checkbox(name="plant", desc="Plant", default_value=1)
         self.add_checkbox(name="date_time", desc="Date and time", default_value=1)
+        self.add_checkbox(name="date", desc="Date", default_value=1)
+        self.add_checkbox(name="time", desc="Time", default_value=1)
         self.add_checkbox(name="camera", desc="Camera", default_value=1)
         self.add_checkbox(name="view_option", desc="View Option", default_value=1)
         self.add_checkbox(
-            name="luid", desc="Add Local Unique IDentifier (LUID)", default_value=0
+            name="luid",
+            desc="Add Local Unique IDentifier (LUID)",
+            default_value=0,
         )
         self.add_checkbox(
-            name="source_path", desc="Add path to source file", default_value=0
+            name="source_path",
+            desc="Add path to source file",
+            default_value=0,
         )
         self.add_separator(name="sep_1")
         self.add_checkbox(
@@ -27,7 +33,9 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             default_value=0,
         )
         self.add_text_input(
-            name="separator", desc="Character to use as separator", default_value="_"
+            name="separator",
+            desc="Character to use as separator",
+            default_value="_",
         )
         self.add_text_input(
             name="new_column_names",
@@ -51,6 +59,8 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             * Experiment (experiment):
             * Plant (plant):
             * Date and time (date_time):
+            * Date (date):
+            * Time (time):
             * Camera (camera):
             * View Option (view_option):
             * Add Local Unique IDentifier (LUID) (luid):
@@ -58,6 +68,8 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             * Split plant name into multiple variables (split_plant_name):
             * Character to use as separator (separator):
             * Names of new variables (new_column_names): names separate by "," with no spaces
+            * Add as empty columns (add_columns):
+        --------------
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -70,6 +82,8 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             self.add_value("experiment", wrapper.experiment)
             self.add_value("plant", wrapper.plant)
             self.add_value("date_time", wrapper.date_time)
+            self.add_value("date", wrapper.date)
+            self.add_value("time", wrapper.time)
             self.add_value("camera", wrapper.camera)
             self.add_value("view_option", wrapper.view_option)
             self.add_value("luid", wrapper.luid)

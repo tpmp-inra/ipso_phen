@@ -104,7 +104,7 @@ class IptFilterContourBySize(IptBase):
                             (x, y),
                             fnt[0],
                             fnt[1],
-                            (255, 255, 255),
+                            ipc.C_WHITE,
                             2,
                         )
                 wrapper.store_image(
@@ -185,7 +185,7 @@ class IptFilterContourBySize(IptBase):
                             (x, y),
                             fnt[0],
                             fnt[1],
-                            ipc.C_RED,
+                            ipc.C_BLUE,
                             thickness=2,
                         )
                 # Kept sizes
@@ -201,7 +201,7 @@ class IptFilterContourBySize(IptBase):
                             (x, y),
                             fnt[0],
                             fnt[1],
-                            ipc.C_LIME,
+                            ipc.C_BLUE,
                             thickness=2,
                         )
 

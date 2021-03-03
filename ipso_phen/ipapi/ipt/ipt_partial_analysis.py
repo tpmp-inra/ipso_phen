@@ -38,6 +38,29 @@ class IptPartialAnalysis(IptBaseAnalyzer):
         )
 
     def process_wrapper(self, **kwargs):
+        """
+        Partial Analysis:
+        'Analyse a part of the mask
+        Real time: True
+
+        Keyword Arguments (in parentheses, argument name):
+            * Activate tool (enabled): Toggle whether or not tool is active
+            * Channel (channel):
+            * Invert mask (invert):
+            * Threshold min value (min_t):
+            * Threshold max value (max_t):
+            * Median filter size (odd values only) (median_filter_size):
+            * Morphology operator (morph_op):
+            * Kernel size (kernel_size):
+            * Kernel shape (kernel_shape):
+            * Iterations (proc_times):
+            * Channels to analyze (channels_to_analyse): Select channels to be analyzed, possible values are:
+                    rd, gr, bl, h, s, v, l, a, b, wl_520, wl_550, wl_671, wl_680, wl_720, wl_800, wl_905
+                    channels must be separated by ','
+            * Ratio between parts of the mask (ratio):
+            * CSV prefix (csv_prefix):
+        --------------
+        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -134,7 +157,7 @@ class IptPartialAnalysis(IptBaseAnalyzer):
 
     @property
     def is_wip(self):
-        return True
+        return False
 
     @property
     def package(self):

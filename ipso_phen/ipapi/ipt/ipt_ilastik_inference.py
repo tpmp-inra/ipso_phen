@@ -5,7 +5,8 @@ import subprocess
 import platform
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
-
+from ipso_phen.ipapi.tools.folders import ipso_folders
+from ipso_phen.ipapi.base import ip_common as ipc
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
@@ -19,18 +20,18 @@ class IptIlastikInference(IptBase):
             default_value="",
         )
         self.add_text_input(
-            name="project_path",
-            desc="Path to Ilastik project",
+            name="ilastik_model",
+            desc="Ilastik model name",
             default_value="",
             hint="Full path to an Ilastik project",
         )
 
         self.add_separator(name="sep1")
-        self.add_label(name="lbl1", desc="Source")
+        self.add_label(desc="Source")
         self.add_file_naming(global_prefix="src_")
 
         self.add_separator(name="sep2")
-        self.add_label(name="lbl2", desc="Destination")
+        self.add_label(desc="Destination")
         self.add_file_naming(global_prefix="dst_")
         self.add_checkbox(
             name="overwrite",
@@ -81,7 +82,7 @@ class IptIlastikInference(IptBase):
                                 f"run-ilastik.{'bat' if platform.system() == 'Windows' else 'sh'}",
                             ),
                             "--headless",
-                            f'--project={self.get_value_of("project_path")}',
+                            f'--project={os.path.join(ipso_folders.get_path("ilastik_models"), self.get_value_of("ilastik_model"))}',
                             f'--output_format={self.get_value_of("dst_output_format")}',
                             "--export_source=simple segmentation",
                             f"--output_filename_format={self.build_output_path(file_prefix='dst_')}",
@@ -119,7 +120,7 @@ class IptIlastikInference(IptBase):
 
     @property
     def is_wip(self):
-        return True
+        return False
 
     @property
     def real_time(self):
@@ -140,3 +141,7 @@ class IptIlastikInference(IptBase):
     @property
     def description(self):
         return """'Use an Ilastik project to generate a mask for the current image or an image loaded from harddrive"""
+
+    @property
+    def skip_tests(self):
+        return [ipc.TEST_IMG_IN_MSK_OUT]

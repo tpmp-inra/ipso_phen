@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
-from ipso_phen.ipapi.base.ip_common import scale_image, IO_IMAGE
+from ipso_phen.ipapi.base.ip_common import scale_image, IO_IMAGE, ToolFamily
 
 
 class IptImageScaler(IptBaseAnalyzer):
@@ -118,6 +118,13 @@ class IptImageScaler(IptBaseAnalyzer):
             pass
         finally:
             return res
+
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if (
+            ToolFamily.PRE_PROCESSING not in use_cases
+            and ToolFamily.VISUALIZATION not in use_cases
+        ):
+            self.set_value_of("save_image", 1)
 
     @property
     def name(self):

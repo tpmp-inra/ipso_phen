@@ -3358,6 +3358,42 @@ class BaseImageProcessor(ImageWrapper):
         )
         return mosaic_image_list, self.build_mosaic(src_img.shape, mosaic_image_list)
 
+    def auto_mosaic(self, images: list = []):
+        im_count = len(images)
+        if im_count == 1:
+            line_count, column_count = 1, 1
+        elif im_count == 2:
+            line_count, column_count = 2, 1
+        else:
+            base = math.sqrt(im_count)
+            if base % 1 == 0:
+                line_count, column_count = round(base), round(base)
+            else:
+                line_count, column_count = math.trunc(base), math.trunc(base)
+                line_count += 1
+                while line_count * column_count < im_count:
+                    column_count += 1
+
+        shape = (images[0].shape[0] * line_count, images[0].shape[1] * column_count, 3)
+        canvas = np.full(shape, ipc.C_BLUE_VIOLET, np.uint8)
+
+        l, c = 0, 0
+        for img in images:
+            r = RectangleRegion(
+                left=int((shape[1] / column_count) * c),
+                width=int(shape[1] / column_count),
+                top=int((shape[0] / line_count) * l),
+                height=int(shape[0] / line_count),
+            )
+            r.expand(-8)
+            canvas = ipc.enclose_image(canvas, img, r)
+            c += 1
+            if c >= column_count:
+                c = 0
+                l += 1
+
+        return canvas
+
     def build_mosaic(
         self,
         shape=None,
@@ -3398,9 +3434,7 @@ class BaseImageProcessor(ImageWrapper):
         def parse_line(a_line, a_line_idx, a_cnv):
             for c, column in enumerate(a_line):
                 if isinstance(column, str):
-                    src_img = self.retrieve_stored_image(column)
-                    if src_img is None:
-                        src_img = images_dict.get(column, None)
+                    src_img = images_dict.get(column, self.retrieve_stored_image(column))
                 else:
                     src_img = column
                 if src_img is None:

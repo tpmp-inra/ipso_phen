@@ -1,3 +1,4 @@
+import cv2
 from ipso_phen.ipapi.tools.folders import ipso_folders
 from uuid import uuid4
 import json
@@ -17,7 +18,7 @@ from ipso_phen.ipapi.base import ip_common as ipc
 from ipso_phen.ipapi.base.ipt_strict_pipeline import IptStrictPipeline
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
 import ipso_phen.ipapi.tools.error_holder as eh
-from ipso_phen.ipapi.tools.common_functions import format_time
+from ipso_phen.ipapi.tools.common_functions import force_directories, format_time
 from ipso_phen.ipapi.tools.regions import RectangleRegion
 
 
@@ -785,6 +786,8 @@ class GroupNode(Node):
                             roi=res.get("roi", None),
                             node=node,
                         )
+                    if "data" in res:
+                        wrapper.csv_data_holder.data_list.update(res["data"])
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
@@ -858,11 +861,17 @@ class GroupNode(Node):
         self.last_result["data"] = wrapper.csv_data_holder.data_list
 
         if self.is_root:
-            if self.parent.settings.mosaic.enabled:
+            if (
+                self.parent.settings.mosaic.enabled
+                or kwargs.get("save_mosaic", False) is True
+            ):
                 self.root.parent.mosaic = wrapper.build_mosaic(
                     image_names=self.parent.settings.mosaic.images,
                     images_dict=self.parent.stored_mosaic_images,
                 )
+            else:
+                self.root.parent.mosaic = None
+            if self.parent.settings.mosaic.enabled:
                 self.do_call_back(
                     call_back=call_back,
                     res=logging.INFO,
@@ -1311,7 +1320,7 @@ class LoosePipeline(object):
 
         # Build/retrieve wrapper
         if isinstance(src_image, str):
-            self.wrapper = BaseImageProcessor(
+            self.wrapper: BaseImageProcessor = BaseImageProcessor(
                 src_image,
                 options=options,
                 database=target_data_base,
@@ -1372,6 +1381,17 @@ class LoosePipeline(object):
 
         # Execute pipeline
         self.root.execute(**kwargs)
+
+        if kwargs.get("save_mosaic", False) is True:
+            mf = os.path.join(self.image_output_path, "mosaics", "")
+            force_directories(mf)
+            cv2.imwrite(
+                filename=os.path.join(
+                    mf,
+                    f"{self.wrapper.file_handler.file_name_no_ext}_mosaic.jpg",
+                ),
+                img=self.mosaic,
+            )
 
         # Update data with forced key value pairs
         for k, v in additional_data.items():

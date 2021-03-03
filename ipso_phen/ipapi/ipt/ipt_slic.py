@@ -8,10 +8,10 @@ import os
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP, ToolFamily
-from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
 
-class IptSlic(IptBaseAnalyzer):
+class IptSlic(IptBase):
     def build_params(self):
         self.add_slider(
             name="n_segments",
@@ -113,7 +113,7 @@ class IptSlic(IptBaseAnalyzer):
 
     @property
     def use_case(self):
-        return [ToolFamily.CLUSTERING, ToolFamily.FEATURE_EXTRACTION]
+        return [ToolFamily.CLUSTERING, ToolFamily.PRE_PROCESSING]
 
     @property
     def description(self):

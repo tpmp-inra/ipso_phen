@@ -34,7 +34,6 @@ class IptDemo(IptBase):
         For this tool all available widgets will be displayed
         """
         self.add_label(
-            name="lbl_zero",
             desc="Hi, I'm a demo tool, I'm here to showcase some widgets, I don't do much else",
         )
         self.add_combobox(
@@ -67,7 +66,6 @@ class IptDemo(IptBase):
             hint="This is a sample combobox",
         )
         self.add_label(
-            name="label",
             desc="This is a label, below there's a separator",
             hint="This is a label for a hint",
         )

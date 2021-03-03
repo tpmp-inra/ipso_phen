@@ -95,9 +95,9 @@ def launch(**kwargs):
     image_list = kwargs.get("image_list", None)
     image_folder = kwargs.get("image_folder", None)
     src_count = (
-        len([src for src in [image, image_list, image_folder] if src is not None]) + 1
+        1
         if "experiment" in kwargs and "database" in kwargs
-        else 0
+        else len([src for src in [image, image_list, image_folder] if src is not None])
     )
     if src_count == 0:
         exit_error_message("Missing source images")

@@ -14,7 +14,7 @@ class IptFillMaskHoles(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
         self.add_roi_selector()
-        self.add_label(name="lbl1", desc="Apply morphology operator before filling")
+        self.add_label(desc="Apply morphology operator before filling")
         self.add_morphology_operator(default_operator="none")
         self.add_checkbox(
             name="invert",

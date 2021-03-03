@@ -4,6 +4,9 @@ import unittest
 
 from ipso_phen.ipapi.ipt.ipt_crop import IptCrop
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
+from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
+
 import ipso_phen.ipapi.base.ip_common as ipc
 
 
@@ -39,6 +42,31 @@ class TestIptCrop(unittest.TestCase):
         res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Crop")
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Crop")
+
+    def test_feature_out(self):
+        """Crop: "Test that when using the basic mask generated script this tool extracts features"""
+        op = IptCrop()
+        op.apply_test_values_overrides(use_cases=("",))
+        script = LoosePipeline.load(
+            "./ipso_phen/ipapi/samples/pipelines/test_extractors.json"
+        )
+        script.add_module(operator=op, target_group="grp_test_extractors")
+        wrapper = BaseImageProcessor(
+            "./ipso_phen/ipapi/samples/images/arabido_small.jpg",
+            database=None,
+        )
+        res = script.execute(src_image=wrapper, silent_mode=True)
+        self.assertIsInstance(
+            op,
+            IptBaseAnalyzer,
+            "Crop must inherit from ipso_phen.ipapi.iptBaseAnalyzer",
+        )
+        self.assertTrue(res, "Failed to process Crop with test script")
+        self.assertNotEqual(
+            first=len(wrapper.csv_data_holder.data_list),
+            second=0,
+            msg="Crop returned no data",
+        )
 
     def test_documentation(self):
         doc_path = "./docs/ipt_Crop.md"

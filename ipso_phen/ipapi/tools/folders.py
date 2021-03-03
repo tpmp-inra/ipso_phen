@@ -86,9 +86,7 @@ class IpsoFolders(dict):
 
     def set_path(self, key: str, path: str):
         if key in self.keys():
-            assert (
-                self[key].dynamic is True
-            ), f"Can not set '{self[key]}' path is static"
+            assert self[key].dynamic is True, f"Can not set '{self[key]}' path is static"
             self[key].set_path(path)
 
     def add_static(self, key, path, user_folder=""):
@@ -138,7 +136,7 @@ ipso_folders = IpsoFolders(
                 "Pictures",
                 ROOT_IPSO_FOLDER,
                 "saved_images",
-                dt.now().strftime("%Y_%B_%d-%H%M%S"),
+                # dt.now().strftime("%Y_%B_%d-%H%M%S"),
                 "",
             )
         ),
@@ -203,6 +201,24 @@ ipso_folders = IpsoFolders(
                 "Documents",
                 ROOT_IPSO_FOLDER,
                 "database_builders",
+                "",
+            )
+        ),
+        "tensorflow_models": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "tensorflow_models",
+                "",
+            )
+        ),
+        "ilastik_models": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "ilastik_models",
                 "",
             )
         ),

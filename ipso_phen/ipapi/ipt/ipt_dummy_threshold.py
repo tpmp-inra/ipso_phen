@@ -1,6 +1,8 @@
 import logging
 import os
 
+import numpy as np
+
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 
@@ -33,6 +35,14 @@ class IptDummyThreshold(IptBase):
                 else:
                     self.result = wrapper.get_channel(src_img=img)
 
+                if np.sum(self.result[self.result != 255]) != 0:
+                    self.result, _ = wrapper.get_mask(
+                        self.result,
+                        channel="l",
+                        min_t=80,
+                        max_t=180,
+                    )
+
                 res = True
                 wrapper.store_image(img, "dummy_mask")
             else:
@@ -52,7 +62,7 @@ class IptDummyThreshold(IptBase):
 
     @property
     def is_wip(self):
-        return True
+        return False
 
     @property
     def package(self):

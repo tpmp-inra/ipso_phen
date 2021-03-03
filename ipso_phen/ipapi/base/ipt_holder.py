@@ -7,7 +7,6 @@ import sys
 import subprocess
 import argparse
 import logging
-from matplotlib import use
 from tqdm import tqdm
 
 
@@ -163,22 +162,25 @@ class IptHolder(object):
     def write_imports(self, f, op, tests_needed: dict):
         f.write("import os\n")
         if (
-            "img_in_img_out" in tests_needed
-            or "img_in_msk_out" in tests_needed
-            or "script_in_msk_out" in tests_needed
+            ipc.TEST_IMG_IN_IMG_OUT in tests_needed
+            or ipc.TEST_IMG_IN_MSK_OUT in tests_needed
+            or ipc.TEST_SCR_IN_MSK_OUT in tests_needed
         ):
             f.write("import numpy as np\n")
         f.write("import unittest\n\n")
         f.write(f"from {op.__module__} import {op.__class__.__name__}\n")
         f.write("from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor\n")
-        if "script_in_info_out" in tests_needed or "script_in_msk_out" in tests_needed:
+        if (
+            ipc.TEST_SCR_IN_NFO_OUT in tests_needed
+            or ipc.TEST_SCR_IN_MSK_OUT in tests_needed
+        ):
             f.write("from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline\n")
-            if "script_in_info_out" in tests_needed:
+            if ipc.TEST_SCR_IN_NFO_OUT in tests_needed:
                 f.write(
                     "from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer\n\n"
                 )
 
-        if "img_in_roi_out" in tests_needed:
+        if ipc.TEST_IMG_IN_ROI_OUT in tests_needed:
             f.write("import ipso_phen.ipapi.tools.regions as regions\n")
         f.write("import ipso_phen.ipapi.base.ip_common as ipc\n\n\n")
 
@@ -260,7 +262,7 @@ class IptHolder(object):
             f'{spaces}self.assertEqual(len(op.result.shape), 2, "Masks can only have one channel")\n'
         )
         f.write(
-            f'{spaces}self.assertEqual(np.sum(op.result[op.result != 255]), 0, "Masks values can only be 0 or 255")\n\n'
+            f'{spaces}self.assertEqual(np.sum(op.result[op.result != 255]), 0, "Masks values can only be 0 or 255",)\n\n'
         )
         return remove_tab(spaces)
 
@@ -410,7 +412,6 @@ class IptHolder(object):
             run_op=True,
             store_images=True,
         )
-        f.write(f"{spaces}res = op.process_wrapper(wrapper=wrapper)\n")
         f.write(
             f'{spaces}self.assertTrue(res, "Failed to process Simple white balance")\n'
         )
@@ -434,14 +435,14 @@ class IptHolder(object):
         res = {}
         for name, group in zip(
             [
-                "img_in_bool_out",
-                "img_in_img_out",
-                "img_in_msk_out",
-                "output_folder",
-                "script_in_msk_out",
-                "script_in_info_out",
-                "img_in_roi_out",
-                "visualization",
+                ipc.TEST_IMG_IN_BOOL_OUT,
+                ipc.TEST_IMG_IN_IMG_OUT,
+                ipc.TEST_IMG_IN_MSK_OUT,
+                ipc.TEST_OUTPUT_FOLDER,
+                ipc.TEST_SCR_IN_MSK_OUT,
+                ipc.TEST_SCR_IN_NFO_OUT,
+                ipc.TEST_IMG_IN_ROI_OUT,
+                ipc.TEST_VIZ,
             ],
             [
                 [ipc.ToolFamily.ASSERT],
@@ -467,7 +468,6 @@ class IptHolder(object):
         self,
         status_message: str = "",
         log_message: Any = None,
-        use_status_as_log: bool = False,
         collect_garbage: bool = True,
         log_level: int = 20,
     ):
@@ -475,7 +475,6 @@ class IptHolder(object):
             return self._log_callback(
                 status_message=status_message,
                 log_message=log_message,
-                use_status_as_log=use_status_as_log,
                 collect_garbage=collect_garbage,
                 log_level=log_level,
                 target_logger=logger,
@@ -488,7 +487,7 @@ class IptHolder(object):
             )
             return True
 
-    def build_test_files(self, log_callback=None, overwrite=False):
+    def build_test_files(self, log_callback=None, overwrite=True):
 
         self._log_callback = log_callback
         try:
@@ -496,7 +495,6 @@ class IptHolder(object):
             files_to_format = []
             self.log_state(
                 status_message="Building test scripts ...",
-                use_status_as_log=True,
                 log_level=logging.INFO,
             )
             module_names = [name for (_, name, _) in pkgutil.iter_modules(ipt.__path__)]
@@ -536,7 +534,6 @@ class IptHolder(object):
                         continue
                     self.log_state(
                         status_message=f"Building test script for {op.name}",
-                        use_status_as_log=True,
                         log_level=logging.INFO,
                     )
                     files_to_format.append(file_name)
@@ -566,29 +563,39 @@ class IptHolder(object):
                             f, op, spaces=spaces, found_fun=needed_tests
                         )
 
-                        if "img_in_msk_out" in needed_tests:
+                        def is_generate_test(test_case, op_):
+                            return (
+                                test_case in needed_tests
+                                and test_case not in op_.skip_tests
+                            )
+
+                        if is_generate_test(ipc.TEST_IMG_IN_MSK_OUT, op):
                             spaces = self.write_test_mask_generation(f, op, spaces=spaces)
 
-                        if "img_in_img_out" in needed_tests:
+                        if is_generate_test(ipc.TEST_IMG_IN_IMG_OUT, op):
                             spaces = self.write_test_image_transformation(
-                                f, op, spaces=spaces
+                                f,
+                                op,
+                                spaces=spaces,
                             )
 
-                        if "script_in_msk_out" in needed_tests:
+                        if is_generate_test(ipc.TEST_SCR_IN_MSK_OUT, op):
                             spaces = self.write_test_mask_transformation(
-                                f, op, spaces=spaces
+                                f,
+                                op,
+                                spaces=spaces,
                             )
 
-                        if "script_in_info_out" in needed_tests:
+                        if is_generate_test(ipc.TEST_SCR_IN_NFO_OUT, op):
                             spaces = self.write_test_feature_out(f, op, spaces=spaces)
 
-                        if "img_in_roi_out" in needed_tests:
+                        if is_generate_test(ipc.TEST_IMG_IN_ROI_OUT, op):
                             spaces = self.write_test_roi_out(f, op, spaces=spaces)
 
-                        if "img_in_bool_out" in needed_tests:
+                        if is_generate_test(ipc.TEST_IMG_IN_BOOL_OUT, op):
                             spaces = self.write_test_bool_out(f, op, spaces=spaces)
 
-                        if "visualization" in needed_tests:
+                        if is_generate_test(ipc.TEST_VIZ, op):
                             spaces = self.write_test_visualization(f, op, spaces=spaces)
 
                         spaces = self.write_test_documentation(f, op, spaces=spaces)
@@ -601,14 +608,10 @@ class IptHolder(object):
 
             self.log_state(
                 status_message="Formatting test scripts ...",
-                use_status_as_log=True,
                 log_level=logging.INFO,
             )
             for test_script in tqdm(files_to_format, desc="Formating test files"):
-                self.log_state(
-                    status_message=f"Formating {test_script}",
-                    use_status_as_log=True,
-                )
+                self.log_state(status_message=f"Formating {test_script}")
                 subprocess.run(args=("black", "-q", test_script))
 
         finally:

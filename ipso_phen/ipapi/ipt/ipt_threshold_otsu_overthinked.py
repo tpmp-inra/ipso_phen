@@ -24,7 +24,7 @@ class IptOtsuOverthinked(IptBase):
             values=dict(l_and="Logical AND", l_or="Logical OR"),
             hint="Selected merge method",
         )
-        self.add_label(name="lbl_channel", desc="Channels:")
+        self.add_label(desc="Channels:")
         choices_dict = dict(disabled="disabled", active="active", inverted="inverted")
         for color_space, channel, channel_name in create_channel_generator(
             ("h", "s", "l", "a", "b", "rd", "gr", "bl")

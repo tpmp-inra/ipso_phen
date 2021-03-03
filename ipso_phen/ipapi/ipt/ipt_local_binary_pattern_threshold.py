@@ -200,6 +200,10 @@ class IptLocalBinaryPatternThreshold(IptBase):
         finally:
             return res
 
+    def apply_test_values_overrides(self, use_cases: tuple = ()):
+        if ipc.ToolFamily.THRESHOLD in use_cases:
+            self.set_value_of("post_processing", "threshold")
+
     @property
     def name(self):
         return "Local binary pattern threshold"

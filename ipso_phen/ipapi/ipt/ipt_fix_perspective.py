@@ -69,7 +69,7 @@ class IptFixPerspective(IptBase):
             ),
         )
 
-        self.add_label(name="lbl1", desc="Multi range threshold")
+        self.add_label(desc="Multi range threshold")
         self.add_channel_selector(default_value="h", name="c1", desc="Channel 1")
         self.add_spin_box(
             name="c1_low",
@@ -127,7 +127,7 @@ class IptFixPerspective(IptBase):
         )
         self.add_morphology_operator()
 
-        self.add_label(name="lbl2", desc="Dot detection")
+        self.add_label(desc="Dot detection")
         self.add_spin_box(
             name="min_dot_size",
             desc="Minimal dot size (surface)",
@@ -143,7 +143,7 @@ class IptFixPerspective(IptBase):
             maximum=1000000,
         )
 
-        self.add_label(name="lbl3", desc="Destination size")
+        self.add_label(desc="Destination size")
         self.add_spin_box(
             name="dst_width",
             desc="Destination width",

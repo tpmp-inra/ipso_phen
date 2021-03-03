@@ -31,7 +31,7 @@ class IptRegionalMaximaFiltering(IptBase):
             hint="Use when image border perimeter has uneven brightness",
         )
         self.add_text_overlay(0)
-        self.add_label(name="lbl_disp", desc="Display options:")
+        self.add_label(desc="Display options:")
         self.add_color_map_selector(name="color_map", default_value="c_2")
         self.add_checkbox(
             name="use_palette",

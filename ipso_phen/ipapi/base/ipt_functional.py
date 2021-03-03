@@ -109,15 +109,8 @@ def call_ipt_code(
     ws = white_spaces + "    "
     res += (
         f",\n{ws}".join(
-            [
-                f'{ws}ipt_id="{ipt_id}"',
-                f"source={source}",
-                f'return_type="{return_type}"',
-            ]
-            + [
-                f"{p.name}={p.str_value}"
-                for p in ipt.input_params(exclude_force_diredefaults=True)
-            ]
+            [f'{ws}ipt_id="{ipt_id}"', f"source={source}", f'return_type="{return_type}"']
+            + [f"{p.name}={p.str_value}" for p in ipt.input_params(exclude_defaults=True)]
         )
         + "\n"
     )

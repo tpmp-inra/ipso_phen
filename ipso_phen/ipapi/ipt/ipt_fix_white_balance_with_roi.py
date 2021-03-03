@@ -14,10 +14,8 @@ import ipso_phen.ipapi.base.ip_common as ipc
 class IptFixWhiteBalanceWithRoi(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
-        self.add_label(
-            name="lbl_roi_hint_1", desc='ROIs should be of type "keep" or "delete"'
-        )
-        self.add_label(name="lbl_roi_hint_2", desc="Only static ROIs are allowed")
+        self.add_label(desc='ROIs should be of type "keep" or "delete"')
+        self.add_label(desc="Only static ROIs are allowed")
         self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):

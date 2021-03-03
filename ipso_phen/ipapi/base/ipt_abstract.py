@@ -529,7 +529,7 @@ class IptParamHolder(object):
         param.widget_type = "slider"
         return self.add(param)
 
-    def add_checkbox(self, name, desc, default_value, hint="") -> IptParam:
+    def add_checkbox(self, name, desc, default_value: int, hint="") -> IptParam:
         """Add a checkbox to the widgets
 
         Arguments:
@@ -622,16 +622,26 @@ class IptParamHolder(object):
         param.kind = "text_overlay_cb"
         return self.add(param)
 
-    def add_label(self, name: str, desc: str, hint: str = "") -> IptParam:
+    def add_label(self, desc: str, hint: str = "") -> IptParam:
         param = IptParam(
-            name=name, desc=desc, default_value=desc, allowed_values="label", hint=hint
+            name=f"lbl_{len(self._param_list)}",
+            desc=desc,
+            default_value=desc,
+            allowed_values="label",
+            hint=hint,
         )
         param.widget_type = "label"
         return self.add(param)
 
-    def add_separator(self, name: str) -> IptParam:
+    def add_separator(self, name: str = "") -> IptParam:
+        if not name:
+            name = f"sep_{len(self._param_list)}"
         param = IptParam(
-            name=name, desc="", default_value="", allowed_values="label", hint=""
+            name=name,
+            desc="",
+            default_value="",
+            allowed_values="label",
+            hint="",
         )
         param.widget_type = "label"
         return self.add(param)
@@ -678,7 +688,12 @@ class IptParamHolder(object):
             name=f"{global_prefix}output_format",
             desc="Image output format",
             default_value=output_format,
-            values=dict(source="As source image", jpg="JPEG", png="PNG", tiff="TIFF"),
+            values=dict(
+                source="As source image",
+                jpg="JPEG",
+                png="PNG",
+                tiff="TIFF",
+            ),
         )
         self.add_text_input(
             name=f"{global_prefix}subfolders",
@@ -1765,13 +1780,16 @@ class IptBase(IptParamHolder, ABC):
 
         return self.apply_morphology_from_params(mask)
 
-    def apply_morphology_from_params(self, mask, store_result: bool = False):
+    def apply_morphology(
+        self,
+        mask,
+        morph_op="none",
+        kernel_size=3,
+        iter_count=1,
+        kernel_shape="ellipsis",
+    ):
         if mask is None:
             return None
-
-        kernel_size = self.get_value_of("kernel_size", 0)
-        iter_ = self.get_value_of("proc_times", 1)
-        kernel_shape = self.get_value_of("kernel_shape", None)
 
         if not (len(mask.shape) == 2 or (len(mask.shape) == 3 and mask.shape[2] == 1)):
             logger.error("Morphology works only on mask images")
@@ -1789,16 +1807,27 @@ class IptBase(IptParamHolder, ABC):
         elif (kernel_size % 2 == 0) and (kernel_size > 0):
             kernel_size += 1
 
-        func = getattr(self._wrapper, self.get_value_of("morph_op"), None)
+        func = getattr(self._wrapper, morph_op, None)
         if func:
-            mask = func(
-                mask, kernel_size=kernel_size, proc_times=iter_, kernel_shape=k_shape
+            return func(
+                mask, kernel_size=kernel_size, proc_times=iter_count, kernel_shape=k_shape
             )
+        else:
+            return mask
 
-        if store_result:
-            self.wrapper.store_image(image=mask, text="morphology_applied")
+    def apply_morphology_from_params(self, mask, store_result: bool = False):
+        ret = self.apply_morphology(
+            mask=mask,
+            morph_op=self.get_value_of("morph_op"),
+            kernel_size=self.get_value_of("kernel_size", 0),
+            iter_count=self.get_value_of("proc_times", 1),
+            kernel_shape=self.get_value_of("kernel_shape", None),
+        )
 
-        return mask
+        if ret is not None and store_result:
+            self.wrapper.store_image(image=ret, text="morphology_applied")
+
+        return ret
 
     @staticmethod
     def get_labels_as_dict(
@@ -2193,4 +2222,8 @@ class IptBase(IptParamHolder, ABC):
 
     @property
     def required_images(self):
+        return []
+
+    @property
+    def skip_tests(self):
         return []

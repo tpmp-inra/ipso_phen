@@ -14,7 +14,7 @@ class IptMedianFilter(IptBase):
     def build_params(self):
         self.add_enabled_checkbox()
 
-        self.add_slider(
+        self.add_spin_box(
             name="median_filter_size",
             desc="Median filter size (odd values only)",
             default_value=3,

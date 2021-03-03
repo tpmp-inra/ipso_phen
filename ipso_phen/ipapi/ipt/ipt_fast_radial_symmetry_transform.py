@@ -141,7 +141,19 @@ class IptFastRadialSymmetryTransform(IptBaseAnalyzer):
 
                 # Calculate gradients
                 gx = gradx(img)
+                wrapper.store_image(
+                    image=self.to_uint8(
+                        gx, normalize=self.get_value_of("normalize") == 1
+                    ),
+                    text="gx",
+                )
                 gy = grady(img)
+                wrapper.store_image(
+                    image=self.to_uint8(
+                        gy, normalize=self.get_value_of("normalize") == 1
+                    ),
+                    text="gy",
+                )
 
                 # Find gradient vector magnitude
                 gnorms = np.sqrt(np.add(np.multiply(gx, gx), np.multiply(gy, gy)))
@@ -158,6 +170,12 @@ class IptFastRadialSymmetryTransform(IptBaseAnalyzer):
                     .round()
                     .astype(int)
                 )
+                wrapper.store_image(
+                    image=self.to_uint8(
+                        gpx, normalize=self.get_value_of("normalize") == 1
+                    ),
+                    text="gpx",
+                )
                 gpy = (
                     np.multiply(
                         np.divide(gy, gnorms, out=np.zeros(gy.shape), where=gnorms != 0),
@@ -165,6 +183,12 @@ class IptFastRadialSymmetryTransform(IptBaseAnalyzer):
                     )
                     .round()
                     .astype(int)
+                )
+                wrapper.store_image(
+                    image=self.to_uint8(
+                        gpy, normalize=self.get_value_of("normalize") == 1
+                    ),
+                    text="gpy",
                 )
 
                 # Iterate over all pixels (w/ gradient above threshold)
@@ -193,6 +217,19 @@ class IptFastRadialSymmetryTransform(IptBaseAnalyzer):
                 # Elementwise multiplication
                 F_n = np.multiply(np.power(O_n, alpha), M_n)
 
+                wrapper.store_image(
+                    image=self.to_uint8(
+                        O_n, normalize=self.get_value_of("normalize") == 1
+                    ),
+                    text="O_n",
+                )
+                wrapper.store_image(
+                    image=self.to_uint8(
+                        M_n, normalize=self.get_value_of("normalize") == 1
+                    ),
+                    text="M_n",
+                )
+
                 # Gaussian blur
                 kSize = int(np.ceil(radii / 2))
                 kSize = kSize + 1 if kSize % 2 == 0 else kSize
@@ -207,7 +244,7 @@ class IptFastRadialSymmetryTransform(IptBaseAnalyzer):
                     )
                     self.result = cv2.inRange(self.result, thresh_low, thresh_high)
 
-                wrapper.store_image(img, "frst")
+                wrapper.store_image(self.result, "frst")
                 res = True
             else:
                 wrapper.store_image(wrapper.current_image, "current_image")

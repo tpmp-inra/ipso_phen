@@ -345,11 +345,11 @@ class ImageWrapper:
 
     @property
     def date(self):
-        return self._file_handler.date()
+        return self._file_handler.date
 
     @property
     def time(self):
-        return self._file_handler.time()
+        return self._file_handler.time
 
     @property
     def date_str(self):

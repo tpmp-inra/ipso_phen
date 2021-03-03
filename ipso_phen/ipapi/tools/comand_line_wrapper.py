@@ -38,6 +38,8 @@ class ArgWrapper:
 
         self.multi_thread = kwargs.get("multi_thread", False)
 
+        self.save_mosaics = kwargs.get("save_mosaics", False)
+
         _dst_path = kwargs.get("dst_path", "")
         if self.seed_output:
             self.dst_path = os.path.join(

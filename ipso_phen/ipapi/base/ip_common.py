@@ -243,6 +243,15 @@ all_colors_dict = dict(
 
 ALL_COLORS = [v for v in all_colors_dict.values()]
 
+TEST_IMG_IN_BOOL_OUT = "img_in_bool_out"
+TEST_IMG_IN_IMG_OUT = "img_in_img_out"
+TEST_IMG_IN_MSK_OUT = "img_in_msk_out"
+TEST_OUTPUT_FOLDER = "output_folder"
+TEST_SCR_IN_MSK_OUT = "script_in_msk_out"
+TEST_SCR_IN_NFO_OUT = "script_in_info_out"
+TEST_IMG_IN_ROI_OUT = "img_in_roi_out"
+TEST_VIZ = "visualization"
+
 
 def bgr_to_rgb(color: tuple) -> tuple:
     """Converts from BGR to RGB

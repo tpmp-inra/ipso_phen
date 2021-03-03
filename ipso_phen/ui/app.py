@@ -1268,7 +1268,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         model = self.get_image_model()
         if model is not None:
-            logger.info(f"Added {model.rowCount()} items to image browser",)
+            logger.info(
+                f"Added {model.rowCount()} items to image browser",
+            )
             hh: QHeaderView = self.ui.tv_image_browser.horizontalHeader()
             hh.setMaximumSectionSize(150)
             hh.setMinimumSectionSize(70)
@@ -1324,7 +1326,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model.images = model.images.append(dataframe)
                 new_row_count = model.rowCount()
                 self.update_images_queue()
-                logger.info(f"Added {new_row_count - old_row_count} items to image browser")
+                logger.info(
+                    f"Added {new_row_count - old_row_count} items to image browser"
+                )
         elif mode == "remove":
             if not self.has_image_dataframe():
                 return
@@ -1335,7 +1339,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model.images = src_df[~src_df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
-                logger.info(f"Removed {old_row_count - new_row_count} items to image browser")
+                logger.info(
+                    f"Removed {old_row_count - new_row_count} items to image browser"
+                )
         elif mode == "keep":
             if not self.has_image_dataframe():
                 return
@@ -1346,7 +1352,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model.images = src_df[src_df["Luid"].isin(dataframe["Luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
-                logger.info(f"Removed {old_row_count - new_row_count} items to image browser")
+                logger.info(
+                    f"Removed {old_row_count - new_row_count} items to image browser"
+                )
         elif mode == "clear":
             self.init_image_browser(None)
         else:
@@ -1459,7 +1467,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 ldb = None
                 for ldb in self.image_databases[dbi.DbType.CUSTOM_DB]:
                     if (ldb.src_files_path == dlg.folder_path) and (dlg.dbms == ldb.dbms):
-                        logger.warning(f"""
+                        logger.warning(
+                            f"""
                             There's already a database named {ldb.display_name}
                             pointing to {ldb.src_files_path} using {ldb.dbms}.
                             Existing database will be used."""
@@ -1874,7 +1883,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             self.update_feedback(
                 status_message=f"Changed theme to: {style} ({theme})",
-                use_status_as_log=True,
                 log_level=logging.INFO,
             )
 
@@ -1987,15 +1995,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.spl_pb_ver_main.setSizes((w * 3, w * 5))
 
             # Three way splitter between source, result and data panels in pipeline builder
-            spl_state = settings_.value("ui.spl_ver_src_res_data", None)
-            if False and spl_state is not None:
+            spl_state = settings_.value("spl_ver_src_res_data", None)
+            if spl_state is not None:
                 self.ui.spl_ver_src_res_data.restoreState(spl_state)
             else:
                 w = ((available_width - 50) // 8 * 5) // 6
                 self.ui.spl_ver_src_res_data.setSizes((w * 2, w * 4))
 
             # Three way splitter between source, result and data panels in pipeline builder
-            spl_state = settings_.value("ui.spl_hor_src_data_params", None)
+            spl_state = settings_.value("spl_hor_src_data_params", None)
             if spl_state is not None:
                 self.ui.spl_hor_src_data_params.restoreState(spl_state)
             else:
@@ -2011,7 +2019,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.spl_hor_pb_left.setSizes((h * 1, h * 1, h * 2))
 
             # Data editor splitters
-            spl_state = settings_.value("ui.spl_de_left", None)
+            spl_state = settings_.value("spl_de_left", None)
             if spl_state is not None:
                 self.ui.spl_de_left.restoreState(spl_state)
             else:
@@ -2242,6 +2250,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 settings_.value("pipeline_processor/append_timestamp", "true").lower()
                 == "true"
             )
+            self.ui.cb_pp_save_mosaics.setChecked(
+                settings_.value("pipeline_processor/save_mosaics", "true").lower()
+                == "true"
+            )
             self.ui.sl_pp_thread_count.setValue(
                 int(
                     settings_.value(
@@ -2285,7 +2297,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             self.update_feedback(
                 status_message="Settings loaded, ready to play",
-                use_status_as_log=True,
                 log_level=logging.INFO,
             )
         finally:
@@ -2404,6 +2415,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 "append_timestamp",
                 self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
             )
+            settings_.setValue(
+                "save_mosaics",
+                self.ui.cb_pp_save_mosaics.isChecked(),
+            )
             settings_.setValue("thread_count", self.ui.sl_pp_thread_count.value())
             settings_.setValue("sp_pp_time_delta", self.ui.sp_pp_time_delta.value())
             settings_.endGroup()
@@ -2508,7 +2523,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self,
         status_message: str = "",
         log_message: Any = None,
-        use_status_as_log: bool = False,
         collect_garbage: bool = True,
         log_level: int = 20,
         target_logger=logger,
@@ -2579,7 +2593,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def on_action_show_documentation(self):
         webbrowser.open("https://ipso-phen.readthedocs.io/en/latest/")
 
-    def build_tool_documentation(self, tool, tool_name):
+    def build_tool_documentation(self, tool: BaseImageProcessor, tool_name):
         with open(os.path.join("docs", f"{tool_name}.md"), "w") as f:
             f.write(f"# {tool.name}\n\n")
             f.write("## Description\n\n")
@@ -2596,18 +2610,20 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                             f"- {p.desc} ({p.name}): {p.hint} (default: {p.default_value})\n"
                         )
             f.write("\n")
-            f.write("## Example\n\n")
-            f.write("### Source\n\n")
-            f.write(f"![Source image](images/{self._src_image_wrapper.name}.jpg)\n")
-            if not os.path.isfile(
-                os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg")
-            ):
-                shutil.copyfile(
-                    src=self._src_image_wrapper.file_path,
-                    dst=os.path.join(
-                        ".", "docs", "images", f"{self._src_image_wrapper.name}.jpg"
-                    ),
-                )
+            if tool.output_type != ipc.IO_NONE:
+                f.write("## Example\n\n")
+                f.write("### Source\n\n")
+                f.write(f"![Source image](images/{self._src_image_wrapper.name}.jpg)\n")
+            
+                if not os.path.isfile(
+                    os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg")
+                ):
+                    shutil.copyfile(
+                        src=self._src_image_wrapper.file_path,
+                        dst=os.path.join(
+                            ".", "docs", "images", f"{self._src_image_wrapper.name}.jpg"
+                        ),
+                    )
             f.write("\n")
             f.write("### Parameters/Code\n\n")
             f.write("Default values are not needed when calling function\n\n")
@@ -2619,26 +2635,27 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
             )
             f.write("```\n\n")
-            if hasattr(tool, "data_dict"):
-                f.write("### Result image\n\n")
-            else:
-                f.write("### Result\n\n")
-            self.save_image(
-                image_data=self.ui.cb_available_outputs.itemData(
-                    self.ui.cb_available_outputs.currentIndex()
-                ),
-                text=tool_name,
-                image_path="./docs/images/",
-            )
-            f.write(f"![Result image](images/{tool_name}.jpg)\n")
-            if hasattr(tool, "data_dict"):
-                f.write("\n### Result data\n\n")
-                f.write("|         key         |        Value        |\n")
-                f.write("|:-------------------:|:-------------------:|\n")
-                for r in range(self.ui.tw_script_sim_output.rowCount()):
-                    f.write(
-                        f"|{self.ui.tw_script_sim_output.item(r, 0).text()}|{self.ui.tw_script_sim_output.item(r, 1).text()}|\n"
-                    )
+            if tool.output_type != ipc.IO_NONE:
+                if hasattr(tool, "data_dict"):
+                    f.write("### Result image\n\n")
+                else:
+                    f.write("### Result\n\n")
+                self.save_image(
+                    image_data=self.ui.cb_available_outputs.itemData(
+                        self.ui.cb_available_outputs.currentIndex()
+                    ),
+                    text=tool_name,
+                    image_path="./docs/images/",
+                )
+                f.write(f"![Result image](images/{tool_name}.jpg)\n")
+                if hasattr(tool, "data_dict"):
+                    f.write("\n### Result data\n\n")
+                    f.write("|         key         |        Value        |\n")
+                    f.write("|:-------------------:|:-------------------:|\n")
+                    for r in range(self.ui.tw_script_sim_output.rowCount()):
+                        f.write(
+                            f"|{self.ui.tw_script_sim_output.item(r, 0).text()}|{self.ui.tw_script_sim_output.item(r, 1).text()}|\n"
+                        )
 
     def on_action_build_tool_documentation(self):
         self.build_tool_documentation(
@@ -2672,7 +2689,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.dk_log.setVisible(True)
             self.ui.dk_log.setWindowTitle("Log: last error - " + line)
         if hasattr(self, "_status_label"):
-            self._status_label.setText("Last log entry: " + line)
+            self._status_label.setText(line[line.index("]") + 4 : line.index("]") + 100])
             self.process_events()
 
     def on_action_build_ipso_phen_documentation(self):
@@ -2815,7 +2832,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         elif result == "GRID_SEARCH_START":
             self.update_feedback(
                 status_message=f"Starting grid search with {total_steps} configurations",
-                use_status_as_log=True,
             )
         elif result == "GRID_SEARCH_OK":
             self.ui.cb_available_outputs.addItem(data["name"], data)
@@ -2823,11 +2839,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.cb_available_outputs.count() - 1
             )
         elif result == "GRID_SEARCH_NOK":
-            self.update_feedback(status_message=msg, use_status_as_log=True)
+            self.update_feedback(status_message=msg)
         elif result == "GRID_SEARCH_END":
-            self.update_feedback(
-                status_message="Ending grid search", use_status_as_log=True
-            )
+            self.update_feedback(status_message="Ending grid search")
         else:
             logger.exception(f'Unknown result: "Unknown pipeline result {result}"')
 
@@ -2910,7 +2924,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if res:
                 self.update_feedback(
                     status_message=f'Saved pipeline to: "{file_name_}"',
-                    use_status_as_log=True,
                 )
                 self.last_pipeline_path = file_name_
                 self._pipeline_changed = False
@@ -3098,10 +3111,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         else:
             tool = self.find_tool_by_name(text)
             if tool is None:
-                self.update_feedback(
-                    status_message=f'Unable to add "{text}" to pipeline',
-                    use_status_as_log=True,
-                )
+                self.update_feedback(status_message=f'Unable to add "{text}" to pipeline')
                 return
             else:
                 added_index = model.add_module(
@@ -3118,9 +3128,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         pp = self.pipeline
         if pp is not None:
             self.pipeline.invalidate()
-            self.update_feedback(
-                status_message="Cleared pipeline cache", use_status_as_log=True
-            )
+            self.update_feedback(status_message="Cleared pipeline cache")
 
     def on_bt_pp_reset(self):
         self.ui.le_pp_output_folder.setText(
@@ -3134,6 +3142,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_pp_generate_series_id.setChecked(False)
         self.ui.cb_pp_append_experience_name.setChecked(True)
         self.ui.cb_pp_append_timestamp_to_output_folder.setChecked(False)
+        self.ui.cb_pp_save_mosaics.setChecked(False)
         self.ui.sl_pp_thread_count.setValue(0)
         if self._src_image_wrapper is not None:
             self.ui.edt_csv_file_name.setText(
@@ -3418,9 +3427,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             elif self.ui.rb_pp_load_script.isChecked():
                 script_ = self.pipeline.copy()
             else:
-                self.update_feedback(
-                    status_message="Unknown pipeline mode", use_status_as_log=True
-                )
+                self.update_feedback(status_message="Unknown pipeline mode")
                 return
 
             # self.pp_thread_pool.setMaxThreadCount(self.ui.sl_pp_thread_count.value())
@@ -3432,6 +3439,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 group_by_series=self.ui.cb_pp_generate_series_id.isChecked(),
                 store_images=True,
                 database=self.current_database.copy(),
+                save_mosaics=self.ui.cb_pp_save_mosaics.isChecked(),
             )
             self.pp_pipeline.accepted_files = image_list_
             self.pp_pipeline.script = script_
@@ -3498,9 +3506,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             )
 
         include_annotations = self.ui.cb_stat_include_annotations.isChecked()
-        self.update_feedback(
-            status_message="Building selection stats", use_status_as_log=True
-        )
+        self.update_feedback(status_message="Building selection stats")
         self.global_progress_start(add_stop_button=True)
         try:
             self.ui.lv_stats.insertPlainText("\n")
@@ -3563,7 +3569,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.threads_step = self.threads_total
             self.thread_pool.clear()
             self.thread_pool.waitForDone(-1)
-            self.update_feedback(status_message="Process stopped", use_status_as_log=True)
+            self.update_feedback(status_message="Process stopped")
         self._batch_stop_current = True
 
     def on_bt_reset_op(self):
@@ -3661,13 +3667,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.on_bt_clear_result()
             self.update_feedback(
                 status_message="Executing current pipeline, please wait...",
-                use_status_as_log=True,
                 log_level=logging.INFO,
             )
         else:
             self.update_feedback(
                 status_message=f"Unknown runnable mode {mode}",
-                use_status_as_log=True,
                 log_level=logging.ERROR,
             )
 
@@ -3762,13 +3766,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def do_thread_feedback_log_object(self, status_message: str, sender: object):
         self.update_feedback(status_message=status_message, log_message=sender)
 
-    def do_thread_feedback_log_str(
-        self, status_message: str, log_message: str, use_status_as_log: bool
-    ):
+    def do_thread_feedback_log_str(self, status_message: str, log_message: str):
         self.update_feedback(
             status_message=status_message,
             log_message=log_message,
-            use_status_as_log=use_status_as_log,
         )
 
     def update_thread_counts(
@@ -3864,8 +3865,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     )
                 else:
                     self.update_feedback(
-                        status_message="Run process: unknown filter mode",
-                        use_status_as_log=True,
+                        status_message="Run process: unknown filter mode"
                     )
                     return False
                 dff = dff.sort_values(by=["date_time"], axis=0, na_position="first")
@@ -3953,10 +3953,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def on_bt_set_batch_as_selection(self):
         self.begin_edit_image_browser()
         try:
-            self.update_feedback(
-                status_message="Setting las batch as selected images",
-                use_status_as_log=True,
-            )
+            self.update_feedback(status_message="Setting las batch as selected images")
             luids = [
                 self.ui.lw_last_batch.item(i).text()
                 for i in range(0, self.ui.lw_last_batch.count())
@@ -4026,9 +4023,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.gv_output_image.main_image = None
         while self.ui.tw_script_sim_output.rowCount() > 0:
             self.ui.tw_script_sim_output.removeRow(0)
-        self.update_feedback(
-            status_message=f"Cleared {img_count} images", use_status_as_log=True
-        )
+        self.update_feedback(status_message=f"Cleared {img_count} images")
         self.ui.bt_set_as_selected.setEnabled(False)
         self._selected_output_image_luid = None
 
@@ -4082,9 +4077,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if self.save_image(
                 image_data=cb.itemData(cb.currentIndex()), text="", add_time_stamp=True
             ):
-                self.update_feedback(
-                    status_message=f"Saved {cb.currentText()}", use_status_as_log=True
-                )
+                self.update_feedback(status_message=f"Saved {cb.currentText()}")
                 open_file((ipso_folders.get_path("image_output"), ""))
 
     def on_bt_save_all_images(self):
@@ -4098,9 +4091,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(
                     status_message=f"Saved {image_name} -- {i + 1}/{cb.count()}"
                 )
-        self.update_feedback(
-            status_message=f"Saved {cb.count()} images", use_status_as_log=True
-        )
+        self.update_feedback(status_message=f"Saved {cb.count()} images")
         open_file((ipso_folders.get_path("image_output"), ""))
 
     def on_video_frame_duration_changed(self):
@@ -4380,9 +4371,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def on_action_build_video_from_images(self):
         if self.ui.cb_available_outputs.count() < 1:
-            self.update_feedback(
-                status_message="No images to build video from", use_status_as_log=True
-            )
+            self.update_feedback(status_message="No images to build video from")
             return
 
         frame_rate = 24.0
@@ -4446,7 +4435,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         self._batch_is_active = True
         self._batch_stop_current = False
-        self.update_feedback(status_message="Building video", use_status_as_log=True)
+        self.update_feedback(status_message="Building video")
         self.global_progress_start()
         try:
             canvas = np.full((v_height, v_width, 3), bkg_color, np.uint8)
@@ -4503,9 +4492,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         except Exception as e:
             logger.exception(f'Failed to generate video: "{repr(e)}"')
         else:
-            self.update_feedback(
-                status_message=f'Generated video "{vid_name}"', use_status_as_log=True
-            )
+            self.update_feedback(status_message=f'Generated video "{vid_name}"')
             open_file((ipso_folders.get_path("image_output"), ""))
         finally:
             out.release()
@@ -4599,9 +4586,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return
             dataframe = dataframe[["Experiment", "Luid"]]
             luids = []
-            self.update_feedback(
-                status_message="Keeping only tagged images", use_status_as_log=True
-            )
+            self.update_feedback(status_message="Keeping only tagged images")
             self.global_progress_start(add_stop_button=False)
             total_ = dataframe.shape[0]
             i = 1
@@ -5270,6 +5255,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         overwrite_existing=self.ui.cb_pp_overwrite.isChecked(),
                         sub_folder_name=database_data["display_name"],
                         append_time_stamp=self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
+                        save_mosaics=self.ui.cb_pp_save_mosaics.isChecked(),
                         script=script_.to_json(),
                         generate_series_id=self.ui.cb_pp_generate_series_id.isChecked(),
                         series_id_time_delta=self.ui.sp_pp_time_delta.value(),
@@ -5318,6 +5304,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         overwrite_existing=self.ui.cb_pp_overwrite.isChecked(),
                         sub_folder_name=append_experience_name,
                         append_time_stamp=self.ui.cb_pp_append_timestamp_to_output_folder.isChecked(),
+                        save_mosaics=self.ui.cb_pp_save_mosaics.isChecked(),
                         script=script_.to_json(),
                         generate_series_id=self.ui.cb_pp_generate_series_id.isChecked(),
                         series_id_time_delta=self.ui.sp_pp_time_delta.value(),
@@ -5340,10 +5327,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return ipt_
                 break
         else:
-            self.update_feedback(
-                status_message=f'Unable to find "{tool_name}" operator',
-                use_status_as_log=True,
-            )
+            self.update_feedback(status_message=f'Unable to find "{tool_name}" operator')
             return None
 
     def select_tool_from_name(self, tool_name):
@@ -5665,18 +5649,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if changed_:
                 if self._current_database is None:
                     self.update_feedback(
-                        status_message="Not connected to a database or file system",
-                        use_status_as_log=True,
+                        status_message="Not connected to a database or file system"
                     )
                 elif self._current_database.db_qualified_name:
                     self.update_feedback(
-                        status_message=f"Connected to {self._current_database.db_qualified_name}",
-                        use_status_as_log=True,
+                        status_message=f"Connected to {self._current_database.db_qualified_name}"
                     )
                 else:
                     self.update_feedback(
-                        status_message=f"Displaying contents of {self._current_database.src_files_path}",
-                        use_status_as_log=True,
+                        status_message=f"Displaying contents of {self._current_database.src_files_path}"
                     )
             if not self._initializing:
                 self.update_comboboxes(

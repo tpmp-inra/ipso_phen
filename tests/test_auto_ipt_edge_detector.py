@@ -50,7 +50,6 @@ class TestIptEdgeDetector(unittest.TestCase):
         )
         wrapper.store_images = True
         res = op.process_wrapper(wrapper=wrapper)
-        res = op.process_wrapper(wrapper=wrapper)
         self.assertTrue(res, "Failed to process Simple white balance")
         self.assertGreater(
             len(wrapper.image_list), 0, "Visualizations must add images to list"

@@ -6,7 +6,7 @@ import cv2
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.tools.common_functions import make_safe_name
-from ipso_phen.ipapi.base.ip_common import scale_image
+from ipso_phen.ipapi.base.ip_common import scale_image, TEST_IMG_IN_MSK_OUT
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
@@ -107,6 +107,10 @@ class IptLoadMask(IptBase):
             pass
         finally:
             return res
+
+    @property
+    def skip_tests(self):
+        return [TEST_IMG_IN_MSK_OUT]
 
     @property
     def name(self):
