@@ -112,8 +112,6 @@ def _split_camera_label(cam_label: str) -> tuple:
 
 def _query_phenoserre(query: str) -> pd.DataFrame:
 
-    assert check_password(key="phenoserre"), "Unable to connect to phenoserre"
-
     # Create jump ssh connexion
     jump_connexion = paramiko.SSHClient()
     jump_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -156,7 +154,8 @@ def _query_phenoserre(query: str) -> pd.DataFrame:
 
 
 def get_phenoserre_exp_list() -> list:
-    assert check_password(key="phenoserre"), "Unable to connect to phenoserre"
+    if check_password(key="phenoserre") is False:
+        return []
     try:
         exp_list = sorted(
             _query_phenoserre("select distinct measurement_label from snapshot")

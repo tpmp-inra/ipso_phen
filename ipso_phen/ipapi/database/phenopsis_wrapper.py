@@ -39,7 +39,8 @@ def get_pheno_db_ftp():
 
 
 def get_phenopsis_exp_list() -> list:
-    assert check_password("phenopsis"), "Unable to connect to phenoserre"
+    if check_password("phenopsis") is False:
+        return []
     try:
         ftp = get_pheno_db_ftp()
         exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
