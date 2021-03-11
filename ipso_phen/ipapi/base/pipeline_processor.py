@@ -496,13 +496,13 @@ class PipelineProcessor:
 
     def prepare_groups(self, time_delta: int):
         if self.options.group_by_series:
-            return self.group_by_series(time_delta, False)
+            return self.group_by_series(time_delta)
         else:
             return self.accepted_files[:]
 
     def yield_groups(self, time_delta: int):
         if self.options.group_by_series:
-            yield from self.group_by_series(time_delta, True)
+            yield from self.yield_group_by_series(time_delta)
         else:
             yield {"step": 1, "total": 1}
         self.groups_to_process = self.accepted_files[:]

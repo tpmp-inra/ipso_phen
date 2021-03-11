@@ -1335,7 +1335,6 @@ class PipelineModel(TreeModel):
         for _ in range(count):
             res = parent.internalPointer().remove_children(row) and res
         self.endRemoveRows()
-        # self.layoutChanged.emit()
         return res
 
     def move_row(
