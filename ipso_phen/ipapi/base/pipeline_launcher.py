@@ -196,6 +196,7 @@ def launch(**kwargs):
     if not image_list_:
         pp.grab_files_from_data_base(
             experiment=db.db_info.display_name.lower(),
+            order_by="Plant",
             **db.main_selector,
         )
     else:

@@ -2614,9 +2614,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 f.write("## Example\n\n")
                 f.write("### Source\n\n")
                 f.write(f"![Source image](images/{self._src_image_wrapper.name}.jpg)\n")
-            
+
                 if not os.path.isfile(
-                    os.path.join(".", "docs", "images", f"{self._src_image_wrapper.name}.jpg")
+                    os.path.join(
+                        ".", "docs", "images", f"{self._src_image_wrapper.name}.jpg"
+                    )
                 ):
                     shutil.copyfile(
                         src=self._src_image_wrapper.file_path,
@@ -4056,10 +4058,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
 
             if not image_path:
-                force_directories(ipso_folders.get_path("image_output"))
-                image_path = os.path.join(
-                    ipso_folders.get_path("image_output"), f"{text}.jpg"
-                )
+                img_fld = ipso_folders.get_path("image_output")
+                force_directories(img_fld)
+                image_path = os.path.join(img_fld, f"{text}.jpg")
             else:
                 force_directories(image_path)
                 image_path = os.path.join(image_path, f"{text}.jpg")
@@ -4074,11 +4075,22 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def on_bt_save_current_image(self):
         cb = self.ui.cb_available_outputs
         if cb.count():
-            if self.save_image(
-                image_data=cb.itemData(cb.currentIndex()), text="", add_time_stamp=True
-            ):
-                self.update_feedback(status_message=f"Saved {cb.currentText()}")
-                open_file((ipso_folders.get_path("image_output"), ""))
+            image_data = cb.itemData(cb.currentIndex())
+        else:
+            image_data = {
+                "image": self._src_image_wrapper.current_image,
+                "plant_name": self._src_image_wrapper.name,
+                "name": self._src_image_wrapper.plant,
+                "written": False,
+            }
+
+        if self.save_image(
+            image_data=image_data,
+            text="",
+            add_time_stamp=True,
+        ):
+            self.update_feedback(status_message=f"Saved {cb.currentText()}")
+            open_file((ipso_folders.get_path("image_output"), ""))
 
     def on_bt_save_all_images(self):
         cb = self.ui.cb_available_outputs
@@ -4425,8 +4437,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         selected_mode = self.current_tool
         total_ = self.ui.cb_available_outputs.count()
         vid_name = f'{make_safe_name(selected_mode.name)}_{dt.now().strftime("%Y%B%d_%H%M%S")}_{total_}.mp4'
-        force_directories(ipso_folders.get_path("image_output"))
-        v_output = os.path.join(ipso_folders.get_path("image_output"), vid_name)
+        vid_fld = ipso_folders.get_path(
+            "image_output",
+            subfolder=self.wrapper.experiment,
+        )
+        force_directories(vid_fld)
+        v_output = os.path.join(vid_fld, vid_name)
 
         frame_rect = RectangleRegion(width=v_width, height=v_height)
 
@@ -4493,7 +4509,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             logger.exception(f'Failed to generate video: "{repr(e)}"')
         else:
             self.update_feedback(status_message=f'Generated video "{vid_name}"')
-            open_file((ipso_folders.get_path("image_output"), ""))
+            open_file((vid_fld))
         finally:
             out.release()
             cv2.destroyAllWindows()
@@ -5399,7 +5415,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self._src_image_wrapper is not None
                 ):
                     self.restore_annotation(
-                        self._src_image_wrapper, self._src_image_wrapper.experiment
+                        self._src_image_wrapper,
+                        self._src_image_wrapper.experiment,
                     )
             except Exception as e:
                 self._src_image_wrapper = None
@@ -5415,7 +5432,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     if selected_mode is not None:
                         selected_mode.update_inputs(
                             update_values=self.build_param_overrides(
-                                wrapper=self._src_image_wrapper, tool=selected_mode
+                                wrapper=self._src_image_wrapper,
+                                tool=selected_mode,
                             )
                         )
                         if (
@@ -5518,7 +5536,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self.process_events()
                 value.update_inputs(
                     update_values=self.build_param_overrides(
-                        wrapper=self._src_image_wrapper, tool=value
+                        wrapper=self._src_image_wrapper,
+                        tool=value,
                     )
                 )
 
@@ -5575,10 +5594,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     @pipeline.setter
     def pipeline(self, value: LoosePipeline):
-        if value is not None and (
-            not value.image_output_path or not os.path.isdir(value.image_output_path)
-        ):
-            value.image_output_path = ipso_folders.get_path("image_output")
         model = PipelineModel(
             pipeline=value,
             call_backs=dict(
@@ -5610,12 +5625,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 PipelineDelegate(parent=self.ui.tv_pp_view)
             )
             self.ui.tv_pp_view.header().setStretchLastSection(False)
-            self.ui.tv_pp_view.header().setSectionResizeMode(0, QHeaderView.Stretch)
             self.ui.tv_pp_view.header().setSectionResizeMode(
-                1, QHeaderView.ResizeToContents
+                0,
+                QHeaderView.Stretch,
             )
             self.ui.tv_pp_view.header().setSectionResizeMode(
-                2, QHeaderView.ResizeToContents
+                1,
+                QHeaderView.ResizeToContents,
+            )
+            self.ui.tv_pp_view.header().setSectionResizeMode(
+                2,
+                QHeaderView.ResizeToContents,
             )
             self.ui.tv_pp_view.setColumnWidth(1, 12)
             self.ui.tv_pp_view.setColumnWidth(2, 12)

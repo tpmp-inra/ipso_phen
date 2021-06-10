@@ -11,6 +11,7 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipso_phen.ipapi.tools.folders import ipso_folders
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptTensorflowInference(IptBaseAnalyzer):

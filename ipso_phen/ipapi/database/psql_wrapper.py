@@ -154,7 +154,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
         # Check database exists
         db_url = self.db_url
         if not self.is_exists():
-            engine = create_engine("postgres://postgres@/postgres")
+            engine = create_engine("postgresql://postgres@/postgres")
             conn = engine.connect()
             conn.execute("commit")
             conn.execute(f"create database {self.db_qualified_name.lower()}")
@@ -174,28 +174,28 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
             return False
 
         # Check table exists
-        if (
-            not self.engine.dialect.has_table(self.engine, self.main_table)
-            and self.open_connexion()
-        ):
+        if self.open_connexion():
             try:
-                self.connexion.execute(
-                    f"""CREATE TABLE {self.main_table} (Luid TEXT NOT NULL PRIMARY KEY,
-                                                        Name TEXT NOT NULL,
-                                                        FilePath TEXT NOT NULL,
-                                                        Experiment TEXT,
-                                                        Plant TEXT,
-                                                        Date DATE,
-                                                        Time TIME,
-                                                        date_time TIMESTAMP,
-                                                        Camera TEXT,
-                                                        view_option TEXT )"""
-                )
-                missing_data = True
-            except Exception as e:
+                if not self.engine.dialect.has_table(self.connexion, self.main_table):
+                    try:
+                        self.connexion.execute(
+                            f"""CREATE TABLE {self.main_table} (Luid TEXT NOT NULL PRIMARY KEY,
+                                                                Name TEXT NOT NULL,
+                                                                FilePath TEXT NOT NULL,
+                                                                Experiment TEXT,
+                                                                Plant TEXT,
+                                                                Date DATE,
+                                                                Time TIME,
+                                                                date_time TIMESTAMP,
+                                                                Camera TEXT,
+                                                                view_option TEXT )"""
+                        )
+                        missing_data = True
+                    except Exception as e:
+                        logger.exception(f"Failed to create table because {repr(e)}")
+                        return False
+            finally:
                 self.close_connexion()
-                logger.exception(f"Failed to create table because {repr(e)}")
-                return False
 
         if missing_data and auto_update and self.db_qualified_name:
             self.update()

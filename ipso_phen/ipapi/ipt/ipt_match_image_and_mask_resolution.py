@@ -55,14 +55,17 @@ class IptMatchImageAndMaskResolution(IptBase):
                         height=mask.shape[0],
                         keep_aspect_ratio=False,
                     )
+                    self.result = wrapper.current_image
                 elif match_to == "image":
                     wrapper.mask = ipc.resize_image(
                         src_img=mask,
                         width=img.shape[1],
                         height=img.shape[0],
                         keep_aspect_ratio=False,
+                        output_as_bgr=False,
                     )
                     wrapper.mask[wrapper.mask != 0] = 255
+                    self.result = wrapper.mask
 
                 self.demo_image = wrapper.build_mosaic(
                     shape=(
@@ -121,4 +124,4 @@ class IptMatchImageAndMaskResolution(IptBase):
 
     @property
     def output_type(self):
-        return ipc.IO_NONE
+        return ipc.IO_MASK if self.get_value_of("match_to") == "image" else ipc.IO_IMAGE

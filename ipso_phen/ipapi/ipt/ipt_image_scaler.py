@@ -6,7 +6,7 @@ import logging
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
-from ipso_phen.ipapi.base.ip_common import scale_image, IO_IMAGE, ToolFamily
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptImageScaler(IptBaseAnalyzer):
@@ -21,6 +21,16 @@ class IptImageScaler(IptBaseAnalyzer):
             name="img_name",
             desc="Name in csv",
             default_value="img",
+        )
+        self.add_combobox(
+            name="output_selector",
+            desc="Select output",
+            default_value="image",
+            values={
+                "image": "image",
+                "data": "data",
+            },
+            hint="Select output type",
         )
         self.add_file_naming()
         self.add_checkbox(
@@ -81,7 +91,7 @@ class IptImageScaler(IptBaseAnalyzer):
             if self.get_value_of("enabled") == 1:
                 sf = self.get_value_of("scale_factor")
                 sf = sf if self.get_value_of("scale_direction") == "up" else 1 / sf
-                self.result = scale_image(
+                self.result = ipc.scale_image(
                     src_img=wrapper.current_image,
                     scale_factor=sf,
                 )
@@ -120,11 +130,9 @@ class IptImageScaler(IptBaseAnalyzer):
             return res
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        if (
-            ToolFamily.PRE_PROCESSING not in use_cases
-            and ToolFamily.VISUALIZATION not in use_cases
-        ):
+        if ipc.ToolFamily.FEATURE_EXTRACTION in use_cases:
             self.set_value_of("save_image", 1)
+            self.set_value_of("output_selector", "data")
 
     @property
     def name(self):
@@ -156,4 +164,8 @@ class IptImageScaler(IptBaseAnalyzer):
 
     @property
     def output_type(self):
-        return IO_IMAGE
+        return (
+            ipc.IO_DATA
+            if self.get_value_of("output_selector") == "data"
+            else ipc.IO_IMAGE
+        )

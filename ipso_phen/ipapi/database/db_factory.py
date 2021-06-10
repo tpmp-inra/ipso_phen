@@ -27,7 +27,7 @@ def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
             user="fmavianemac",
             password="",
             port=5432,
-            engine_path="postgres://postgres@/postgres",
+            engine_path="postgresql://postgres@/postgres",
             db_info=info.copy(),
             progress_call_back=kwargs.get("progress_call_back", None),
         )

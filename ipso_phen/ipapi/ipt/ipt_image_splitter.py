@@ -101,7 +101,7 @@ class IptImageSplitter(IptBaseAnalyzer):
             for i in range(0, line_count):
                 for j in range(0, column_count):
                     salt = f"_{exp}_t{tray_id}-l{i+1}-c{j+1}-p{i*column_count + j + 1}"
-                    file_name = self.build_output_path(salt=salt)
+                    file_name = self.build_path(salt=salt)
                     slice_ = img[
                         i * h_step + padding_ver : i * h_step + h_step - padding_ver,
                         j * w_step + padding_hor : j * w_step + w_step - padding_hor,

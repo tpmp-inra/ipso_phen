@@ -33,7 +33,7 @@ class TestIptImageScaler(unittest.TestCase):
     def test_feature_out(self):
         """Image scaler: "Test that when using the basic mask generated script this tool extracts features"""
         op = IptImageScaler()
-        op.apply_test_values_overrides(use_cases=("",))
+        op.apply_test_values_overrides(use_cases=("Feature extraction",))
         script = LoosePipeline.load(
             "./ipso_phen/ipapi/samples/pipelines/test_extractors.json"
         )

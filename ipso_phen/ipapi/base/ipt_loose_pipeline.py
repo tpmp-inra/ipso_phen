@@ -786,8 +786,6 @@ class GroupNode(Node):
                             roi=res.get("roi", None),
                             node=node,
                         )
-                    if "data" in res:
-                        wrapper.csv_data_holder.data_list.update(res["data"])
                 else:
                     self.last_result["outcome"] = False
                 if node.uuid == target_module:
@@ -1372,6 +1370,7 @@ class LoosePipeline(object):
             self.image_output_path = ipso_folders.get_path(
                 key="image_output",
                 force_creation=False,
+                subfolder=self.wrapper.experiment,
             )
         else:
             self.image_output_path = self.wrapper.dst_path

@@ -25,6 +25,11 @@ class IptIlastikInference(IptBase):
             default_value="",
             hint="Full path to an Ilastik project",
         )
+        self.add_checkbox(
+            name="abort_if_missing",
+            desc="Raise error if mask is not in cache",
+            default_value=0,
+        )
 
         self.add_separator(name="sep1")
         self.add_label(desc="Source")
@@ -71,9 +76,12 @@ class IptIlastikInference(IptBase):
         res = False
         try:
             if self.get_value_of("enabled") == 1:
-                dst_path = self.build_output_path(file_prefix="dst_")
+                dst_path = self.build_path(file_prefix="dst_")
                 if os.path.isfile(dst_path) and self.get_value_of("overwrite") == 0:
                     logger.info("Retrived already inferred mask")
+                elif self.get_value_of("abort_if_missing") == 1:
+                    logger.error("Missing cached mask, abort")
+                    return
                 else:
                     subprocess.run(
                         [
@@ -85,10 +93,10 @@ class IptIlastikInference(IptBase):
                             f'--project={os.path.join(ipso_folders.get_path("ilastik_models"), self.get_value_of("ilastik_model"))}',
                             f'--output_format={self.get_value_of("dst_output_format")}',
                             "--export_source=simple segmentation",
-                            f"--output_filename_format={self.build_output_path(file_prefix='dst_')}",
+                            f"--output_filename_format={self.build_path(file_prefix='dst_')}",
                             "--pipeline_result_drange=(1.0,2.0)",
                             "--export_drange=(0,255)",
-                            self.build_output_path(file_prefix="src_"),
+                            self.build_path(file_prefix="src_"),
                         ]
                     )
 

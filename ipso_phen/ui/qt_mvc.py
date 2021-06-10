@@ -1108,7 +1108,12 @@ class TreeModel(QAbstractItemModel):
 
 
 class PipelineModel(TreeModel):
-    def __init__(self, pipeline, call_backs, do_feedback):
+    def __init__(
+        self,
+        pipeline,
+        call_backs,
+        do_feedback,
+    ):
         self.pipeline = pipeline
         self.call_backs = call_backs
         self.do_feedback = do_feedback
@@ -1272,7 +1277,11 @@ class PipelineModel(TreeModel):
 
         return super(TreeModel, self).setData(index, value, role)
 
-    def get_parent_group_node(self, selected_items, allow_wandering: bool = False):
+    def get_parent_group_node(
+        self,
+        selected_items,
+        allow_wandering: bool = False,
+    ):
         if isinstance(selected_items, QModelIndex):
             return selected_items
         elif isinstance(selected_items, list) and selected_items:
@@ -1291,7 +1300,12 @@ class PipelineModel(TreeModel):
         else:
             return self.createIndex(1, 0, self.rootNodes[2])
 
-    def add_module(self, selected_items, module: IptBase, enabled: bool):
+    def add_module(
+        self,
+        selected_items,
+        module: IptBase,
+        enabled: bool,
+    ):
         root = self.get_parent_group_node(selected_items=selected_items)
         if root is not None:
             node: PipelineNode = root.internalPointer()
@@ -1307,7 +1321,10 @@ class PipelineModel(TreeModel):
             return added_index
 
     def add_group(
-        self, selected_items, merge_mode: str = ipc.MERGE_MODE_CHAIN, name: str = ""
+        self,
+        selected_items,
+        merge_mode: str = ipc.MERGE_MODE_CHAIN,
+        name: str = "",
     ):
         root = self.get_parent_group_node(selected_items=selected_items)
         if root is not None:
@@ -1338,7 +1355,10 @@ class PipelineModel(TreeModel):
         return res
 
     def move_row(
-        self, selected_items, target_index: int, target_parent: QModelIndex = None
+        self,
+        selected_items,
+        target_index: int,
+        target_parent: QModelIndex = None,
     ):
         if len(selected_items) != 1:
             return False

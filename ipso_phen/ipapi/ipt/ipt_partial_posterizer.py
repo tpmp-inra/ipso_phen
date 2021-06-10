@@ -118,7 +118,7 @@ class IptPartialPosterizer(IptBase):
                     np.seterr(divide="ignore")
                     try:
                         where_more = cv2.bitwise_and(
-                            (b > r).astype(np.uint8), (b > r).astype(np.uint8)
+                            (b > r).astype(np.uint8), (b > g).astype(np.uint8)
                         )
                         where_percent = np.divide(
                             b.astype(np.float),

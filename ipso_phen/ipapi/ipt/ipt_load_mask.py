@@ -65,7 +65,7 @@ class IptLoadMask(IptBase):
             if self.get_value_of("enabled") == 1:
 
                 # Get variables
-                mask_path = self.build_output_path()
+                mask_path = self.build_path()
                 scale_direction = self.get_value_of("scale_direction")
                 scale_factor = self.get_value_of("scale_factor")
 

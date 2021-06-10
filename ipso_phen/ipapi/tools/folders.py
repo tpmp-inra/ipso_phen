@@ -68,19 +68,32 @@ class FolderData:
         self._path = path
         self.dynamic = dynamic
 
-    def get_path(self, force_creation: bool = True) -> str:
-        if force_creation is True and self._path:
-            force_directories(self._path)
-        return self._path
+    def get_path(
+        self,
+        force_creation: bool = True,
+        subfolder: str = "",
+    ) -> str:
+        path_ = os.path.join(self._path, subfolder) if subfolder else self._path
+        if force_creation is True and path_:
+            force_directories(path_)
+        return path_
 
     def set_path(self, value):
         self._path = value
 
 
 class IpsoFolders(dict):
-    def get_path(self, key: str, force_creation: bool = True):
+    def get_path(
+        self,
+        key: str,
+        force_creation: bool = True,
+        subfolder: str = "",
+    ):
         if key in self.keys():
-            return self[key].get_path(force_creation=force_creation)
+            return self[key].get_path(
+                force_creation=force_creation,
+                subfolder=subfolder,
+            )
         else:
             return ""
 
@@ -136,7 +149,6 @@ ipso_folders = IpsoFolders(
                 "Pictures",
                 ROOT_IPSO_FOLDER,
                 "saved_images",
-                # dt.now().strftime("%Y_%B_%d-%H%M%S"),
                 "",
             )
         ),

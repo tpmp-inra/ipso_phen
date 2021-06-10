@@ -15,12 +15,12 @@ from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi import ipt
 
 # Check PlantCV
-# try:
-#     from plantcv import plantcv
-# except Exception as e:
-#     allow_pcv = False
-# else:
-#     allow_pcv = True
+try:
+    from plantcv import plantcv
+except Exception as e:
+    allow_pcv = False
+else:
+    allow_pcv = True
 
 
 class TestIptHolder(unittest.TestCase):

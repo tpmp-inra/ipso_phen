@@ -22,22 +22,6 @@ class IptFillMaskHoles(IptBase):
             default_value=0,
             hint="Mask will be inverted once again at the end",
         )
-        self.add_spin_box(
-            name="max_size",
-            desc="Max contour size",
-            default_value=0,
-            minimum=0,
-            maximum=100000,
-            hint="Contour above this size will be ignored",
-        )
-        self.add_spin_box(
-            name="min_size",
-            desc="Min contour size",
-            default_value=0,
-            minimum=0,
-            maximum=100000,
-            hint="Contour below this size will be ignored",
-        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -54,8 +38,6 @@ class IptFillMaskHoles(IptBase):
             * Kernel shape (kernel_shape):
             * Iterations (proc_times):
             * Invert mask before filling (invert): Mask will be inverted once again at the end
-            * Max contour size (max_size): Contour above this size will be ignored
-            * Min contour size (min_size): Contour below this size will be ignored
         """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
@@ -127,6 +109,8 @@ class IptFillMaskHoles(IptBase):
                         self.result = cv2.bitwise_or(mask, wrapper.mask)
                     else:
                         self.result = mask
+
+                    self.demo_image = dbg_img
 
                 # Write your code here
                 wrapper.store_image(self.result, "filled_mask")

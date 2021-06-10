@@ -227,17 +227,22 @@ class IptExposureChecker(IptBaseAnalyzer):
             if under_color != "none":
                 img[mask_under > 0] = all_colors_dict[under_color]
 
-            rois = self.get_ipt_roi(
-                wrapper=wrapper,
-                roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                selection_mode=self.get_value_of("roi_selection_mode"),
+            self.result = self.compose_image_with_rois(
+                fgd_img=img,
+                bkg_img=self.wrapper.current_image,
             )
-            if len(rois) > 0:
-                self.result = regions.copy_rois(
-                    rois=rois, src=img, dst=self.wrapper.current_image
-                )
-            else:
-                self.result = img
+
+            # rois = self.get_ipt_roi(
+            #     wrapper=wrapper,
+            #     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
+            #     selection_mode=self.get_value_of("roi_selection_mode"),
+            # )
+            # if len(rois) > 0:
+            #     self.result = regions.copy_rois(
+            #         rois=rois, src=img, dst=self.wrapper.current_image
+            #     )
+            # else:
+            #     self.result = img
 
             if text_overlay and (br_dict is not None):
                 wrapper.store_image(
@@ -254,10 +259,7 @@ class IptExposureChecker(IptBaseAnalyzer):
                     text_overlay=False,
                 )
 
-            self.demo_image = self.result
-            if len(rois) > 0:
-                for roi in rois:
-                    self.demo_image = roi.draw_to(self.demo_image, line_width=2)
+            self.demo_image = self.draw_rois_on_image(img=self.result)
 
             res = True
 

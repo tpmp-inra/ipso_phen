@@ -25,6 +25,16 @@ class IptCrop(IptBaseAnalyzer):
             },
             hint="Select which image will be used as source",
         )
+        self.add_combobox(
+            name="output_selector",
+            desc="Select output",
+            default_value="image",
+            values={
+                "image": "image",
+                "data": "data",
+            },
+            hint="Select output type",
+        )
         self.add_checkbox(
             name="grab_linked_images",
             desc="Add linked images",
@@ -174,8 +184,9 @@ class IptCrop(IptBaseAnalyzer):
             return res
 
     def apply_test_values_overrides(self, use_cases: tuple = ()):
-        if ipc.ToolFamily.PRE_PROCESSING not in use_cases:
+        if ipc.ToolFamily.FEATURE_EXTRACTION in use_cases:
             self.set_value_of("save_image", 1)
+            self.set_value_of("output_selector", "data")
 
     @property
     def name(self):
@@ -218,4 +229,8 @@ class IptCrop(IptBaseAnalyzer):
 
     @property
     def output_type(self):
-        return ipc.IO_IMAGE
+        return (
+            ipc.IO_DATA
+            if self.get_value_of("output_selector") == "data"
+            else ipc.IO_IMAGE
+        )

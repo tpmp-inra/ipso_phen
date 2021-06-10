@@ -23,9 +23,7 @@ class TestIptCrop(unittest.TestCase):
         """Crop: Test that class process_wrapper method has docstring"""
         op = IptCrop()
         if not op.is_wip:
-            self.assertIsNotNone(
-                op.process_wrapper.__doc__, "Missing docstring for Crop"
-            )
+            self.assertIsNotNone(op.process_wrapper.__doc__, "Missing docstring for Crop")
 
     def test_has_test_function(self):
         """Crop: Check that at least one test function has been generated"""
@@ -43,10 +41,9 @@ class TestIptCrop(unittest.TestCase):
         self.assertTrue(res, "Failed to process Crop")
         self.assertIsInstance(op.result, np.ndarray, "Empty result for Crop")
 
-    def test_feature_out(self):
         """Crop: "Test that when using the basic mask generated script this tool extracts features"""
         op = IptCrop()
-        op.apply_test_values_overrides(use_cases=("",))
+        op.apply_test_values_overrides(use_cases=("Feature extraction",))
         script = LoosePipeline.load(
             "./ipso_phen/ipapi/samples/pipelines/test_extractors.json"
         )

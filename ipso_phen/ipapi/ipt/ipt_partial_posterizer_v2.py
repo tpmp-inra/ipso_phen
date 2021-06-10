@@ -64,6 +64,7 @@ class IptPartialPosterizerV2(IptBase):
             maximum=200,
             hint="Red pixel value threshold (as percentage)",
         )
+        self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):
         """

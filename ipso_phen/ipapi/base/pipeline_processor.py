@@ -103,7 +103,7 @@ class PipelineProcessor:
     """
 
     def __init__(self, database, **kwargs):
-        """ Initializes command line wrapper an properties """
+        """Initializes command line wrapper an properties"""
         self._report_progress = kwargs.pop("report_progress", True)
         self.options = ArgWrapper(**kwargs)
         self._target_database = database
@@ -273,7 +273,7 @@ class PipelineProcessor:
         files = self._target_database.query(
             command="SELECT",
             columns="FilePath",
-            additional="ORDER BY date_time ASC",
+            additional=f"ORDER BY {kwargs.get('order_by', 'date_time')} ASC",
             experiment=experiment,
             **kwargs,
         )

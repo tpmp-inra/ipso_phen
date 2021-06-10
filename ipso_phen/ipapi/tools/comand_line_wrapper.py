@@ -43,7 +43,9 @@ class ArgWrapper:
         _dst_path = kwargs.get("dst_path", "")
         if self.seed_output:
             self.dst_path = os.path.join(
-                _dst_path, datetime.datetime.now().strftime("%Y_%B_%d %H-%M-%S"), ""
+                _dst_path,
+                datetime.datetime.now().strftime("%Y_%B_%d %H-%M-%S"),
+                "",
             )
         else:
             self.dst_path = os.path.join(_dst_path, "")

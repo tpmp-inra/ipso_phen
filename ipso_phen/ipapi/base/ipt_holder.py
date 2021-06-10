@@ -327,7 +327,7 @@ class IptHolder(object):
         )
         spaces = self.write_init_pipeline(
             f=f,
-            use_case="",
+            use_case=ipc.ToolFamily.FEATURE_EXTRACTION,
             pipeline_name="test_extractors.json",
             test_image=HELIASEN_TEST_IMAGE
             if op.package.lower() == "heliasen"

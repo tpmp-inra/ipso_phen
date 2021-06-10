@@ -73,7 +73,7 @@ class IptImageSlicerDim(IptBaseAnalyzer):
                             thickness=2,
                         )
                         if self.get_value_of("save_image") != 0:
-                            file_name = self.build_output_path(salt=f"_{left}_{top}")
+                            file_name = self.build_path(salt=f"_{left}_{top}")
                             cv2.imwrite(filename=file_name, img=slice_)
                         wrapper.store_image(slice_, f"slice_{left}_{top}")
 
