@@ -130,6 +130,10 @@ class Point:
         self.x = self.x + dx
         self.y = self.y + dy
 
+    def round(self):
+        self.x = int(self.x)
+        self.y = int(self.y)
+
     def rotate(self, rad):
         """Rotate counter-clockwise by rad radians.
 
@@ -141,6 +145,7 @@ class Point:
         """
         s, c = [f(rad) for f in (math.sin, math.cos)]
         self.x, self.y = (c * self.x - s * self.y, s * self.x + c * self.y)
+        self.round()
 
     def rotate_about(self, p, rad):
         """Rotate counter-clockwise around a point, by rad radians.

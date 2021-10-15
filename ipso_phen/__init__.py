@@ -1,7 +1,7 @@
 import sys
 import logging
 
-version = "0.7.111.545"
+version = "0.7.112.546"
 
 
 def cli():

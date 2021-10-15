@@ -163,7 +163,10 @@ class BaseImageProcessor(ImageWrapper):
         if self.good_image:
             src_img = self._fix_source_image(src_img)
             if self.scale_factor != 1:
-                src_img = ipc.scale_image(src_img=src_img, scale_factor=self.scale_factor)
+                src_img = ipc.scale_image(
+                    src_img=src_img,
+                    scale_factor=self.scale_factor,
+                )
             if store_source:
                 self.store_image(src_img, "source")
         else:
@@ -204,7 +207,12 @@ class BaseImageProcessor(ImageWrapper):
         fnt_thickness = max(round(img.shape[0] / 1080), 1)
         y = img.shape[0] - 20
         for line in reversed(list(text.split("\n"))):
-            text_size, _ = cv2.getTextSize(line, fnt_face, fnt_scale, fnt_thickness)
+            text_size, _ = cv2.getTextSize(
+                line,
+                fnt_face,
+                fnt_scale,
+                fnt_thickness,
+            )
             if background_color is not None:
                 cv2.rectangle(
                     img,
@@ -307,7 +315,11 @@ class BaseImageProcessor(ImageWrapper):
         elif isinstance(foreground, tuple):
             foreground_img = np.full(src.shape, foreground, np.uint8)
         elif isinstance(foreground, str):
-            foreground_img = np.full(src.shape, ipc.all_colors_dict[foreground], np.uint8)
+            foreground_img = np.full(
+                src.shape,
+                ipc.all_colors_dict[foreground],
+                np.uint8,
+            )
         else:
             logger.error(f"Unknown foreground {background}")
             return np.full(src.shape, ipc.C_FUCHSIA, np.uint8)
@@ -317,11 +329,23 @@ class BaseImageProcessor(ImageWrapper):
         else:
             # Build background
             if background == "white":
-                background_img = np.full(foreground_img.shape, ipc.C_WHITE, np.uint8)
+                background_img = np.full(
+                    foreground_img.shape,
+                    ipc.C_WHITE,
+                    np.uint8,
+                )
             elif background == "black":
-                background_img = np.full(foreground_img.shape, ipc.C_BLACK, np.uint8)
+                background_img = np.full(
+                    foreground_img.shape,
+                    ipc.C_BLACK,
+                    np.uint8,
+                )
             elif background == "silver":
-                background_img = np.full(foreground_img.shape, ipc.C_SILVER, np.uint8)
+                background_img = np.full(
+                    foreground_img.shape,
+                    ipc.C_SILVER,
+                    np.uint8,
+                )
             elif background == "bw":
                 background_img = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
                 background_img = np.dstack(
@@ -334,7 +358,11 @@ class BaseImageProcessor(ImageWrapper):
                     background_img = np.copy(src)
             elif isinstance(background, tuple):
                 if len(background) == 3:
-                    background_img = np.full(foreground_img.shape, background, np.uint8)
+                    background_img = np.full(
+                        foreground_img.shape,
+                        background,
+                        np.uint8,
+                    )
                 elif len(background) == 1:
                     background_img = np.full(
                         foreground_img.shape,
@@ -356,9 +384,15 @@ class BaseImageProcessor(ImageWrapper):
                 background_img = cv2.merge((lum, a, b))
                 background_img = cv2.cvtColor(background_img, cv2.COLOR_LAB2BGR)
             # Merge foreground & background
-            foreground_img = cv2.bitwise_and(foreground_img, foreground_img, mask=mask_)
+            foreground_img = cv2.bitwise_and(
+                foreground_img,
+                foreground_img,
+                mask=mask_,
+            )
             background_img = cv2.bitwise_and(
-                background_img, background_img, mask=255 - mask_
+                background_img,
+                background_img,
+                mask=255 - mask_,
             )
             img = cv2.bitwise_or(foreground_img, background_img)
             # Draw contour
@@ -403,7 +437,11 @@ class BaseImageProcessor(ImageWrapper):
                     center = (int(x), int(y))
                     radius = int(radius)
                     cv2.circle(
-                        img, center, radius, ipc.C_YELLOW, enclosing_circle_thickness
+                        img,
+                        center,
+                        radius,
+                        ipc.C_YELLOW,
+                        enclosing_circle_thickness,
                     )
                 if (
                     (centroid_width > 0)
@@ -1520,7 +1558,11 @@ class BaseImageProcessor(ImageWrapper):
         min_dist = None
         for pt in cnt_a:
             cnt_point = Point(pt[0][0], pt[0][1])
-            cur_dist = cv2.pointPolygonTest(cnt_b, (cnt_point.x, cnt_point.y), True)
+            cur_dist = cv2.pointPolygonTest(
+                cnt_b,
+                (int(cnt_point.x), int(cnt_point.y)),
+                True,
+            )
             if cur_dist >= 0:
                 return 0
             else:
@@ -1610,7 +1652,11 @@ class BaseImageProcessor(ImageWrapper):
         min_dist = mask.shape[0] * mask.shape[1]
         for pt in cmp_hull:
             cnt_point = Point(pt[0][0], pt[0][1])
-            cur_dist = cv2.pointPolygonTest(master_hull, (cnt_point.x, cnt_point.y), True)
+            cur_dist = cv2.pointPolygonTest(
+                master_hull,
+                (int(cnt_point.x), int(cnt_point.y)),
+                True,
+            )
             if cur_dist >= 0:
                 is_inside = True
             else:
@@ -1834,7 +1880,9 @@ class BaseImageProcessor(ImageWrapper):
             dil_mask = src_mask.copy()
         self.store_image(dil_mask, "dil_mask")
         contours = ipc.get_contours(
-            mask=dil_mask, retrieve_mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_SIMPLE
+            mask=dil_mask,
+            retrieve_mode=cv2.RETR_LIST,
+            method=cv2.CHAIN_APPROX_SIMPLE,
         )
         self.store_image(
             cv2.drawContours(dil_mask.copy(), contours, -1, ipc.C_LIME, 2, 8),

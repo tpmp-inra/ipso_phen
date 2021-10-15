@@ -30,8 +30,8 @@ class IptCrop(IptBaseAnalyzer):
             desc="Select output",
             default_value="image",
             values={
-                "image": "image",
-                "data": "data",
+                "image": "Image",
+                "mask": "Mask",
             },
             hint="Select output type",
         )
@@ -230,7 +230,7 @@ class IptCrop(IptBaseAnalyzer):
     @property
     def output_type(self):
         return (
-            ipc.IO_DATA
-            if self.get_value_of("output_selector") == "data"
+            ipc.IO_MASK
+            if self.get_value_of("output_selector") == "mask"
             else ipc.IO_IMAGE
         )
