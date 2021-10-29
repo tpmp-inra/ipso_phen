@@ -590,7 +590,16 @@ class ModuleNode(Node):
 class GroupNode(Node):
 
     default_execution_filters = {
-        k: "" for k in ["experiment", "plant", "date", "time", "camera", "view_option"]
+        k: ""
+        for k in [
+            "experiment",
+            "plant",
+            "date",
+            "time",
+            "camera",
+            "angle",
+            "wavelength",
+        ]
     }
 
     def __init__(self, **kwargs):

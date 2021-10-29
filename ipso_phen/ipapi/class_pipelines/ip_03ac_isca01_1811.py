@@ -20,7 +20,7 @@ class ImageCsvWriter(AbstractCsvWriter):
                 "lbl_2",
                 "lbl_3",
                 "date_time",
-                "view_option",
+                "angle",
                 # Morphology
                 "area",
                 "hull_area",

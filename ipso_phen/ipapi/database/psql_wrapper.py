@@ -179,16 +179,17 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                 if not self.engine.dialect.has_table(self.connexion, self.main_table):
                     try:
                         self.connexion.execute(
-                            f"""CREATE TABLE {self.main_table} (Luid TEXT NOT NULL PRIMARY KEY,
-                                                                Name TEXT NOT NULL,
-                                                                FilePath TEXT NOT NULL,
-                                                                Experiment TEXT,
-                                                                Plant TEXT,
-                                                                Date DATE,
-                                                                Time TIME,
+                            f"""CREATE TABLE {self.main_table} (luid TEXT NOT NULL PRIMARY KEY,
+                                                                name TEXT NOT NULL,
+                                                                filePath TEXT NOT NULL,
+                                                                experiment TEXT,
+                                                                plant TEXT,
+                                                                date DATE,
+                                                                time TIME,
                                                                 date_time TIMESTAMP,
-                                                                Camera TEXT,
-                                                                view_option TEXT )"""
+                                                                camera TEXT,
+                                                                angle TEXT
+                                                                wavelength TEXT )"""
                         )
                         missing_data = True
                     except Exception as e:
@@ -242,8 +243,8 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                         fh = file_handler_factory(file, database=None)
                         sql_ = text(
                             f"INSERT INTO {self.main_table}"
-                            "(Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, view_option)"
-                            "VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :view_option)"
+                            "(Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, Angle, Wavelength)"
+                            "VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :Angle, :Wavelength)"
                         )
                         self.connexion.execute(
                             sql_,
@@ -256,7 +257,8 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                             Time=fh.date_time.time(),
                             date_time=fh.date_time,
                             Camera=fh.camera,
-                            view_option=fh.view_option,
+                            angle=fh.angle,
+                            wavelength=fh.wavelength,
                         )
                     except exc.IntegrityError:
                         pass

@@ -5,7 +5,7 @@ from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 
 class FileHandlerStub(FileHandlerBase):
     def __init__(self, **kwargs):
-        """Fill plant, date, time, experiment, camera and view_option from file data"""
+        """Fill plant, date, time, experiment, camera angle and wavelength from file data"""
         # Your code here
 
         self.update(**kwargs)

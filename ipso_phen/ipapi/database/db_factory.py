@@ -11,6 +11,7 @@ from ipso_phen.ipapi.tools.folders import ipso_folders
 
 from ipso_phen.ipapi.database.phenoserre_wrapper import PhenoserreDbWrapper
 from ipso_phen.ipapi.database.phenopsis_wrapper import PhenopsisDbWrapper
+from ipso_phen.ipapi.database.tpmp_wrapper import TpmpDbWrapper
 
 
 def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
@@ -44,6 +45,11 @@ def db_info_to_database(info: DbInfo, **kwargs) -> Union[DbWrapper, str]:
         )
     elif info.target == "phenopsis":
         return PhenopsisDbWrapper(
+            db_info=info.copy(),
+            progress_call_back=kwargs.get("progress_call_back", None),
+        )
+    elif info.target == "tpmp":
+        return TpmpDbWrapper(
             db_info=info.copy(),
             progress_call_back=kwargs.get("progress_call_back", None),
         )

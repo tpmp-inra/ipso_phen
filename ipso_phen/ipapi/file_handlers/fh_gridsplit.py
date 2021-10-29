@@ -10,7 +10,8 @@ class FileHandlerGridSplit(FileHandlerBase):
         if self._file_path:
             _, *self._exp, self._plant = self.file_name_no_ext.split("_")
             self._exp = "_".join(self._exp)
-            *_, self._view_option = self._plant.split("-")
+            *_, self._angle = self._plant.split("-")
+            self._wavelength = "SW755"
             self._camera = "scanner"
             try:
                 self._date_time = dt.fromtimestamp(

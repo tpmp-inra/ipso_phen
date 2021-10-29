@@ -28,7 +28,7 @@ class IptRectangleRoi(IptBase):
             name="top", desc="Top", default_value=0, minimum=-10000, maximum=10000
         )
         self.add_spin_box(
-            name="height", desc="Height", default_value=0, minimum=-10000, maximum=10000
+            name="height", desc="height", default_value=0, minimum=-10000, maximum=10000
         )
         self.add_text_input(
             name="apply_case",

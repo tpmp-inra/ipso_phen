@@ -197,24 +197,26 @@ _PRAGMA_FULL_NAME = f"{_PRAGMA_NAME} - v{version}"
 _PIPELINE_FILE_FILTER = f"""{_PRAGMA_NAME} All available ( *.json)
 ;;JSON compatible pipeline (*.json)"""
 
+LOG_TO_LOG = False
 
-def excepthook(excType, excValue, tracebackobj):
-    """
-    Global function to catch unhandled exceptions.
+if LOG_TO_LOG is True:
 
-    @param excType exception type
-    @param excValue exception value
-    @param tracebackobj traceback object
-    """
-    logger.error(
-        "".join(
-            ["Exception caught outside try block\n"]
-            + traceback.format_exception(excType, excValue, sys.last_traceback)
+    def excepthook(excType, excValue, tracebackobj):
+        """
+        Global function to catch unhandled exceptions.
+
+        @param excType exception type
+        @param excValue exception value
+        @param tracebackobj traceback object
+        """
+        logger.error(
+            "".join(
+                ["Exception caught outside try block\n"]
+                + traceback.format_exception(excType, excValue, sys.last_traceback)
+            )
         )
-    )
 
-
-sys.excepthook = excepthook
+    sys.excepthook = excepthook
 
 
 def log_method_execution_time(f):
@@ -791,7 +793,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._current_date = dt.now().date()
         self._current_time = dt.now().time()
         self._current_camera = ""
-        self._current_view_option = ""
+        self._current_angle = ""
+        self._current_wavelength = ""
 
         self._updating_combo_boxes = False
         self._updating_available_images = False
@@ -974,8 +977,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_camera.currentIndexChanged.connect(
             self.cb_camera_current_index_changed
         )
-        self.ui.cb_view_option.currentIndexChanged.connect(
-            self.cb_view_option_current_index_changed
+        self.ui.cb_angle.currentIndexChanged.connect(self.cb_angle_current_index_changed)
+        self.ui.cb_wavelength.currentIndexChanged.connect(
+            self.cb_wavelength_current_index_changed
         )
         self.ui.cb_time.currentIndexChanged.connect(self.cb_time_current_index_changed)
 
@@ -1179,7 +1183,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
             }
             new_item = QListWidgetItem()
-            new_item.setText(row_data["Luid"])
+            new_item.setText(row_data["luid"])
             new_item.setToolTip("\n".join([f"{k}: {v}" for k, v in row_data.items()]))
             self.ui.lw_images_queue.insertItem(0, new_item)
 
@@ -1312,7 +1316,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if not self._updating_image_browser and (last_row != current_row):
             self.select_image_from_luid(
                 self.get_image_model().get_cell_data(
-                    row_number=current_row, column_name="Luid"
+                    row_number=current_row,
+                    column_name="luid",
                 )
             )
 
@@ -1336,7 +1341,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model = self.get_image_model()
                 src_df = model.images
                 old_row_count = model.rowCount()
-                model.images = src_df[~src_df["Luid"].isin(dataframe["Luid"])]
+                model.images = src_df[~src_df["luid"].isin(dataframe["luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 logger.info(
@@ -1349,7 +1354,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 model = self.get_image_model()
                 src_df = model.images
                 old_row_count = model.rowCount()
-                model.images = src_df[src_df["Luid"].isin(dataframe["Luid"])]
+                model.images = src_df[src_df["luid"].isin(dataframe["luid"])]
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 logger.info(
@@ -1596,14 +1601,16 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_plant.setEnabled(new_state)
         self.ui.cb_date.setEnabled(new_state)
         self.ui.cb_camera.setEnabled(new_state)
-        self.ui.cb_view_option.setEnabled(new_state)
+        self.ui.cb_angle.setEnabled(new_state)
+        self.ui.cb_wavelength.setEnabled(new_state)
         self.ui.cb_time.setEnabled(new_state)
 
         self.ui.chk_experiment.setEnabled(new_state)
         self.ui.chk_plant.setEnabled(new_state)
         self.ui.chk_date.setEnabled(new_state)
         self.ui.chk_camera.setEnabled(new_state)
-        self.ui.chk_view_option.setEnabled(new_state)
+        self.ui.chk_angle.setEnabled(new_state)
+        self.ui.chk_wavelength.setEnabled(new_state)
         self.ui.chk_time.setEnabled(new_state)
 
         self.ui.bt_add_to_selection.setEnabled(new_state)
@@ -2174,9 +2181,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 settings_.value("checkbox_status/camera_checkbox_state", "true").lower()
                 == "true"
             )
-            self.ui.chk_view_option.setChecked(
+            self.ui.chk_angle.setChecked(
+                settings_.value("checkbox_status/angle_checkbox_state", "true").lower()
+                == "true"
+            )
+            self.ui.chk_wavelength.setChecked(
                 settings_.value(
-                    "checkbox_status/view_option_checkbox_state", "true"
+                    "checkbox_status/wavelength_checkbox_state", "true"
                 ).lower()
                 == "true"
             )
@@ -2351,8 +2362,12 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             settings_.setValue("date_checkbox_state", self.ui.chk_date.isChecked())
             settings_.setValue("camera_checkbox_state", self.ui.chk_camera.isChecked())
             settings_.setValue(
-                "view_option_checkbox_state",
-                self.ui.chk_view_option.isChecked(),
+                "angle_checkbox_state",
+                self.ui.chk_angle.isChecked(),
+            )
+            settings_.setValue(
+                "wavelength_checkbox_state",
+                self.ui.chk_wavelength.isChecked(),
             )
             settings_.setValue("time_checkbox_state", self.ui.chk_time.isChecked())
             settings_.endGroup()
@@ -3410,7 +3425,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if self.ui.cb_pp_append_experience_name.isChecked():
                 output_folder_ = os.path.join(
                     self.ui.le_pp_output_folder.text(),
-                    model.get_cell_data(row_number=0, column_name="Experiment"),
+                    model.get_cell_data(row_number=0, column_name="experiment"),
                     "",
                 )
             else:
@@ -3422,7 +3437,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 axis=0,
                 na_position="first",
             )
-            image_list_ = list(model.images["FilePath"])
+            image_list_ = list(model.images["filepath"])
 
             if self.ui.rb_pp_default_process.isChecked():
                 script_ = None
@@ -3538,7 +3553,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.ui.lv_stats.insertPlainText("\n")
 
             dataframe: pd.DataFrame = model.images
-            for key in ["Experiment", "Plant", "Date", "Camera", "view_option"]:
+            for key in ["experiment", "plant", "date", "camera", "angle", "wavelength"]:
                 self.ui.lv_stats.insertPlainText(f"{key}s:\n")
                 self.ui.lv_stats.insertPlainText(
                     "\n".join(
@@ -3720,7 +3735,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 plant=wrapper.plant,
                 date_time=wrapper.date_time,
                 camera=wrapper.camera,
-                view_option=wrapper.view_option,
+                angle=wrapper.angle,
+                wavelength=wrapper.wavelength,
                 img_width=wrapper.width,
                 img_height=wrapper.height,
             ),
@@ -3854,7 +3870,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 image_list_ = None
             else:
                 skim_mode_ = self.ui.cb_batch_mode.currentText().lower()
-                dff = dataframe[["Luid", "FilePath", "date_time"]]
+                dff = dataframe[["luid", "filepath", "date_time"]]
                 if skim_mode_ == "all":
                     pass
                 elif skim_mode_ == "first n":
@@ -3873,7 +3889,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 dff = dff.sort_values(by=["date_time"], axis=0, na_position="first")
                 image_list_ = [
                     {"luid": k, "path": v}
-                    for k, v in zip(list(dff["Luid"]), list(dff["FilePath"]))
+                    for k, v in zip(list(dff["luid"]), list(dff["filepath"]))
                 ]
 
                 # Update "Last batch" data
@@ -4225,8 +4241,8 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             src_path = "source_path"
         elif "path" in dataframe:
             src_path = "path"
-        elif "FilePath" in dataframe:
-            src_path = "FilePath"
+        elif "filepath" in dataframe:
+            src_path = "filepath"
         else:
             src_path = ""
         color = QColor(*ipc.bgr_to_rgb(ipc.C_FUCHSIA))
@@ -4519,16 +4535,21 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         sql_dict = {}
 
         for couple in (
-            (self.ui.chk_experiment, self.ui.cb_experiment.currentText(), "Experiment"),
-            (self.ui.chk_plant, self.ui.cb_plant.currentText(), "Plant"),
-            (self.ui.chk_date, self.ui.cb_date.currentText(), "Date"),
-            (self.ui.chk_camera, self.ui.cb_camera.currentText(), "Camera"),
+            (self.ui.chk_experiment, self.ui.cb_experiment.currentText(), "experiment"),
+            (self.ui.chk_plant, self.ui.cb_plant.currentText(), "plant"),
+            (self.ui.chk_date, self.ui.cb_date.currentText(), "date"),
+            (self.ui.chk_camera, self.ui.cb_camera.currentText(), "camera"),
             (
-                self.ui.chk_view_option,
-                self.ui.cb_view_option.currentText(),
-                "view_option",
+                self.ui.chk_angle,
+                self.ui.cb_angle.currentText(),
+                "angle",
             ),
-            (self.ui.chk_time, self.ui.cb_time.currentText(), "Time"),
+            (
+                self.ui.chk_wavelength,
+                self.ui.cb_wavelength.currentText(),
+                "wavelength",
+            ),
+            (self.ui.chk_time, self.ui.cb_time.currentText(), "time"),
         ):
             chk_box, cb_text, label_ = couple[0], couple[1], couple[2]
             override_param = kwargs.get(label_, "none")
@@ -4547,7 +4568,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
         return self.query_current_database_as_pandas(
             command="SELECT",
-            columns="Experiment, Plant, Date, Camera, view_option, Time, date_time, FilePath, Luid",
+            columns="experiment, plant, date, camera, angle, wavelength, time, date_time, filepath, luid",
             additional="ORDER BY date_time ASC",
             **sql_dict,
         )
@@ -4600,7 +4621,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             dataframe = self.get_image_dataframe()
             if id is None or dataframe is None:
                 return
-            dataframe = dataframe[["Experiment", "Luid"]]
+            dataframe = dataframe[["experiment", "luid"]]
             luids = []
             self.update_feedback(status_message="Keeping only tagged images")
             self.global_progress_start(add_stop_button=False)
@@ -4690,21 +4711,33 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def cb_camera_current_index_changed(self, _):
         if self._updating_combo_boxes or self._initializing:
             return
-        self.clear_view_option_combo_box()
+        self.clear_angle_combo_box()
         if self.ui.cb_camera.count() > 0:
             self._current_camera = self.ui.cb_camera.currentText()
-            self.fill_view_option_combo_box()
+            self.fill_angle_combo_box()
         self.ui.chk_camera.setEnabled(self.ui.cb_camera.count() > 0)
 
-    def cb_view_option_current_index_changed(self, _):
+    def cb_angle_current_index_changed(self, _):
         try:
             if self._updating_combo_boxes or self._initializing:
                 return
             self.clear_time_combo_box()
-            if self.ui.cb_view_option.count() > 0:
-                self._current_view_option = self.ui.cb_view_option.currentText()
+            if self.ui.cb_angle.count() > 0:
+                self._current_angle = self.ui.cb_angle.currentText()
+                self.fill_wavelength_combo_box()
+            self.ui.chk_angle.setEnabled(self.ui.cb_angle.count() > 0)
+        except Exception as e:
+            logger.exception(f"Selection failed: {repr(e)}")
+
+    def cb_wavelength_current_index_changed(self, _):
+        try:
+            if self._updating_combo_boxes or self._initializing:
+                return
+            self.clear_time_combo_box()
+            if self.ui.cb_wavelength.count() > 0:
+                self._current_wavelength = self.ui.cb_wavelength.currentText()
                 self.fill_time_combo_box()
-            self.ui.chk_view_option.setEnabled(self.ui.cb_view_option.count() > 0)
+            self.ui.chk_wavelength.setEnabled(self.ui.cb_wavelength.count() > 0)
         except Exception as e:
             logger.exception(f"Selection failed: {repr(e)}")
 
@@ -5001,7 +5034,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def fill_exp_combo_box(self):
         self.clear_exp_combo_box()
-        exp_list = self.get_query_items(column="Experiment")
+        exp_list = self.get_query_items(column="experiment")
         self.ui.chk_experiment.setText(f"Experiment ({len(exp_list)}): ")
         self.ui.cb_experiment.addItems(exp_list)
         self.ui.cb_experiment.setEnabled(self.ui.cb_experiment.count() > 1)
@@ -5014,7 +5047,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def fill_plant_combo_box(self):
         self.clear_plant_combo_box()
-        plant_lst = self.get_query_items(column="Plant", experiment=self._current_exp)
+        plant_lst = self.get_query_items(column="plant", experiment=self._current_exp)
         self.ui.chk_plant.setText(f"Plant ({len(plant_lst)}): ")
         self.ui.cb_plant.addItems(sorted(plant_lst, key=lambda x: natural_keys(x)))
         self.ui.cb_plant.setEnabled(self.ui.cb_plant.count() > 1)
@@ -5032,7 +5065,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if isinstance(item, str)
             else item.strftime(_DATE_FORMAT)
             for item in self.get_query_items(
-                column="Date", experiment=self._current_exp, plant=self._current_plant
+                column="date", experiment=self._current_exp, plant=self._current_plant
             )
         ]
         self.ui.chk_date.setText(f"Date ({len(date_list)}): ")
@@ -5053,7 +5086,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def fill_camera_combo_box(self):
         self.clear_camera_combo_box()
         cam_list = self.get_query_items(
-            column="Camera",
+            column="camera",
             experiment=self._current_exp,
             plant=self._current_plant,
             date=self._current_date,
@@ -5068,10 +5101,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self._current_camera = self.ui.cb_camera.itemText(0)
             self.ui.cb_camera.setCurrentIndex(target_index)
 
-    def fill_view_option_combo_box(self):
-        self.clear_view_option_combo_box()
+    def fill_angle_combo_box(self):
+        self.clear_angle_combo_box()
         opt_lst = self.get_query_items(
-            column="view_option",
+            column="angle",
             experiment=self._current_exp,
             plant=self._current_plant,
             date=self._current_date,
@@ -5081,15 +5114,38 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if "sw755" in opt_lst:
             opt_lst.remove("sw755")
             opt_lst.insert(0, "sw755")
-        self.ui.chk_view_option.setText(f"View option ({len(opt_lst)}): ")
-        self.ui.cb_view_option.addItems(opt_lst)
-        self.ui.cb_view_option.setEnabled(self.ui.cb_view_option.count() > 1)
-        if self._updating_combo_boxes and self.ui.cb_view_option.count() > 0:
-            target_index = self.ui.cb_view_option.findText(self._current_view_option)
+        self.ui.chk_angle.setText(f"View option ({len(opt_lst)}): ")
+        self.ui.cb_angle.addItems(opt_lst)
+        self.ui.cb_angle.setEnabled(self.ui.cb_angle.count() > 1)
+        if self._updating_combo_boxes and self.ui.cb_angle.count() > 0:
+            target_index = self.ui.cb_angle.findText(self._current_angle)
             if target_index < 0:
                 target_index = 0
-                self._current_view_option = self.ui.cb_view_option.itemText(0)
-            self.ui.cb_view_option.setCurrentIndex(target_index)
+                self._current_angle = self.ui.cb_angle.itemText(0)
+            self.ui.cb_angle.setCurrentIndex(target_index)
+
+    def fill_wavelength_combo_box(self):
+        self.clear_wavelength_combo_box()
+        opt_lst = self.get_query_items(
+            column="wavelength",
+            experiment=self._current_exp,
+            plant=self._current_plant,
+            date=self._current_date,
+            camera=self._current_camera,
+        )
+        opt_lst.sort(key=lambda x: natural_keys(x))
+        if "sw755" in opt_lst:
+            opt_lst.remove("sw755")
+            opt_lst.insert(0, "sw755")
+        self.ui.chk_wavelength.setText(f"View option ({len(opt_lst)}): ")
+        self.ui.cb_wavelength.addItems(opt_lst)
+        self.ui.cb_wavelength.setEnabled(self.ui.cb_wavelength.count() > 1)
+        if self._updating_combo_boxes and self.ui.cb_wavelength.count() > 0:
+            target_index = self.ui.cb_wavelength.findText(self._current_wavelength)
+            if target_index < 0:
+                target_index = 0
+                self._current_wavelength = self.ui.cb_wavelength.itemText(0)
+            self.ui.cb_wavelength.setCurrentIndex(target_index)
 
     def fill_time_combo_box(self):
         try:
@@ -5097,12 +5153,13 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             time_lst = [
                 item if isinstance(item, str) else item.strftime(_TIME_FORMAT)
                 for item in self.get_query_items(
-                    column="Time",
+                    column="time",
                     experiment=self._current_exp,
                     plant=self._current_plant,
                     date=self._current_date,
                     camera=self._current_camera,
-                    view_option=self._current_view_option,
+                    angle=self._current_angle,
+                    wavelength=self._current_wavelength,
                 )
             ]
             self.ui.chk_time.setText(f"Time ({len(time_lst)}): ")
@@ -5145,12 +5202,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.cb_camera.clear()
         if not self._updating_combo_boxes:
             self._current_camera = ""
-        self.clear_view_option_combo_box()
+        self.clear_angle_combo_box()
 
-    def clear_view_option_combo_box(self):
-        self.ui.cb_view_option.clear()
+    def clear_angle_combo_box(self):
+        self.ui.cb_angle.clear()
         if not self._updating_combo_boxes:
-            self._current_view_option = ""
+            self._current_angle = ""
+        self.clear_wavelength_combo_box()
+
+    def clear_wavelength_combo_box(self):
+        self.ui.cb_wavelength.clear()
+        if not self._updating_combo_boxes:
+            self._current_wavelength = ""
         self.clear_time_combo_box()
 
     def clear_time_combo_box(self):
@@ -5161,13 +5224,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def current_selected_image_path(self):
         ret = self.query_current_database(
             command="SELECT",
-            columns="FilePath",
+            columns="filepath",
             additional="ORDER BY date_time ASC",
             experiment=self._current_exp,
             plant=self._current_plant,
             date=self._current_date,
             camera=self._current_camera,
-            view_option=self._current_view_option,
+            angle=self._current_angle,
+            wavelength=self._current_wavelength,
             time=self._current_time,
         )
         if len(ret) > 0:
@@ -5180,17 +5244,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._updating_combo_boxes = True
         try:
             if data or reset_selection:
-                self._current_exp = data.get("Experiment", "")
-                self._current_plant = data.get("Plant", "")
-                self._current_date = data.get("Date", dt.now().date())
-                self._current_time = data.get("Time", dt.now().time())
-                self._current_camera = data.get("Camera", "")
-                self._current_view_option = data.get("view_option", "")
+                self._current_exp = data.get("experiment", "")
+                self._current_plant = data.get("plant", "")
+                self._current_date = data.get("date", dt.now().date())
+                self._current_time = data.get("time", dt.now().time())
+                self._current_camera = data.get("camera", "")
+                self._current_angle = data.get("angle", "")
+                self._current_wavelength = data.get("wavelength", "")
             self.fill_exp_combo_box()
             self.fill_plant_combo_box()
             self.fill_date_combo_box()
             self.fill_camera_combo_box()
-            self.fill_view_option_combo_box()
+            self.fill_angle_combo_box()
+            self.fill_wavelength_combo_box()
             self.fill_time_combo_box()
             self.file_name = self.current_selected_image_path()
         except Exception as e:
@@ -5202,7 +5268,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
     def select_image_from_luid(self, luid):
         if not luid:
             return self.update_comboboxes({}, reset_selection=True)
-        columns = "Experiment, Plant, Date, Camera, view_option, Time"
+        columns = "experiment, plant, date, camera, angle, wavelength, time"
         data = self.query_one_current_database(
             command="SELECT",
             columns=columns,
@@ -5308,7 +5374,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 "pp_state", os.path.join(os.path.dirname(file_name_), "")
             )
             append_experience_name = (
-                model.get_cell_data(row_number=0, column_name="Experiment")
+                model.get_cell_data(row_number=0, column_name="experiment")
                 if self.ui.cb_pp_append_experience_name.isChecked()
                 else ""
             )
@@ -5324,7 +5390,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         script=script_.to_json(),
                         generate_series_id=self.ui.cb_pp_generate_series_id.isChecked(),
                         series_id_time_delta=self.ui.sp_pp_time_delta.value(),
-                        images=list(dataframe["FilePath"]),
+                        images=list(dataframe["filepath"]),
                         thread_count=self.ui.sl_pp_thread_count.value(),
                         database_data=database_data,
                     ),
@@ -5393,11 +5459,14 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     if ci is None:
                         self.update_feedback(status_message="Failed to load image")
                         self._src_image_wrapper = None
+                        self.setWindowTitle(
+                            f"{_PRAGMA_FULL_NAME} -- Failed to load image"
+                        )
                     else:
                         self.ui.gv_source_image.main_image = ci
-                    self.setWindowTitle(
-                        f"{_PRAGMA_FULL_NAME} -- {self._src_image_wrapper.name}"
-                    )
+                        self.setWindowTitle(
+                            f"{_PRAGMA_FULL_NAME} -- {self._src_image_wrapper.name}"
+                        )
                 except Exception as e:
                     self._src_image_wrapper = None
                     logger.exception(f"Failed to load image: {repr(e)}")
@@ -5684,9 +5753,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     {
                         k: v
                         for k, v in zip(
-                            "Experiment, Plant, Date, Time, Camera, view_option".replace(
+                            "experiment, plant, date, time, camera, angle, wavelength, ".replace(
                                 " ", ""
-                            ).split(","),
+                            ).split(
+                                ","
+                            ),
                             ["", "", dt.now().date(), dt.now().time(), "", ""],
                         )
                     },

@@ -135,7 +135,10 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
         pass
 
     def copy(self):
-        return self.__class__(db_info=self.db_info.copy())
+        cp = self.__class__(db_info=self.db_info.copy())
+        if self.dataframe is not None:
+            cp.dataframe = self.dataframe.copy()
+        return cp
 
     def connect_from_cache(self) -> pd.DataFrame:
         cache_file_path = self.cache_file_path
@@ -147,15 +150,21 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
         else:
             return None
 
+    def check_dataframe(self, dataframe: pd.DataFrame) -> pd.DataFrame:
+        dataframe.columns = [c.lower() for c in dataframe.columns]
+        if "time" not in dataframe:
+            temp_date_time = pd.DatetimeIndex(dataframe["date_time"]).floor("S")
+            dataframe.insert(loc=4, column="time", value=temp_date_time.time)
+            dataframe.insert(loc=4, column="date", value=temp_date_time.date)
+        return dataframe
+
     def connect(self, auto_update: bool = True):
         if self.dataframe is None:
             self.dataframe = self.connect_from_cache()
             if self.dataframe is None:
                 self.dataframe = self.df_builder(self.db_info.display_name)
                 self.dataframe.to_csv(self.cache_file_path)
-            temp_date_time = pd.DatetimeIndex(self.dataframe["date_time"])
-            self.dataframe.insert(loc=4, column="Time", value=temp_date_time.time)
-            self.dataframe.insert(loc=4, column="Date", value=temp_date_time.date)
+            self.dataframe = self.check_dataframe(dataframe=self.dataframe)
 
     def open_connexion(self) -> bool:
         return self.dataframe is not None

@@ -18,7 +18,7 @@ class ImageCsvWriter(AbstractCsvWriter):
                 "treatment",
                 "substratum",
                 "plant_id" "date_time",
-                "view_option",
+                "angle",
                 "series_id",
                 "acquisition_note",
                 # Morphology

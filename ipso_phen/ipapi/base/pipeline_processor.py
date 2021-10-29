@@ -272,7 +272,7 @@ class PipelineProcessor:
     def grab_files_from_data_base(self, experiment, **kwargs):
         files = self._target_database.query(
             command="SELECT",
-            columns="FilePath",
+            columns="filepath",
             additional=f"ORDER BY {kwargs.get('order_by', 'date_time')} ASC",
             experiment=experiment,
             **kwargs,
@@ -410,7 +410,8 @@ class PipelineProcessor:
         dataframe = put_column_in_front(col_name="area", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="source_path", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="luid", dataframe=dataframe)
-        dataframe = put_column_in_front(col_name="view_option", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="wavelength", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="angle", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="camera", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="date_time", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="condition", dataframe=dataframe)
@@ -467,7 +468,8 @@ class PipelineProcessor:
         dataframe = put_column_in_front(col_name="area", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="source_path", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="luid", dataframe=dataframe)
-        dataframe = put_column_in_front(col_name="view_option", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="wavelength", dataframe=dataframe)
+        dataframe = put_column_in_front(col_name="angle", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="camera", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="date_time", dataframe=dataframe)
         dataframe = put_column_in_front(col_name="condition", dataframe=dataframe)

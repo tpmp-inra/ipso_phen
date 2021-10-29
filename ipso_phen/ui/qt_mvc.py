@@ -505,8 +505,8 @@ class QImageDrawerDelegate(QItemDelegate):
             luid = kwargs.get("luid", None)
             experiment = kwargs.get("experiment", None)
         else:
-            luid = self.parent().model().get_cell_data(row_number, "Luid")
-            experiment = self.parent().model().get_cell_data(row_number, "Experiment")
+            luid = self.parent().model().get_cell_data(row_number, "luid")
+            experiment = self.parent().model().get_cell_data(row_number, "experiment")
         if experiment is None or luid is None:
             return None
         ret = self.annotations.get(luid, None)
@@ -542,8 +542,8 @@ class QImageDrawerDelegate(QItemDelegate):
             luid = kwargs.get("luid", None)
             experiment = kwargs.get("experiment", None)
         else:
-            luid = self.parent().model().get_cell_data(row_number, "Luid")
-            experiment = self.parent().model().get_cell_data(row_number, "Experiment")
+            luid = self.parent().model().get_cell_data(row_number, "luid")
+            experiment = self.parent().model().get_cell_data(row_number, "experiment")
         if experiment is None or luid is None:
             return None
 

@@ -6,8 +6,8 @@ import json
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 import ipso_phen.ipapi.base.ip_common as ipc
 from ipso_phen.ipapi.tools.folders import ipso_folders
-from ipso_phen.ipapi.database.db_consts import TPMP_PORT, GENOLOGIN_ADDRESS
 from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
+from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
 
 
 import logging
@@ -31,37 +31,36 @@ class FileHandlerPhenopsis(FileHandlerBase):
             [
                 self._exp,
                 self._plant,
-                self._view_option,
+                self._wavelength,
                 date_time_str,
                 self._opaque,
             ] = self.file_name_no_ext.split(";")
+            self._angle = "0"
             if not self.db_linked:
                 try:
                     self._date_time = dt.strptime(date_time_str, "%Y,%m,%d-%Hh%Mm%Ss")
                 except ValueError:
                     self._date_time = dt.strptime(date_time_str, "%Y%m%d-%Hh%Mm%Ss")
-            if "fluo-" in self._view_option.lower():
+            if "fluo-" in self._wavelength.lower():
                 self._camera = "cf"
                 if self.is_cf_calc:
-                    self._view_option = "calc"
+                    self._wavelength = "calc"
                 elif self.is_cf_csv:
-                    self._view_option = "csv"
+                    self._wavelength = "csv"
                 elif self.is_cf_pim:
-                    self._view_option = "pim"
+                    self._wavelength = "pim"
                 elif self.is_cf_raw:
-                    self._view_option = "raw"
+                    self._wavelength = "raw"
             else:
-                self._camera, self._view_option = self._view_option.split("-")
+                self._camera, self._wavelength = self._wavelength.split("-")
 
     def load_source_file(self):
         if self.db_linked:
-            user, pwd = get_user_and_password(key="phenopsis")
-            return self.load_from_database(
-                address=GENOLOGIN_ADDRESS,
-                port=TPMP_PORT,
-                user=user,
-                pwd=pwd,
-            )
+            sftp = connect_to_lipmcalcul(target_ftp=False)
+            try:
+                return self.load_from_database(sftp)
+            finally:
+                sftp.close()
         else:
             return self.load_from_harddrive()
 
@@ -83,24 +82,28 @@ class FileHandlerPhenopsis(FileHandlerBase):
             return 0
 
     @property
+    def robot(self):
+        return "phenopsis"
+
+    @property
     def is_cf_calc(self):
-        return (self.view_option == "fluo-") and (self.file_ext.lower() == ".jpg")
+        return (self.wavelength == "fluo-") and (self.file_ext.lower() == ".jpg")
 
     @property
     def is_cf_raw(self):
-        return (self.view_option == "fluo-") and (self.file_ext.lower() == ".tif")
+        return (self.wavelength == "fluo-") and (self.file_ext.lower() == ".tif")
 
     @property
     def is_cf_csv(self):
-        return (self.view_option == "fluo-") and (self.file_ext.lower() == ".csv")
+        return (self.wavelength == "fluo-") and (self.file_ext.lower() == ".csv")
 
     @property
     def is_cf_pim(self):
-        return (self.view_option == "fluo-") and (self.file_ext.lower() == ".pim")
+        return (self.wavelength == "fluo-") and (self.file_ext.lower() == ".pim")
 
     @property
     def is_msp(self):
-        return ("msp" in self.camera) or ("msp" in self.view_option)
+        return ("msp" in self.camera) or ("msp" in self.wavelength)
 
     @property
     def is_vis(self):
@@ -122,7 +125,7 @@ class FileHandlerPhenopsis(FileHandlerBase):
             current_date_time = self.date_time
             ret = self._database.query(
                 command="SELECT",
-                columns="FilePath",
+                columns="filepath",
                 additional="ORDER BY date_time ASC",
                 experiment=self.experiment,
                 plant=self.plant,

@@ -2,7 +2,11 @@ import os
 from abc import ABC, abstractmethod, abstractproperty
 import logging
 
+import paramiko
+
 from tqdm import tqdm
+
+from ipso_phen.ipapi.database.db_passwords import get_user_and_password
 
 from ipso_phen.ipapi.tools.common_functions import (
     force_directories,
@@ -11,6 +15,16 @@ from ipso_phen.ipapi.tools.common_functions import (
 )
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
+
+
+def connect_to_lipmcalcul(target_ftp: bool):
+    u, p = get_user_and_password("lipm.calcul")
+    transport = paramiko.Transport(("lipm-calcul.toulouse.inra.fr", 22))
+    transport.connect(None, username=u, password=p)
+    sftp: paramiko.SFTPClient = paramiko.SFTPClient.from_transport(transport)
+    if target_ftp is False:
+        sftp.chdir("..")
+    return sftp
 
 
 class DbInfo:

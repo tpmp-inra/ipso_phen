@@ -93,7 +93,7 @@ def build_image(wrapper):
 
 
 def build_single_plant_video(args):
-    plant, dst_folder_, db, dates_, experiment_, view_options_ = args
+    plant, dst_folder_, db, dates_, experiment_, angles_ = args
 
     p_output = os.path.join(dst_folder_, f"{plant}.mp4")
     if os.path.isfile(p_output):
@@ -101,12 +101,12 @@ def build_single_plant_video(args):
 
     ret = db.query(
         command="SELECT",
-        columns="FilePath",
+        columns="filepath",
         additional="ORDER BY date_time ASC",
         date=dict(operator="IN", values=dates_),
         experiment=experiment_,
         plant=plant,
-        view_option=view_options_[0],
+        angle=angles_[0],
     )
     main_angle_image_list_ = [item[0] for item in ret]
 
@@ -124,21 +124,21 @@ def build_single_plant_video(args):
             if img_main_angle is None:
                 continue
             main_angle_wrapper_side.store_image(
-                image=img_main_angle, text=view_options_[0], force_store=True
+                image=img_main_angle, text=angles_[0], force_store=True
             )
         except Exception as e:
             print(f'Exception "{repr(e)}" while handling {str(main_angle_wrapper_side)}')
 
         current_date_time = main_angle_wrapper_side.date_time
 
-        for secondary_angle in view_options_[1:]:
+        for secondary_angle in angles_[1:]:
             secondary_angle_image_ = db.query_one(
                 command="SELECT",
-                columns="FilePath",
+                columns="filepath",
                 additional="ORDER BY date_time ASC",
                 experiment=experiment_,
                 plant=plant,
-                view_option=secondary_angle,
+                angle=secondary_angle,
                 date_time=dict(
                     operator="BETWEEN",
                     date_min=current_date_time - datetime.timedelta(hours=1),
@@ -160,7 +160,7 @@ def build_single_plant_video(args):
                     )
 
         mosaic = main_angle_wrapper_side.build_mosaic(
-            (video_height, video_width, 3), view_options_
+            (video_height, video_width, 3), angles_
         )
         cv2.putText(
             mosaic,
@@ -198,12 +198,12 @@ def build_sbs_video():
 
     ret = current_database.query(
         command="SELECT",
-        columns="FilePath",
+        columns="filepath",
         additional="ORDER BY date_time ASC",
         date=dict(operator="IN", values=dates),
         experiment=experiment,
         plant=plants[0],
-        view_option=view_option,
+        angle=angle,
     )
     file_list_ = [item[0] for item in ret]
 
@@ -232,11 +232,11 @@ def build_sbs_video():
         for counter, ancillary_plant in enumerate(plants[1:]):
             file_name_ = current_database.query_one(
                 command="SELECT",
-                columns="FilePath",
+                columns="filepath",
                 additional="ORDER BY date_time ASC",
                 experiment=experiment,
                 plant=ancillary_plant,
-                view_option=view_option,
+                angle=angle,
                 date_time=dict(
                     operator="BETWEEN",
                     date_min=current_date_time - datetime.timedelta(hours=10),
@@ -322,7 +322,7 @@ databases_group = st.selectbox(
     format_func=lambda x: x.value,
 )
 experiment_dbi = st.selectbox(
-    label="Experiment",
+    label="experiment",
     options=[db for db in dbi.available_db_dicts[databases_group]],
     format_func=lambda x: x.db_qualified_name,
 )
@@ -344,8 +344,8 @@ if job_choice != "Please make your choice...":
     st.write("Database OK")
 
     st.subheader("Filter")
-    exp_list = get_query_items(column="Experiment")
-    experiment = st.selectbox("Experiment", exp_list)
+    exp_list = get_query_items(column="experiment")
+    experiment = st.selectbox("experiment", exp_list)
     dst_folder = st.text_input(
         "Destination folder: ",
         os.path.join(
@@ -357,11 +357,11 @@ if job_choice != "Please make your choice...":
             "",
         ),
     )
-    plant_lst = get_query_items(column="Plant", experiment=experiment)
-    view_option_lst = get_query_items(column="view_option", experiment=experiment)
+    plant_lst = get_query_items(column="plant", experiment=experiment)
+    angle_lst = get_query_items(column="angle", experiment=experiment)
     date_list = [
         item.replace("-", "/") if isinstance(item, str) else item.strftime(_DATE_FORMAT)
-        for item in get_query_items(column="Date", experiment=experiment)
+        for item in get_query_items(column="date", experiment=experiment)
     ]
     plants = st.multiselect(
         "Plants", plant_lst, plant_lst if job_choice == "Single plant" else []
@@ -369,7 +369,7 @@ if job_choice != "Please make your choice...":
     dates = st.multiselect("Dates", date_list, date_list)
     num_cores = min([MAX_CORES, num_cores])
     if job_choice == "Single plant":
-        view_options = st.multiselect("View options", view_option_lst, view_option_lst)
+        angles = st.multiselect("View options", angle_lst, angle_lst)
         if st.button("Build videos"):
             force_directories(dst_folder)
             st.write(f"Building {len(plants)} videos using {num_cores} cores")
@@ -388,7 +388,7 @@ if job_choice != "Please make your choice...":
                                 current_database.copy(),
                                 dates,
                                 experiment,
-                                view_options,
+                                angles,
                             )
                             for plant_ in plants
                         ),
@@ -405,7 +405,7 @@ if job_choice != "Please make your choice...":
                             current_database.copy(),
                             dates,
                             experiment,
-                            view_options,
+                            angles,
                         )
                     )
                     current_progress.progress((i + 1) / total_)
@@ -415,7 +415,7 @@ if job_choice != "Please make your choice...":
             st.balloons()
 
     elif job_choice == "Side by side comparison":
-        view_option = st.selectbox("View option", view_option_lst)
+        angle = st.selectbox("View option", angle_lst)
         if st.button("Build video"):
             force_directories(dst_folder)
             st.write(

@@ -17,7 +17,7 @@ class ImageCsvWriter(AbstractCsvWriter):
                 "experiment",
                 "plant",
                 "plant_id",
-                "view_option",
+                "angle",
                 "date_time",
                 "hist_bins",
                 # Morphology
@@ -79,7 +79,7 @@ class Ip020s1804nem(BaseImageProcessor):
         self.csv_data_holder.update_csv_value("plant_id", id_)
 
     def _fix_source_image(self, img):
-        if self.view_option == "top":
+        if "top" in self.camera:
             min_s = [23, 16, 17]
             max_s = [230, 187, 167]
             return self.fix_white_balance(img, min_s, max_s)
@@ -87,7 +87,7 @@ class Ip020s1804nem(BaseImageProcessor):
             return img
 
     def init_rois(self):
-        if self.view_option == "top":
+        if "top" in self.camera:
             self.add_rect_roi(824, 850, 622, 846, "safe_zone", "safe")
 
             self.add_rect_roi(732, 1041, 522, 1040, "pot_holder", "pot_holder")
@@ -119,7 +119,7 @@ class Ip020s1804nem(BaseImageProcessor):
 
     def build_channel_mask(self, source_image, **kwargs):
         try:
-            if self.view_option == "top":
+            if "top" in self.camera:
                 mask_s, stored_name = self.get_mask(
                     source_image, "s", 70, 255, self.rois_list, False, 15
                 )
@@ -196,7 +196,7 @@ class Ip020s1804nem(BaseImageProcessor):
                 return np.count_nonzero(self.mask) > 0
 
     def crop_mask(self):
-        if self.view_option == "top":
+        if "top" in self.camera:
             pass
         else:
             pass
@@ -205,7 +205,7 @@ class Ip020s1804nem(BaseImageProcessor):
     def clean_mask(self, source_image):
         try:
             mask = self.mask
-            if self.view_option == "top":
+            if "top" in self.camera:
                 mask = self.keep_linked_contours(
                     src_image=source_image,
                     src_mask=mask,
@@ -255,7 +255,7 @@ class Ip020s1804nem(BaseImageProcessor):
 
     def ensure_mask_zone(self):
         mask = self.mask
-        if self.view_option == "top":
+        if "top" in self.camera:
             mask = self.keep_roi(mask, "safe_zone")
         else:
             mask = self.keep_roi(mask, "safe_roi")

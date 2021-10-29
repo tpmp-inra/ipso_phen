@@ -9,16 +9,15 @@ class FileHandlerIMean(FileHandlerBase):
     Schema:
         imean_datetime_experiment_tray_imgfilename.ext
     Plant will be used to store tray information
-    View_option will store original file name
+    angle will store original file name
     """
 
     def __init__(self, **kwargs):
         self._file_path = kwargs.get("file_path", "")
         file_, self._camera = os.path.splitext(self.file_name)
         if file_:
-            _, date_time_str, self._exp, self._plant, self._view_option = file_.split(
-                "_"
-            )
+            _, date_time_str, self._exp, self._plant, self._angle = file_.split("_")
+            self.wavelength = "BW"
             self._date_time = dt.strptime(date_time_str, "%Y%m%d%H%M%S")
 
         self.update(**kwargs)

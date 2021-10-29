@@ -489,19 +489,32 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_5.addWidget(self.cb_camera)
 
-        self.chk_view_option = QCheckBox(self.tab_pipeline_builder)
-        self.chk_view_option.setObjectName(u"chk_view_option")
-        self.chk_view_option.setFont(font1)
-        self.chk_view_option.setLayoutDirection(Qt.RightToLeft)
-        self.chk_view_option.setChecked(True)
+        self.chk_angle = QCheckBox(self.tab_pipeline_builder)
+        self.chk_angle.setObjectName(u"chk_angle")
+        self.chk_angle.setFont(font1)
+        self.chk_angle.setLayoutDirection(Qt.RightToLeft)
+        self.chk_angle.setChecked(True)
 
-        self.horizontalLayout_5.addWidget(self.chk_view_option)
+        self.horizontalLayout_5.addWidget(self.chk_angle)
 
-        self.cb_view_option = QComboBox(self.tab_pipeline_builder)
-        self.cb_view_option.setObjectName(u"cb_view_option")
-        self.cb_view_option.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self.cb_angle = QComboBox(self.tab_pipeline_builder)
+        self.cb_angle.setObjectName(u"cb_angle")
+        self.cb_angle.setSizeAdjustPolicy(QComboBox.AdjustToContents)
 
-        self.horizontalLayout_5.addWidget(self.cb_view_option)
+        self.horizontalLayout_5.addWidget(self.cb_angle)
+
+        self.chk_wavelength = QCheckBox(self.tab_pipeline_builder)
+        self.chk_wavelength.setObjectName(u"chk_wavelength")
+        self.chk_wavelength.setLayoutDirection(Qt.RightToLeft)
+        self.chk_wavelength.setChecked(True)
+
+        self.horizontalLayout_5.addWidget(self.chk_wavelength)
+
+        self.cb_wavelength = QComboBox(self.tab_pipeline_builder)
+        self.cb_wavelength.setObjectName(u"cb_wavelength")
+        self.cb_wavelength.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+
+        self.horizontalLayout_5.addWidget(self.cb_wavelength)
 
         self.chk_time = QCheckBox(self.tab_pipeline_builder)
         self.chk_time.setObjectName(u"chk_time")
@@ -1932,8 +1945,9 @@ class Ui_MainWindow(object):
         self.chk_camera.setText(
             QCoreApplication.translate("MainWindow", u"Camera:", None)
         )
-        self.chk_view_option.setText(
-            QCoreApplication.translate("MainWindow", u"View option:", None)
+        self.chk_angle.setText(QCoreApplication.translate("MainWindow", u"Angle:", None))
+        self.chk_wavelength.setText(
+            QCoreApplication.translate("MainWindow", u"wavelength", None)
         )
         self.chk_time.setText(QCoreApplication.translate("MainWindow", u"Time:", None))
         # if QT_CONFIG(tooltip)

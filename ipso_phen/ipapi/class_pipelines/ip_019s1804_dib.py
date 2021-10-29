@@ -17,7 +17,7 @@ class ImageCsvWriter(AbstractCsvWriter):
                 "plant_id",
                 "plant_suffix",
                 "date_time",
-                "view_option",
+                "angle",
                 "series_id",
                 # Morphology
                 "area",
@@ -89,16 +89,12 @@ class Ip019s1804dib(BaseImageProcessor):
         return True, mask
 
     def _process_job_nir(self, img):
-        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(
-            img, self.rois_list
-        )
+        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(img, self.rois_list)
         self.store_image(mosaic_image_, "full_channel_mosaic")
         return True, None
 
     def _process_job_fluo(self, img):
-        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(
-            img, self.rois_list
-        )
+        self._mosaic_data, mosaic_image_ = self.build_channels_mosaic(img, self.rois_list)
         self.store_image(mosaic_image_, "full_channel_mosaic")
         return True, None
 

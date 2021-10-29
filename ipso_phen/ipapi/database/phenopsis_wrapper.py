@@ -1,17 +1,14 @@
 import logging
 from collections import defaultdict
 import os
-import json
-
-import paramiko
 import pandas as pd
 from stat import S_ISDIR
 
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 from ipso_phen.ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
 from ipso_phen.ipapi.tools.folders import ipso_folders
-from ipso_phen.ipapi.database.db_consts import TPMP_PORT, GENOLOGIN_ADDRESS
-from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
+from ipso_phen.ipapi.database.db_passwords import check_password
+from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
@@ -21,40 +18,24 @@ FILES_PER_CONNEXION = 400
 IMAGE_EXTENSIONS = (".jpg", ".tiff", ".png", ".bmp", ".tif", ".pim", ".csv")
 
 
-def connect_to_phenodb():
-    p = paramiko.SSHClient()
-    p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-    user, pwd = get_user_and_password(key="phenopsis")
-    p.connect(
-        GENOLOGIN_ADDRESS,
-        port=TPMP_PORT,
-        username=user,
-        password=pwd,
-    )
-    return p
-
-
-def get_pheno_db_ftp():
-    return connect_to_phenodb().open_sftp()
-
-
 def get_phenopsis_exp_list() -> list:
     if check_password("phenopsis") is False:
         return []
+    sftp = connect_to_lipmcalcul(target_ftp=False)
     try:
-        ftp = get_pheno_db_ftp()
-        exp_lst = sorted(ftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
-        ftp.close()
+        exp_lst = sorted(sftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
     except Exception as e:
         logger.error(f"Unable to reach Phenopsis: {repr(e)}")
         return []
     else:
         return [exp for exp in exp_lst if exp != "csv"]
+    finally:
+        sftp.close()
 
 
-def isdir(ftp, path):
+def isdir(sftp, path):
     try:
-        return S_ISDIR(ftp.stat(path).st_mode)
+        return S_ISDIR(sftp.stat(path).st_mode)
     except IOError:
         # Path does not exist, so by definition not a directory
         return False
@@ -64,23 +45,32 @@ class PhenopsisDbWrapper(PandasDbWrapper):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.df_builder = self.get_exp_as_df
-        self.main_selector = {"view_option": "sw755"}
+        self.main_selector = {"wavelength": "sw755"}
+
+    def check_dataframe(self, dataframe) -> pd.DataFrame:
+        dataframe = super().check_dataframe(dataframe=dataframe)
+        if "view_option" in dataframe:
+            dataframe["wavelength"] = dataframe["view_option"]
+            dataframe["angle"] = "0"
+            dataframe["height"] = "0"
+            dataframe["job_id"] = "0"
+        return dataframe
 
     def get_all_files(
         self,
-        ftp,
+        sftp,
         path,
         extensions,
     ):
         ret = []
-        sf = ftp.listdir_attr(path=path)
+        sf = sftp.listdir_attr(path=path)
         for fd in sf:
             obj_path = f"{path}/{fd.filename}"
             self._callback_undefined()
-            if isdir(ftp=ftp, path=obj_path):
+            if isdir(sftp=sftp, path=obj_path):
                 ret.extend(
                     self.get_all_files(
-                        ftp=ftp,
+                        sftp=sftp,
                         path=obj_path,
                         extensions=extensions,
                     )
@@ -96,37 +86,39 @@ class PhenopsisDbWrapper(PandasDbWrapper):
             f"{exp_name.lower()}.dst.csv",
         )
         dataframe = pd.read_csv(csv_path)
-        dataframe["Experiment"] = dataframe["experiment"].str.lower()
-        dataframe["Plant"] = dataframe["plant"].str.lower()
+        dataframe["experiment"] = dataframe["experiment"].str.lower()
+        dataframe["plant"] = dataframe["plant"].str.lower()
         dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
-        dataframe["Camera"] = dataframe["camera"]
-        dataframe["FilePath"] = dataframe["filepath"].str.replace("./phenopsis/", "")
-        dataframe["Luid"] = dataframe["luid"]
+        dataframe["camera"] = dataframe["camera"]
+        dataframe["filepath"] = dataframe["filepath"].str.replace(
+            "./images/phenopsis/", ""
+        )
+        dataframe["luid"] = dataframe["luid"]
         return dataframe[
             [
-                "Luid",
-                "Experiment",
-                "Plant",
+                "luid",
+                "experiment",
+                "plant",
                 "date_time",
-                "Camera",
-                "view_option",
-                "FilePath",
+                "camera",
+                "angle",
+                "filepath",
                 "blob_path",
             ]
         ]
 
     def get_exp_as_df(self, exp_name: str) -> pd.DataFrame:
-        ftp = get_pheno_db_ftp()
+        sftp = connect_to_lipmcalcul(target_ftp=False)
         csv_path = (
             PHENOPSIS_ROOT_FOLDER + "/" + "csv" + "/" + f"{exp_name.lower()}.dst.csv"
         )
         try:
-            ftp.stat(csv_path)
+            sftp.stat(csv_path)
         except Exception as _:
             logger.info(f"Missing CSV for {exp_name}, building it")
             self._init_progress_undefined("Looking for images")
             images = self.get_all_files(
-                ftp=ftp,
+                sftp=sftp,
                 path=PHENOPSIS_ROOT_FOLDER + "/" + exp_name,
                 extensions=IMAGE_EXTENSIONS,
             )
@@ -135,13 +127,14 @@ class PhenopsisDbWrapper(PandasDbWrapper):
             self._init_progress(total=len(images), desc="Building dataframe")
             d = defaultdict(list)
             for j, fh in enumerate(images):
-                d["Luid"].append(fh.luid)
-                d["Experiment"].append(fh.experiment)
-                d["Plant"].append(fh.plant)
+                d["luid"].append(fh.luid)
+                d["experiment"].append(fh.experiment)
+                d["plant"].append(fh.plant)
                 d["date_time"].append(fh.date_time)
-                d["Camera"].append(fh.camera)
-                d["view_option"].append(fh.view_option)
-                d["FilePath"].append(fh.file_path)
+                d["camera"].append(fh.camera)
+                d["angle"].append(fh.angle)
+                d["wavelength"].append(fh.wavelength)
+                d["filepath"].append(fh.file_path)
                 d["blob_path"].append(fh.file_path)
                 self._callback(step=j, total=len(images))
             self._close_progress()
@@ -149,27 +142,28 @@ class PhenopsisDbWrapper(PandasDbWrapper):
             dataframe = pd.DataFrame(d)
             dataframe.to_csv(self.cache_file_path)
         else:
-            file = ftp.open(csv_path)
+            file = sftp.open(csv_path)
             dataframe = pd.read_csv(file)
             file.close()
-            dataframe["Experiment"] = dataframe["experiment"].str.lower()
-            dataframe["Plant"] = dataframe["plant"].str.lower()
+            dataframe["experiment"] = dataframe["experiment"].str.lower()
+            dataframe["plant"] = dataframe["plant"].str.lower()
             dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
-            dataframe["Camera"] = dataframe["camera"]
-            dataframe["FilePath"] = dataframe["filepath"]
-            dataframe["Luid"] = dataframe["luid"]
+            dataframe["camera"] = dataframe["camera"]
+            dataframe["filepath"] = dataframe["filepath"]
+            dataframe["luid"] = dataframe["luid"]
             dataframe = dataframe[
                 [
-                    "Luid",
-                    "Experiment",
-                    "Plant",
+                    "luid",
+                    "experiment",
+                    "plant",
                     "date_time",
-                    "Camera",
-                    "view_option",
-                    "FilePath",
+                    "camera",
+                    "angle",
+                    "wavelength",
+                    "filepath",
                     "blob_path",
                 ]
             ]
         finally:
-            ftp.close()
+            sftp.close()
         return dataframe

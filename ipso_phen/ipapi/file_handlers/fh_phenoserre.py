@@ -4,8 +4,8 @@ import os
 import json
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
-from ipso_phen.ipapi.database.db_consts import GENOLOGIN_ADDRESS, TPMP_PORT
-from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
+from ipso_phen.ipapi.database.db_passwords import check_password
+from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
 
 
 import logging
@@ -32,22 +32,20 @@ class FileHandlerPhenoserre(FileHandlerBase):
             [self._plant, date_time_str, self._exp, cam_str] = tmp_str.split("--")
             if not self.db_linked:
                 self._date_time = dt.strptime(date_time_str, "%Y-%m-%d %H_%M_%S")
-            [self._camera, self._view_option] = cam_str.split("-")
+            [self._camera, self._angle] = cam_str.split("-")
 
     def load_source_file(self):
         if self.db_linked:
-            user, pwd = get_user_and_password(key="phenoserre")
-            return self.load_from_database(
-                address=GENOLOGIN_ADDRESS,
-                port=TPMP_PORT,
-                user=user,
-                pwd=pwd,
-            )
+            sftp = connect_to_lipmcalcul(target_ftp=False)
+            try:
+                return self.load_from_database(sftp)
+            finally:
+                sftp.close()
         else:
             return self.load_from_harddrive()
 
     def fix_image(self, src_image):
-        if self.is_nir and self.view_option == "top":
+        if self.is_nir and "top" in self.camera:
             return np.flip(np.flip(src_image, 0), 1)
         else:
             return super().fix_image(src_image)
@@ -68,6 +66,10 @@ class FileHandlerPhenoserre(FileHandlerBase):
             return 100
         else:
             return 0
+
+    @property
+    def robot(self):
+        return "phenoserre"
 
     @property
     def is_vis(self):

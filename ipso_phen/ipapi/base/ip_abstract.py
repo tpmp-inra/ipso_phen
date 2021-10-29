@@ -119,7 +119,8 @@ class BaseImageProcessor(ImageWrapper):
         self.csv_data_holder.update_csv_value("plant", self.plant)
         self.csv_data_holder.update_csv_value("date_time", self.date_time)
         self.csv_data_holder.update_csv_value("camera", self.camera)
-        self.csv_data_holder.update_csv_value("view_option", self.view_option)
+        self.csv_data_holder.update_csv_value("angle", self.angle)
+        self.csv_data_holder.update_csv_value("wavelength", self.wavelength)
 
     def reset(self):
         if self.lock:
@@ -531,7 +532,7 @@ class BaseImageProcessor(ImageWrapper):
 
         if self.owner is not None:
             target = self.owner
-            text = f"{self.view_option}_{text}"
+            text = f"{self.angle}_{self.wavelength}_{text}"
         else:
             target = self
 
@@ -3066,7 +3067,7 @@ class BaseImageProcessor(ImageWrapper):
             if self.is_msp and (self.retrieve_linked_images() != 0):
                 _, wl = channel.split("_")
                 img = self.linked_images_holder.retrieve_image(
-                    key="view_option",
+                    key="wavelength",
                     value=wl,
                     transformations=self.image_transformations,
                 )

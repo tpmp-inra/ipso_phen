@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import datetime
 from datetime import datetime as dt
 import inspect
@@ -27,7 +28,8 @@ class FileHandlerBase(ABC):
         self._exp = ""
         self._plant = ""
         self._camera = ""
-        self._view_option = ""
+        self._angle = "0"
+        self._wavelength = "SW755"
         self._date_time = None
         self._linked_images = []
         self._database = None
@@ -45,43 +47,33 @@ class FileHandlerBase(ABC):
                 f"[plant:{self.plant}]"
                 f"[date:{self.condensed_date}]"
                 f"[camera:{self.camera}]"
-                f"[view_option:{self.view_option}]"
+                f"[angle:{self.angle}]"
+                f"[wavelength:{self.wavelength}]"
             )
         else:
             return self.file_name
 
-    def load_from_database(self, address, port, user, pwd):
-        if os.path.isdir(ipso_folders.get_path("mass_storage", False)) and os.path.isfile(
-            self.cache_file_path
-        ):
+    def load_from_database(self, sftp):
+        if os.path.isfile(self.cache_file_path):
             logger.debug(f"Retrieved from cache: {str(self)}")
             return self.load_from_harddrive(self.cache_file_path)
         src_img = None
         try:
             logger.info(f"Downloading {self.name}, please wait...")
-            p = paramiko.SSHClient()
-            p.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-            p.connect(
-                address,
-                port=port,
-                username=user,
-                password=pwd,
-            )
-            ftp = p.open_sftp()
             try:
-                with ftp.open(self.blob_path) as file:
+                with sftp.open(self.blob_path) as file:
                     file_size = file.stat().st_size
                     file.prefetch(file_size)
                     file.set_pipelined()
-                    src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
+                    src_img = cv2.imdecode(
+                        np.fromstring(file.read(), np.uint8),
+                        1,
+                    )
                     if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
                         force_directories(os.path.dirname(self.cache_file_path))
                         cv2.imwrite(self.cache_file_path, src_img)
             except Exception as e:
                 logger.exception(f"FTP error: {repr(e)}")
-            finally:
-                ftp.close()
-            p.close()
             src_img = self.fix_image(src_image=src_img)
         except Exception as e:
             logger.exception(f"Failed to download {repr(self)} because {repr(e)}")
@@ -113,7 +105,8 @@ class FileHandlerBase(ABC):
         self._exp = kwargs.get("experiment", self._exp)
         self._plant = kwargs.get("plant", self._plant)
         self._camera = kwargs.get("camera", self._camera)
-        self._view_option = kwargs.get("view_option", self._view_option)
+        self._angle = kwargs.get("angle", self._angle)
+        self._wavelength = kwargs.get("wavelength", self._wavelength)
         if "date_time" in kwargs:
             try:
                 ts = kwargs.get("date_time")
@@ -349,8 +342,10 @@ class FileHandlerBase(ABC):
             return self.plant
         elif key == "cam":
             return self.camera
-        elif key == "view_option":
-            return self.view_option
+        elif key == "angle":
+            return self.angle
+        elif key == "wavelength":
+            return self.wavelength
         elif key == "date":
             return self.date_str
         elif key == "year":
@@ -371,11 +366,11 @@ class FileHandlerBase(ABC):
     def matches(self, key, value):
         if isinstance(value, list):
             for val in value:
-                if self.value_of(key).lower() == val.lower():
+                if self.value_of(key) == val:
                     return True
             return False
         else:
-            return self.value_of(key).lower() == value.lower()
+            return self.value_of(key) == value
 
     @abstractclassmethod
     def probe(cls, file_path, database):
@@ -461,19 +456,23 @@ class FileHandlerBase(ABC):
 
     @property
     def plant(self):
-        return self._plant.lower()
+        return self._plant
 
     @property
     def camera(self):
-        return self._camera.lower()
+        return self._camera
 
     @property
-    def view_option(self):
-        return self._view_option.lower()
+    def angle(self):
+        return self._angle
+
+    @property
+    def wavelength(self):
+        return self._wavelength
 
     @property
     def experiment(self):
-        return self._exp.lower()
+        return self._exp
 
     @property
     def condensed_date(self):
@@ -481,7 +480,7 @@ class FileHandlerBase(ABC):
 
     @property
     def luid(self):
-        return f'{self.experiment}_{self.plant}_{dt.strftime(self.date_time, "%Y%m%d%H%M%S")}_{self.camera}_{self.view_option}'
+        return f'{self.experiment}_{self.plant}_{dt.strftime(self.date_time, "%Y%m%d%H%M%S")}_{self.camera}_{self.angle}_{self.wavelength}'
 
     @property
     def is_vis(self):
@@ -545,16 +544,29 @@ class FileHandlerBase(ABC):
         return self._blob_path
 
     @property
+    def robot(self):
+        return ""
+
+    @property
     def cache_file_path(self):
         if not self._cache_file_path and self.db_linked is True:
             if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
                 self._cache_file_path = os.path.join(
                     ipso_folders.get_path("mass_storage", False),
+                    self.robot,
                     self.experiment,
                     self.file_name,
                 )
             else:
-                self._cache_file_path = ""
+                self._cache_file_path = os.path.join(
+                    ipso_folders.get_path(
+                        key="img_cache",
+                        force_creation=True,
+                    ),
+                    self.robot,
+                    self.experiment,
+                    self.file_name,
+                )
         return self._cache_file_path
 
 
@@ -565,7 +577,8 @@ class FileHandlerDefault(FileHandlerBase):
             self._plant = self.file_name_no_ext
             self._camera = "unknown"
             _, ext_ = os.path.splitext(self.file_name)
-            self._view_option = ext_ if ext_ else "unknown"
+            self._wavelength = "unknown"
+            self._angle = "unknown"
             try:
                 self._exp = os.path.basename(os.path.dirname(self.file_path))
             except Exception as e:

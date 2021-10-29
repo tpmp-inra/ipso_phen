@@ -189,7 +189,8 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                                                         Time TIME_OBJECT,
                                                         date_time TIMESTAMP,
                                                         Camera TEXT COLLATE NOCASE,
-                                                        view_option TEXT COLLATE NOCASE)"""
+                                                        Angle TEXT COLLATE NOCASE,
+                                                        Wavelength TEXT COLLATE NOCASE)"""
                 )
                 if auto_update:
                     self.update()
@@ -236,19 +237,20 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                     try:
                         fh = file_handler_factory(file, database=None)
                         conn_.execute(
-                            f"""INSERT INTO {self.main_table} (Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, view_option)
-                                        VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :view_option)""",
+                            f"""INSERT INTO {self.main_table} (Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, Angle, Wavelength)
+                                        VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :Angle, :Wavelength)""",
                             {
-                                "Luid": fh.luid,
+                                "luid": fh.luid,
                                 "Name": fh.name,
-                                "FilePath": fh.file_path,
-                                "Experiment": fh.experiment,
-                                "Plant": fh.plant,
-                                "Date": fh.date_time.date(),
-                                "Time": fh.date_time.time(),
+                                "filepath": fh.file_path,
+                                "experiment": fh.experiment,
+                                "plant": fh.plant,
+                                "date": fh.date_time.date(),
+                                "time": fh.date_time.time(),
                                 "date_time": fh.date_time,
-                                "Camera": fh.camera,
-                                "view_option": fh.view_option,
+                                "camera": fh.camera,
+                                "angle": fh.angle,
+                                "wavelength": fh.wavelength,
                             },
                         )
                     except exc.IntegrityError:

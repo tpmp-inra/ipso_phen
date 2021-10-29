@@ -48,10 +48,10 @@ class ImageWrapper:
             else:
                 return False
 
-        if self.view_option < other.angle:
-            return True
-        if self.view_option > other.angle:
-            return False
+        if self.angle != other.angle:
+            return self.angle < other.angle
+        else:
+            return self.wavelength < other.wavelength
 
     def compare_date(self, **kwargs):
         """Compares wrapper's date to kwargs date
@@ -332,8 +332,12 @@ class ImageWrapper:
         return self._file_handler.camera
 
     @property
-    def view_option(self):
-        return self._file_handler.view_option
+    def angle(self):
+        return self._file_handler.angle
+
+    @property
+    def wavelength(self):
+        return self._file_handler.wavelength
 
     @property
     def csv_file_name(self):
@@ -359,11 +363,11 @@ class ImageWrapper:
     def is_drop_roi(self):
         return (
             self.is_fluo
-            and self.view_option == "side45"
+            and self.angle == "side45"
             and self.is_after_date(year="2018", month="02", day="06")
         ) or (
             self.is_vis
-            and self.view_option == "side315"
+            and self.angle == "side315"
             and self.is_at_date(year=2018, month="03", day=20)
         )
 
@@ -391,7 +395,7 @@ class ImageWrapper:
         return (
             self.is_vis
             and self.is_after_date(year="2018", month="03", day="22")
-            and self.view_option != "top"
+            and "top" in self.camera
         )
 
     @property
@@ -422,7 +426,7 @@ class ImageWrapper:
 
     @property
     def short_name(self):
-        return f"[exp:{self.experiment}][plant:{self.plant}][vo:{self.view_option}][{self._file_handler.condensed_date}]"
+        return f"[exp:{self.experiment}][plant:{self.plant}][vo:{self.angle}][vo:{self.wavelength}][{self._file_handler.condensed_date}]"
 
     @property
     def is_corrupted(self):

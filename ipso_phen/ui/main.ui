@@ -154,7 +154,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QCheckBox" name="chk_view_option">
+           <widget class="QCheckBox" name="chk_angle">
             <property name="font">
              <font>
               <weight>50</weight>
@@ -165,7 +165,7 @@
              <enum>Qt::RightToLeft</enum>
             </property>
             <property name="text">
-             <string>View option:</string>
+             <string>Angle:</string>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -173,7 +173,27 @@
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="cb_view_option">
+           <widget class="QComboBox" name="cb_angle">
+            <property name="sizeAdjustPolicy">
+             <enum>QComboBox::AdjustToContents</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="chk_wavelength">
+            <property name="layoutDirection">
+             <enum>Qt::RightToLeft</enum>
+            </property>
+            <property name="text">
+             <string>Wavelength</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QComboBox" name="cb_wavelength">
             <property name="sizeAdjustPolicy">
              <enum>QComboBox::AdjustToContents</enum>
             </property>

@@ -15,7 +15,7 @@ class ImageShortCsvWriter(AbstractCsvWriter):
                 "plant_id",
                 "plant_suffix",
                 "date_time",
-                "view_option",
+                "angle",
                 "series_id",
                 # Morphology
                 "area",
@@ -46,7 +46,7 @@ class ImageLongCsvWriter(AbstractCsvWriter):
                 "watering",
                 "myc",
                 "date_time",
-                "view_option",
+                "angle",
                 "series_id",
                 # Morphology
                 "area",

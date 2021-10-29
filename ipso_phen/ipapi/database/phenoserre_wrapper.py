@@ -6,13 +6,10 @@ from io import StringIO
 import logging
 from tqdm import tqdm
 
+import psycopg2
+
 from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
-from ipso_phen.ipapi.database.db_consts import (
-    GENOLOGIN_ADDRESS,
-    TPMP_PORT,
-    PHENODB_ADDRESS,
-)
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
@@ -111,46 +108,21 @@ def _split_camera_label(cam_label: str) -> tuple:
 
 
 def _query_phenoserre(query: str) -> pd.DataFrame:
+    u, p = get_user_and_password("old_phenoserre_db")
+    try:
+        conn = psycopg2.connect(
+            host="lipm-data.toulouse.inra.fr",
+            database="LemnaTecOptimalogTest",
+            user=u,
+            password=p,
+            port=5434,
+        )
+    except:
+        print("I am unable to connect to the database")
 
-    # Create jump ssh connexion
-    jump_connexion = paramiko.SSHClient()
-    jump_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    user, pwd = get_user_and_password(key="phenoserre")
-    jump_connexion.connect(
-        GENOLOGIN_ADDRESS,
-        port=TPMP_PORT,
-        username=user,
-        password=pwd,
-    )
+    df = pd.read_sql_query(query, conn)
 
-    # Create transport
-    jump_transport = jump_connexion.get_transport()
-    dest_addr = (PHENODB_ADDRESS, TPMP_PORT)
-    local_addr = (GENOLOGIN_ADDRESS, TPMP_PORT)
-    jump_channel = jump_transport.open_channel(
-        "direct-tcpip",
-        dest_addr,
-        local_addr,
-    )
-
-    # Create target connexion
-    host_connexion = paramiko.SSHClient()
-    host_connexion.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    host_connexion.connect(
-        PHENODB_ADDRESS,
-        username=user,
-        password=pwd,
-        sock=jump_channel,
-    )
-
-    # Query and return result
-    _, stdout, _ = host_connexion.exec_command(
-        'psql -A -F , -q -P "footer=off" -d LemnaTecOptimalogTest -U phenodbpg -c '
-        + f'"{query}"'
-    )
-    output = stdout.readlines()
-    output = "".join(output)
-    return pd.read_csv(StringIO(output))
+    return df
 
 
 def get_phenoserre_exp_list() -> list:
@@ -188,55 +160,62 @@ def get_exp_as_df(exp_name: str) -> pd.DataFrame:
     ).reset_index(drop=True)
 
     # Lowercase all
-    dataframe["Experiment"] = dataframe["experiment"].str.lower()
-    dataframe["Plant"] = dataframe["plant"].str.lower()
+    dataframe["experiment"] = dataframe["experiment"].str.lower()
+    dataframe["plant"] = dataframe["plant"].str.lower()
     dataframe["cam_view_option"] = dataframe["cam_view_option"].str.lower()
     # Ensure datetime column is datetim
     dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
     # Wrangle
-    dataframe[["Camera", "view_option"]] = (
+    dataframe[["camera", "angle"]] = (
         dataframe["cam_view_option"].apply(_split_camera_label).apply(pd.Series)
     )
-    dataframe["FilePath"] = (
-        dataframe["Experiment"]
+    dataframe["wavelength"] = "SW755"
+    dataframe["filepath"] = (
+        dataframe["experiment"]
         + "/"
         + "("
-        + dataframe["Plant"]
+        + dataframe["plant"]
         + ")--("
         + dataframe["date_time"].dt.strftime("%Y-%m-%d %H_%M_%S")
         + ")--("
-        + dataframe["Experiment"]
+        + dataframe["experiment"]
         + ")--("
-        + dataframe["Camera"]
+        + dataframe["camera"]
         + "-"
-        + dataframe["view_option"]
+        + dataframe["angle"]
         + ").png"
     )
-    dataframe["Luid"] = (
-        dataframe["Experiment"]
+    dataframe["luid"] = (
+        dataframe["experiment"]
         + "_"
-        + dataframe["Plant"]
+        + dataframe["plant"]
         + "_"
         + dataframe["date_time"].dt.strftime("%Y%m%d%H%M%S")
         + "_"
-        + dataframe["Camera"]
+        + dataframe["camera"]
         + "_"
-        + dataframe["view_option"]
+        + dataframe["angle"]
     )
     dataframe["blob_path"] = dataframe["blob_path"].map(
         "./ftp/LemnaTecOptimalogTest/{}".format
     )
+    dataframe["wavelength"] = "SW755"
+    dataframe["height"] = 0
+    dataframe["job_id"] = 0
 
     return dataframe[
         [
-            "Luid",
-            "Experiment",
-            "Plant",
+            "luid",
+            "experiment",
+            "plant",
             "date_time",
-            "Camera",
-            "view_option",
-            "FilePath",
+            "camera",
+            "angle",
+            "filepath",
             "blob_path",
+            "wavelength",
+            "height",
+            "job_id",
         ]
     ]
 
@@ -245,3 +224,7 @@ class PhenoserreDbWrapper(PandasDbWrapper):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.df_builder = get_exp_as_df
+
+    def check_dataframe(self, dataframe) -> pd.DataFrame:
+        dataframe = super().check_dataframe(dataframe=dataframe)
+        return dataframe

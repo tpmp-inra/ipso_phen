@@ -198,6 +198,15 @@ ipso_folders = IpsoFolders(
                 "",
             )
         ),
+        "img_cache": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "img_cache",
+                "",
+            )
+        ),
         "db_connect_data": FolderData(
             os.path.join(
                 os.path.expanduser("~"),

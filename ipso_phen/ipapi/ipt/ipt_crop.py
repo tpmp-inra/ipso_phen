@@ -150,14 +150,23 @@ class IptCrop(IptBaseAnalyzer):
                                     lnk_img,
                                     database=wrapper.target_database,
                                 )
-                                additional_images[fh.view_option] = roi.crop(
+                                additional_images[fh.angle] = roi.crop(
                                     src_image=fh.load_source_file(),
                                     fixed_width=self.get_value_of("fixed_width"),
                                     fixed_height=self.get_value_of("fixed_height"),
                                 )
                                 wrapper.store_image(
-                                    image=additional_images[fh.view_option],
-                                    text=f"{fh.view_option}_crop",
+                                    image=additional_images[fh.angle],
+                                    text=f"{fh.angle}_crop",
+                                )
+                                additional_images[fh.wavelength] = roi.crop(
+                                    src_image=fh.load_source_file(),
+                                    fixed_width=self.get_value_of("fixed_width"),
+                                    fixed_height=self.get_value_of("fixed_height"),
+                                )
+                                wrapper.store_image(
+                                    image=additional_images[fh.wavelength],
+                                    text=f"{fh.wavelength}_crop",
                                 )
                             except Exception as e:
                                 logger.error(f"Unable to process image because {repr(e)}")

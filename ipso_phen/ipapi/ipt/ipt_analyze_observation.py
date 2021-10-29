@@ -9,13 +9,14 @@ from ipso_phen.ipapi.base.ip_common import ToolFamily
 
 class IptAnalyseObservation(IptBaseAnalyzer):
     def build_params(self):
-        self.add_checkbox(name="experiment", desc="Experiment", default_value=1)
-        self.add_checkbox(name="plant", desc="Plant", default_value=1)
+        self.add_checkbox(name="experiment", desc="experiment", default_value=1)
+        self.add_checkbox(name="plant", desc="plant", default_value=1)
         self.add_checkbox(name="date_time", desc="Date and time", default_value=1)
-        self.add_checkbox(name="date", desc="Date", default_value=1)
-        self.add_checkbox(name="time", desc="Time", default_value=1)
-        self.add_checkbox(name="camera", desc="Camera", default_value=1)
-        self.add_checkbox(name="view_option", desc="View Option", default_value=1)
+        self.add_checkbox(name="date", desc="date", default_value=1)
+        self.add_checkbox(name="time", desc="time", default_value=1)
+        self.add_checkbox(name="camera", desc="camera", default_value=1)
+        self.add_checkbox(name="angle", desc="angle", default_value=1)
+        self.add_checkbox(name="wavelength", desc="wavelength", default_value=1)
         self.add_checkbox(
             name="luid",
             desc="Add Local Unique IDentifier (LUID)",
@@ -50,27 +51,6 @@ class IptAnalyseObservation(IptBaseAnalyzer):
         )
 
     def process_wrapper(self, **kwargs):
-        """
-        Observation data:
-        Returns observation data retrieved from the image file
-        Real time: False
-
-        Keyword Arguments (in parentheses, argument name):
-            * Experiment (experiment):
-            * Plant (plant):
-            * Date and time (date_time):
-            * Date (date):
-            * Time (time):
-            * Camera (camera):
-            * View Option (view_option):
-            * Add Local Unique IDentifier (LUID) (luid):
-            * Add path to source file (source_path):
-            * Split plant name into multiple variables (split_plant_name):
-            * Character to use as separator (separator):
-            * Names of new variables (new_column_names): names separate by "," with no spaces
-            * Add as empty columns (add_columns):
-        --------------
-        """
         wrapper = self.init_wrapper(**kwargs)
         if wrapper is None:
             return False
@@ -85,7 +65,8 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             self.add_value("date", wrapper.date)
             self.add_value("time", wrapper.time)
             self.add_value("camera", wrapper.camera)
-            self.add_value("view_option", wrapper.view_option)
+            self.add_value("angle", wrapper.angle)
+            self.add_value("wavelength", wrapper.wavelength)
             self.add_value("luid", wrapper.luid)
             self.add_value("source_path", wrapper.file_path)
 

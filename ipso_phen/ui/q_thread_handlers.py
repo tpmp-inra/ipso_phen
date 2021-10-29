@@ -543,7 +543,7 @@ class IpsoCsvBuilder(QRunnable):
                     csv_root_name = csv_root_name.replace("_raw_data", "")
                 if csv_root_name.endswith(".csv"):
                     csv_root_name = csv_root_name.replace(".csv", "")
-                dataframe = dataframe.drop("view_option", axis=1)
+                dataframe = dataframe.drop("angle", axis=1)
                 if self.group_by_series_id:
                     csv_sid_root_name = csv_root_name + "_sid"
                     if self.build_median_df:

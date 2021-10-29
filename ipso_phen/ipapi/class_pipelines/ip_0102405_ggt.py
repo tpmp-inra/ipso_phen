@@ -62,7 +62,7 @@ class ImageMpsCsvWriter(AbstractCsvWriter):
 
 class Ip0102405ggt(BaseImageProcessor):
     def init_csv_writer(self):
-        if self.view_option == "fluo-":
+        if "fluo" in self.camera:
             return ImageFluoCsvWriter()
         else:
             return ImageMpsCsvWriter()
@@ -97,9 +97,7 @@ class Ip0102405ggt(BaseImageProcessor):
     def init_csv_data(self, source_image):
         [treatment_1, treatment_2, plant_id_] = self.plant.split("_")
         self.csv_data_holder.update_csv_value("plant_id", plant_id_)
-        self.csv_data_holder.update_csv_value(
-            "treatment", f"{treatment_1}_{treatment_2}"
-        )
+        self.csv_data_holder.update_csv_value("treatment", f"{treatment_1}_{treatment_2}")
 
     def init_rois(self):
         if self.is_cf_calc:

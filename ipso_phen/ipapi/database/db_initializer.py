@@ -7,6 +7,7 @@ from enum import Enum, unique
 from ipso_phen.ipapi.database.base import DbInfo
 from ipso_phen.ipapi.database.phenoserre_wrapper import get_phenoserre_exp_list
 from ipso_phen.ipapi.database.phenopsis_wrapper import get_phenopsis_exp_list
+from ipso_phen.ipapi.database.tpmp_wrapper import get_tpmp_exp_list
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
@@ -18,6 +19,7 @@ class DbType(Enum):
     MASS_DB = "Mass storage databases"
     PHENOSERRE = "Phenoserre databases"
     PHENOPSIS = "Phenopsis databases"
+    TPMP = "TPMP databases"
     CUSTOM_DB = "Custom databases"
 
 
@@ -66,4 +68,14 @@ available_db_dicts[DbType.PHENOPSIS] = [
         dbms="pandas",
     )
     for name in get_phenopsis_exp_list()
+]
+
+
+available_db_dicts[DbType.TPMP] = [
+    DbInfo(
+        display_name=name,
+        target="tpmp",
+        dbms="pandas",
+    )
+    for name in get_tpmp_exp_list()
 ]

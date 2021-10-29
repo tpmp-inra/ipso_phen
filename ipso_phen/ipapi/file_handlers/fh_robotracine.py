@@ -10,7 +10,6 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 class FileHandlerRobotRacine(FileHandlerBase):
     def __init__(self, **kwargs):
-        """Fill plant, date, time, experiment, camera and view_option from file data"""
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             if self.extract_file_name(self._file_path).lower().startswith(("rr_")):
@@ -32,7 +31,7 @@ class FileHandlerRobotRacine(FileHandlerBase):
 
             self._camera = "pi_camera"
             _, ext_ = os.path.splitext(self.file_name)
-            self._view_option = ext_ if ext_ else "unknown"
+            self._wavelength = ext_ if ext_ else "unknown"
 
         self.update(**kwargs)
 

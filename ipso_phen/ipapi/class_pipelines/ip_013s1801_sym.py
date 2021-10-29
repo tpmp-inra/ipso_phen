@@ -17,7 +17,7 @@ class ImageCsvWriter(AbstractCsvWriter):
                 "plant",
                 "plant_id",
                 "date_time",
-                "view_option",
+                "angle",
                 "series_id",
                 "acquisition_note",
                 # Morphology
@@ -69,9 +69,7 @@ class Ip013s1801sym(BaseImageProcessor):
                 "acquisition_note", "wide_angle_overexposed"
             )
         elif self.is_between_dates("2018_02_07", "2018_02_28"):
-            self.csv_data_holder.update_csv_value(
-                "acquisition_note", "bad_white_balance"
-            )
+            self.csv_data_holder.update_csv_value("acquisition_note", "bad_white_balance")
         elif self.is_between_dates("2018_02_28", "2018_03_20"):
             self.csv_data_holder.update_csv_value(
                 "acquisition_note", "bad_white_balance_cage"

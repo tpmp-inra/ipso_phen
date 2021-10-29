@@ -38,7 +38,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     # Handle legacy states
     dataframe = res.pop("data_frame", None)
     if dataframe is not None:
-        res["images"] = list(dataframe["FilePath"])
+        res["images"] = list(dataframe["filepath"])
     sf = res.pop("append_experience_name", None)
     if sf is not None:
         res["sub_folder_name"] = sf
@@ -196,7 +196,7 @@ def launch(**kwargs):
     if not image_list_:
         pp.grab_files_from_data_base(
             experiment=db.db_info.display_name.lower(),
-            order_by="Plant",
+            order_by="plant",
             **db.main_selector,
         )
     else:
