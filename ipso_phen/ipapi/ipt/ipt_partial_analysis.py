@@ -18,14 +18,15 @@ class IptPartialAnalysis(IptBaseAnalyzer):
         self.add_checkbox(name="invert", desc="Invert mask", default_value=0)
         self.add_binary_threshold()
         self.add_separator(name="sep1")
-        self.add_text_input(
+        ati = self.add_text_input(
             name="channels_to_analyse",
             desc="Channels to analyze",
             default_value="",
             hint=f"""Select channels to be analyzed, possible values are:
-            {', '.join([channel_info[1] for channel_info in ipc.create_channel_generator(include_msp=True)])}
+            # {', '.join([channel_info[1] for channel_info in ipc.create_channel_generator(include_msp=True)])}
             channels must be separated by ','""",
         )
+        ati.kind = "hint_channels_select"
         self.add_checkbox(
             name="ratio",
             desc="Ratio between parts of the mask",
@@ -114,28 +115,28 @@ class IptPartialAnalysis(IptBaseAnalyzer):
                     )
 
                 # color
-                for c in ipc.create_channel_generator(
-                    self.get_value_of("channels_to_analyse").replace(" ", "").split(",")
-                ):
-                    channel = wrapper.get_channel(
-                        src_img=wrapper.current_image,
-                        channel=c[1],
-                    )
-                    channel = cv2.bitwise_and(channel, channel, mask=partial_mask)
-                    tmp_tuple = cv2.meanStdDev(
-                        src=channel.flatten(), mask=partial_mask.flatten()
-                    )
-                    seed_ = f"{c[0]}_{c[1]}"
-                    self.add_value(
-                        key=f"{prefix}_{seed_}_std_dev",
-                        value=tmp_tuple[1][0][0],
-                        force_add=True,
-                    )
-                    self.add_value(
-                        key=f"{prefix}_{seed_}_mean",
-                        value=tmp_tuple[0][0][0],
-                        force_add=True,
-                    )
+                # for c in ipc.create_channel_generator(
+                #     self.get_value_of("channels_to_analyse").replace(" ", "").split(",")
+                # ):
+                #     channel = wrapper.get_channel(
+                #         src_img=wrapper.current_image,
+                #         channel=c[1],
+                #     )
+                #     channel = cv2.bitwise_and(channel, channel, mask=partial_mask)
+                #     tmp_tuple = cv2.meanStdDev(
+                #         src=channel.flatten(), mask=partial_mask.flatten()
+                #     )
+                #     seed_ = f"{c[0]}_{c[1]}"
+                #     self.add_value(
+                #         key=f"{prefix}_{seed_}_std_dev",
+                #         value=tmp_tuple[1][0][0],
+                #         force_add=True,
+                #     )
+                #     self.add_value(
+                #         key=f"{prefix}_{seed_}_mean",
+                #         value=tmp_tuple[0][0][0],
+                #         force_add=True,
+                #     )
 
                 # Write your code here
                 wrapper.store_image(self.demo_image, "current_image")

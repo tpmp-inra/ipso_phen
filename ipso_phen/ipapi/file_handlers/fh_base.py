@@ -3,7 +3,7 @@ from pathlib import Path
 import datetime
 from datetime import datetime as dt
 import inspect
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractclassmethod, abstractproperty
 
 import cv2
 import numpy as np
@@ -14,6 +14,7 @@ import ipso_phen.ipapi.file_handlers
 import ipso_phen.ipapi.base.ip_common as ipc
 from ipso_phen.ipapi.tools.common_functions import get_module_classes, force_directories
 from ipso_phen.ipapi.tools.folders import ipso_folders
+import ipso_phen.ipapi.base.ip_common as ipc
 
 import logging
 
@@ -32,10 +33,15 @@ class FileHandlerBase(ABC):
         self._wavelength = "SW755"
         self._date_time = None
         self._linked_images = []
+        self._available_channels = {}
         self._database = None
         self._cache_file_path = ""
+        self._cache_file_dir = ""
         self._blob_path = ""
         self.db_linked = False
+        self._source_image = None
+        self._current_image = None
+        self.good_image = False
 
     def __repr__(self):  # Serialization
         return self.file_path
@@ -372,6 +378,39 @@ class FileHandlerBase(ABC):
         else:
             return self.value_of(key) == value
 
+    def get_channel(self, src_img=None, channel="l"):
+        if src_img is None:
+            img = self.current_image
+        elif len(src_img.shape) == 2:
+            return src_img
+        else:
+            img = src_img.copy()
+        if channel in ipc.CHANNELS_BY_SPACE[ipc.HSV]:
+            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+            return hsv[:, :, 0 if channel == "h" else 1 if channel == "s" else 2]
+        elif channel in ipc.CHANNELS_BY_SPACE[ipc.LAB]:
+            lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+            return lab[:, :, 0 if channel == "l" else 1 if channel == "a" else 2]
+        elif channel in ipc.CHANNELS_BY_SPACE[ipc.RGB]:
+            return img[:, :, 0 if channel == "bl" else 1 if channel == "gr" else 2]
+        else:
+            return None
+
+    def load_source_image(self, store_source=False):
+        """
+        Loads source image and applies corrections if needed
+
+        :param store_source: if true image will be stores in image_list
+        :return:numpy array -- Fixed source image
+        """
+        src_img = self.load_source_file()
+        self.good_image = src_img is not None
+        return src_img
+
+    def check_source_image(self):
+        _ = self.source_image
+        return self.good_image
+
     @abstractclassmethod
     def probe(cls, file_path, database):
         return 0
@@ -520,11 +559,11 @@ class FileHandlerBase(ABC):
 
     @property
     def channels(self):
-        return [ci[1] for ci in self.channels_data]
+        return [ci[0] for ci in self.available_channels]
 
     @property
     def channels_data(self):
-        return [ci for ci in ipc.create_channel_generator()]
+        return [ipc.build_channel_data(cd) for cd in self.available_channels]
 
     @property
     def linked_images(self):
@@ -548,26 +587,65 @@ class FileHandlerBase(ABC):
         return ""
 
     @property
+    def cache_file_dir(self):
+        if not self._cache_file_dir and self.db_linked is True:
+            root_path = (
+                ipso_folders.get_path("mass_storage", False)
+                if os.path.isdir(ipso_folders.get_path("mass_storage", False))
+                else ipso_folders.get_path(key="img_cache", force_creation=True)
+            )
+            self._cache_file_dir = os.path.join(
+                root_path,
+                self.robot,
+                self.experiment,
+                "",
+            )
+        return self._cache_file_dir
+
+    @property
     def cache_file_path(self):
         if not self._cache_file_path and self.db_linked is True:
-            if os.path.isdir(ipso_folders.get_path("mass_storage", False)):
-                self._cache_file_path = os.path.join(
-                    ipso_folders.get_path("mass_storage", False),
-                    self.robot,
-                    self.experiment,
-                    self.file_name,
-                )
-            else:
-                self._cache_file_path = os.path.join(
-                    ipso_folders.get_path(
-                        key="img_cache",
-                        force_creation=True,
-                    ),
-                    self.robot,
-                    self.experiment,
-                    self.file_name,
-                )
+            self._cache_file_path = os.path.join(self.cache_file_dir, self.file_name)
         return self._cache_file_path
+
+    @property
+    def channels(self):
+        return {}
+
+    @property
+    def source_image(self):
+        if self._source_image is None:
+            if self._current_image is not None:
+                self._source_image = self._current_image.copy()
+            else:
+                self._source_image = self.load_source_image()
+                self._current_image = None
+        if self._source_image is None:
+            return None
+        else:
+            return self._source_image.copy()
+
+    @source_image.setter
+    def source_image(self, value):
+        if value is not None:
+            self._source_image = value.copy()
+        else:
+            self._source_image = None
+        self._current_image = None
+
+    @property
+    def current_image(self):
+        if self._current_image is None:
+            self._current_image = self.source_image
+        return None if self._current_image is None else self._current_image.copy()
+
+    @current_image.setter
+    def current_image(self, value):
+        self._current_image = value.copy() if value is not None else None
+
+    @property
+    def available_channels(self):
+        return ipc.CHANNELS_VISIBLE
 
 
 class FileHandlerDefault(FileHandlerBase):

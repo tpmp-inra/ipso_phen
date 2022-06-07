@@ -92,8 +92,6 @@ class BaseImageProcessor(ImageWrapper):
         self.target_database = database
         self.scale_factor = scale_factor
 
-        self._source_image = None
-        self._current_image = None
         self.mask = None
 
         self.lock = False
@@ -105,7 +103,6 @@ class BaseImageProcessor(ImageWrapper):
         self.data_output = {}
         self.image_transformations = []
 
-        self.good_image = False
         self.owner = None
         self.linked_images_holder = None
 
@@ -158,10 +155,9 @@ class BaseImageProcessor(ImageWrapper):
         :param store_source: if true image will be stores in image_list
         :return:numpy array -- Fixed source image
         """
-        src_img = self.file_handler.load_source_file()
-        self.good_image = src_img is not None
+        src_img = self.file_handler.load_source_image()
 
-        if self.good_image:
+        if self.file_handler.good_image:
             src_img = self._fix_source_image(src_img)
             if self.scale_factor != 1:
                 src_img = ipc.scale_image(
@@ -1388,13 +1384,11 @@ class BaseImageProcessor(ImageWrapper):
 
         channel_data = {}
         for c in self.file_handler.channels_data:
-            if c[0] == "chla":
-                continue
-            channel_data[c[1]] = dict(
-                color_space=c[0],
-                channel_name=c[1],
-                data=self.get_channel(src_img=masked, channel=c[1]),
-                graph_color=ipc.channel_color(c[1]),
+            channel_data[c["ck"]] = dict(
+                color_space=c["cs"],
+                channel_name=c["cn"],
+                data=self.get_channel(src_img=masked, channel=c["ck"]),
+                graph_color=ipc.channel_color(c["ck"]),
             )
 
         self.csv_data_holder.update_csv_value("hist_bins", f"{256}")
@@ -2447,16 +2441,14 @@ class BaseImageProcessor(ImageWrapper):
             median_filter_size {int} -- median filter size (default: {0})
         """
 
-        for color_space, channel, _ in ipc.create_channel_generator(
-            self.file_handler.channels
-        ):
+        for _, _, channel in self.file_handler.available_channels.keys():
             fs = median_filter_size
             while True:
                 if test_normalize:
-                    self.get_channel(src_img, channel, color_space, rois, False, fs)
-                    self.get_channel(src_img, channel, color_space, rois, True, fs)
+                    self.get_channel(src_img, channel, rois, False, fs)
+                    self.get_channel(src_img, channel, rois, True, fs)
                 else:
-                    self.get_channel(src_img, channel, color_space, rois, normalize, fs)
+                    self.get_channel(src_img, channel, rois, normalize, fs)
                 if fs == 0:
                     fs = 3
                 else:
@@ -2993,6 +2985,22 @@ class BaseImageProcessor(ImageWrapper):
             percents_limits[0] -= step
             percents_limits[1] -= step
 
+    def approx_chla(self, src_img=None):
+        if src_img is None:
+            img = self.current_image
+        elif len(src_img.shape) == 2:
+            return src_img
+        else:
+            img = src_img.copy()
+        b, g, r = cv2.split(img)
+        c = np.exp(
+            (-0.0280 * r * 1.04938271604938)
+            + (0.0190 * g * 1.04938271604938)
+            + (-0.0030 * b * 1.04115226337449)
+            + 5.780
+        )
+        return ((c - c.min()) / (c.max() - c.min()) * 255).astype(np.uint8)
+
     def get_channel(
         self,
         src_img=None,
@@ -3020,94 +3028,44 @@ class BaseImageProcessor(ImageWrapper):
         Returns:
             numpy array -- channel component
         """
-        if src_img is None:
-            img = self.current_image
-        elif len(src_img.shape) == 2:
-            return src_img
-        else:
-            img = src_img.copy()
 
-        # Select source channel to process
-        if channel in ipc.CHANNELS_BY_SPACE[ipc.HSV]:
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            h, s, v = cv2.split(hsv)
-            if channel == "h":
-                c = h
-            elif channel == "s":
-                c = s
+        c = self.file_handler.get_channel(src_img=src_img, channel=channel)
+
+        if c is None:
+            if src_img is None:
+                img = self.current_image
+            elif len(src_img.shape) == 2:
+                return src_img
             else:
-                c = v
-        elif channel in ipc.CHANNELS_BY_SPACE[ipc.LAB]:
-            lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
-            l, a, b = cv2.split(lab)
-            if channel == "l":
-                c = l
-            elif channel == "a":
-                c = a
-            else:
-                c = b
-        elif channel in ipc.CHANNELS_BY_SPACE[ipc.RGB]:
-            b, g, r = cv2.split(img)
-            if channel == "bl":
-                c = b
-            elif channel == "gr":
-                c = g
-            else:
-                c = r
-        elif channel in ipc.CHANNELS_BY_SPACE[ipc.CHLA]:
-            b, g, r = cv2.split(img)
-            c = np.exp(
-                (-0.0280 * r * 1.04938271604938)
-                + (0.0190 * g * 1.04938271604938)
-                + (-0.0030 * b * 1.04115226337449)
-                + 5.780
-            )
-            c = ((c - c.min()) / (c.max() - c.min()) * 255).astype(np.uint8)
-        elif channel in ipc.CHANNELS_BY_SPACE[ipc.MSP]:
-            if self.is_msp and (self.retrieve_linked_images() != 0):
-                _, wl = channel.split("_")
-                img = self.linked_images_holder.retrieve_image(
-                    key="wavelength",
-                    value=wl,
-                    transformations=self.image_transformations,
-                )
-                if img is not None:
-                    b, g, r = cv2.split(img)
-                    lpo1 = r * 0.299 + g * 0.587 + b * 0.114
-                    c = lpo1.astype(np.uint8)
+                img = src_img.copy()
+
+            # Select source channel to process
+            if channel in ipc.CHANNELS_BY_SPACE[ipc.HSV]:
+                hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+                c = hsv[:, :, 0 if channel == "h" else 1 if channel == "s" else 2]
+            elif channel in ipc.CHANNELS_BY_SPACE[ipc.LAB]:
+                lab = cv2.cvtColor(img, cv2.COLOR_BGR2Lab)
+                c = lab[:, :, 0 if channel == "l" else 1 if channel == "a" else 2]
+            elif channel in ipc.CHANNELS_BY_SPACE[ipc.RGB]:
+                c = img[:, :, 0 if channel == "bl" else 1 if channel == "gr" else 2]
+            elif channel in ipc.CHANNELS_BY_SPACE[ipc.MSP]:
+                if self.is_msp and (self.retrieve_linked_images() != 0):
+                    _, wl = channel.split("_")
+                    img = self.linked_images_holder.retrieve_image(
+                        key="wavelength",
+                        value=wl,
+                        transformations=self.image_transformations,
+                    )
+                    if img is not None:
+                        b, g, r = cv2.split(img)
+                        lpo1 = r * 0.299 + g * 0.587 + b * 0.114
+                        c = lpo1.astype(np.uint8)
+                    else:
+                        return None
                 else:
                     return None
             else:
                 return None
-        elif channel in ipc.CHANNELS_BY_SPACE[ipc.NDVI]:
-            if self.is_msp and (self.retrieve_linked_images() != 0):
-                r = self.get_channel(channel="rd")
-                nir = self.get_channel(channel=channel.replace("ndvi", "wl"))
-                if r is not None and nir is not None:
-                    np.seterr(divide="ignore")
-                    try:
-                        ndvi = np.divide(
-                            np.subtract(nir, r).astype(np.float),
-                            np.add(nir, r).astype(np.float),
-                        ).astype(np.float)
-                        ndvi[ndvi == np.inf] = 0
-                        ndvi[np.isnan(ndvi)] = 0
-                        res = np.multiply(
-                            np.divide(
-                                np.subtract(ndvi, ndvi.min()),
-                                np.subtract(ndvi.max(), ndvi.min()),
-                            ),
-                            255,
-                        ).astype(np.uint8)
-                    finally:
-                        np.seterr(divide="warn")
-                    c = res
-                else:
-                    return None
-            else:
-                return None
-        else:
-            return None
 
         # Normalize, maybe. We do it first because it's the one that adds noise
         if normalize:
@@ -3339,16 +3297,14 @@ class BaseImageProcessor(ImageWrapper):
         mosaic_image_list = []
         for c in self.file_handler.channels_data:
             img = None
-            if c[0] == "chla":
-                continue
-            elif c[0] == "msp":
+            if c["cs"].lower() == "msp":
                 img = self.get_channel(
                     src_img=self.current_image,
-                    channel=c[1],
+                    channel=c["ck"],
                     normalize=normalize,
                     median_filter_size=median_filter_size,
                 )
-            elif c[0] in ["rgb", "lab", "hsv"]:
+            elif c["cs"].lower() in ["rgb", "lab", "hsv"]:
                 if has_main:
                     continue
                 img = self.current_image
@@ -3390,18 +3346,12 @@ class BaseImageProcessor(ImageWrapper):
         :return: Mosaic image
         """
         mosaic_data_ = {}
-        for color_space, channel, channel_name in ipc.create_channel_generator(
-            self.file_handler.channels
-        ):
+        for channel, channel_name in self.file_handler.available_channels.items():
             channel_image = self.get_channel(
                 src_img, channel, "", rois, normalize, median_filter_size
             )
             img_name = f"{channel_name}_{normalize}_{median_filter_size}"
             self.store_image(channel_image, img_name)
-            if color_space not in mosaic_data_.keys():
-                mosaic_data_[color_space] = [img_name]
-            else:
-                mosaic_data_[color_space].append(img_name)
         mosaic_image_list = np.array(
             [mosaic_data_[cs] for cs in ipc.CHANNELS_FLAT.keys()]
         )
@@ -3624,7 +3574,7 @@ class BaseImageProcessor(ImageWrapper):
             self.init_rois()
 
             img = self.current_image
-            if not self.good_image:
+            if not self.file_handler.good_image:
                 logger.error(
                     "Image failed to load",
                 )
@@ -3842,39 +3792,23 @@ class BaseImageProcessor(ImageWrapper):
         return os.path.join(self.dst_path, "partials", self.csv_file_name)
 
     def check_source_image(self):
-        _ = self.source_image
-        return self.good_image
+        return self.file_handler.check_source_image()
 
     @property
     def source_image(self):
-        if self._source_image is None:
-            if self._current_image is not None:
-                self._source_image = self._current_image.copy()
-            else:
-                self._source_image = self.load_source_image()
-                self._current_image = None
-        if self._source_image is None:
-            return None
-        else:
-            return self._source_image.copy()
+        return self.file_handler.source_image
 
     @source_image.setter
     def source_image(self, value):
-        if value is not None:
-            self._source_image = value.copy()
-        else:
-            self._source_image = None
-        self._current_image = None
+        self.file_handler.source_image = value
 
     @property
     def current_image(self):
-        if self._current_image is None:
-            self._current_image = self.source_image
-        return None if self._current_image is None else self._current_image.copy()
+        return self.file_handler.current_image
 
     @current_image.setter
     def current_image(self, value):
-        self._current_image = value.copy() if value is not None else None
+        self.file_handler.current_image = value
 
     def _get_mask(self):
         if self._mask is not None:
@@ -3997,6 +3931,10 @@ class BaseImageProcessor(ImageWrapper):
             return 0
         else:
             return src.shape[0]
+
+    @property
+    def good_image(self):
+        return self.file_handler.good_image
 
     mask = property(_get_mask, _set_mask)
 

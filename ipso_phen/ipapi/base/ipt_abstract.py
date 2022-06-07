@@ -250,7 +250,11 @@ class IptParam(object):
         return True
 
     def update_output(
-        self, label_text: str = "", output_value=None, ignore_list=(), invert=False
+        self,
+        label_text: str = "",
+        output_value=None,
+        ignore_list=(),
+        invert=False,
     ):
         if not self.is_output:
             return False
@@ -599,7 +603,11 @@ class IptParamHolder(object):
         return self.add(param)
 
     def add_table_output(
-        self, name: str, desc: tuple, default_value: dict = {}, hint: str = ""
+        self,
+        name: str,
+        desc: tuple,
+        default_value: dict = {},
+        hint: str = "",
     ) -> IptParam:
         param = IptParam(
             name=name,
@@ -849,10 +857,7 @@ class IptParamHolder(object):
             values = {}
         values = {
             **values,
-            **{
-                channel_info[1]: ipc.get_hr_channel_name(channel_info[1])
-                for channel_info in ipc.create_channel_generator(include_msp=True)
-            },
+            **{k: v for k, v in ipc.CHANNELS_VISIBLE.items()},
         }
         param = IptParam(
             name=name,
@@ -1388,11 +1393,14 @@ class IptParamHolder(object):
     def update_inputs(self, update_values: dict = {}):
         channels = update_values.get("channels", None)
         ipt_list = update_values.get("ipt_list", None)
+        hint = update_values.get("hint", None)
         for p in self._param_list:
             if (p.kind == "channel_selector") and (channels is not None):
                 p.update_input(new_values=channels)
             elif (p.kind == "tool_target_selector") and (ipt_list is not None):
                 p.update_input(new_values={**{"none": "None"}, **ipt_list})
+            elif (p.kind == "hint_channels_select") and (hint is not None):
+                p.hint = hint
 
     @property
     def gizmos(self):

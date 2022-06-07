@@ -711,7 +711,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         super(IpsoMainForm, self).__init__()
 
         # Start splash screen
-        if ui_consts.DISABLE_SPLASH_SCREEN:
+        if ui_consts.DISABLE_SPLASH_SCREEN is False:
             splash_pic_ = QPixmap(
                 os.path.join(
                     os.path.dirname(os.path.abspath(__file__)),
@@ -1412,7 +1412,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             self.ui.mnu_recent_parsed_folders.addAction(act)
 
     def add_folder_database(
-        self, display_name: str, hint: str, enabled: bool, selected: bool = False
+        self,
+        display_name: str,
+        hint: str,
+        enabled: bool,
+        selected: bool = False,
     ):
         # Connect action
         act = QAction(display_name, self, checkable=True)
@@ -1762,7 +1766,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             return f'{model.images.iloc[0, exp_idx]}_{table.rowCount()}_{dt.now().strftime("%Y_%b_%d_%H-%M-%S")}'
 
     def set_global_enabled_state(
-        self, new_state: bool, force_enabled: tuple = (), force_disabled: tuple = ()
+        self,
+        new_state: bool,
+        force_enabled: tuple = (),
+        force_disabled: tuple = (),
     ):
         widgets = self.findChildren(QPushButton)
         widgets.extend(self.findChildren(QToolButton))
@@ -3791,7 +3798,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         )
 
     def update_thread_counts(
-        self, thread_step: int, thread_total: int, thread_waiting: int
+        self,
+        thread_step: int,
+        thread_total: int,
+        thread_waiting: int,
     ):
         self.threads_step = thread_step
         self.threads_waiting = thread_waiting
@@ -4757,13 +4767,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         res = {}
         if "channel_selector" in param_names_list and wrapper is not None:
             res["channels"] = {
-                ci[1]: ipc.get_hr_channel_name(ci[1])
-                for ci in ipc.create_channel_generator(wrapper.file_handler.channels)
+                k: n for k, n in wrapper.file_handler.available_channels.items()
             }
         if "tool_target_selector" in param_names_list:
             res["ipt_list"] = {
                 type(ipt).__name__: ipt.name for ipt in self._ip_tools_holder.ipt_list
             }
+        if "hint_channels_select" in param_names_list and wrapper is not None:
+            channels = ",".join([k for k in wrapper.file_handler.available_channels.keys])
+            res["hint"] = f"Available channels: {channels}"
         return res
 
     def init_param_widget(self, tool, param, allow_real_time: bool = True):
@@ -5492,6 +5504,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 logger.exception(f"Failed to load/save annotation: {repr(e)}")
 
             if self._src_image_wrapper is not None:
+                n_img = self._src_image_wrapper.file_handler.available_channels
                 self._updating_process_modes = True
                 try:
                     self._file_name = value

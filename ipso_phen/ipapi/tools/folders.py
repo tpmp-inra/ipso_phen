@@ -1,5 +1,6 @@
 import os
 from datetime import datetime as dt
+import logging
 
 if __name__ == "__main__":
     import sys
@@ -16,6 +17,8 @@ except Exception as e:
     is_winapi = False
 else:
     is_winapi = True
+
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 g_storage_path = ""
@@ -73,9 +76,13 @@ class FolderData:
         force_creation: bool = True,
         subfolder: str = "",
     ) -> str:
-        path_ = os.path.join(self._path, subfolder) if subfolder else self._path
-        if force_creation is True and path_:
-            force_directories(path_)
+        try:
+            path_ = os.path.join(self._path, subfolder) if subfolder else self._path
+            if force_creation is True and path_:
+                force_directories(path_)
+        except FileNotFoundError as e:
+            logger.exception(f'Unable to create folder: "{repr(e)}"')
+            path_ = os.path.join(os.path.expanduser("~"), "Documents", "")
         return path_
 
     def set_path(self, value):

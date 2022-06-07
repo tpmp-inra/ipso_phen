@@ -18,12 +18,16 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
 def connect_to_lipmcalcul(target_ftp: bool):
-    u, p = get_user_and_password("lipm.calcul")
-    transport = paramiko.Transport(("lipm-calcul.toulouse.inra.fr", 22))
-    transport.connect(None, username=u, password=p)
-    sftp: paramiko.SFTPClient = paramiko.SFTPClient.from_transport(transport)
-    if target_ftp is False:
-        sftp.chdir("..")
+    try:
+        u, p = get_user_and_password("lipm.calcul")
+        transport = paramiko.Transport(("lipm-calcul.toulouse.inra.fr", 22))
+        transport.connect(None, username=u, password=p)
+        sftp: paramiko.SFTPClient = paramiko.SFTPClient.from_transport(transport)
+        if target_ftp is False:
+            sftp.chdir("..")
+    except Exception as e:
+        logger.error(f"Unable to reach lipme: {repr(e)}")
+        return None
     return sftp
 
 

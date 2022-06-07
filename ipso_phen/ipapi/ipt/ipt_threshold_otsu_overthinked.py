@@ -7,7 +7,6 @@ import os
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import (
-    create_channel_generator,
     get_hr_channel_name,
     CHANNELS_FLAT,
 )
@@ -26,16 +25,16 @@ class IptOtsuOverthinked(IptBase):
         )
         self.add_label(desc="Channels:")
         choices_dict = dict(disabled="disabled", active="active", inverted="inverted")
-        for color_space, channel, channel_name in create_channel_generator(
-            ("h", "s", "l", "a", "b", "rd", "gr", "bl")
-        ):
-            self.add_combobox(
-                name=f"{channel}",
-                desc=f"Channel {channel_name} behavior:",
-                default_value="active",
-                values=choices_dict,
-                hint=f"Select channel {get_hr_channel_name(channel)} behavior",
-            )
+        # for color_space, channel, channel_name in create_channel_generator(
+        #     ("h", "s", "l", "a", "b", "rd", "gr", "bl")
+        # ):
+        #     self.add_combobox(
+        #         name=f"{channel}",
+        #         desc=f"Channel {channel_name} behavior:",
+        #         default_value="active",
+        #         values=choices_dict,
+        #         hint=f"Select channel {get_hr_channel_name(channel)} behavior",
+        #     )
         self.add_checkbox(name="normalize", desc="Normalize channel", default_value=0)
         self.add_separator(name="sep1")
         self.add_morphology_operator()

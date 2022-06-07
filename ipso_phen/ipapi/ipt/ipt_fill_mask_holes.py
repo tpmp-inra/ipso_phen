@@ -6,11 +6,11 @@ import os
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
-from ipso_phen.ipapi.base.ipt_abstract import IptBase
+from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 import ipso_phen.ipapi.base.ip_common as ipc
 
 
-class IptFillMaskHoles(IptBase):
+class IptFillMaskHoles(IptBaseAnalyzer):
     def build_params(self):
         self.add_enabled_checkbox()
         self.add_roi_selector()
@@ -21,6 +21,12 @@ class IptFillMaskHoles(IptBase):
             desc="Invert mask before filling",
             default_value=0,
             hint="Mask will be inverted once again at the end",
+        )
+        self.add_checkbox(
+            name="count_holes",
+            desc="Count filled holes",
+            default_value=False,
+            hint="Display number of holes filled and return value",
         )
 
     def process_wrapper(self, **kwargs):
@@ -72,29 +78,61 @@ class IptFillMaskHoles(IptBase):
                 if cnt is None or not cnt or hierarchy is None:
                     self.result = wrapper.mask
                 else:
-                    dbg_img = np.dstack((mask, mask, mask))
-                    for c, h in zip(cnt, hierarchy[0]):
-                        if h[3] == -1:
-                            color = ipc.C_BLUE
-                        elif h[3] == 0:
-                            color = ipc.C_CYAN
-                        elif h[3] == 1:
-                            color = ipc.C_YELLOW
-                        elif h[3] == 2:
-                            color = ipc.C_GREEN
-                        elif h[3] == 3:
-                            color = ipc.C_ORANGE
-                        elif h[3] == 4:
-                            color = ipc.C_MAROON
-                        else:
-                            color = ipc.C_FUCHSIA
-                        cv2.drawContours(
-                            image=dbg_img,
-                            contours=[c],
-                            contourIdx=-1,
-                            color=color,
-                            thickness=-1,
+                    dbg_img = np.dstack(
+                        (
+                            np.zeros_like(mask),
+                            np.zeros_like(mask),
+                            np.zeros_like(mask),
                         )
+                    )
+                    fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
+                    colors = ipc.build_color_steps(step_count=len(cnt))
+                    i = 0
+                    for c, h in zip(cnt, hierarchy[0]):
+                        if self.get_value_of("count_holes") == 1:
+                            if h[3] != -1:
+                                i += 1
+                                cv2.drawContours(
+                                    image=dbg_img,
+                                    contours=[c],
+                                    contourIdx=-1,
+                                    color=colors[i],
+                                    thickness=-1,
+                                )
+                                x, y, w, height = cv2.boundingRect(c)
+                                x += w // 2 - 10
+                                y += height // 2
+                                cv2.putText(
+                                    dbg_img,
+                                    f"{i}",
+                                    (x, y),
+                                    fnt[0],
+                                    fnt[1],
+                                    ipc.C_WHITE,
+                                    2,
+                                )
+                        else:
+                            if h[3] == -1:
+                                color = ipc.C_BLUE
+                            elif h[3] == 0:
+                                color = ipc.C_CYAN
+                            elif h[3] == 1:
+                                color = ipc.C_YELLOW
+                            elif h[3] == 2:
+                                color = ipc.C_GREEN
+                            elif h[3] == 3:
+                                color = ipc.C_ORANGE
+                            elif h[3] == 4:
+                                color = ipc.C_MAROON
+                            else:
+                                color = ipc.C_FUCHSIA
+                            cv2.drawContours(
+                                image=dbg_img,
+                                contours=[c],
+                                contourIdx=-1,
+                                color=color,
+                                thickness=-1,
+                            )
                         if h[3] != -1:
                             cv2.drawContours(
                                 image=mask,
@@ -103,6 +141,7 @@ class IptFillMaskHoles(IptBase):
                                 color=255,
                                 thickness=-1,
                             )
+
                     wrapper.store_image(dbg_img, "tagged_contours")
 
                     if merge_at_end:
@@ -148,7 +187,7 @@ class IptFillMaskHoles(IptBase):
 
     @property
     def use_case(self):
-        return [ipc.ToolFamily.MASK_CLEANUP]
+        return [ipc.ToolFamily.MASK_CLEANUP, ipc.ToolFamily.FEATURE_EXTRACTION]
 
     @property
     def description(self):

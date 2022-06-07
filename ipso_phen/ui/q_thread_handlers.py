@@ -56,10 +56,19 @@ class IpsoRunnable(QRunnable):
         self.pipeline = kwargs.get("pipeline", None)
 
     def _pipeline_progress_callback(
-        self, result: bool, msg: str, sender: object, current_step: int, total_step: int
+        self,
+        result: bool,
+        msg: str,
+        sender: object,
+        current_step: int,
+        total_step: int,
     ):
         self.signals_holder.on_pipeline_progress.emit(
-            result, msg, sender, current_step, total_step
+            result,
+            msg,
+            sender,
+            current_step,
+            total_step,
         )
 
     def _get_wrapper(self, image_dict):
@@ -124,15 +133,11 @@ class IpsoRunnable(QRunnable):
             before = timer()
             wrapper = self._get_wrapper(image_dict=image_dict)
             if wrapper is None:
-                logger.critical(
-                    "No image selected: Missing wrapper",
-                )
+                logger.critical("No image selected: Missing wrapper")
                 status_message = "No image selected: Missing wrapper"
                 return False
             if self.ipt is None:
-                logger.error(
-                    "No ipt selected: Missing IPT",
-                )
+                logger.error("No ipt selected: Missing IPT")
                 status_message = "No ipt selected: Missing IPT"
                 return False
 

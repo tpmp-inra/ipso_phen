@@ -101,6 +101,7 @@ def get_exp_as_df(exp_name: str) -> pd.DataFrame:
             """,
             conn,
         )
+        df.date_time = pd.to_datetime(df.date_time, utc=True, infer_datetime_format=True)
     except:
         return pd.DataFrame()
     else:

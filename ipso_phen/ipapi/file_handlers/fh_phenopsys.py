@@ -1,13 +1,12 @@
 from datetime import datetime as dt
 import datetime
 import os
-import json
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 import ipso_phen.ipapi.base.ip_common as ipc
-from ipso_phen.ipapi.tools.folders import ipso_folders
-from ipso_phen.ipapi.database.db_passwords import get_user_and_password, check_password
+from ipso_phen.ipapi.database.db_passwords import check_password
 from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 import logging
@@ -110,16 +109,6 @@ class FileHandlerPhenopsis(FileHandlerBase):
         return False
 
     @property
-    def channels_data(self):
-        return [
-            ci
-            for ci in ipc.create_channel_generator(
-                include_vis=True,
-                include_msp=True,
-            )
-        ]
-
-    @property
     def linked_images(self):
         if not self._linked_images:
             current_date_time = self.date_time
@@ -140,3 +129,7 @@ class FileHandlerPhenopsis(FileHandlerBase):
                 item[0] for item in ret if "sw755" not in item[0].lower()
             ]
         return self._linked_images
+
+    @property
+    def available_channels(self):
+        return ipc.CHANNELS_FLAT

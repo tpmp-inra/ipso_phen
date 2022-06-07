@@ -441,39 +441,44 @@ class IptHoughCircles(IptBase):
             roi_name = self.get_value_of("roi_name")
             tool_target = self.get_value_of("tool_target")
             circles = sorted(self.result, key=lambda circle_: circle_[2])
-            circle = circles[0]
-            if roi_shape == "rectangle":
-                r = CircleRegion(cx=circle[0], cy=circle[1], radius=circle[2]).as_rect()
-                return RectangleRegion(
-                    left=r.left,
-                    width=r.width,
-                    top=r.top,
-                    height=r.height,
-                    name=roi_name,
-                    tag=roi_type,
-                    target=tool_target,
-                )
-            elif roi_shape == "circle":
-                annulus_size = self.get_value_of("annulus_size")
-                if annulus_size == 0 or (circle[2] - annulus_size <= 0):
-                    return CircleRegion(
-                        cx=circle[0],
-                        cy=circle[1],
-                        radius=circle[2],
+            if bool(circles) is True:
+                circle = circles[0]
+                if roi_shape == "rectangle":
+                    r = CircleRegion(
+                        cx=circle[0], cy=circle[1], radius=circle[2]
+                    ).as_rect()
+                    return RectangleRegion(
+                        left=r.left,
+                        width=r.width,
+                        top=r.top,
+                        height=r.height,
                         name=roi_name,
                         tag=roi_type,
                         target=tool_target,
                     )
+                elif roi_shape == "circle":
+                    annulus_size = self.get_value_of("annulus_size")
+                    if annulus_size == 0 or (circle[2] - annulus_size <= 0):
+                        return CircleRegion(
+                            cx=circle[0],
+                            cy=circle[1],
+                            radius=circle[2],
+                            name=roi_name,
+                            tag=roi_type,
+                            target=tool_target,
+                        )
+                    else:
+                        return AnnulusRegion(
+                            cx=circle[0],
+                            cy=circle[1],
+                            radius=circle[2],
+                            in_radius=circle[2] - annulus_size,
+                            name=roi_name,
+                            tag=roi_type,
+                            target=tool_target,
+                        )
                 else:
-                    return AnnulusRegion(
-                        cx=circle[0],
-                        cy=circle[1],
-                        radius=circle[2],
-                        in_radius=circle[2] - annulus_size,
-                        name=roi_name,
-                        tag=roi_type,
-                        target=tool_target,
-                    )
+                    return None
             else:
                 return None
         else:

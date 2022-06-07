@@ -240,17 +240,17 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                             f"""INSERT INTO {self.main_table} (Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, Angle, Wavelength)
                                         VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :Angle, :Wavelength)""",
                             {
-                                "luid": fh.luid,
+                                "Luid": fh.luid,
                                 "Name": fh.name,
-                                "filepath": fh.file_path,
-                                "experiment": fh.experiment,
-                                "plant": fh.plant,
-                                "date": fh.date_time.date(),
-                                "time": fh.date_time.time(),
+                                "FilePath": fh.file_path,
+                                "Experiment": fh.experiment,
+                                "Plant": fh.plant,
+                                "Date": fh.date_time.date(),
+                                "Time": fh.date_time.time(),
                                 "date_time": fh.date_time,
-                                "camera": fh.camera,
-                                "angle": fh.angle,
-                                "wavelength": fh.wavelength,
+                                "Camera": fh.camera,
+                                "Angle": fh.angle,
+                                "Wavelength": fh.wavelength,
                             },
                         )
                     except exc.IntegrityError:

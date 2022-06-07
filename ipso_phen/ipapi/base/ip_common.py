@@ -150,7 +150,6 @@ RGB = "rgb"
 LAB = "lab"
 HSV = "hsv"
 MSP = "msp"
-NDVI = "ndvi"
 CHLA = "chla"
 
 _HSV_CHANNELS = dict(
@@ -177,28 +176,25 @@ _MSP_CHANNELS = dict(
     wl_800="wl_800",
     wl_905="wl_905",
 )
-_NDVI_CHANNELS = dict(
-    ndvi_720="ndvi_720",
-    ndvi_800="ndvi_800",
-    ndvi_905="ndvi_905",
-)
-_CHLA_CHANNELS = dict(chloro="chlorophyll")
 
 CHANNELS_BY_SPACE = dict(
     hsv=_HSV_CHANNELS,
     lab=_LAB_CHANNELS,
     rgb=_RGB_CHANNELS,
     msp=_MSP_CHANNELS,
-    ndvi=_NDVI_CHANNELS,
-    chla=_CHLA_CHANNELS,
 )
+
 CHANNELS_FLAT = {
     **_HSV_CHANNELS,
     **_LAB_CHANNELS,
     **_RGB_CHANNELS,
     **_MSP_CHANNELS,
-    **_NDVI_CHANNELS,
-    **_CHLA_CHANNELS,
+}
+
+CHANNELS_VISIBLE = {
+    **_HSV_CHANNELS,
+    **_LAB_CHANNELS,
+    **_RGB_CHANNELS,
 }
 
 C_BLACK = (0, 0, 0)
@@ -298,12 +294,10 @@ def get_hr_channel_name(channel):
         return f"rgb: {CHANNELS_FLAT[channel]}"
     elif channel in CHANNELS_BY_SPACE[MSP]:
         return f"msp {CHANNELS_FLAT[channel]}"
-    elif channel in CHANNELS_BY_SPACE[NDVI]:
-        return f"ndvi {CHANNELS_FLAT[channel]}"
     elif channel in CHANNELS_BY_SPACE[CHLA]:
         return f"chla {CHANNELS_FLAT[channel]}"
     else:
-        raise NameError("Unknown channel")
+        raise channel
 
 
 def get_channel_name(channel):
@@ -327,46 +321,34 @@ def get_channel_name(channel):
         return CHANNELS_FLAT[channel]
     elif channel in CHANNELS_BY_SPACE[MSP]:
         return CHANNELS_FLAT[channel]
-    elif channel in CHANNELS_BY_SPACE[NDVI]:
         return CHANNELS_FLAT[channel]
     elif channel in CHANNELS_BY_SPACE[CHLA]:
         return CHANNELS_FLAT[channel]
     else:
-        raise NameError("Unknown channel")
+        raise channel
 
 
-def create_channel_generator(
-    channels=(),
-    include_vis: bool = True,
-    include_ndvi: bool = False,
-    include_msp: bool = False,
-    include_chla: bool = False,
-):
-    """Create channel iterator, selection possible
-
-    Keyword Arguments:
-        channels {list} -- accepted channels, if None then all (default: {[]})
-    """
-    if channels:
-        for cs_name, cs_data in CHANNELS_BY_SPACE.items():
-            for channel_id, channel_name in cs_data.items():
-                if (channel_id in channels) or not channels:
-                    yield cs_name, channel_id, channel_name
+def color_space_from_name(channel: str) -> str:
+    if channel in _HSV_CHANNELS:
+        return "HSV"
+    elif channel in _LAB_CHANNELS:
+        return "LAB"
+    elif channel in _RGB_CHANNELS:
+        return "RGB"
+    elif "bp" in channel.lower():
+        return "MSP"
+    elif "nir" in channel.lower():
+        return "NIR"
     else:
-        groups = []
-        if include_vis:
-            groups.extend((RGB, HSV, LAB))
-        if include_msp:
-            groups.append(MSP)
-        if include_ndvi:
-            groups.append(NDVI)
-        if include_chla:
-            groups.append(CHLA)
+        return "unknown"
 
-        for cs in groups:
-            for k, v in CHANNELS_BY_SPACE[cs].items():
-                if (k in channels) or not channels:
-                    yield cs, k, v
+
+def build_channel_data(k, v):
+    return {
+        "cs": color_space_from_name(k),
+        "ck": k,
+        "cn": v,
+    }
 
 
 def channel_color(channel: str):
@@ -407,12 +389,6 @@ def channel_color(channel: str):
         return (200, 0x0, 150)
     elif channel == "wl_905":
         return (255, 0x0, 150)
-    elif channel == "ndvi_720":
-        return (0x0, 180, 0x0)
-    elif channel == "ndvi_800":
-        return (0x0, 200, 0x0)
-    elif channel == "ndvi_905":
-        return (0x0, 220, 0x0)
     elif channel == "chlorophyll":
         return C_LIME
     else:
@@ -436,7 +412,7 @@ def random_color(restrained: bool = True) -> tuple:
 
 
 def scaled_rgb(mag, color_min, color_max):
-    """ Return a tuple of integers, as used in AWT/Java plots. """
+    """Return a tuple of integers, as used in AWT/Java plots."""
     try:
         x = float(mag - color_min) / (color_max - color_min)
     except ZeroDivisionError:

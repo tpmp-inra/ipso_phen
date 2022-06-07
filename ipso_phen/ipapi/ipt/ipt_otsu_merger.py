@@ -7,12 +7,12 @@ import os
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 from ipso_phen.ipapi.base.ip_common import (
-    create_channel_generator,
     get_hr_channel_name,
     CHANNELS_FLAT,
 )
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import ToolFamily
+import ipso_phen.ipapi.base.ip_common as ipc
 
 
 class IptOtsuOverthinked(IptBase):
@@ -26,9 +26,7 @@ class IptOtsuOverthinked(IptBase):
         )
         self.add_label(desc="Channels:")
         choices_dict = dict(disabled="disabled", active="active", inverted="inverted")
-        for color_space, channel, channel_name in create_channel_generator(
-            ("h", "s", "l", "a", "b", "rd", "gr", "bl")
-        ):
+        for channel, channel_name in ipc.CHANNELS_FLAT.items():
             self.add_combobox(
                 name=f"{channel}",
                 desc=f"Channel {channel_name} behaviour:",

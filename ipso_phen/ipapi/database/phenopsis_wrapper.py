@@ -30,7 +30,8 @@ def get_phenopsis_exp_list() -> list:
     else:
         return [exp for exp in exp_lst if exp != "csv"]
     finally:
-        sftp.close()
+        if sftp is not None:
+            sftp.close()
 
 
 def isdir(sftp, path):
@@ -142,28 +143,36 @@ class PhenopsisDbWrapper(PandasDbWrapper):
             dataframe = pd.DataFrame(d)
             dataframe.to_csv(self.cache_file_path)
         else:
-            file = sftp.open(csv_path)
-            dataframe = pd.read_csv(file)
-            file.close()
-            dataframe["experiment"] = dataframe["experiment"].str.lower()
-            dataframe["plant"] = dataframe["plant"].str.lower()
-            dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
-            dataframe["camera"] = dataframe["camera"]
-            dataframe["filepath"] = dataframe["filepath"]
-            dataframe["luid"] = dataframe["luid"]
-            dataframe = dataframe[
-                [
-                    "luid",
-                    "experiment",
-                    "plant",
-                    "date_time",
-                    "camera",
-                    "angle",
-                    "wavelength",
-                    "filepath",
-                    "blob_path",
+            try:
+                file = sftp.open(csv_path)
+                dataframe = pd.read_csv(file)
+                file.close()
+                dataframe["experiment"] = dataframe["experiment"].str.lower()
+                dataframe["plant"] = dataframe["plant"].str.lower()
+                dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
+                dataframe["camera"] = dataframe["camera"]
+                dataframe["filepath"] = dataframe["filepath"]
+                dataframe["luid"] = dataframe["luid"]
+                if "wavelength" not in dataframe.columns:
+                    dataframe["wavelength"] = dataframe["view_option"]
+                if "angle" not in dataframe.columns:
+                    dataframe["angle"] = "top"
+                dataframe = dataframe[
+                    [
+                        "luid",
+                        "experiment",
+                        "plant",
+                        "date_time",
+                        "camera",
+                        "angle",
+                        "wavelength",
+                        "filepath",
+                        "blob_path",
+                    ]
                 ]
-            ]
+
+            except Exception as e:
+                logger.exception(f'Failed to load dataframe, because "{repr(e)}"')
         finally:
             sftp.close()
         return dataframe

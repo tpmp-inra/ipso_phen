@@ -37,3 +37,7 @@ class FileHandlerHeliasen(FileHandlerBase):
     @property
     def is_heliasen(self):
         return True
+
+    @property
+    def channels(self):
+        return {}
