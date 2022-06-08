@@ -12,7 +12,6 @@ from ipso_phen.ipapi.base.ip_common import ToolFamily, ensure_odd
 
 class IptThresholdTriangle(IptBase):
     def build_params(self):
-        self.add_source_selector(default_value="source")
         self.add_channel_selector(default_value="h")
         self.add_checkbox(
             name="invert_mask",
@@ -69,16 +68,13 @@ class IptThresholdTriangle(IptBase):
             )
 
             c = wrapper.get_channel(
-                src_img, channel, median_filter_size=median_filter_size
+                src_img,
+                channel,
+                median_filter_size=median_filter_size,
             )
             if c is None:
                 self.do_channel_failure(channel)
                 return
-            # Crop if channel is msp
-            if (c.shape != src_img.shape) and (
-                self.get_value_of("source_file", "source") == "cropped_source"
-            ):
-                c = wrapper.crop_to_keep_roi(c)
 
             _, mask = cv2.threshold(c, 0, 255, cv2.THRESH_TRIANGLE)
             if invert_mask:

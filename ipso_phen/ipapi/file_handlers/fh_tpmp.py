@@ -40,6 +40,7 @@ class FileHandlerTpmp(FileHandlerBase):
         self._wavelength = data["wavelength"]
         self._job_id = data["job_id"]
         self._date_time = data["date_time"]
+        self._luid = data["luid"]
         self.db_linked = True
 
     def load_source_file(self, filename=None):

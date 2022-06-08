@@ -41,6 +41,7 @@ class FileHandlerBase(ABC):
         self.db_linked = False
         self._source_image = None
         self._current_image = None
+        self._luid = None
         self.good_image = False
 
     def __repr__(self):  # Serialization
@@ -519,7 +520,10 @@ class FileHandlerBase(ABC):
 
     @property
     def luid(self):
-        return f'{self.experiment}_{self.plant}_{dt.strftime(self.date_time, "%Y%m%d%H%M%S")}_{self.camera}_{self.angle}_{self.wavelength}'
+        if self._luid is None:
+            return f'{self.experiment}_{self.plant}_{dt.strftime(self.date_time, "%Y%m%d%H%M%S")}_{self.camera}_{self.angle}_{self.wavelength}'
+        else:
+            return self._luid
 
     @property
     def is_vis(self):
@@ -650,11 +654,11 @@ class FileHandlerBase(ABC):
 
 class FileHandlerDefault(FileHandlerBase):
     def __init__(self, **kwargs):
+        super().__init__()
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             self._plant = self.file_name_no_ext
             self._camera = "unknown"
-            _, ext_ = os.path.splitext(self.file_name)
             self._wavelength = "unknown"
             self._angle = "unknown"
             try:

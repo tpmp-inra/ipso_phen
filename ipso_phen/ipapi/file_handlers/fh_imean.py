@@ -13,6 +13,7 @@ class FileHandlerIMean(FileHandlerBase):
     """
 
     def __init__(self, **kwargs):
+        super().__init__()
         self._file_path = kwargs.get("file_path", "")
         file_, self._camera = os.path.splitext(self.file_name)
         if file_:

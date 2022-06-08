@@ -6,6 +6,7 @@ from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 
 class FileHandlerHeliasen(FileHandlerBase):
     def __init__(self, **kwargs):
+        super().__init__()
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             if "-V-" in self.file_name_no_ext:

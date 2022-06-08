@@ -615,6 +615,11 @@ class GroupNode(Node):
         )
         self.last_result = {}
 
+    def fix_execution_filters(self):
+        for k in GroupNode.default_execution_filters.keys():
+            if k not in self.execute_filters.keys():
+                self.execute_filters[k] = ""
+
     def add_module(self, tool, enabled=1, uuid: str = "") -> ModuleNode:
         new_module = ModuleNode(parent=self, tool=tool, enabled=enabled, uuid=uuid)
         self.nodes.append(new_module)
@@ -916,7 +921,7 @@ class GroupNode(Node):
         return self.last_result
 
     def copy(self, parent):
-        return GroupNode(
+        gn = GroupNode(
             parent=parent,
             merge_mode=self.merge_mode,
             name=self.name,
@@ -924,6 +929,8 @@ class GroupNode(Node):
             nodes=[node.copy(parent=self) for node in self.nodes],
             execute_filters=self.execute_filters,
         )
+        gn.fix_execution_filters()
+        return gn
 
     def to_code(self, indent: int):
         pass
@@ -961,9 +968,11 @@ class GroupNode(Node):
             no_delete=json_data["no_delete"],
             source=json_data["source"],
             execute_filters=json_data.get(
-                "execute_filters", cls.default_execution_filters
+                "execute_filters",
+                cls.default_execution_filters,
             ),
         )
+        res.fix_execution_filters()
         for node in json_data["nodes"]:
             if node["node_type"] == "module":
                 res.nodes.append(ModuleNode.from_json(parent=res, json_data=node))
