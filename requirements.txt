@@ -66,7 +66,7 @@ opencv-contrib-python==4.5.2.54
 packaging==20.9
 pandas==1.2.4
 pandocfilters==1.4.3
-paramiko==2.7.2
+paramiko==2.10.1
 parso==0.8.2
 pathspec==0.8.1
 pickleshare==0.7.5
