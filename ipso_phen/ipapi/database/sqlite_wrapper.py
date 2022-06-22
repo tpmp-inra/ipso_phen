@@ -190,7 +190,8 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                                                         date_time TIMESTAMP,
                                                         Camera TEXT COLLATE NOCASE,
                                                         Angle TEXT COLLATE NOCASE,
-                                                        Wavelength TEXT COLLATE NOCASE)"""
+                                                        Wavelength TEXT COLLATE NOCASE,
+                                                        Job_id 	"INT")"""
                 )
                 if auto_update:
                     self.update()
@@ -215,7 +216,9 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
             return os.path.isfile(self.db_info.db_full_file_path)
 
     def update(
-        self, src_files_path="", extensions: tuple = (".jpg", ".tiff", ".png", ".bmp")
+        self,
+        src_files_path="",
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp", ".tif"),
     ):
         if not self.connect(auto_update=False):
             return -1
@@ -251,6 +254,7 @@ class SqLiteDbWrapper(DbWrapper, QueryHandlerSQLite):
                                 "Camera": fh.camera,
                                 "Angle": fh.angle,
                                 "Wavelength": fh.wavelength,
+                                "Job_id": fh.job_id,
                             },
                         )
                     except exc.IntegrityError:

@@ -238,7 +238,6 @@ class IptHoughCircles(IptBase):
             roi = self.get_ipt_roi(
                 wrapper=wrapper,
                 roi_names=[self.get_value_of("crop_roi_name")],
-                selection_mode="all_named",
             )
             roi = roi[0] if roi else None
 

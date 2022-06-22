@@ -786,7 +786,7 @@ class MosaicDelegate(QStyledItemDelegate):
         cb = QComboBox(parent=parent)
         cb.view().setMinimumWidth(240)
         cb.addItems(
-            [node.name for node in self.pipeline.root.iter_items()]
+            sorted([node.name for node in self.pipeline.root.iter_items()])
             + [
                 "source",
                 "current_image",

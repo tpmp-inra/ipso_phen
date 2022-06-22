@@ -61,7 +61,6 @@ class IptFillMaskHoles(IptBaseAnalyzer):
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 if len(rois) > 0:
                     mask = wrapper.keep_rois(mask, rois)

@@ -807,7 +807,7 @@ class CircleRegion(AbstractRegion):
             dst_img.copy(),
             (self.center.x, self.center.y),
             self.radius,
-            self.color,
+            color,
             line_width,
         )
 

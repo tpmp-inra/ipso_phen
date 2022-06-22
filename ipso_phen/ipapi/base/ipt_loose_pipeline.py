@@ -292,6 +292,14 @@ class Node(object):
         self.root.parent.stop_processing = value
 
     @property
+    def failed_assert(self):
+        return self.root.parent.failed_assert
+
+    @failed_assert.setter
+    def failed_assert(self, value):
+        self.root.parent.failed_assert = value
+
+    @property
     def is_module(self):
         return isinstance(self, ModuleNode)
 
@@ -341,7 +349,8 @@ class ModuleNode(Node):
                         "data": {},
                     },
                 )
-        if tool.process_wrapper(wrapper=wrapper):
+        tool_res = tool.process_wrapper(wrapper=wrapper)
+        if tool_res is not None:
             # Get ROI
             if self.output_type == ipc.IO_ROI:
                 func = getattr(tool, "generate_roi", None)
@@ -398,6 +407,8 @@ class ModuleNode(Node):
             # Get demo image
             if tool.demo_image is not None:
                 res["demo_image"] = tool.demo_image
+            if ipc.ToolFamily.ASSERT in tool.use_case and tool_res == False:
+                self.failed_assert = True
 
         return res
 
@@ -752,6 +763,8 @@ class GroupNode(Node):
                     )
                     continue
                 res = node.execute(**kwargs)
+                if self.failed_assert is True:
+                    break
                 if self.stop_processing:
                     return res
                 if res:
@@ -783,6 +796,8 @@ class GroupNode(Node):
                     )
                     continue
                 res = node.execute(**kwargs)
+                if self.failed_assert is True:
+                    break
                 if self.stop_processing:
                     return res
                 if res:
@@ -820,6 +835,8 @@ class GroupNode(Node):
                     )
                     continue
                 res = node.execute(**kwargs)
+                if self.failed_assert is True:
+                    break
                 if self.stop_processing:
                     return res
                 if res:
@@ -1197,6 +1214,7 @@ class LoosePipeline(object):
         self.description = "Please insert description"
         self.stored_mosaic_images = {}
         self._stop_processing = False
+        self._failed_assert = False
         self.set_template(kwargs.get("template", None))
         self.silent = False
         self.mosaic = None
@@ -1316,6 +1334,14 @@ class LoosePipeline(object):
         target_group.add_module(tool=operator)
         return True
 
+    def update_inputs(self, wrapper):
+        node: ModuleNode
+        for node in self.root.iter_items("modules"):
+            try:
+                node.tool.update_inputs(wrapper=wrapper)
+            except Exception as e:
+                logger.exception(f"Failed to update inputs because {repr(e)}")
+
     def execute(
         self,
         src_image: Union[str, BaseImageProcessor],
@@ -1331,6 +1357,7 @@ class LoosePipeline(object):
         # Override settings
         self.error_level = logging.INFO
         self.stop_processing = False
+        self.failed_assert = False
         self.silent = silent_mode
         self.text_result = ""
 
@@ -1722,3 +1749,11 @@ class LoosePipeline(object):
     @stop_processing.setter
     def stop_processing(self, value):
         self._stop_processing = value
+
+    @property
+    def failed_assert(self):
+        return self._failed_assert
+
+    @failed_assert.setter
+    def failed_assert(self, value):
+        self._failed_assert = value

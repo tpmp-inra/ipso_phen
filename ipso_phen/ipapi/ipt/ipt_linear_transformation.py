@@ -246,7 +246,6 @@ class IptLinearTransformation(IptBaseAnalyzer):
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 if len(rois) > 0:
                     self.result = cv2.bitwise_or(
@@ -255,15 +254,14 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     )
 
                 if (self.get_value_of("text_overlay") == 1) and (br_dict is not None):
-                    wrapper.store_image(
-                        self.result,
-                        method,
-                        text_overlay="\n".join(
+                    self.demo_image = wrapper.draw_text(
+                        img=self.result,
+                        text="\n".join(
                             [f'{k.replace("_", " ")}: {v}' for k, v in br_dict.items()]
                         ),
                     )
                 else:
-                    self.wrapper.store_image(self.result, method)
+                    self.demo_image = self.result
 
                 res = True
             else:

@@ -109,7 +109,12 @@ class IptPartialPosterizerV2(IptBase):
                 if red_color != "none":
                     img[(r > g) & (r > b)] = ipc.all_colors_dict[red_color]
 
-                self.result = img
+                self.result = self.compose_image_with_rois(
+                    fgd_img=img,
+                    bkg_img=self.wrapper.current_image,
+                )
+                self.demo_image = self.draw_rois_on_image(img=self.result)
+
                 wrapper.store_image(self.result, self.name)
                 res = True
             else:

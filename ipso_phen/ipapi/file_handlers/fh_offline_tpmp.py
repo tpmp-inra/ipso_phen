@@ -1,12 +1,12 @@
 # from datetime import datetime as dt
 import datetime
+from datetime import datetime as dt
 import os
 import shutil
 
 import platform
 import pathlib
 
-import numpy as np
 import cv2
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
@@ -26,75 +26,22 @@ class FileHandlerTpmp(FileHandlerBase):
         super().__init__(**kwargs)
         self._file_path = kwargs.get("file_path", "")
         self._database = kwargs.get("database", "")
-        data = {
-            k: list(v.values())[0]
-            for k, v in self._database.dataframe[
-                self._database.dataframe.luid == self._file_path
-            ]
-            .to_dict()
-            .items()
-        }
-        self._exp = data["experiment"]
-        self._plant = data["plant"]
-        self._camera = data["camera"]
-        self._angle = data["angle"]
-        self._wavelength = data["wavelength"]
-        self._job_id = data["job_id"]
-        self._date_time = data["date_time"]
-        self._luid = data["luid"]
-        self.db_linked = True
 
-    def load_source_file(self, filename=None):
-        if filename is None:
-            fcp = self.cache_file_path
-        else:
-            fcp = os.path.join(self.cache_file_dir, filename)
-        if os.path.isfile(fcp):
-            logger.debug(f"Retrieved from cache: {str(self)}")
-            return self.load_from_harddrive(fcp)
-        elif self.db_linked:
-            sftp = connect_to_lipmcalcul(target_ftp=True)
-            try:
-                return self.load_from_database(sftp, fcp, filename)
-            except Exception as e:
-                logger.exception(f"Failed to download {repr(self)} because {repr(e)}")
-                return None
-            finally:
-                sftp.close()
-        else:
-            return self.load_from_harddrive()
+        if self._file_path:
+            tmp_str = self.file_name_no_ext.replace("(", "")
+            (
+                self._exp,
+                self._date_time,
+                self._plant,
+                self._camera,
+                self._angle,
+                self._wavelength,
+                _,
+                self._job_id,
+            ) = tmp_str.split("#")
+            self._date_time = dt.strptime(self._date_time, "%Y%m%d%H%M%S")
 
-    def load_from_database(self, sftp, file_cache_path, filename=None):
-        def get_remaining_space():
-            total, _, free = shutil.disk_usage("/")
-            return total // (2 ** 30), free // (2 ** 30)
-
-        logger.info(f"Downloading {self.name}, please wait...")
-        with sftp.open(
-            f"images/{self.robot}/{self.experiment}/{self.file_name if filename is None else filename}"
-        ) as file:
-            file_size = file.stat().st_size
-            file.prefetch(file_size)
-            file.set_pipelined()
-            src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
-
-        _, free = get_remaining_space()
-        if free > 5 and os.path.isdir(self.cache_file_root):
-            force_directories(os.path.dirname(self.cache_file_dir))
-            cv2.imwrite(self.cache_file_path, src_img)
-            total, free = get_remaining_space()
-            p = (
-                pathlib.PureWindowsPath(self.cache_file_dir)
-                if platform.system().lower() == "windows"
-                else pathlib.PurePath(self.cache_file_dir)
-            )
-            logger.info(
-                f"Cache succeeded for {self.name if filename is None else filename}, {free}GiB remaining of {total}GiB in {p.parts[0]}"
-            )
-        else:
-            logger.info(f"Only {free}Gib remaining, no image cached")
-
-        return src_img
+        self.db_linked = False
 
     def get_channel(self, src_img=None, channel="l"):
         c = super().get_channel(src_img=src_img, channel=channel)
@@ -124,6 +71,10 @@ class FileHandlerTpmp(FileHandlerBase):
             return c
 
     @property
+    def job_id(self):
+        return self._job_id
+
+    @property
     def robot(self):
         if "phenopsis" in self.camera:
             return "phenopsis"
@@ -136,7 +87,14 @@ class FileHandlerTpmp(FileHandlerBase):
 
     @classmethod
     def probe(cls, file_path, database):
-        return 100 if database is not None and database.target == "tpmp" else 0
+        return (
+            100
+            if (database is None or database.target != "tpmp")
+            and isinstance(file_path, str)
+            and os.path.isfile(file_path)
+            and "#" in cls.extract_file_name(file_path)
+            else 0
+        )
 
     @property
     def linked_images(self):

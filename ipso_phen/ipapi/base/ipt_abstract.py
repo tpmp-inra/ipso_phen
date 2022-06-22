@@ -81,9 +81,18 @@ class IptParam(object):
         return new
 
     def clear_widgets(self):
+        """
+        clear_widgets _summary_
+        """
         self._widgets = {}
 
     def update_ui(self, callback: str, **kwargs):
+        """
+        update_ui Update target UI
+
+        Args:
+            callback (str): target callback string name
+        """
         callback = self.ui_update_callbacks.get(callback, None)
         if callback is None:
             return
@@ -183,12 +192,10 @@ class IptParam(object):
     def update_input(self, new_values=None):
         if not self.is_input:
             return False
-        widget = self.input
-        if widget is None:
-            return False
         if self.kind == "button":
             return True
-        elif isinstance(self.allowed_values, dict):
+        widget = self.input
+        if isinstance(self.allowed_values, dict):
             if (
                 (new_values is not None)
                 and isinstance(new_values, dict)
@@ -198,24 +205,27 @@ class IptParam(object):
                     self.allowed_values = {**{"none": "none"}, **new_values}
                 else:
                     self.allowed_values = new_values
-                bck_value = self.value
-                self.update_ui(callback="clear", widget=widget)
-                self.update_ui(
-                    callback="add_items",
-                    widget=widget,
-                    items=self.allowed_values,
-                    default=bck_value,
-                )
-                self._value = bck_value
-            else:
+                if widget is not None:
+                    bck_value = self.value
+                    self.update_ui(callback="clear", widget=widget)
+                    self.update_ui(
+                        callback="add_items",
+                        widget=widget,
+                        items=self.allowed_values,
+                        default=bck_value,
+                    )
+                    self._value = bck_value
+            elif widget is not None:
                 for i, key in enumerate(self.allowed_values):
                     if self.value == key:
                         self.update_ui(
-                            callback="set_current_index", widget=widget, index=i
+                            callback="set_current_index",
+                            widget=widget,
+                            index=i,
                         )
                         break
         elif isinstance(self.allowed_values, tuple):
-            if self.allowed_values == (0, 1):
+            if self.allowed_values == (0, 1) and widget is not None:
                 self.update_ui(
                     callback="set_checked",
                     widget=widget,
@@ -228,18 +238,20 @@ class IptParam(object):
                     and (self.allowed_values != new_values)
                 ):
                     self.allowed_values = new_values
+                    if widget is not None:
+                        self.update_ui(
+                            callback="set_range",
+                            widget=widget,
+                            min_val=self.allowed_values[0],
+                            max_val=self.allowed_values[1],
+                            default_val=None,
+                        )
+                if widget is not None:
                     self.update_ui(
-                        callback="set_range",
+                        callback="set_value",
                         widget=widget,
-                        min_val=self.allowed_values[0],
-                        max_val=self.allowed_values[1],
-                        default_val=None,
+                        value=int(self.value),
                     )
-                self.update_ui(
-                    callback="set_value",
-                    widget=widget,
-                    value=int(self.value),
-                )
             else:
                 return False
         elif isinstance(self.allowed_values, str):
@@ -1118,16 +1130,6 @@ class IptParamHolder(object):
             default_value="",
             hint="Operation will only be applied inside of ROI",
         )
-        self.add_combobox(
-            name="roi_selection_mode",
-            desc="ROI selection mode",
-            default_value="all_linked",
-            values=dict(
-                all_linked="Select all linked ROIs",
-                linked_and_named="Select all ROIs named in the list that are linked",
-                all_named="Select all named ROIs regardless if they're linked or not",
-            ),
-        )
 
     def add_morphology_operator(self, default_operator: str = "none"):
         self.add_combobox(
@@ -1390,15 +1392,23 @@ class IptParamHolder(object):
                 dic[p.name] = p.value
         return dic
 
-    def update_inputs(self, update_values: dict = {}):
+    def update_inputs(self, wrapper, update_values: dict = {}):
+        param_names_list = [p.kind for p in self.gizmos]
+        update_values = {}
+        if "channel_selector" in param_names_list and wrapper is not None:
+            update_values["channels"] = {
+                k: n for k, n in wrapper.file_handler.available_channels.items()
+            }
+        if "hint_channels_select" in param_names_list and wrapper is not None:
+            channels = ",".join([k for k in wrapper.file_handler.available_channels.keys])
+            update_values["hint"] = f"Available channels: {channels}"
+
         channels = update_values.get("channels", None)
         ipt_list = update_values.get("ipt_list", None)
         hint = update_values.get("hint", None)
         for p in self._param_list:
             if (p.kind == "channel_selector") and (channels is not None):
                 p.update_input(new_values=channels)
-            elif (p.kind == "tool_target_selector") and (ipt_list is not None):
-                p.update_input(new_values={**{"none": "None"}, **ipt_list})
             elif (p.kind == "hint_channels_select") and (hint is not None):
                 p.hint = hint
 
@@ -1471,7 +1481,7 @@ class IptBase(IptParamHolder, ABC):
             res += str(gizmos_info["color_space_selector"])
         return res
 
-    def copy(self, copy_wrapper: bool = True):
+    def copy(self, copy_wrapper: bool = True, updates={}):
         if copy_wrapper:
             return self.__class__(wrapper=self.wrapper, **self.params_to_dict())
         else:
@@ -1509,6 +1519,7 @@ class IptBase(IptParamHolder, ABC):
             ipt = None
         if ipt is None:
             return None
+        ipt._param_list = [p for p in ipt._param_list if p.allowed_values is not None]
         gs_params = json_data.get(GRID_SEARCH_PARAMS_NAME_KEY, None)
         if gs_params:
             for p in ipt.gizmos:
@@ -1722,25 +1733,11 @@ class IptBase(IptParamHolder, ABC):
         else:
             return img
 
-    def get_ipt_roi(
-        self,
-        wrapper,
-        roi_names: list = [],
-        selection_mode: str = "all_linked",
-    ) -> list:
+    def get_ipt_roi(self, wrapper, roi_names: list = []) -> list:
         res = []
         for roi in wrapper.rois_list:
-            if selection_mode == "all_linked":
-                if roi.target == type(self).__name__:
-                    res.append(roi)
-            elif selection_mode == "linked_and_named":
-                if (roi.target == type(self).__name__) and (roi.name in roi_names):
-                    res.append(roi)
-            elif selection_mode == "all_named":
-                if roi.name in roi_names:
-                    res.append(roi)
-            else:
-                raise NotImplementedError
+            if roi.name in roi_names:
+                res.append(roi)
         return res
 
     def get_short_hash(
@@ -1778,6 +1775,16 @@ class IptBase(IptParamHolder, ABC):
                 )
             )
         ).replace("_", "")
+
+    def get_channel(self, channel):
+        median_filter_size = self.get_value_of("median_filter_size")
+        return self.wrapper.get_channel(
+            src_img=self.wrapper.current_image,
+            channel=channel,
+            median_filter_size=(
+                0 if median_filter_size == 1 else ipc.ensure_odd(median_filter_size)
+            ),
+        )
 
     def apply_binary_threshold(self, wrapper, img, channel):
         min_ = self.get_value_of("min_t")
@@ -1888,7 +1895,6 @@ class IptBase(IptParamHolder, ABC):
             rois = self.get_ipt_roi(
                 wrapper=self.wrapper,
                 roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                selection_mode=self.get_value_of("roi_selection_mode"),
             )
         if len(rois) > 0:
             return regions.copy_rois(rois=rois, src=fgd_img, dst=bkg_img)
@@ -1900,7 +1906,6 @@ class IptBase(IptParamHolder, ABC):
             rois = self.get_ipt_roi(
                 wrapper=self.wrapper,
                 roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                selection_mode=self.get_value_of("roi_selection_mode"),
             )
         ret = img.copy()
         if len(rois) > 0:
@@ -2272,3 +2277,22 @@ class IptBase(IptParamHolder, ABC):
     @property
     def skip_tests(self):
         return []
+
+
+from ipso_phen.ipapi.tools.common_functions import get_module_classes
+import ipso_phen.ipapi.ipt as ipt_module
+
+
+def build_tool_from_name(tool_name):
+    # Build unique class list
+    ipt_classes_list = get_module_classes(
+        package=ipt_module,
+        class_inherits_from=IptBase,
+        remove_abstract=True,
+    )
+
+    for cls in ipt_classes_list:
+        if cls.name == tool_name:
+            return cls()
+    else:
+        return None

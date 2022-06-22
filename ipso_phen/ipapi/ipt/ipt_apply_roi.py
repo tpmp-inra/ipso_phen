@@ -3,6 +3,8 @@ import os
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
+# import numpy as np
+
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 import ipso_phen.ipapi.base.ip_common as ipc
 import ipso_phen.ipapi.tools.regions as regions
@@ -72,7 +74,6 @@ class IptApplyRoi(IptBase):
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 roi_type = self.get_value_of("roi_type")
                 if roi_type not in [
@@ -84,19 +85,36 @@ class IptApplyRoi(IptBase):
                     "close",
                 ]:
                     return
-                erase_outside = self.get_value_of("erase_outside") == 1
-                for roi in rois:
+
+                if len(rois) > 0:
                     if roi_type == "keep":
-                        img = roi.keep(img)
+                        # res = np.zeros_like(img)
+                        img = ipc.multi_or([roi.keep(img) for roi in rois])
+                        # res = roi.keep(img) or res
+                        # img = res
                     elif roi_type == "delete":
-                        img = roi.delete(img)
+                        for roi in rois:
+                            img = roi.delete(img)
                     elif roi_type == "crop":
-                        img = roi.crop(img, erase_outside_if_not_rect=erase_outside)
-                    wrapper.store_image(image=img, text=f"image_after{roi.name}")
+                        erase_outside = self.get_value_of("erase_outside") == 1
+                        for roi in rois:
+                            img = roi.crop(img, erase_outside_if_not_rect=erase_outside)
+                else:
+                    logger.warning(
+                        f"Unable to find any ROI in {self.get_value_of('roi_names')}"
+                    )
+
                 self.result = img
                 wrapper.store_image(img, "roi_applied")
                 self.demo_image = regions.draw_rois(
-                    rois=rois, image=img.copy(), line_width=wrapper.width // 400
+                    rois=rois,
+                    image=img.copy(),
+                    line_width=wrapper.width // 400,
+                    color=ipc.C_GREEN
+                    if roi_type == "keep"
+                    else ipc.C_RED
+                    if roi_type == "delete"
+                    else ipc.C_BLUE,
                 )
                 res = True
             else:

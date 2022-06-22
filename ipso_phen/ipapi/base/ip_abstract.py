@@ -406,7 +406,7 @@ class BaseImageProcessor(ImageWrapper):
                 if obj is None:
                     id_objects, obj_hierarchy = ipc.get_contours_and_hierarchy(
                         mask=mask_,
-                        retrieve_mode=cv2.RETR_TREE,
+                        retrieve_mode=cv2.RETR_LIST,
                         method=cv2.CHAIN_APPROX_NONE,
                     )
                     obj, _ = self.object_composition(img, id_objects, obj_hierarchy)
@@ -428,6 +428,10 @@ class BaseImageProcessor(ImageWrapper):
                         (x + w, y + h),
                         ipc.C_PURPLE,
                         bounding_rec_thickness,
+                    )
+                    fnt = (cv2.FONT_HERSHEY_SIMPLEX, 0.6)
+                    cv2.putText(
+                        img, f"x, y: {x},{y}", (x, y), fnt[0], fnt[1], ipc.C_RED, 2
                     )
                 if enclosing_circle_thickness > 0:
                     (x, y), radius = cv2.minEnclosingCircle(obj)

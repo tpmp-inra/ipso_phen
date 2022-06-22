@@ -126,7 +126,6 @@ class IptAnalyzeColor(IptBaseAnalyzer):
             add_mean_info = self.get_value_of("color_mean") == 1
             add_std_dev_info = self.get_value_of("color_mean") == 1
             rem_percent = self.get_value_of("remove_outliers") / 100
-            is_normalize = self.get_value_of("normalize") == 1
 
             if self.get_value_of("normalize") == 1 and rem_percent > 0:
                 nz_pix_count = np.count_nonzero(mask)
@@ -134,9 +133,14 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 nz_pix_count = 0
 
             channel_data = {}
-            for c in wrapper.file_handler.channels_data:
-                channel = wrapper.get_channel(src_img=img, channel=c["ck"])
+            for current_channel in wrapper.file_handler.channels_data:
+                channel = wrapper.get_channel(src_img=img, channel=current_channel["ck"])
                 if channel is None:
+                    continue
+                if channel.shape[0] != mask.shape[0] or channel.shape[1] != mask.shape[1]:
+                    logger.warning(
+                        f"Channel {current_channel['ck']} size {channel.shape} is != from mask size {mask.shape}"
+                    )
                     continue
 
                 # Normalize
@@ -185,7 +189,7 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                 channel = cv2.bitwise_and(channel, channel, mask=mask)
                 # Get Mean, median & standard deviation
                 tmp_tuple = cv2.meanStdDev(src=channel.flatten(), mask=mask.flatten())
-                seed_ = f"{c[0]}_{c[1]}"
+                seed_ = f"{current_channel['cs'].lower()}_{current_channel['cn']}"
                 self.add_value(
                     key=f"{seed_}_std_dev",
                     value=tmp_tuple[1][0][0],
@@ -197,9 +201,9 @@ class IptAnalyzeColor(IptBaseAnalyzer):
                     force_add=add_std_dev_info,
                 )
 
-                channel_data[c[1]] = dict(
-                    color_space=c[0],
-                    channel_name=c[1],
+                channel_data[current_channel["cn"]] = dict(
+                    color_space=current_channel["cs"],
+                    channel_name=current_channel["cn"],
                     data=channel,
                     hist=hist,
                 )

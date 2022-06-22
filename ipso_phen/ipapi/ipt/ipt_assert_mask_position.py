@@ -53,13 +53,18 @@ class IptAssertMaskPosition(IptBase):
                 enforcers = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
                 )
 
                 # Check
                 res = True
-                img = wrapper.retrieve_stored_image(img_name="exp_fixed_pseudo_on_bw")
-                for i, enforcer in enumerate(enforcers):
+                img = wrapper.draw_image(
+                    src_image=wrapper.current_image,
+                    src_mask=mask,
+                    background="bw",
+                    foreground="source",
+                    bck_grd_luma=120,
+                )
+                for enforcer in enforcers:
                     intersection = enforcer.keep(mask)
                     partial_ok = np.count_nonzero(intersection) > 0
                     res = partial_ok and res
@@ -73,7 +78,7 @@ class IptAssertMaskPosition(IptBase):
                             line_width=2,
                             color=ipc.C_RED,
                         )
-                        logger.error(
+                        logger.warning(
                             f'{self. name}: check failed for ROI "{enforcer.name}""'
                         )
                 self.demo_image = img

@@ -95,12 +95,15 @@ class IpsoFolders(dict):
         key: str,
         force_creation: bool = True,
         subfolder: str = "",
+        fallback_folder: str = "",
     ):
         if key in self.keys():
             return self[key].get_path(
                 force_creation=force_creation,
                 subfolder=subfolder,
             )
+        elif fallback_folder:
+            return fallback_folder
         else:
             return ""
 

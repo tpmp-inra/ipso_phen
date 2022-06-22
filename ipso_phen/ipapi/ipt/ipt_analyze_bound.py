@@ -15,10 +15,19 @@ from ipso_phen.ipapi.base.ip_common import ToolFamily
 class IptAnalyzeBound(IptBaseAnalyzer):
     def build_params(self):
         self.add_checkbox(
-            name="above_bound_height", desc="Height above bound level", default_value=1
+            name="total_height",
+            desc="Total height",
+            default_value=1,
         )
         self.add_checkbox(
-            name="above_bound_area", desc="Area above bound level", default_value=1
+            name="above_bound_height",
+            desc="Height above bound level",
+            default_value=1,
+        )
+        self.add_checkbox(
+            name="above_bound_area",
+            desc="Area above bound level",
+            default_value=1,
         )
         self.add_checkbox(
             name="above_bound_percent_area",
@@ -26,10 +35,14 @@ class IptAnalyzeBound(IptBaseAnalyzer):
             default_value=1,
         )
         self.add_checkbox(
-            name="below_bound_height", desc="Height below bound level", default_value=1
+            name="below_bound_height",
+            desc="Height below bound level",
+            default_value=1,
         )
         self.add_checkbox(
-            name="below_bound_area", desc="Area below bound level", default_value=1
+            name="below_bound_area",
+            desc="Area below bound level",
+            default_value=1,
         )
         self.add_checkbox(
             name="below_bound_percent_area",
@@ -109,16 +122,20 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                 t_height = mask_data_top.mask.shape[0] - mask_data_top.top_index
                 b_height = mask_data_bottom.height
 
+                self.add_value("total_height", t_height + b_height)
+
                 self.add_value("above_bound_height", t_height)
                 self.add_value("above_bound_area", mask_data_top.area)
                 self.add_value(
-                    "above_bound_percent_area", mask_data_top.area / area_ * 100
+                    "above_bound_percent_area",
+                    mask_data_top.area / area_ * 100,
                 )
 
                 self.add_value("below_bound_height", b_height)
                 self.add_value("below_bound_area", mask_data_bottom.area)
                 self.add_value(
-                    "below_bound_percent_area", mask_data_bottom.area / area_ * 100
+                    "below_bound_percent_area",
+                    mask_data_bottom.area / area_ * 100,
                 )
 
                 self.add_value(
@@ -155,7 +172,11 @@ class IptAnalyzeBound(IptBaseAnalyzer):
                     width_thickness=4,
                 )
                 cv2.line(
-                    p_img, (0, line_position), (wrapper.width, line_position), C_RED, 3
+                    p_img,
+                    (0, line_position),
+                    (wrapper.width, line_position),
+                    C_RED,
+                    3,
                 )
                 self.demo_image = p_img
                 wrapper.store_image(p_img, "bounds")

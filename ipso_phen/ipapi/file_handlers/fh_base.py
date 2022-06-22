@@ -32,6 +32,7 @@ class FileHandlerBase(ABC):
         self._angle = "0"
         self._wavelength = "SW755"
         self._date_time = None
+        self._job_id = 0
         self._linked_images = []
         self._available_channels = {}
         self._database = None
@@ -467,6 +468,10 @@ class FileHandlerBase(ABC):
         return self._date_time
 
     @property
+    def job_id(self):
+        return self._job_id
+
+    @property
     def date_str(self):
         return dt.strftime(self.date_time, "%Y-%m-%d %H:%M:%S")
 
@@ -567,7 +572,7 @@ class FileHandlerBase(ABC):
 
     @property
     def channels_data(self):
-        return [ipc.build_channel_data(cd) for cd in self.available_channels]
+        return [ipc.build_channel_data(k, v) for k, v in self.available_channels.items()]
 
     @property
     def linked_images(self):
@@ -591,15 +596,18 @@ class FileHandlerBase(ABC):
         return ""
 
     @property
+    def cache_file_root(self):
+        return (
+            ipso_folders.get_path("mass_storage", False)
+            if os.path.isdir(ipso_folders.get_path("mass_storage", False))
+            else ipso_folders.get_path(key="img_cache", force_creation=True)
+        )
+
+    @property
     def cache_file_dir(self):
         if not self._cache_file_dir and self.db_linked is True:
-            root_path = (
-                ipso_folders.get_path("mass_storage", False)
-                if os.path.isdir(ipso_folders.get_path("mass_storage", False))
-                else ipso_folders.get_path(key="img_cache", force_creation=True)
-            )
             self._cache_file_dir = os.path.join(
-                root_path,
+                self.cache_file_root,
                 self.robot,
                 self.experiment,
                 "",

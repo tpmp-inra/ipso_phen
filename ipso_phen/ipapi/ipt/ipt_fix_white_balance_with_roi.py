@@ -47,7 +47,6 @@ class IptFixWhiteBalanceWithRoi(IptBase):
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 if not rois:
                     logger.error("Warning Fix white balance with ROI, missing ROI")

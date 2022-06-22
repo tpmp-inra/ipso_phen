@@ -108,7 +108,6 @@ class IptKeepLinkedContours(IptBase):
         delete_all_bellow = self.get_value_of("delete_all_bellow")
 
         try:
-            img = self.wrapper.current_image
             mask = self.get_mask()
             if mask is None:
                 logger.error(f"FAIL {self.name}: mask must be initialized")

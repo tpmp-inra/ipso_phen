@@ -22,9 +22,7 @@ class IptPartialAnalysis(IptBaseAnalyzer):
             name="channels_to_analyse",
             desc="Channels to analyze",
             default_value="",
-            hint=f"""Select channels to be analyzed, possible values are:
-            # {', '.join([channel_info[1] for channel_info in ipc.create_channel_generator(include_msp=True)])}
-            channels must be separated by ','""",
+            hint=f"Channels must be separated by ','",
         )
         ati.kind = "hint_channels_select"
         self.add_checkbox(

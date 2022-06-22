@@ -618,6 +618,8 @@ class IptHolder(object):
             self._log_callback = None
 
 
+g_holder = IptHolder()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Build test files for all image processing tools"

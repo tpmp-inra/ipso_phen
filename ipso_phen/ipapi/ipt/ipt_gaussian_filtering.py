@@ -30,6 +30,7 @@ class IptGaussianFiltering(IptBase):
             minimum=3,
             maximum=101,
         )
+        self.add_roi_selector()
 
     def process_wrapper(self, **kwargs):
         """
@@ -69,6 +70,11 @@ class IptGaussianFiltering(IptBase):
                 )
                 if self.output_type == ipc.IO_MASK:
                     self.result[self.result != 0] = 255
+
+                self.result = self.compose_image_with_rois(
+                    fgd_img=self.result,
+                    bkg_img=self.wrapper.current_image,
+                )
 
                 wrapper.store_image(self.result, "current_image")
                 res = True

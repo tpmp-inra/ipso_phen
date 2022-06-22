@@ -97,7 +97,6 @@ class IptCopyOrRenameImage(IptBaseAnalyzer):
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                    selection_mode=self.get_value_of("roi_selection_mode"),
                 )
                 img = wrapper.apply_roi_list(img=img, rois=rois)
 

@@ -103,7 +103,12 @@ class IptThreshold(IptBase):
 
                 if self.get_value_of("build_mosaic") == 1:
                     self.demo_image = wrapper.build_mosaic(
-                        image_names=np.array(["current_image", main_result_name])
+                        image_names=np.array(
+                            [
+                                self.get_channel(self.get_value_of("channel")),
+                                main_result_name,
+                            ]
+                        )
                     )
                     wrapper.store_image(self.demo_image, "mosaic")
                 else:

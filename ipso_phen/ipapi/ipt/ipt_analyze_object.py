@@ -265,10 +265,18 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                     background="bw",
                     foreground="source",
                     contour_thickness=line_width,
-                    hull_thickness=line_width if self.has_param("hull_area") else 0,
-                    width_thickness=line_width if self.has_param("shape_width") else 0,
-                    height_thickness=line_width if self.has_param("shape_height") else 0,
-                    centroid_width=centroid_width if self.has_param("centroid_x") else 0,
+                    hull_thickness=line_width
+                    if self.get_value_of("hull_area") == 1
+                    else 0,
+                    width_thickness=line_width
+                    if self.get_value_of("shape_width") == 1
+                    else 0,
+                    height_thickness=line_width
+                    if self.get_value_of("shape_height") == 1
+                    else 0,
+                    centroid_width=centroid_width
+                    if self.get_value_of("centroid_x") == 1
+                    else 0,
                     centroid_line_width=line_width,
                 )
                 wrapper.store_image(
@@ -283,15 +291,17 @@ class IptAnalyzeObject(IptBaseAnalyzer):
                         background="source",
                         foreground="source",
                         contour_thickness=line_width,
-                        hull_thickness=line_width if self.has_param("hull_area") else 0,
+                        hull_thickness=line_width
+                        if self.get_value_of("hull_area")
+                        else 0,
                         width_thickness=line_width
-                        if self.has_param("shape_width")
+                        if self.get_value_of("shape_width") == 1
                         else 0,
                         height_thickness=line_width
-                        if self.has_param("shape_height")
+                        if self.get_value_of("shape_height") == 1
                         else 0,
                         centroid_width=centroid_width
-                        if self.has_param("centroid_x")
+                        if self.get_value_of("centroid_x") == 1
                         else 0,
                         centroid_line_width=line_width,
                     ),

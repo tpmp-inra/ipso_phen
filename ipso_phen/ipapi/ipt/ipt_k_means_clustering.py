@@ -102,7 +102,6 @@ class IptKMeansClustering(IptBase):
             rois = self.get_ipt_roi(
                 wrapper=wrapper,
                 roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-                selection_mode=self.get_value_of("roi_selection_mode"),
             )
             if rois:
                 bck = wrapper.delete_rois(src_mask=img, tags=rois)

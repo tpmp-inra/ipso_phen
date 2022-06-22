@@ -113,7 +113,6 @@ class IptCrop(IptBaseAnalyzer):
                 roi_list = self.get_ipt_roi(
                     wrapper=wrapper,
                     roi_names=self.get_value_of("roi_name").replace(" ", "").split(","),
-                    selection_mode="all_named",
                 )
                 if len(roi_list) <= 0:
                     logger.warning("No ROI detected, will return source image")

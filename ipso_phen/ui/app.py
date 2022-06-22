@@ -142,7 +142,11 @@ logger.info("")
 
 
 from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor
-from ipso_phen.ipapi.base.ipt_abstract import IptBase, IptParamHolder
+from ipso_phen.ipapi.base.ipt_abstract import (
+    IptBase,
+    IptParamHolder,
+    build_tool_from_name,
+)
 from ipso_phen.ipapi.base.ipt_abstract_analyzer import IptBaseAnalyzer
 from ipso_phen.ipapi.base.ipt_functional import call_ipt_code
 from ipso_phen.ipapi.base.ipt_holder import IptHolder, WIP_CASE
@@ -1173,19 +1177,28 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.lw_images_queue.clear()
         if dataframe is None:
             return
-        dataframe = dataframe.sort_values(by=["date_time"], axis=0, na_position="first")
-        for row in reversed(range(dataframe.shape[0])):
-            row_data = {
-                k: v
-                for k, v in zip(
-                    list(dataframe.columns),
-                    [str(dataframe.iloc[row, ci]) for ci in range(dataframe.shape[1])],
-                )
-            }
-            new_item = QListWidgetItem()
-            new_item.setText(row_data["luid"])
-            new_item.setToolTip("\n".join([f"{k}: {v}" for k, v in row_data.items()]))
-            self.ui.lw_images_queue.insertItem(0, new_item)
+        try:
+            dataframe = dataframe.sort_values(
+                by=["date_time"], axis=0, na_position="first"
+            )
+            for row in reversed(range(dataframe.shape[0])):
+                row_data = {
+                    k: v
+                    for k, v in zip(
+                        list(dataframe.columns),
+                        [
+                            str(dataframe.iloc[row, ci])
+                            for ci in range(dataframe.shape[1])
+                        ],
+                    )
+                }
+                new_item = QListWidgetItem()
+                new_item.setText(row_data["luid"])
+                new_item.setToolTip("\n".join([f"{k}: {v}" for k, v in row_data.items()]))
+                self.ui.lw_images_queue.insertItem(0, new_item)
+
+        except Exception as e:
+            logger.exception(f"Failed to update imagess: {repr(e)}")
 
     def build_tools_selectors(self):
         try:
@@ -1468,8 +1481,15 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def on_action_parse_folder(self):
         dlg = FrmSelectFolder(self)
-        res = dlg.show_modal(default_path=ipso_folders.get_path("db_image_folder"))
+        res = dlg.show_modal(
+            default_path=ipso_folders.get_path(
+                "db_image_folder",
+                force_creation=False,
+                fallback_folder=os.path.join(os.path.expanduser("~"), "Pictures"),
+            )
+        )
         if (res == 1) and os.path.isdir(dlg.folder_path):
+            ipso_folders.set_path("db_image_folder", dlg.folder_path)
             if dlg.dbms == "none":
                 self.do_parse_folder(dlg.folder_path)
             else:
@@ -1484,7 +1504,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         )
                         self.current_database = dbf.db_info_to_database(ldb)
                         return
-                ipso_folders.set_path("db_image_folder", dlg.folder_path)
                 new_db = dbb.DbInfo(
                     display_name=dlg.db_qualified_name,
                     src_files_path=dlg.folder_path,
@@ -2708,7 +2727,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.action_show_log.setChecked(visible)
 
     def on_log_received(self, line: str):
-        if "ERROR" in line or "WARNING" in line or "CRITICAL" in line:
+        if "ERROR" in line or "CRITICAL" in line:
             if not self.ui.dk_log.isVisible():
                 self.ui.dk_log.setVisible(True)
             self.ui.dk_log.setWindowTitle("Log: last error - " + line)
@@ -3004,6 +3023,20 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self.ui.tv_pp_view.selectionModel().selection().select(index, index)
         self.ui.tv_pp_view.expand(index)
 
+        added_tools = []
+
+        def add_tool(idx, tool_name, added_tools):
+            if tool_name:
+                tool = self.find_tool_by_name(tool_name).copy(copy_wrapper=False)
+                if self._src_image_wrapper is not None:
+                    tool.update_inputs(wrapper=self._src_image_wrapper)
+                model.add_module(
+                    selected_items=idx,
+                    module=tool,
+                    enabled=True,
+                )
+                added_tools.append(tool)
+
         if text == "Default empty group":
             added_index = model.add_group(selected_items=index)
             self.ui.tv_pp_view.expand(added_index.parent())
@@ -3013,33 +3046,27 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 merge_mode=ipc.MERGE_MODE_NONE,
                 name=text,
             )
-            tool = self.find_tool_by_name("Visualization helper")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
+            add_tool(
+                idx=added_index,
+                tool_name="Visualization helper",
+                added_tools=added_tools,
+            )
         elif text == "Fix exposure":
             added_index = model.add_group(
                 selected_items=index,
                 merge_mode=ipc.MERGE_MODE_CHAIN,
                 name=text,
             )
-            tool = self.find_tool_by_name("Simple white balance")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
-            tool = self.find_tool_by_name("Image transformations")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
+            add_tool(
+                idx=added_index,
+                tool_name="Simple white balance",
+                added_tools=added_tools,
+            )
+            add_tool(
+                idx=added_index,
+                tool_name="Image transformations",
+                added_tools=added_tools,
+            )
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Pre process image":
             added_index = model.add_group(
@@ -3047,20 +3074,16 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 merge_mode=ipc.MERGE_MODE_CHAIN,
                 name=text,
             )
-            tool = self.find_tool_by_name("Check exposure")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
-            tool = self.find_tool_by_name("Partial posterizer")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
+            add_tool(
+                idx=added_index,
+                tool_name="Check exposure",
+                added_tools=added_tools,
+            )
+            add_tool(
+                idx=added_index,
+                tool_name="Partial posterizer",
+                added_tools=added_tools,
+            )
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Threshold":
             added_index = model.add_group(
@@ -3068,13 +3091,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 merge_mode=ipc.MERGE_MODE_AND,
                 name=text,
             )
-            tool = self.find_tool_by_name("Multi range threshold")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
+            add_tool(
+                idx=added_index,
+                tool_name="Multi range threshold",
+                added_tools=added_tools,
+            )
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Mask cleanup":
             added_index = model.add_group(
@@ -3082,13 +3103,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 merge_mode=ipc.MERGE_MODE_CHAIN,
                 name=text,
             )
-            tool = self.find_tool_by_name("Keep linked Contours")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
+            add_tool(
+                idx=added_index,
+                tool_name="Keep linked Contours",
+                added_tools=added_tools,
+            )
             self.ui.tv_pp_view.expand(added_index)
         elif text == "Feature extraction":
             added_index = model.add_group(
@@ -3096,41 +3115,31 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 merge_mode=ipc.MERGE_MODE_NONE,
                 name=text,
             )
-            tool = self.find_tool_by_name("Observation data")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
-            tool = self.find_tool_by_name("Analyze object")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
-            tool = self.find_tool_by_name("Analyze color")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
-            tool = self.find_tool_by_name("Analyze bound")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
-            tool = self.find_tool_by_name("Analyze chlorophyll")
-            if tool is not None:
-                model.add_module(
-                    selected_items=added_index,
-                    module=tool.copy(copy_wrapper=False),
-                    enabled=True,
-                )
+            add_tool(
+                idx=added_index,
+                tool_name="Observation data",
+                added_tools=added_tools,
+            )
+            add_tool(
+                idx=added_index,
+                tool_name="Analyze object",
+                added_tools=added_tools,
+            )
+            add_tool(
+                idx=added_index,
+                tool_name="Analyze color",
+                added_tools=added_tools,
+            )
+            add_tool(
+                idx=added_index,
+                tool_name="Analyze bound",
+                added_tools=added_tools,
+            )
+            add_tool(
+                idx=added_index,
+                tool_name="Analyze chlorophyll",
+                added_tools=added_tools,
+            )
             self.ui.tv_pp_view.expand(added_index)
         else:
             tool = self.find_tool_by_name(text)
@@ -3138,23 +3147,35 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 self.update_feedback(status_message=f'Unable to add "{text}" to pipeline')
                 return
             else:
+                tool = tool.copy(copy_wrapper=False)
+                if self._src_image_wrapper is not None:
+                    tool.update_inputs(wrapper=self._src_image_wrapper)
                 added_index = model.add_module(
                     selected_items=index,
-                    module=tool.copy(copy_wrapper=False),
+                    module=tool,
                     enabled=True,
                 )
             self.ui.tv_pp_view.expand(added_index.parent())
 
     def on_bt_pp_run(self):
+        """
+        on_bt_pp_run _summary_
+        """
         self.run_process(wrapper=self._src_image_wrapper)
 
     def on_bt_pp_invalidate(self):
+        """
+        on_bt_pp_invalidate _summary_
+        """
         pp = self.pipeline
         if pp is not None:
             self.pipeline.invalidate()
             self.update_feedback(status_message="Cleared pipeline cache")
 
     def on_bt_pp_reset(self):
+        """
+        on_bt_pp_reset _summary_
+        """
         self.ui.le_pp_output_folder.setText(
             ipso_folders.get_path(
                 "pp_output",
@@ -3178,10 +3199,20 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         self._custom_csv_name = False
 
     def _update_pp_pipeline_state(self, default_process: bool, pipeline: bool):
+        """
+        _update_pp_pipeline_state _summary_
+
+        Args:
+            default_process (bool): _description_
+            pipeline (bool): _description_
+        """
         self.ui.rb_pp_default_process.setChecked(default_process)
         self.ui.rb_pp_load_script.setChecked(pipeline)
 
     def on_rb_pp_default_process(self):
+        """
+        on_rb_pp_default_process _summary_
+        """
         self._update_pp_pipeline_state(True, False)
 
     def on_rb_pp_load_script(self):
@@ -3725,6 +3756,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     "Unable to update available images because: there's no wrapper inside the tool"
                 )
                 return
+            if len(wrapper.image_list) == 0:
+                if sender.demo_image is not None:
+                    wrapper.image_list.append(sender.demo_image)
+                elif sender.result is not None:
+                    wrapper.image_list.append(sender.result)
         else:
             logger.exception(
                 "Unable to update available images because: unknown argument"
@@ -3988,9 +4024,18 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             ]
             if luids:
                 self.update_image_browser(
-                    dataframe=pd.DataFrame(data=dict(Luid=luids)),
-                    mode="keep",
+                    dataframe=pd.DataFrame(
+                        data=self.query_current_database_as_pandas(
+                            command="SELECT",
+                            columns="experiment, plant, date, camera, angle, wavelength, time, date_time, filepath, luid",
+                            additional="ORDER BY date_time ASC",
+                            luid=dict(operator="IN", values=luids),
+                        )
+                    ),
+                    mode="add",
                 )
+        except Exception as e:
+            logger.exception(f'Failed to save add batch as selection: "{repr(e)}"')
         finally:
             self.end_edit_image_browser()
 
@@ -5419,7 +5464,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         for ipt_ in lst:
             if ipt_.name == tool_name:
                 return ipt_
-                break
         else:
             self.update_feedback(status_message=f'Unable to find "{tool_name}" operator')
             return None
@@ -5438,6 +5482,10 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             if tool.name == name:
                 return tool
         return None
+
+    def update_pipeline_inputs(self, pipeline, wrapper):
+        if pipeline is not None and wrapper is not None:
+            pipeline.update_inputs(wrapper=wrapper)
 
     # Properties
     @property
@@ -5504,7 +5552,6 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 logger.exception(f"Failed to load/save annotation: {repr(e)}")
 
             if self._src_image_wrapper is not None:
-                n_img = self._src_image_wrapper.file_handler.available_channels
                 self._updating_process_modes = True
                 try:
                     self._file_name = value
@@ -5512,12 +5559,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     self._image_dict = None
                     selected_mode = self.current_tool
                     if selected_mode is not None:
-                        selected_mode.update_inputs(
-                            update_values=self.build_param_overrides(
-                                wrapper=self._src_image_wrapper,
-                                tool=selected_mode,
-                            )
-                        )
+                        selected_mode.update_inputs(wrapper=self._src_image_wrapper)
                         if (
                             (selected_mode is not None)
                             and selected_mode.real_time
@@ -5532,6 +5574,9 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                                 self.ui.gv_output_image.main_image = img
                     self.ui.edt_csv_file_name.setText(
                         f"{self._src_image_wrapper.experiment}_raw_data"
+                    )
+                    self.update_pipeline_inputs(
+                        pipeline=self.pipeline, wrapper=self._src_image_wrapper
                     )
                 except Exception as e:
                     self._file_name = ""
@@ -5616,12 +5661,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                         pass
 
                     self.process_events()
-                value.update_inputs(
-                    update_values=self.build_param_overrides(
-                        wrapper=self._src_image_wrapper,
-                        tool=value,
-                    )
-                )
+                value.update_inputs(wrapper=self._src_image_wrapper)
 
             except Exception as e:
                 logger.exception(f"Failed to initialize tool: {repr(e)}")
@@ -5676,6 +5716,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     @pipeline.setter
     def pipeline(self, value: LoosePipeline):
+        self.update_pipeline_inputs(pipeline=value, wrapper=self._src_image_wrapper)
         model = PipelineModel(
             pipeline=value,
             call_backs=dict(

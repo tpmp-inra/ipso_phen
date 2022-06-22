@@ -232,18 +232,6 @@ class IptExposureChecker(IptBaseAnalyzer):
                 bkg_img=self.wrapper.current_image,
             )
 
-            # rois = self.get_ipt_roi(
-            #     wrapper=wrapper,
-            #     roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
-            #     selection_mode=self.get_value_of("roi_selection_mode"),
-            # )
-            # if len(rois) > 0:
-            #     self.result = regions.copy_rois(
-            #         rois=rois, src=img, dst=self.wrapper.current_image
-            #     )
-            # else:
-            #     self.result = img
-
             if text_overlay and (br_dict is not None):
                 wrapper.store_image(
                     self.result,

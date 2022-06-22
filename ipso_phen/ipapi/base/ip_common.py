@@ -150,7 +150,6 @@ RGB = "rgb"
 LAB = "lab"
 HSV = "hsv"
 MSP = "msp"
-CHLA = "chla"
 
 _HSV_CHANNELS = dict(
     h="hue",
@@ -294,10 +293,8 @@ def get_hr_channel_name(channel):
         return f"rgb: {CHANNELS_FLAT[channel]}"
     elif channel in CHANNELS_BY_SPACE[MSP]:
         return f"msp {CHANNELS_FLAT[channel]}"
-    elif channel in CHANNELS_BY_SPACE[CHLA]:
-        return f"chla {CHANNELS_FLAT[channel]}"
     else:
-        raise channel
+        return channel
 
 
 def get_channel_name(channel):
@@ -321,11 +318,8 @@ def get_channel_name(channel):
         return CHANNELS_FLAT[channel]
     elif channel in CHANNELS_BY_SPACE[MSP]:
         return CHANNELS_FLAT[channel]
-        return CHANNELS_FLAT[channel]
-    elif channel in CHANNELS_BY_SPACE[CHLA]:
-        return CHANNELS_FLAT[channel]
     else:
-        raise channel
+        return channel
 
 
 def color_space_from_name(channel: str) -> str:

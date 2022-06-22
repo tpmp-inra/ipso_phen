@@ -17,6 +17,7 @@ class IptAnalyseObservation(IptBaseAnalyzer):
         self.add_checkbox(name="camera", desc="camera", default_value=1)
         self.add_checkbox(name="angle", desc="angle", default_value=1)
         self.add_checkbox(name="wavelength", desc="wavelength", default_value=1)
+        self.add_checkbox(name="job_id", desc="job_id", default_value=1)
         self.add_checkbox(
             name="luid",
             desc="Add Local Unique IDentifier (LUID)",
@@ -67,6 +68,7 @@ class IptAnalyseObservation(IptBaseAnalyzer):
             self.add_value("camera", wrapper.camera)
             self.add_value("angle", wrapper.angle)
             self.add_value("wavelength", wrapper.wavelength)
+            self.add_value("job_id", wrapper.file_handler.job_id)
             self.add_value("luid", wrapper.luid)
             self.add_value("source_path", wrapper.file_path)
 

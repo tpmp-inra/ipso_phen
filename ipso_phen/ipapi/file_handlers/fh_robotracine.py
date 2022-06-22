@@ -10,6 +10,7 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 class FileHandlerRobotRacine(FileHandlerBase):
     def __init__(self, **kwargs):
+        super().__init__()
         self._file_path = kwargs.get("file_path", "")
         if self._file_path:
             if self.extract_file_name(self._file_path).lower().startswith(("rr_")):
