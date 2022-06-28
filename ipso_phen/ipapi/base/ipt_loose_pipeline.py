@@ -1448,7 +1448,7 @@ class LoosePipeline(object):
         # Execute pipeline
         self.root.execute(**kwargs)
 
-        if kwargs.get("save_mosaic", False) is True:
+        if kwargs.get("save_mosaic", False) is True or options.write_mosaic is True:
             mf = os.path.join(self.image_output_path, "mosaics", "")
             force_directories(mf)
             cv2.imwrite(

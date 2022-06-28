@@ -76,6 +76,7 @@ def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
         database=_get_key("database", res, overrides, None),
         experiment=_get_key("experiment", res, overrides, ""),
         randomize=_get_key("randomize", res, overrides, False),
+        save_mosaics=_get_key("save_mosaics", res, overrides, False),
     )
 
 
@@ -209,8 +210,10 @@ def launch(**kwargs):
         overwrite=res["overwrite"],
         seed_output=res["append_time_stamp"],
         group_by_series=res["generate_series_id"],
-        store_images=False,
+        store_images=res["series_id_time_delta"],
+        save_mosaics=res["save_mosaics"] is True,
     )
+    pp.options.write_mosaic = True
     if not image_list_:
         pp.grab_files_from_data_base(
             experiment=db.db_info.display_name,
@@ -237,6 +240,7 @@ def launch(**kwargs):
         f'Build annotation ready CSV: {res["build_annotation_csv"]}',
         f"Images: {len(pp.accepted_files)}",
         f"Concurrent processes count: {mpc}",
+        f'Save mosaics: {res["save_mosaics"] is True}',
         f"Script summary: {str(script)}",
         "_______________",
     ]:

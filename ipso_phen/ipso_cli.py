@@ -166,12 +166,21 @@ def run_cli():
         type=str,
         dest="experiment",
     )
+
     parser.add_argument(
         "--randomize",
         required=False,
         help="Randomize image processing order",
         action=StoreTrueOnly,
         dest="randomize",
+    )
+
+    parser.add_argument(
+        "--save_mosaics",
+        required=False,
+        help="Randomize image processing order",
+        action=StoreTrueOnly,
+        dest="save_mosaics",
     )
 
     args = vars(parser.parse_args())
