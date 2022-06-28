@@ -58,8 +58,6 @@ class FileHandlerTpmp(FileHandlerBase):
             logger.debug(f"Retrieved from cache: {str(self)}")
             return self.load_from_harddrive(fcp)
         elif self.db_linked:
-            logger.warning(f"Disabled downloading for {self.name}")
-            return None
             logger.info(f"Downloading {self.name}, please wait...")
             try:
                 with LipmCalculConnect(target_ftp=True) as sftp:

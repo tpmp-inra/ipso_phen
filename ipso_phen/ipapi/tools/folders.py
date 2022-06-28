@@ -23,6 +23,7 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 g_storage_path = ""
 
+ALLOW_CACHE = False
 
 ROOT_IPSO_FOLDER = "ipso_phen"
 
