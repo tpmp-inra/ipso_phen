@@ -26,6 +26,11 @@ IS_LOG_DATA = True
 IS_USE_MULTI_THREAD = True
 
 
+def log_and_print(msg: str):
+    logger.info(msg)
+    print(msg)
+
+
 def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
     # Attempt to load state
     if isinstance(blob, str) and os.path.isfile(blob):
@@ -218,20 +223,24 @@ def launch(**kwargs):
     if res.get("randomize", False) is True:
         random.shuffle(pp.accepted_files)
 
-    logger.info("Process summary")
-    logger.info("_______________")
-    logger.info(f'database: {res.get("database_data", None)}')
-    logger.info(f'Output folder: {res["output_folder"]}')
-    logger.info(f'CSV file name: {res["csv_file_name"]}')
-    logger.info(f'Overwrite data: {res["overwrite"]}')
-    logger.info(f'Subfolder name: {res["sub_folder_name"]}')
-    logger.info(f'Append timestamp to root folder: {res["append_time_stamp"]}')
-    logger.info(f'Generate series ID: {res["generate_series_id"]}')
-    logger.info(f'Series ID time delta allowed: {res["series_id_time_delta"]}')
-    logger.info(f'Build annotation ready CSV: {res["build_annotation_csv"]}')
-    logger.info(f"Images: {len(pp.accepted_files)}")
-    logger.info(f"Concurrent processes count: {mpc}")
-    logger.info(f"Script summary: {str(script)}")
+    for msg in [
+        "Process summary",
+        "_______________",
+        f'database: {db.db_info.display_name if db is not None else res.get("database_data", None)}',
+        f"Output folder: {output_folder_}",
+        f"CSV file name: {csv_file_name}",
+        f'Overwrite data: {res["overwrite"]}',
+        f'Subfolder name: {res["sub_folder_name"]}',
+        f'Append timestamp to root folder: {res["append_time_stamp"]}',
+        f'Generate series ID: {res["generate_series_id"]}',
+        f'Series ID time delta allowed: {res["series_id_time_delta"]}',
+        f'Build annotation ready CSV: {res["build_annotation_csv"]}',
+        f"Images: {len(pp.accepted_files)}",
+        f"Concurrent processes count: {mpc}",
+        f"Script summary: {str(script)}",
+        "_______________",
+    ]:
+        log_and_print(msg)
 
     if pp.accepted_files is None or len(pp.accepted_files) < 1:
         exit_error_message("No images to process")
@@ -275,10 +284,11 @@ def launch(**kwargs):
             )
         except Exception as e:
             preffix = "FAIL"
-            logger.exception("Unable to build disease index file")
+            print(f"Unable to build disease index file because {repr(e)}")
+            logger.exception(f"Unable to build disease index file because {repr(e)}")
         else:
             preffix = "SUCCESS"
-            logger.info("Built disease index file")
+            log_and_print("Built disease index file")
         print(f"{preffix} - Disease index file")
 
     groups_to_process_count = len(groups_to_process)
@@ -288,7 +298,7 @@ def launch(**kwargs):
 
     # Merge dataframe
     pp.merge_result_files(csv_file_name=csv_file_name + ".csv")
-    logger.info(
+    log_and_print(
         f"Processed {groups_to_process_count} groups/images in {format_time(timer() - start)}"
     )
 

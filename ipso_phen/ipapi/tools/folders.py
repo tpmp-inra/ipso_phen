@@ -187,7 +187,7 @@ ipso_folders = IpsoFolders(
                 os.path.expanduser("~"),
                 "Documents",
                 ROOT_IPSO_FOLDER,
-                "pipeline_output_folder",
+                "pipeline_output",
                 "",
             )
         ),

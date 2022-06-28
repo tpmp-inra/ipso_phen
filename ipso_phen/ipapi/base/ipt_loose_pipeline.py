@@ -1228,7 +1228,7 @@ class LoosePipeline(object):
         return json.dumps(self.to_json(), indent=2, sort_keys=False)
 
     def __str__(self):
-        return f"Pipeline {self.name}"
+        return f"Pipeline {self.description}"
 
     def set_template(self, template):
         if isinstance(template, str):
