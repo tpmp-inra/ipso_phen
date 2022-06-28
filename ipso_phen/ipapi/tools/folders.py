@@ -23,7 +23,7 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 g_storage_path = ""
 
-ALLOW_CACHE = False
+ALLOW_CACHE = True
 
 ROOT_IPSO_FOLDER = "ipso_phen"
 
@@ -170,6 +170,24 @@ ipso_folders = IpsoFolders(
                 "Documents",
                 ROOT_IPSO_FOLDER,
                 "saved_data",
+                "",
+            )
+        ),
+        "pipelines": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "pipelines",
+                "",
+            )
+        ),
+        "pipeline_output_folder": FolderData(
+            os.path.join(
+                os.path.expanduser("~"),
+                "Documents",
+                ROOT_IPSO_FOLDER,
+                "pipeline_output_folder",
                 "",
             )
         ),

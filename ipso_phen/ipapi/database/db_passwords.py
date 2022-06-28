@@ -17,17 +17,21 @@ master_password = None
 
 def get_user_and_password(key: str) -> tuple:
     if master_password:
+        print("Returned master password")
         return master_password
     elif key in password_overrides:
+        print("Returned password overrides")
         return password_overrides[key]["user"], password_overrides[key]["password"]
     elif os.path.isfile(dbc_path):
         try:
             with open(dbc_path, "r") as f:
                 dbc = json.load(f)[key]
+            print(f"Returned master password from {dbc_path}")
             return dbc["user"], dbc["password"]
         except Exception as e:
             logger.error(f"Unable to find user and password: {repr(e)}")
             return None, None
+
     else:
         return None, None
 

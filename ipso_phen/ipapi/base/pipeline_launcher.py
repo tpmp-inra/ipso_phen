@@ -17,6 +17,7 @@ from ipso_phen.ipapi.base.ipt_loose_pipeline import LoosePipeline
 from ipso_phen.ipapi.file_handlers.fh_base import file_handler_factory
 from ipso_phen.ipapi.tools.image_list import ImageList
 import ipso_phen.ipapi.database.db_passwords as dbp
+from ipso_phen.ipapi.tools.folders import ipso_folders
 
 
 logger = logging.getLogger("Pipeline launcher")
@@ -80,11 +81,21 @@ def launch(**kwargs):
 
     start = timer()
 
-    if "user" in kwargs and "password" in kwargs:
+    if (
+        "user" in kwargs
+        and kwargs["user"]
+        and "password" in kwargs
+        and kwargs["password"]
+    ):
         dbp.master_password = kwargs.pop("user"), kwargs.pop("password")
 
     # Script
     script = kwargs.get("script", None)
+    script = (
+        script
+        if os.path.isabs(script)
+        else os.path.join(ipso_folders.get_path("pipelines", False), script)
+    )
     if script is not None and os.path.isfile(script):
         with open(script, "r") as f:
             script = json.load(f)
@@ -152,10 +163,12 @@ def launch(**kwargs):
 
     # Retrieve output folder
     output_folder_ = res.get("output_folder", None)
-    if not output_folder_:
-        exit_error_message("Missing output folder")
-        return 1
-    elif res.get("sub_folder_name", ""):
+    output_folder_ = (
+        output_folder_
+        if output_folder_ is not None
+        else ipso_folders.get_path("pipeline_output_folder", False)
+    )
+    if res.get("sub_folder_name", ""):
         output_folder_ = os.path.join(output_folder_, res["sub_folder_name"], "")
     else:
         output_folder_ = os.path.join(output_folder_, "")

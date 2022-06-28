@@ -22,6 +22,14 @@ class IptKeepLinkedContours(IptBase):
             minimum=2,
             maximum=50000,
         )
+        self.add_spin_box(
+            name="max_in_contours",
+            desc="Maximum amount of contours to analyze",
+            default_value=500,
+            minimum=0,
+            maximum=50000,
+            hint="Avoid deadlocks and long times for corrupted images",
+        )
         self.add_combobox(
             name="root_position",
             desc="Root contour position",
@@ -125,13 +133,17 @@ class IptKeepLinkedContours(IptBase):
                 safe_roi_name=self.get_value_of("safe_roi_name"),
                 keep_safe_close_enough=self.get_value_of("keep_safe_close_enough") == 1,
                 keep_safe_big_enough=self.get_value_of("keep_safe_big_enough") == 1,
+                max_in_contours=self.get_value_of("max_in_contours"),
             )
-            wrapper.store_image(self.result, "mask", text_overlay=False)
-            self.demo_image = wrapper.retrieve_stored_image(
-                "src_img_with_cnt_after_agg_iter_last"
-            )
+            if self.result is not None:
+                wrapper.store_image(self.result, "mask", text_overlay=False)
+                self.demo_image = wrapper.retrieve_stored_image(
+                    "src_img_with_cnt_after_agg_iter_last"
+                )
 
-            res = True
+                res = True
+            else:
+                res = None
         except Exception as e:
             logger.error(f'Failed to process {self. name}: "{repr(e)}"')
             return False

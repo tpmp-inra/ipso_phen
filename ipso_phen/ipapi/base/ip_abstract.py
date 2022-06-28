@@ -1812,6 +1812,7 @@ class BaseImageProcessor(ImageWrapper):
             * delete_all_bellow: all contours smaller than value will be deleted
         :return: : Filtered mask
         """
+        max_in_contours = kwargs.get("max_in_contours", 500)
         src_image = kwargs.get("src_image", self.current_image)
         src_mask = kwargs.get("src_mask", self.mask)
         if (src_image is None) or (src_mask is None):
@@ -1888,6 +1889,14 @@ class BaseImageProcessor(ImageWrapper):
             "img_dilated_cnt",
         )
 
+        if len(contours) == 0:
+            return np.zeros_like(src_mask)
+        elif len(contours) > max_in_contours:
+            logger.error(
+                f"Too many contours to analyze, {len(contours)} is more than max allowed {max_in_contours}"
+            )
+            return None
+
         img_cnt = cv2.drawContours(src_image.copy(), contours, -1, ipc.C_GREEN, 2, 8)
         self.store_image(img_cnt, "src_img_with_cnt")
 
@@ -1899,9 +1908,6 @@ class BaseImageProcessor(ImageWrapper):
         hull_img = src_image.copy()
         cv2.drawContours(hull_img, hulls, -1, (0, 255, 0), 4)
         self.store_image(hull_img, "src_img_with_cnt_approx_{}".format(eps))
-
-        if len(hulls) == 0:
-            return np.zeros_like(src_mask)
 
         # Find the largest hull
         big_hull = hulls[0]
