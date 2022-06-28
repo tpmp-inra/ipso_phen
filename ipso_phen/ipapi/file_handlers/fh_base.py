@@ -13,7 +13,7 @@ import pandas as pd
 import ipso_phen.ipapi.file_handlers
 import ipso_phen.ipapi.base.ip_common as ipc
 from ipso_phen.ipapi.tools.common_functions import get_module_classes, force_directories
-from ipso_phen.ipapi.tools.folders import ipso_folders, ALLOW_CACHE
+from ipso_phen.ipapi.tools.folders import ipso_folders
 import ipso_phen.ipapi.base.ip_common as ipc
 
 import logging
@@ -597,14 +597,11 @@ class FileHandlerBase(ABC):
 
     @property
     def cache_file_root(self):
-        if ipso_folders.ALLOW_CACHE is True:
-            return (
-                ipso_folders.get_path("mass_storage", False)
-                if os.path.isdir(ipso_folders.get_path("mass_storage", False))
-                else ipso_folders.get_path(key="img_cache", force_creation=True)
-            )
-        else:
-            return ""
+        return (
+            ipso_folders.get_path("mass_storage", False)
+            if os.path.isdir(ipso_folders.get_path("mass_storage", False))
+            else ipso_folders.get_path(key="img_cache", force_creation=True)
+        )
 
     @property
     def cache_file_dir(self):

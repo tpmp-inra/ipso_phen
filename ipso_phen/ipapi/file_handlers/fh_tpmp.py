@@ -13,6 +13,7 @@ from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 from ipso_phen.ipapi.tools.common_functions import force_directories
 import ipso_phen.ipapi.base.ip_common as ipc
 
+from ipso_phen.ipapi.tools.folders import ALLOW_CACHE
 from ipso_phen.ipapi.database.base import LipmCalculConnect
 
 
@@ -74,7 +75,11 @@ class FileHandlerTpmp(FileHandlerBase):
                             )
 
                         _, free = get_remaining_space()
-                        if free > 5 and os.path.isdir(self.cache_file_root):
+                        if (
+                            ALLOW_CACHE is True
+                            and free > 5
+                            and os.path.isdir(self.cache_file_root)
+                        ):
                             force_directories(os.path.dirname(self.cache_file_dir))
                             cv2.imwrite(filename=fcp, img=src_img)
                             total, free = get_remaining_space()
