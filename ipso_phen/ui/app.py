@@ -3351,7 +3351,11 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     )
 
     def do_pp_log_item_event(
-        self, item_luid: str, event_kind: str, log_data: str, auto_scroll: bool = True
+        self,
+        item_luid: str,
+        event_kind: str,
+        log_data: str,
+        auto_scroll: bool = True,
     ):
         items = self.ui.lw_images_queue.findItems(item_luid, Qt.MatchExactly)
         for item in items:

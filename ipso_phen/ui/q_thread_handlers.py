@@ -377,6 +377,7 @@ class IpsoMassRunner(QRunnable):
                 self.signals_holder.on_launching.emit(groups_to_process_count)
                 if groups_to_process_count > 0:
                     force_directories(self.pipeline.options.partials_path)
+                    workers_list = []
                     for i, item in enumerate(groups_to_process):
                         item_worker = IpsoGroupProcessor(
                             on_ended=self.on_item_ended,

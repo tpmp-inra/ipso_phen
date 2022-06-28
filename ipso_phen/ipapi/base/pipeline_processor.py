@@ -126,7 +126,7 @@ class PipelineProcessor:
         Returns:
             int -- number of files kept
         """
-        accepted_extensions_ = (".jpg", ".tiff", ".png", ".bmp")
+        accepted_extensions_ = (".jpg", ".tiff", ".png", ".bmp", ".tif")
 
         if os.path.isfile(src_path):  # File passed as argument
             self.accepted_files = [src_path]

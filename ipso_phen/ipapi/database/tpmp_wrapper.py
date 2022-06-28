@@ -125,6 +125,7 @@ class TpmpDbWrapper(PandasDbWrapper):
     def __init__(self, **kwargs) -> None:
         super().__init__(**kwargs)
         self.df_builder = get_exp_as_df
+        self.main_selector = {"wavelength": "SW755"}
 
     def connect_from_cache(self) -> pd.DataFrame:
         return None

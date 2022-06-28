@@ -22,7 +22,9 @@ class IptAugmentData(IptBaseAnalyzer):
             name="output_format",
             desc="Image output format",
             default_value="source",
-            values=dict(source="As source image", jpg="JPEG", png="PNG", tiff="TIFF"),
+            values=dict(
+                source="As source image", jpg="JPEG", png="PNG", tiff="TIFF", tif="TIF"
+            ),
         )
         self.add_checkbox(
             name="test_only", desc="Test only, do not actually copy", default_value=1

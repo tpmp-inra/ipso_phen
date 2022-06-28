@@ -5,8 +5,8 @@ import os
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 import ipso_phen.ipapi.base.ip_common as ipc
 from ipso_phen.ipapi.database.db_passwords import check_password
-from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
 import ipso_phen.ipapi.base.ip_common as ipc
+from ipso_phen.ipapi.database.base import LipmCalculConnect
 
 
 import logging
@@ -55,11 +55,8 @@ class FileHandlerPhenopsis(FileHandlerBase):
 
     def load_source_file(self):
         if self.db_linked:
-            sftp = connect_to_lipmcalcul(target_ftp=False)
-            try:
+            with LipmCalculConnect(target_ftp=False) as sftp:
                 return self.load_from_database(sftp)
-            finally:
-                sftp.close()
         else:
             return self.load_from_harddrive()
 

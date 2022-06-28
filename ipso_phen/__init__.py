@@ -21,7 +21,7 @@ try:
         app = QApplication(sys.argv)
         IpsoMainForm().show()
         ret = app.exec_()
-        logger.info("Closing IPSO Phen, ret = {ret}")
+        logger.info(f"Closing IPSO Phen, ret = {ret}")
         sys.exit(ret)
 
 

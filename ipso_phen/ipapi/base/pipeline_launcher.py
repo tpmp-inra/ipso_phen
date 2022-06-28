@@ -112,7 +112,7 @@ def launch(**kwargs):
         with open(image_list, "r") as f:
             kwargs["images"] = [img.os.replace("\n", "") for img in f.readlines()]
     elif image_folder is not None:
-        img_lst = ImageList((".jpg", ".tiff", ".png", ".bmp"))
+        img_lst = ImageList((".jpg", ".tiff", ".png", ".bmp", ".tif"))
         img_lst.add_folder(image_folder)
         kwargs["images"] = img_lst.filter(masks=None)
 
@@ -146,7 +146,7 @@ def launch(**kwargs):
         if "sub_folder_name" not in res or not res["sub_folder_name"]:
             res["sub_folder_name"] = experiment
         if "csv_file_name" not in res or not res["csv_file_name"]:
-            res["csv_file_name"] = f"{experiment.lower()}_raw_data"
+            res["csv_file_name"] = f"{experiment}_raw_data"
     else:
         db = dbf.db_info_to_database(dbb.DbInfo(**db_data))
 
@@ -195,7 +195,7 @@ def launch(**kwargs):
     )
     if not image_list_:
         pp.grab_files_from_data_base(
-            experiment=db.db_info.display_name.lower(),
+            experiment=db.db_info.display_name,
             order_by="plant",
             **db.main_selector,
         )

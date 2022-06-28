@@ -13,12 +13,17 @@ from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 from ipso_phen.ipapi.tools.common_functions import force_directories
 import ipso_phen.ipapi.base.ip_common as ipc
 
-from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
+from ipso_phen.ipapi.database.base import LipmCalculConnect
 
 
 import logging
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
+
+
+def get_remaining_space():
+    total, _, free = shutil.disk_usage("/")
+    return total // (2 ** 30), free // (2 ** 30)
 
 
 class FileHandlerTpmp(FileHandlerBase):
@@ -53,48 +58,45 @@ class FileHandlerTpmp(FileHandlerBase):
             logger.debug(f"Retrieved from cache: {str(self)}")
             return self.load_from_harddrive(fcp)
         elif self.db_linked:
-            sftp = connect_to_lipmcalcul(target_ftp=True)
+            logger.warning(f"Disabled downloading for {self.name}")
+            return None
+            logger.info(f"Downloading {self.name}, please wait...")
             try:
-                return self.load_from_database(sftp, fcp, filename)
+                with LipmCalculConnect(target_ftp=True) as sftp:
+                    if sftp is not None:
+                        with sftp.open(
+                            f"images/{self.robot}/{self.experiment}/{self.file_name if filename is None else filename}"
+                        ) as file:
+                            file_size = file.stat().st_size
+                            file.prefetch(file_size)
+                            file.set_pipelined()
+                            src_img = cv2.imdecode(
+                                np.fromstring(file.read(), np.uint8),
+                                1,
+                            )
+
+                        _, free = get_remaining_space()
+                        if free > 5 and os.path.isdir(self.cache_file_root):
+                            force_directories(os.path.dirname(self.cache_file_dir))
+                            cv2.imwrite(filename=fcp, img=src_img)
+                            total, free = get_remaining_space()
+                            p = (
+                                pathlib.PureWindowsPath(self.cache_file_dir)
+                                if platform.system().lower() == "windows"
+                                else pathlib.PurePath(self.cache_file_dir)
+                            )
+                            logger.info(
+                                f"Cache succeeded for {self.name if filename is None else filename}, {free}GiB remaining of {total}GiB in {p.parts[0]}"
+                            )
+                        else:
+                            logger.info(f"Only {free}Gib remaining, no image cached")
+
+                        return src_img
             except Exception as e:
                 logger.exception(f"Failed to download {repr(self)} because {repr(e)}")
                 return None
-            finally:
-                sftp.close()
         else:
-            return self.load_from_harddrive()
-
-    def load_from_database(self, sftp, file_cache_path, filename=None):
-        def get_remaining_space():
-            total, _, free = shutil.disk_usage("/")
-            return total // (2 ** 30), free // (2 ** 30)
-
-        logger.info(f"Downloading {self.name}, please wait...")
-        with sftp.open(
-            f"images/{self.robot}/{self.experiment}/{self.file_name if filename is None else filename}"
-        ) as file:
-            file_size = file.stat().st_size
-            file.prefetch(file_size)
-            file.set_pipelined()
-            src_img = cv2.imdecode(np.fromstring(file.read(), np.uint8), 1)
-
-        _, free = get_remaining_space()
-        if free > 5 and os.path.isdir(self.cache_file_root):
-            force_directories(os.path.dirname(self.cache_file_dir))
-            cv2.imwrite(self.cache_file_path, src_img)
-            total, free = get_remaining_space()
-            p = (
-                pathlib.PureWindowsPath(self.cache_file_dir)
-                if platform.system().lower() == "windows"
-                else pathlib.PurePath(self.cache_file_dir)
-            )
-            logger.info(
-                f"Cache succeeded for {self.name if filename is None else filename}, {free}GiB remaining of {total}GiB in {p.parts[0]}"
-            )
-        else:
-            logger.info(f"Only {free}Gib remaining, no image cached")
-
-        return src_img
+            return None
 
     def get_channel(self, src_img=None, channel="l"):
         c = super().get_channel(src_img=src_img, channel=channel)
@@ -179,7 +181,8 @@ class FileHandlerTpmp(FileHandlerBase):
                 if wave.lower() == "sw755":
                     self._available_channels.update(ipc.CHANNELS_VISIBLE)
                 else:
-                    self._available_channels.update({wave: wave})
+                    pass
+                    # self._available_channels.update({wave: wave})
 
         return self._available_channels
 

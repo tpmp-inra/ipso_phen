@@ -714,6 +714,7 @@ class IptParamHolder(object):
                 jpg="JPEG",
                 png="PNG",
                 tiff="TIFF",
+                tif="TIF",
             ),
         )
         self.add_text_input(

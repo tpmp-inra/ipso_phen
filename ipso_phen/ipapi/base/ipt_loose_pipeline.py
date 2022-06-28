@@ -9,6 +9,7 @@ from typing import Union
 import logging
 import csv
 import os
+from timeit import default_timer as timer
 
 import numpy as np
 
@@ -1354,6 +1355,23 @@ class LoosePipeline(object):
         options=None,
         **kwargs,
     ):
+        def log_result(start_time):
+            index = kwargs.get("index", -1)
+            total = kwargs.get("total", -1)
+            if index >= 0 and total >= 0:
+                eh.log_data(
+                    log_msg=(
+                        f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
+                        + f"{(index + 1):{len(str(total))}d}/{total} in {format_time(timer() - start)}>>> "
+                        + f" {self.text_result} -> "
+                        + self.wrapper.name
+                    ),
+                    log_level=self.error_level,
+                    target_logger=logger,
+                )
+
+        start = timer()
+
         # Override settings
         self.error_level = logging.INFO
         self.stop_processing = False
@@ -1374,6 +1392,7 @@ class LoosePipeline(object):
             logger.error(f"Unknown source {str(src_image)}")
             self.error_level = logging.ERROR
             self.text_result = "Source error"
+            log_result(start)
             return False
 
         # Check wrapper
@@ -1384,10 +1403,12 @@ class LoosePipeline(object):
                 logger.error("Unable to retrieve wrapper.")
             self.error_level = logging.ERROR
             self.text_result = "Wrapper error"
+            log_result(start)
             return False
         elif os.path.isfile(self.wrapper.csv_file_path) and overwrite_data is False:
             self.error_level = logging.INFO
             self.text_result = "Skipped"
+            log_result(start)
             return True
         elif not self.wrapper.check_source_image():
             if isinstance(src_image, str):
@@ -1396,6 +1417,7 @@ class LoosePipeline(object):
                 logger.error("Image seems to be corrupted.")
             self.text_result = "Corrupted image"
             self.error_level = logging.ERROR
+            log_result(start)
             return False
 
         # Override wrapper settings
@@ -1450,18 +1472,9 @@ class LoosePipeline(object):
             except Exception as e:
                 logger.exception(f"Failed to write image data because {repr(e)}")
 
-        index = kwargs.get("index", -1)
-        total = kwargs.get("total", -1)
-        if index >= 0 and total >= 0:
-            eh.log_data(
-                log_msg=(
-                    f'{"OK" if self.error_level < self.stop_on else "FAIL"} - '
-                    + f"{(index + 1):{len(str(total))}d}/{total} >>> "
-                    + self.wrapper.name
-                ),
-                log_level=self.error_level,
-                target_logger=logger,
-            )
+        self.text_result = "OK" if self.error_level < self.stop_on else "FAIL"
+
+        log_result(start)
 
         return self.error_level < self.stop_on
 

@@ -188,8 +188,9 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                                                                 time TIME,
                                                                 date_time TIMESTAMP,
                                                                 camera TEXT,
-                                                                angle TEXT
-                                                                wavelength TEXT )"""
+                                                                angle INTEGER,
+                                                                wavelength TEXT,
+                                                                job_id INTEGER)"""
                         )
                         missing_data = True
                     except Exception as e:
@@ -221,7 +222,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
     def update(
         self,
         src_files_path="",
-        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp", ".tif"),
     ):
         if not self.connect(auto_update=False):
             return -1
@@ -243,8 +244,8 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                         fh = file_handler_factory(file, database=None)
                         sql_ = text(
                             f"INSERT INTO {self.main_table}"
-                            "(Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, Angle, Wavelength)"
-                            "VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :Angle, :Wavelength)"
+                            "(Luid, Name, FilePath, Experiment, Plant, Date, Time, date_time, Camera, Angle, Wavelength, Job_Id)"
+                            "VALUES (:Luid, :Name, :FilePath, :Experiment, :Plant, :Date, :Time, :date_time, :Camera, :Angle, :Wavelength, :Job_Id)"
                         )
                         self.connexion.execute(
                             sql_,
@@ -259,6 +260,7 @@ class PgSqlDbWrapper(DbWrapper, QueryHandlerPostgres):
                             Camera=fh.camera,
                             angle=fh.angle,
                             wavelength=fh.wavelength,
+                            job_id=fh.job_id,
                         )
                     except exc.IntegrityError:
                         pass

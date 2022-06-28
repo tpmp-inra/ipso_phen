@@ -17,18 +17,43 @@ from ipso_phen.ipapi.tools.common_functions import (
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 
-def connect_to_lipmcalcul(target_ftp: bool):
-    try:
-        u, p = get_user_and_password("lipm.calcul")
-        transport = paramiko.Transport(("lipm-calcul.toulouse.inra.fr", 22))
-        transport.connect(None, username=u, password=p)
-        sftp: paramiko.SFTPClient = paramiko.SFTPClient.from_transport(transport)
-        if target_ftp is False:
-            sftp.chdir("..")
-    except Exception as e:
-        logger.error(f"Unable to reach lipme: {repr(e)}")
-        return None
-    return sftp
+class LipmCalculConnect:
+    def __init__(self, target_ftp: bool) -> None:
+        self._user, self._password = get_user_and_password("lipm.calcul")
+        self._transport = None
+        self._sftp = None
+        self._target_ftp = target_ftp
+
+    def __enter__(self):
+        return self.get_connexion()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.release_connexion()
+
+    def get_connexion(self):
+        try:
+            self._transport: paramiko.Transport = paramiko.Transport(
+                ("lipm-calcul.toulouse.inra.fr", 22)
+            )
+            self._transport.connect(
+                None,
+                username=self._user,
+                password=self._password,
+            )
+            self._sftp: paramiko.SFTPClient = paramiko.SFTPClient.from_transport(
+                self._transport
+            )
+            if self._target_ftp is False:
+                self._sftp.chdir("..")
+        except Exception as e:
+            logger.error(f"Unable to reach lipme: {repr(e)}")
+            return None
+        else:
+            return self._sftp
+
+    def release_connexion(self):
+        self._transport.close()
+        self._sftp.close()
 
 
 class DbInfo:
@@ -176,7 +201,7 @@ class DbWrapper(ABC):
     def update(
         self,
         db_qualified_name="",
-        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp", ".tif"),
     ):
         pass
 

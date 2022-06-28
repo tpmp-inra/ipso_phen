@@ -1,19 +1,11 @@
-# from datetime import datetime as dt
 import datetime
 from datetime import datetime as dt
 import os
-import shutil
-
-import platform
-import pathlib
 
 import cv2
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
-from ipso_phen.ipapi.tools.common_functions import force_directories
 import ipso_phen.ipapi.base.ip_common as ipc
-
-from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
 
 
 import logging

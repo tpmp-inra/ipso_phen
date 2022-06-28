@@ -8,7 +8,7 @@ from ipso_phen.ipapi.database.pandas_wrapper import PandasDbWrapper
 from ipso_phen.ipapi.file_handlers.fh_phenopsys import FileHandlerPhenopsis
 from ipso_phen.ipapi.tools.folders import ipso_folders
 from ipso_phen.ipapi.database.db_passwords import check_password
-from ipso_phen.ipapi.database.base import connect_to_lipmcalcul
+from ipso_phen.ipapi.database.base import LipmCalculConnect
 
 logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
@@ -21,17 +21,14 @@ IMAGE_EXTENSIONS = (".jpg", ".tiff", ".png", ".bmp", ".tif", ".pim", ".csv")
 def get_phenopsis_exp_list() -> list:
     if check_password("phenopsis") is False:
         return []
-    sftp = connect_to_lipmcalcul(target_ftp=False)
-    try:
-        exp_lst = sorted(sftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
-    except Exception as e:
-        logger.error(f"Unable to reach Phenopsis: {repr(e)}")
-        return []
-    else:
-        return [exp for exp in exp_lst if exp != "csv"]
-    finally:
-        if sftp is not None:
-            sftp.close()
+    with LipmCalculConnect(target_ftp=False) as sftp:
+        try:
+            exp_lst = sorted(sftp.listdir(path=PHENOPSIS_ROOT_FOLDER))
+        except Exception as e:
+            logger.error(f"Unable to reach Phenopsis: {repr(e)}")
+            return []
+        else:
+            return [exp for exp in exp_lst if exp != "csv"]
 
 
 def isdir(sftp, path):
@@ -109,70 +106,70 @@ class PhenopsisDbWrapper(PandasDbWrapper):
         ]
 
     def get_exp_as_df(self, exp_name: str) -> pd.DataFrame:
-        sftp = connect_to_lipmcalcul(target_ftp=False)
-        csv_path = (
-            PHENOPSIS_ROOT_FOLDER + "/" + "csv" + "/" + f"{exp_name.lower()}.dst.csv"
-        )
-        try:
-            sftp.stat(csv_path)
-        except Exception as _:
-            logger.info(f"Missing CSV for {exp_name}, building it")
-            self._init_progress_undefined("Looking for images")
-            images = self.get_all_files(
-                sftp=sftp,
-                path=PHENOPSIS_ROOT_FOLDER + "/" + exp_name,
-                extensions=IMAGE_EXTENSIONS,
+        with LipmCalculConnect(target_ftp=False) as sftp:
+            csv_path = (
+                PHENOPSIS_ROOT_FOLDER + "/" + "csv" + "/" + f"{exp_name.lower()}.dst.csv"
             )
-            self._close_progress_undefined(f"Found {len(images)} images")
-
-            self._init_progress(total=len(images), desc="Building dataframe")
-            d = defaultdict(list)
-            for j, fh in enumerate(images):
-                d["luid"].append(fh.luid)
-                d["experiment"].append(fh.experiment)
-                d["plant"].append(fh.plant)
-                d["date_time"].append(fh.date_time)
-                d["camera"].append(fh.camera)
-                d["angle"].append(fh.angle)
-                d["wavelength"].append(fh.wavelength)
-                d["filepath"].append(fh.file_path)
-                d["blob_path"].append(fh.file_path)
-                self._callback(step=j, total=len(images))
-            self._close_progress()
-            logger.info(f"Built CSV for {exp_name}")
-            dataframe = pd.DataFrame(d)
-            dataframe.to_csv(self.cache_file_path)
-        else:
             try:
-                file = sftp.open(csv_path)
-                dataframe = pd.read_csv(file)
-                file.close()
-                dataframe["experiment"] = dataframe["experiment"].str.lower()
-                dataframe["plant"] = dataframe["plant"].str.lower()
-                dataframe["date_time"] = pd.to_datetime(dataframe["date_time"], utc=True)
-                dataframe["camera"] = dataframe["camera"]
-                dataframe["filepath"] = dataframe["filepath"]
-                dataframe["luid"] = dataframe["luid"]
-                if "wavelength" not in dataframe.columns:
-                    dataframe["wavelength"] = dataframe["view_option"]
-                if "angle" not in dataframe.columns:
-                    dataframe["angle"] = "top"
-                dataframe = dataframe[
-                    [
-                        "luid",
-                        "experiment",
-                        "plant",
-                        "date_time",
-                        "camera",
-                        "angle",
-                        "wavelength",
-                        "filepath",
-                        "blob_path",
-                    ]
-                ]
+                sftp.stat(csv_path)
+            except Exception as _:
+                logger.info(f"Missing CSV for {exp_name}, building it")
+                self._init_progress_undefined("Looking for images")
+                images = self.get_all_files(
+                    sftp=sftp,
+                    path=PHENOPSIS_ROOT_FOLDER + "/" + exp_name,
+                    extensions=IMAGE_EXTENSIONS,
+                )
+                self._close_progress_undefined(f"Found {len(images)} images")
 
-            except Exception as e:
-                logger.exception(f'Failed to load dataframe, because "{repr(e)}"')
-        finally:
-            sftp.close()
-        return dataframe
+                self._init_progress(total=len(images), desc="Building dataframe")
+                d = defaultdict(list)
+                for j, fh in enumerate(images):
+                    d["luid"].append(fh.luid)
+                    d["experiment"].append(fh.experiment)
+                    d["plant"].append(fh.plant)
+                    d["date_time"].append(fh.date_time)
+                    d["camera"].append(fh.camera)
+                    d["angle"].append(fh.angle)
+                    d["wavelength"].append(fh.wavelength)
+                    d["filepath"].append(fh.file_path)
+                    d["blob_path"].append(fh.file_path)
+                    self._callback(step=j, total=len(images))
+                self._close_progress()
+                logger.info(f"Built CSV for {exp_name}")
+                dataframe = pd.DataFrame(d)
+                dataframe.to_csv(self.cache_file_path)
+            else:
+                try:
+                    file = sftp.open(csv_path)
+                    dataframe = pd.read_csv(file)
+                    file.close()
+                    dataframe["experiment"] = dataframe["experiment"].str.lower()
+                    dataframe["plant"] = dataframe["plant"].str.lower()
+                    dataframe["date_time"] = pd.to_datetime(
+                        dataframe["date_time"], utc=True
+                    )
+                    dataframe["camera"] = dataframe["camera"]
+                    dataframe["filepath"] = dataframe["filepath"]
+                    dataframe["luid"] = dataframe["luid"]
+                    if "wavelength" not in dataframe.columns:
+                        dataframe["wavelength"] = dataframe["view_option"]
+                    if "angle" not in dataframe.columns:
+                        dataframe["angle"] = "top"
+                    dataframe = dataframe[
+                        [
+                            "luid",
+                            "experiment",
+                            "plant",
+                            "date_time",
+                            "camera",
+                            "angle",
+                            "wavelength",
+                            "filepath",
+                            "blob_path",
+                        ]
+                    ]
+
+                except Exception as e:
+                    logger.exception(f'Failed to load dataframe, because "{repr(e)}"')
+            return dataframe

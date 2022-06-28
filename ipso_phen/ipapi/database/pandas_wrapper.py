@@ -175,7 +175,7 @@ class PandasDbWrapper(DbWrapper, PandasQueryHandler):
     def update(
         self,
         db_qualified_name="",
-        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp"),
+        extensions: tuple = (".jpg", ".tiff", ".png", ".bmp", ".tif"),
     ):
         self.reset()
 
