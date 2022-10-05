@@ -52,8 +52,10 @@ class LipmCalculConnect:
             return self._sftp
 
     def release_connexion(self):
-        self._transport.close()
-        self._sftp.close()
+        if self._transport is not None:
+            self._transport.close()
+        if self._sftp is not None:
+            self._sftp.close()
 
 
 class DbInfo:
