@@ -659,6 +659,10 @@ class FileHandlerBase(ABC):
     def available_channels(self):
         return ipc.CHANNELS_VISIBLE
 
+    @property
+    def short_name(self):
+        return f"[{self.plant}|{self.date}|{self.angle}]"
+
 
 class FileHandlerDefault(FileHandlerBase):
     def __init__(self, **kwargs):

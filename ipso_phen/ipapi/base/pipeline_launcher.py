@@ -28,7 +28,7 @@ IS_USE_MULTI_THREAD = True
 
 def log_and_print(msg: str):
     logger.info(msg)
-    print(msg)
+    # print(msg)
 
 
 def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:

@@ -426,7 +426,7 @@ class ImageWrapper:
 
     @property
     def short_name(self):
-        return f"[exp:{self.experiment}][plant:{self.plant}][vo:{self.angle}][vo:{self.wavelength}][{self._file_handler.condensed_date}]"
+        return self.file_handler.short_name
 
     @property
     def is_corrupted(self):

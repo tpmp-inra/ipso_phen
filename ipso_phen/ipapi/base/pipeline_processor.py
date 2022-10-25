@@ -64,6 +64,7 @@ def _pipeline_worker(arg):
             store_images=False,
             options=options,
             call_back=None,
+            save_mosaic=options.write_mosaic is True,
         )
     except Exception as e:
         return {

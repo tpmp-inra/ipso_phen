@@ -496,7 +496,7 @@ class ModuleNode(Node):
                     self.do_call_back(
                         call_back=call_back,
                         res=logging.INFO,
-                        msg=f"Successfully processed {self.name} in {format_time(timer() - before)}",
+                        msg=f"Success {self.name} on {wrapper.file_handler.short_name} in {format_time(timer() - before)}",
                         data=data,
                     )
                 else:
@@ -504,7 +504,7 @@ class ModuleNode(Node):
                         self.do_call_back(
                             call_back=call_back,
                             res=logging.ERROR,
-                            msg=f'Assertion "{self.tool.name}" failed for {self.name}',
+                            msg=f'Assertion "{self.tool.name}" failed for {self.name} on {wrapper.file_handler.short_name}',
                             data=wrapper
                             if self.root.parent.debug_mode or self.uuid == target_module
                             else self,
@@ -513,7 +513,7 @@ class ModuleNode(Node):
                         self.do_call_back(
                             call_back=call_back,
                             res=logging.ERROR,
-                            msg=f"Failed to process {self.name} in {format_time(timer() - before)}",
+                            msg=f"FAILURE {self.name} on {wrapper.short_name} in {format_time(timer() - before)}",
                             data=wrapper
                             if self.root.parent.debug_mode or self.uuid == target_module
                             else self,
@@ -931,7 +931,7 @@ class GroupNode(Node):
             self.do_call_back(
                 call_back=call_back,
                 res=logging.INFO,
-                msg=f"Successfully processed {self.name}, merge mode: {self.merge_mode} in {format_time(timer() - before)}",
+                msg=f"Success {self.name} on {wrapper.short_name}, merge mode: {self.merge_mode} in {format_time(timer() - before)}",
                 data=self if self.root.parent.show_group_result else None,
                 is_progress=False,
             )
@@ -1448,7 +1448,7 @@ class LoosePipeline(object):
         # Execute pipeline
         self.root.execute(**kwargs)
 
-        if kwargs.get("save_mosaic", False) is True or options.write_mosaic is True:
+        if kwargs.get("save_mosaic", False):
             mf = os.path.join(self.image_output_path, "mosaics", "")
             force_directories(mf)
             cv2.imwrite(

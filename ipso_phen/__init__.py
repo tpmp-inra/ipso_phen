@@ -3,6 +3,10 @@ import logging
 
 version = "0.7.112.546"
 
+import os
+
+os.environ["QT_MAC_WANTS_LAYER"] = "1"
+
 
 def cli():
     from ipso_phen.ipso_cli import run_cli
@@ -19,11 +23,12 @@ try:
         logger = logging.getLogger("entry point")
         logger.info("Starting UI")
         app = QApplication(sys.argv)
+        logger.info("Toto")
         IpsoMainForm().show()
+        logger.info("Nope")
         ret = app.exec_()
         logger.info(f"Closing IPSO Phen, ret = {ret}")
         sys.exit(ret)
-
 
 except:
     logger = logging.getLogger("entry point")
