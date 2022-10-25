@@ -196,3 +196,5 @@ tests/output_files
 ipapi/database/phenoserre_access.py
 ipso_phen/ipapi/database/db_connect_data.py
 test-output.xml
+
+*.DS_Store

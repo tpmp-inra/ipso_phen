@@ -1,3 +1,4 @@
+from bdb import Breakpoint
 import os
 from typing import Optional
 import streamlit as st
@@ -93,11 +94,15 @@ def build_image(wrapper):
 
 
 def build_single_plant_video(args):
-    plant, dst_folder_, db, dates_, experiment_, angles_ = args
+    plant, dst_folder_, db, dates_, experiment_, angles_, wavelenghts_ = args
 
     p_output = os.path.join(dst_folder_, f"{plant}.mp4")
     if os.path.isfile(p_output):
         return f"Plant {plant} already handled"
+
+    ret = query_current_database(experiment=experiment_)
+    print(ret.shape)
+    return
 
     ret = db.query(
         command="SELECT",
@@ -127,7 +132,9 @@ def build_single_plant_video(args):
                 image=img_main_angle, text=angles_[0], force_store=True
             )
         except Exception as e:
-            print(f'Exception "{repr(e)}" while handling {str(main_angle_wrapper_side)}')
+            print(
+                f'Exception "{repr(e)}" while handling {str(main_angle_wrapper_side)}'
+            )
 
         current_date_time = main_angle_wrapper_side.date_time
 
@@ -152,7 +159,9 @@ def build_single_plant_video(args):
                 try:
                     secondary_angle_img = build_image(secondary_angle_wrapper)
                     main_angle_wrapper_side.store_image(
-                        image=secondary_angle_img, text=secondary_angle, force_store=True
+                        image=secondary_angle_img,
+                        text=secondary_angle,
+                        force_store=True,
                     )
                 except Exception as e:
                     print(
@@ -359,6 +368,7 @@ if job_choice != "Please make your choice...":
     )
     plant_lst = get_query_items(column="plant", experiment=experiment)
     angle_lst = get_query_items(column="angle", experiment=experiment)
+    wavelength_lst = get_query_items(column="wavelength", experiment=experiment)
     date_list = [
         item.replace("-", "/") if isinstance(item, str) else item.strftime(_DATE_FORMAT)
         for item in get_query_items(column="date", experiment=experiment)
@@ -369,7 +379,8 @@ if job_choice != "Please make your choice...":
     dates = st.multiselect("Dates", date_list, date_list)
     num_cores = min([MAX_CORES, num_cores])
     if job_choice == "Single plant":
-        angles = st.multiselect("View options", angle_lst, angle_lst)
+        angles = st.multiselect("Angles", angle_lst, angle_lst)
+        wavelenghts = st.multiselect("Wavelengths", wavelength_lst, wavelength_lst)
         if st.button("Build videos"):
             force_directories(dst_folder)
             st.write(f"Building {len(plants)} videos using {num_cores} cores")
@@ -389,6 +400,7 @@ if job_choice != "Please make your choice...":
                                 dates,
                                 experiment,
                                 angles,
+                                wavelenghts,
                             )
                             for plant_ in plants
                         ),
@@ -406,6 +418,7 @@ if job_choice != "Please make your choice...":
                             dates,
                             experiment,
                             angles,
+                            wavelenghts,
                         )
                     )
                     current_progress.progress((i + 1) / total_)

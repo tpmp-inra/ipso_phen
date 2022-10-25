@@ -10,18 +10,20 @@ sys.path.insert(0, os.getcwd())
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
 logging.basicConfig(
-    filename=os.path.join(
-        ipso_folders.get_path("logs", force_creation=True),
-        f"ipso_cli_{dt.now().strftime('%Y_%m_%d')}.log",
-    ),
-    filemode="a",
     level=logging.INFO,
     format="[%(asctime)s - %(name)s - %(levelname)s] - %(message)s",
 )
-logger = logging.getLogger("IPSO CLI")
-logger.info("_________________________________________________________________________")
-logger.info("_________________________________________________________________________")
-logger.info("Launching IPSO CLI")
+
+logging.getLogger().addHandler(
+    logging.FileHandler(
+        filename=os.path.join(
+            ipso_folders.get_path("logs", force_creation=True),
+            f"ipso_cli_{dt.now().strftime('%Y_%m_%d')}.log",
+        ),
+        # mode="a",
+    )
+)
+logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
 
 from ipso_phen.ipapi.base.pipeline_launcher import launch
 
@@ -29,7 +31,10 @@ from ipso_phen.ipapi.base.pipeline_launcher import launch
 class StoreTrueOnly(argparse.Action):
     def __init__(self, option_strings, dest, nargs=0, **kwargs):
         super(StoreTrueOnly, self).__init__(
-            option_strings=option_strings, nargs=nargs, dest=dest, **kwargs
+            option_strings=option_strings,
+            nargs=nargs,
+            dest=dest,
+            **kwargs,
         )
 
     def __call__(self, parser, namespace, values, option_string=None):
@@ -37,6 +42,11 @@ class StoreTrueOnly(argparse.Action):
 
 
 def run_cli():
+
+    logger = logging.getLogger("IPSO CLI")
+    logger.info("______________________________________________________________")
+    logger.info("______________________________________________________________")
+    logger.info("Launching IPSO CLI")
 
     parser = argparse.ArgumentParser(
         description="Command line interface for pipelines built with IPSO Phen",

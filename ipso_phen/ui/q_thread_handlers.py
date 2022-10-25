@@ -150,8 +150,8 @@ class IpsoRunnable(QRunnable):
 
             after = timer()
             if res:
-                status_message = f"Successfully processed {self.ipt.name} in {format_time(after - before)}"
-                log_message = f"Successfully processed {self.ipt.name} for {wrapper.name} in {format_time(after - before)}"
+                status_message = f"Success {self.ipt.name} on {wrapper.short_name} in {format_time(after - before)}"
+                log_message = f"Success {self.ipt.name} on {wrapper.short_name} in {format_time(after - before)}"
             else:
                 status_message = (
                     f"{self.ipt.name} processing failed: in {format_time(after - before)}"
@@ -188,8 +188,10 @@ class IpsoRunnable(QRunnable):
                 target_data_base=self.data_base,
             )
             if not res:
-                logger.error("Failed to process pipeline")
-                status_message = "Failed to process pipeline, cf. log"
+                logger.error(f"Failed to process pipeline on {wrapper.short_name}")
+                status_message = (
+                    f"Failed to process pipeline on {wrapper.short_name}, cf. log"
+                )
         except Exception as e:
             logger.exception("Unable to process pipeline")
             status_message = "Exception while processing pipeline, cf. log"

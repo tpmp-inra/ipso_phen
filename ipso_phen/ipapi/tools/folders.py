@@ -32,7 +32,7 @@ conf = {"folder_names": ["images", "input"]}
 
 def get_mass_storage_path():
     global g_storage_path
-    if not g_storage_path and is_winapi:
+    if not g_storage_path:
         if platform.system().lower() == "windows" and is_winapi and conf:
             for drive in win32api.GetLogicalDriveStrings().split("\000")[:-1]:
                 try:
@@ -44,11 +44,15 @@ def get_mass_storage_path():
                     pass
                 if g_storage_path:
                     break
-        elif platform.system().lower() == "linux" and conf:
-            for mnt in os.listdir("/mnt/"):
+        elif (platform.system().lower() == "linux" or platform.system().lower() == "darwin") and conf:
+            if platform.system().lower() == "darwin":
+                mount_point = "/Volumes/"
+            else:
+                mount_point = "/mnt/"
+            for mnt in os.listdir(mount_point):
                 for fld in conf["folder_names"]:
-                    if os.path.isdir(os.path.join("/", "mnt", mnt, fld, "")):
-                        g_storage_path = os.path.join("/", "mnt", mnt, fld, "")
+                    if os.path.isdir(os.path.join("/", mount_point, mnt, fld, "")):
+                        g_storage_path = os.path.join("/", mount_point, mnt, fld, "")
                         break
                 if g_storage_path:
                     break
