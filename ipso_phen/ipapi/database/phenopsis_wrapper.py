@@ -49,7 +49,7 @@ class PhenopsisDbWrapper(PandasDbWrapper):
         dataframe = super().check_dataframe(dataframe=dataframe)
         if "view_option" in dataframe:
             dataframe["wavelength"] = dataframe["view_option"]
-            dataframe["angle"] = "0"
+            dataframe["angle"] = "top"
             dataframe["height"] = "0"
             dataframe["job_id"] = "0"
         return dataframe
@@ -108,7 +108,11 @@ class PhenopsisDbWrapper(PandasDbWrapper):
     def get_exp_as_df(self, exp_name: str) -> pd.DataFrame:
         with LipmCalculConnect(target_ftp=False) as sftp:
             csv_path = (
-                PHENOPSIS_ROOT_FOLDER + "/" + "csv" + "/" + f"{exp_name.lower()}.dst.csv"
+                PHENOPSIS_ROOT_FOLDER
+                + "/"
+                + "csv"
+                + "/"
+                + f"{exp_name.lower()}.dst.csv"
             )
             try:
                 sftp.stat(csv_path)

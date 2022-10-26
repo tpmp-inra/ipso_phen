@@ -139,11 +139,11 @@ def force_directories(forced_path):
 
 
 def _atoi(text_):
-    return int(text_) if text_.isdigit() else text_
+    return int(text_) if text_.isdigit() else str(text_)
 
 
 def natural_keys(text_):
-    return [_atoi(c) for c in re.split(r"(\d+)", text_)]
+    return [_atoi(c) for c in re.split(r"(\d+)", str(text_))]
 
 
 def get_module_classes(

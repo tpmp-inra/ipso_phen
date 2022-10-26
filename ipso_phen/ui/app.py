@@ -1758,7 +1758,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
 
     def lock_settings(self) -> QSettings:
         if not hasattr(self, "_settings") or (self._settings is None):
-            self._settings = QSettings("LIPM_TPMP", "ipso_phennn")
+            self._settings = QSettings("LIPM_TPMP", "ipso_phen")
         self._settings_ref_count += 1
         return self._settings
 
@@ -2126,18 +2126,24 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                     k, settings_.value(k, v.get_path(force_creation=False))
                 )
 
+            def check_bool_str(key):
+                bs = settings_.value(key, "false")
+                return (
+                    bs.lower() == "true"
+                    if isinstance(bs, str)
+                    else bs
+                    if isinstance(bs, bool)
+                    else isinstance(bs, int) and bs != 0
+                )
+
             # Fill main menu
             self.ui.actionEnable_annotations.setChecked(
-                settings_.value("actionEnable_annotations", "false").lower() == "true"
+                check_bool_str("actionEnable_annotations")
             )
-            self.ui.actionEnable_log.setChecked(
-                settings_.value("actionEnable_log", "true").lower() == "true"
-            )
-            self.multithread = settings_.value("multithread", "true").lower() == "true"
+            self.ui.actionEnable_log.setChecked(check_bool_str("actionEnable_log"))
+            self.multithread = check_bool_str("multithread")
             self.ui.action_use_multithreading.setChecked(self.multithread)
-            self.use_pipeline_cache = (
-                settings_.value("use_pipeline_cache", "true").lower() == "true"
-            )
+            self.use_pipeline_cache = check_bool_str("use_pipeline_cache")
 
             # Retrieve last active database
             self.global_progress_update(
@@ -2233,50 +2239,41 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 force_update=True,
             )
             self.ui.chk_experiment.setChecked(
-                settings_.value(
-                    "checkbox_status/experiment_checkbox_state", "true"
-                ).lower()
-                == "true"
+                check_bool_str("checkbox_status/experiment_checkbox_state")
             )
             self.ui.chk_plant.setChecked(
-                settings_.value("checkbox_status/plant_checkbox_state", "true").lower()
-                == "true"
+                check_bool_str("checkbox_status/plant_checkbox_state")
             )
             self.ui.chk_date.setChecked(
-                settings_.value("checkbox_status/date_checkbox_state", "true").lower()
-                == "true"
+                check_bool_str("checkbox_status/date_checkbox_state")
             )
             self.ui.chk_camera.setChecked(
-                settings_.value("checkbox_status/camera_checkbox_state", "true").lower()
-                == "true"
+                check_bool_str("checkbox_status/camera_checkbox_state")
             )
             self.ui.chk_angle.setChecked(
-                settings_.value("checkbox_status/angle_checkbox_state", "true").lower()
-                == "true"
+                check_bool_str("checkbox_status/angle_checkbox_state")
             )
             self.ui.chk_wavelength.setChecked(
-                settings_.value(
-                    "checkbox_status/wavelength_checkbox_state", "true"
-                ).lower()
-                == "true"
+                check_bool_str("checkbox_status/wavelength_checkbox_state")
             )
             self.ui.chk_time.setChecked(
-                settings_.value("checkbox_status/time_checkbox_state", "true").lower()
-                == "true"
+                check_bool_str("checkbox_status/time_checkbox_state")
             )
 
             # Fill batch options
             self.ui.cb_batch_mode.setCurrentIndex(
                 int(
                     settings_.value(
-                        "batch_configuration/mode", self.ui.cb_batch_mode.currentIndex()
+                        "batch_configuration/mode",
+                        self.ui.cb_batch_mode.currentIndex(),
                     )
                 )
             )
             self.ui.sb_batch_count.setValue(
                 int(
                     settings_.value(
-                        "batch_configuration/skim_count", self.ui.sb_batch_count.value()
+                        "batch_configuration/skim_count",
+                        self.ui.sb_batch_count.value(),
                     )
                 )
             )
@@ -2314,26 +2311,19 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 )
             )
             self.ui.cb_pp_overwrite.setChecked(
-                settings_.value("pipeline_processor/overwrite", "true").lower()
-                == "true"
+                check_bool_str("pipeline_processor/overwrite")
             )
             self.ui.cb_pp_generate_series_id.setChecked(
-                settings_.value("pipeline_processor/generate_series_id", "true").lower()
-                == "true"
+                check_bool_str("pipeline_processor/generate_series_id")
             )
             self.ui.cb_pp_append_experience_name.setChecked(
-                settings_.value(
-                    "pipeline_processor/append_experience_name", "true"
-                ).lower()
-                == "true"
+                check_bool_str("pipeline_processor/append_experience_name")
             )
             self.ui.cb_pp_append_timestamp_to_output_folder.setChecked(
-                settings_.value("pipeline_processor/append_timestamp", "true").lower()
-                == "true"
+                check_bool_str("pipeline_processor/append_timestamp")
             )
             self.ui.cb_pp_save_mosaics.setChecked(
-                settings_.value("pipeline_processor/save_mosaics", "true").lower()
-                == "true"
+                check_bool_str("pipeline_processor/save_mosaics")
             )
             self.ui.sl_pp_thread_count.setValue(
                 int(
@@ -5235,7 +5225,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if "sw755" in opt_lst:
             opt_lst.remove("sw755")
             opt_lst.insert(0, "sw755")
-        self.ui.chk_angle.setText(f"View option ({len(opt_lst)}): ")
+        self.ui.chk_angle.setText(f"Angle ({len(opt_lst)}): ")
         self.ui.cb_angle.addItems(opt_lst)
         self.ui.cb_angle.setEnabled(self.ui.cb_angle.count() > 1)
         if self._updating_combo_boxes and self.ui.cb_angle.count() > 0:
@@ -5258,7 +5248,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
         if "sw755" in opt_lst:
             opt_lst.remove("sw755")
             opt_lst.insert(0, "sw755")
-        self.ui.chk_wavelength.setText(f"View option ({len(opt_lst)}): ")
+        self.ui.chk_wavelength.setText(f"Wavelength ({len(opt_lst)}): ")
         self.ui.cb_wavelength.addItems(opt_lst)
         self.ui.cb_wavelength.setEnabled(self.ui.cb_wavelength.count() > 1)
         if self._updating_combo_boxes and self.ui.cb_wavelength.count() > 0:
