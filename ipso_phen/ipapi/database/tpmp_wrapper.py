@@ -77,7 +77,8 @@ def get_image_data(filename) -> dict:
             f"SELECT {columns_str} FROM dbms_photo WHERE filename = '{filename}'"
         )
         data = {k: v for k, v in zip(columns_str, cur.fetchone())}
-    except:
+    except Excepton as e:
+        logger.error(repr(e))
         data = {k: None for k in columns_str}
     finally:
         conn.close()
@@ -116,7 +117,8 @@ def get_exp_as_df(exp_name: str) -> pd.DataFrame:
         df.date_time = pd.to_datetime(
             df.date_time, utc=True, infer_datetime_format=True
         )
-    except:
+    except Excepton as e:
+        logger.error("Error retrieving experiment data" + repr(e))
         return pd.DataFrame()
     else:
         df.columns = [

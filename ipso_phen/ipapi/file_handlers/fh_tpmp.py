@@ -24,7 +24,7 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 def get_remaining_space():
     total, _, free = shutil.disk_usage("/")
-    return total // (2 ** 30), free // (2 ** 30)
+    return total // (2**30), free // (2**30)
 
 
 class FileHandlerTpmp(FileHandlerBase):
@@ -123,7 +123,8 @@ class FileHandlerTpmp(FileHandlerBase):
                     self.load_source_file(filename=ret[0][0]),
                     cv2.COLOR_BGR2HSV,
                 )[:, :, 2]
-            except:
+            except Exception as e:
+                logger.exception(f"Failed to get channel {channel} because {repr(e)}")
                 return None
         else:
             return c

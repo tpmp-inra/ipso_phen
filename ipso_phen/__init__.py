@@ -28,7 +28,7 @@ try:
         logger.info(f"Closing IPSO Phen, ret = {ret}")
         sys.exit(ret)
 
-except:
-    logger = logging.getLogger("entry point")
+except Exception as e:
+    logger = logging.getLogger(f"entry point: {repr(e)}")
     logger.info("No UI available")
     sys.exit(-1)
