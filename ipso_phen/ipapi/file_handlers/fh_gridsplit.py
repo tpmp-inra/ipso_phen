@@ -18,7 +18,8 @@ class FileHandlerGridSplit(FileHandlerBase):
                 self._date_time = dt.fromtimestamp(
                     os.path.getmtime(self.file_path)
                 ).replace(microsecond=0)
-            except:
+            except Excepton as e:
+                logger.error("Feile handler grid split: " + repr(e))
                 self._date_time = dt.now().replace(microsecond=0)
 
         self.update(**kwargs)
