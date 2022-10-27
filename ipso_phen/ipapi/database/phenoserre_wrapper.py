@@ -109,6 +109,9 @@ def _split_camera_label(cam_label: str) -> tuple:
 
 def _query_phenoserre(query: str) -> pd.DataFrame:
     u, p = get_user_and_password("old_phenoserre_db")
+    if u is None or p is None:
+        logger.warning("Missing connection data for server")
+        return pd.DataFrame()
     try:
         conn = psycopg2.connect(
             host="lipm-data.toulouse.inra.fr",
@@ -117,8 +120,9 @@ def _query_phenoserre(query: str) -> pd.DataFrame:
             password=p,
             port=5434,
         )
-    except:
-        print("I am unable to connect to the database")
+    except Exception as e:
+        logger.error(f"Unable to query Phenoserre: {repr(e)}")
+        return pd.DataFrame()
 
     df = pd.read_sql_query(query, conn)
 

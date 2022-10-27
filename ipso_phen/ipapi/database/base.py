@@ -31,6 +31,9 @@ class LipmCalculConnect:
         self.release_connexion()
 
     def get_connexion(self):
+        if self._user is None or self._password is None:
+            logger.warning("Missing connection data for server")
+            return None
         try:
             self._transport: paramiko.Transport = paramiko.Transport(
                 ("lipm-calcul.toulouse.inra.fr", 22)

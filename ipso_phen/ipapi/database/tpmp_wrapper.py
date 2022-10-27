@@ -14,13 +14,22 @@ logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
 
 def get_db_connexion():
     u, p = get_user_and_password("tpmp")
-    return psycopg2.connect(
-        host="lipm-data.toulouse.inra.fr",
-        database="TPMP",
-        user=u,
-        password=p,
-        port=5434,
-    )
+    if u is None or p is None:
+        logger.warning("Missing connection data for server")
+        return None
+    conn = None
+    try:
+        conn = psycopg2.connect(
+            host="lipm-data.toulouse.inra.fr",
+            database="TPMP",
+            user=u,
+            password=p,
+            port=5434,
+        )
+    except Exception as e:
+        logger.error(f"Unable to connect to  TPMP: {repr(e)}")
+
+    return conn
 
 
 def _query_tpmp(query: str) -> pd.DataFrame:
@@ -38,7 +47,8 @@ def get_tpmp_exp_list() -> list:
         return []
     try:
         exp_list = [
-            i[0] for i in sorted(_query_tpmp("select distinct name from dbms_experiment"))
+            i[0]
+            for i in sorted(_query_tpmp("select distinct name from dbms_experiment"))
         ]
     except Exception as e:
         logger.error(f"Unable to connect to Phenoserre: {repr(e)}")
@@ -63,7 +73,9 @@ def get_image_data(filename) -> dict:
     columns_str = ",".join(columns)
     try:
         cur = conn.cursor()
-        cur.execute(f"SELECT {columns_str} FROM dbms_photo WHERE filename = '{filename}'")
+        cur.execute(
+            f"SELECT {columns_str} FROM dbms_photo WHERE filename = '{filename}'"
+        )
         data = {k: v for k, v in zip(columns_str, cur.fetchone())}
     except:
         data = {k: None for k in columns_str}
@@ -101,7 +113,9 @@ def get_exp_as_df(exp_name: str) -> pd.DataFrame:
             """,
             conn,
         )
-        df.date_time = pd.to_datetime(df.date_time, utc=True, infer_datetime_format=True)
+        df.date_time = pd.to_datetime(
+            df.date_time, utc=True, infer_datetime_format=True
+        )
     except:
         return pd.DataFrame()
     else:

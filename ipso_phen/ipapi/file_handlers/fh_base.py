@@ -65,6 +65,9 @@ class FileHandlerBase(ABC):
         if os.path.isfile(self.cache_file_path):
             logger.debug(f"Retrieved from cache: {str(self)}")
             return self.load_from_harddrive(self.cache_file_path)
+        if sftp is None:
+            logger.error("Unable to connect to SFTP")
+            return None
         src_img = None
         try:
             logger.info(f"Downloading {self.name}, please wait...")
@@ -572,7 +575,9 @@ class FileHandlerBase(ABC):
 
     @property
     def channels_data(self):
-        return [ipc.build_channel_data(k, v) for k, v in self.available_channels.items()]
+        return [
+            ipc.build_channel_data(k, v) for k, v in self.available_channels.items()
+        ]
 
     @property
     def linked_images(self):
