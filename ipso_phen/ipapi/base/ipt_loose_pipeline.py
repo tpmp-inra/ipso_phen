@@ -605,7 +605,6 @@ class ModuleNode(Node):
 
 
 class GroupNode(Node):
-
     default_execution_filters = {
         k: ""
         for k in [
@@ -1455,7 +1454,8 @@ class LoosePipeline(object):
         # Execute pipeline
         self.root.execute(**kwargs)
 
-        if kwargs.get("save_mosaic", False):
+        if False and kwargs.get("save_mosaic", False) is True:
+            print("saving mosaic")
             mf = os.path.join(self.image_output_path, "mosaics", "")
             force_directories(mf)
             cv2.imwrite(

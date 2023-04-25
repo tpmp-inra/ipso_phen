@@ -28,7 +28,7 @@ IS_USE_MULTI_THREAD = True
 
 def log_and_print(msg: str):
     logger.info(msg)
-    # print(msg)
+    print(msg)
 
 
 def restore_state(blob: Union[str, dict, None], overrides: dict = {}) -> dict:
@@ -212,6 +212,7 @@ def launch(**kwargs):
         group_by_series=res["generate_series_id"],
         store_images=res["series_id_time_delta"],
         save_mosaics=res["save_mosaics"] is True,
+        write_mosaic=res["save_mosaics"] is True,
     )
     pp.options.write_mosaic = True
     if not image_list_:
@@ -272,7 +273,9 @@ def launch(**kwargs):
             else:
                 wrappers = [
                     file_handler_factory(f, db)
-                    for f in tqdm.tqdm(groups_to_process, desc="Building annotation CSV")
+                    for f in tqdm.tqdm(
+                        groups_to_process, desc="Building annotation CSV"
+                    )
                 ]
             pd.DataFrame.from_dict(
                 {
