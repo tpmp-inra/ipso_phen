@@ -10,7 +10,7 @@ sys.path.insert(0, os.getcwd())
 from ipso_phen.ipapi.tools.folders import ipso_folders
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,
     format="[%(asctime)s - %(name)s - %(levelname)s] - %(message)s",
 )
 
