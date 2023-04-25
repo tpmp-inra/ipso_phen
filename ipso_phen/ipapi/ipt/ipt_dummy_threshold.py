@@ -37,10 +37,7 @@ class IptDummyThreshold(IptBase):
 
                 if np.sum(self.result[self.result != 255]) != 0:
                     self.result, _ = wrapper.get_mask(
-                        self.result,
-                        channel="l",
-                        min_t=80,
-                        max_t=180,
+                        self.result, channel="l", min_t=0, max_t=255
                     )
 
                 res = True

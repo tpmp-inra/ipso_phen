@@ -553,7 +553,9 @@ class QImageDrawerDelegate(QItemDelegate):
         last_access = dt.now()
 
         with OrmAnnotationsDbWrapper(experiment) as session_:
-            ann_ = session_.query(OrmAnnotation).filter(OrmAnnotation.idk == luid).first()
+            ann_ = (
+                session_.query(OrmAnnotation).filter(OrmAnnotation.idk == luid).first()
+            )
             if ann_ is not None:
                 if not text and not auto_text:
                     session_.delete(ann_)
@@ -676,7 +678,9 @@ class PipelineDelegate(QStyledItemDelegate):
                     cb_source.addItem(nd.name, nd.uuid)
             gl_main_options.addWidget(cb_source, 1, 1, 1, 1)
 
-            gl_main_options.addWidget(QLabel("Merge mode: ", gb_main_options), 2, 0, 1, 1)
+            gl_main_options.addWidget(
+                QLabel("Merge mode: ", gb_main_options), 2, 0, 1, 1
+            )
             cb_merge_mode = QComboBox(gb_main_options)
             cb_merge_mode.setObjectName("cb_merge_mode")
             for merge_mode in [
@@ -1043,9 +1047,7 @@ class TreeModel(QAbstractItemModel):
 
     def parent(self, index):
         node = self.get_item(index)
-        if not hasattr(node, "parent"):
-            raise ValueError()
-        elif node.parent is None:
+        if not hasattr(node, "parent") or node.parent is None:
             return QModelIndex()
         else:
             return self.createIndex(node.parent.row, 0, node.parent)
@@ -1172,7 +1174,9 @@ class PipelineModel(TreeModel):
                     source = nd.source if src_group is None else src_group.name
                     in_t = ipc.io_type_to_str(nd.input_type)
                     out = ipc.io_type_to_str(nd.output_type)
-                    return f"{nd.name}, src: {source}, merge: {merge} - ({in_t} -> {out})"
+                    return (
+                        f"{nd.name}, src: {source}, merge: {merge} - ({in_t} -> {out})"
+                    )
                 elif isinstance(nd, ModuleNode):
                     in_t = ipc.io_type_to_str(nd.input_type)
                     out = ipc.io_type_to_str(nd.output_type)
@@ -1479,7 +1483,9 @@ class MosaicModel(QPandasModel):
         if column_count > self.columnCount():
             self.insertColumns(self.columnCount(), column_count - self.columnCount())
         elif column_count < self.columnCount():
-            self.removeColumns(self.columnCount() - 1, self.columnCount() - column_count)
+            self.removeColumns(
+                self.columnCount() - 1, self.columnCount() - column_count
+            )
         else:
             pass
 
