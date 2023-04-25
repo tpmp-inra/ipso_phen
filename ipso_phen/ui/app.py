@@ -1376,7 +1376,7 @@ class IpsoMainForm(QtWidgets.QMainWindow):
             else:
                 model = self.get_image_model()
                 old_row_count = model.rowCount()
-                model.images = model.images.append(dataframe)
+                model.images = pd.concat([model.images, dataframe])
                 new_row_count = model.rowCount()
                 self.update_images_queue()
                 logger.info(
@@ -4167,16 +4167,17 @@ class IpsoMainForm(QtWidgets.QMainWindow):
                 return False
 
             if not text:
-                if index >= 0:
-                    text = make_safe_name(
-                        f'{image_data["plant_name"]}_{str(index)}_{image_data["name"]}'
-                    )
-                else:
-                    text = make_safe_name(
-                        f'{image_data["plant_name"]}_{image_data["name"]}'
-                    )
-                if add_time_stamp:
-                    text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
+                text = image_data["luid"].split(".")[0]
+                # if index >= 0:
+                #     text = make_safe_name(
+                #         f'{image_data["plant_name"]}_{str(index)}_{image_data["name"]}'
+                #     )
+                # else:
+                #     text = make_safe_name(
+                #         f'{image_data["plant_name"]}_{image_data["name"]}'
+                #     )
+                # if add_time_stamp:
+                #     text = text + "_" + dt.now().strftime("%Y%m%d_%H%M%S")
 
             if not image_path:
                 img_fld = ipso_folders.get_path("image_output")

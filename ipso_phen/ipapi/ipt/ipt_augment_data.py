@@ -134,7 +134,9 @@ class IptAugmentData(IptBaseAnalyzer):
                 self.add_value(key="source_name", value=wrapper.name, force_add=True)
                 for gamma_value in gsl:
                     self.save_image(
-                        image=src_img, gamma=float(gamma_value), path=self.output_path
+                        image=src_img,
+                        gamma=float(gamma_value),
+                        path=self.output_path,
                     )
                 res = True
             else:

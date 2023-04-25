@@ -65,7 +65,7 @@ class IptHoughCircles(IptBase):
             desc="Minimal radius to consider",
             default_value=400,
             minimum=0,
-            maximum=2000,
+            maximum=10000,
             hint="All circles smaller than this will be ignored",
         )
         self.add_spin_box(
@@ -73,7 +73,7 @@ class IptHoughCircles(IptBase):
             desc="Maximal radius to consider",
             default_value=1000,
             minimum=0,
-            maximum=2000,
+            maximum=10000,
             hint="All circles bigger than this will be ignored",
         )
         self.add_spin_box(
@@ -81,7 +81,7 @@ class IptHoughCircles(IptBase):
             desc="Annulus secondary radius delta",
             default_value=0,
             minimum=0,
-            maximum=2000,
+            maximum=10000,
             hint="Annulus size, 0 means full disc",
         )
         self.add_spin_box(
@@ -158,6 +158,7 @@ class IptHoughCircles(IptBase):
         )
         self.add_checkbox(name="edge_only", desc="Edge detection only", default_value=0)
         self.add_edge_detector()
+        self.add_morphology_operator()
         self.add_text_overlay()
 
     def process_wrapper(self, **kwargs):
@@ -287,9 +288,9 @@ class IptHoughCircles(IptBase):
                 ):
                     if not res:
                         return
-                    edges = ed.result
+                    edges = self.apply_morphology_from_params(ed.result)
                     if edge_only is True:
-                        self.result = ed.result
+                        self.result = edges
                         self.demo_image = self.result
                         return True
 
@@ -357,7 +358,8 @@ class IptHoughCircles(IptBase):
                         (cur_dist < min_dist)
                         and (cur_dist < max_dist_to_root)
                         and (
-                            (cur_dist / min_dist > min_accu / c_accu) or (min_accu == -1)
+                            (cur_dist / min_dist > min_accu / c_accu)
+                            or (min_accu == -1)
                         )
                     ):
                         min_dist = cur_dist
@@ -432,7 +434,7 @@ class IptHoughCircles(IptBase):
 
     def generate_roi(self, **kwargs):
         wrapper = self.init_wrapper(**kwargs)
-        if wrapper is None:
+        if wrapper is None or self.result is None:
             return None
         if self.process_wrapper(**kwargs):
             roi_shape = self.get_value_of("roi_shape")

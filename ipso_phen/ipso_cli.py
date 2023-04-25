@@ -57,13 +57,13 @@ def run_cli():
         """,
         allow_abbrev=False,
     )
-    parser.add_argument(
-        "--stored-state",
-        default=None,
-        required=False,
-        help="Path to the stored state built with IPSO Phen",
-        dest="stored_state",
-    )
+    # parser.add_argument(
+    #     "--stored-state",
+    #     default=None,
+    #     required=False,
+    #     help="Path to the stored state built with IPSO Phen",
+    #     dest="stored_state",
+    # )
     parser.add_argument(
         "--script",
         required=False,

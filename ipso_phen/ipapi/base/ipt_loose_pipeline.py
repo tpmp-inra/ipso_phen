@@ -396,14 +396,17 @@ class ModuleNode(Node):
                 res["image"] = tool.demo_image
             elif self.output_type == ipc.IO_ROI:
                 res["image"] = wrapper.draw_rois(
-                    img=wrapper.current_image, rois=[res["roi"]]
+                    img=wrapper.current_image,
+                    rois=[res["roi"]] if "roi" in res else [],
                 )
             elif self.output_type == ipc.IO_DATA:
                 if tool.demo_image is not None:
                     res["image"] = tool.demo_image
                 else:
                     res["image"] = wrapper.current_image
-            elif self.output_type == ipc.IO_IMAGE and isinstance(tool.result, np.ndarray):
+            elif self.output_type == ipc.IO_IMAGE and isinstance(
+                tool.result, np.ndarray
+            ):
                 res["image"] = tool.result
             # Get demo image
             if tool.demo_image is not None:
@@ -593,7 +596,9 @@ class ModuleNode(Node):
         sn = self.sugar_name()
         nodes = [
             node
-            for node in self.root.as_pivot_list(index=self, types=("modules",))["before"]
+            for node in self.root.as_pivot_list(index=self, types=("modules",))[
+                "before"
+            ]
             if node.sugar_name() == sn
         ]
         return sn if len(nodes) == 0 else f"{sn} ({len(nodes)})"
@@ -1193,7 +1198,9 @@ class GroupNode(Node):
     def matches_filters(self):
         wrapper = self.root.parent.wrapper
         for k, v in self.execute_filters.items():
-            current_filter = [filter_ for filter_ in IptParam.decode_string(v) if filter_]
+            current_filter = [
+                filter_ for filter_ in IptParam.decode_string(v) if filter_
+            ]
             if not current_filter:
                 continue
             if not hasattr(wrapper, k) or getattr(wrapper, k) not in current_filter:
@@ -1461,7 +1468,9 @@ class LoosePipeline(object):
 
         # Update data with forced key value pairs
         for k, v in additional_data.items():
-            self.wrapper.csv_data_holder.update_csv_value(key=k, value=v, force_pair=True)
+            self.wrapper.csv_data_holder.update_csv_value(
+                key=k, value=v, force_pair=True
+            )
 
         if write_data is True:
             try:
