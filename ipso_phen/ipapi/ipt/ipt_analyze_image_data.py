@@ -59,9 +59,9 @@ class IptAnalyzeImageData(IptBaseAnalyzer):
                 if self.get_value_of("is_perceived_brightness_data", 0) == 1:
                     b, g, r = cv2.split(img)
                     s = np.sqrt(
-                        0.241 * np.power(r.astype(np.float), 2)
-                        + 0.691 * np.power(g.astype(np.float), 2)
-                        + 0.068 * np.power(b.astype(np.float), 2)
+                        0.241 * np.power(r.astype(float), 2)
+                        + 0.691 * np.power(g.astype(float), 2)
+                        + 0.068 * np.power(b.astype(float), 2)
                     )
                     for k, v in {
                         "cl_bright_mean": s.mean(),

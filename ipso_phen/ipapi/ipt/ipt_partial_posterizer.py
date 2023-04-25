@@ -121,8 +121,8 @@ class IptPartialPosterizer(IptBase):
                             (b > r).astype(np.uint8), (b > g).astype(np.uint8)
                         )
                         where_percent = np.divide(
-                            b.astype(np.float),
-                            b.astype(np.float) + g.astype(np.float) + r.astype(np.float),
+                            b.astype(float),
+                            b.astype(float) + g.astype(float) + r.astype(float),
                         )
                         where_percent[
                             (where_percent == np.inf) | np.isnan(where_percent)
@@ -143,8 +143,8 @@ class IptPartialPosterizer(IptBase):
                             (g > r).astype(np.uint8), (g > b).astype(np.uint8)
                         )
                         where_percent = np.divide(
-                            g.astype(np.float),
-                            b.astype(np.float) + g.astype(np.float) + r.astype(np.float),
+                            g.astype(float),
+                            b.astype(float) + g.astype(float) + r.astype(float),
                         )
                         where_percent[
                             (where_percent == np.inf) | np.isnan(where_percent)
@@ -165,8 +165,8 @@ class IptPartialPosterizer(IptBase):
                             (r > b).astype(np.uint8), (r > g).astype(np.uint8)
                         )
                         where_percent = np.divide(
-                            b.astype(np.float),
-                            r.astype(np.float) + g.astype(np.float) + r.astype(np.float),
+                            b.astype(float),
+                            r.astype(float) + g.astype(float) + r.astype(float),
                         )
                         where_percent[
                             (where_percent == np.inf) | np.isnan(where_percent)

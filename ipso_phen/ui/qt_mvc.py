@@ -864,7 +864,7 @@ class QPandasModel(QAbstractTableModel):
                 val = int(value)
             except ValueError:
                 return False
-        elif dt in [np.float64, np.float32, np.float16]:
+        elif dt in [float64, float32, float16]:
             try:
                 val = float(value)
             except ValueError:

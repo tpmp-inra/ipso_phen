@@ -76,9 +76,9 @@ class IptTemperatureTint(IptBase):
                 temperature_adjustment = self.get_value_of("temperature_adjustment")
                 tint_adjustment = self.get_value_of("tint_adjustment")
 
-                b = b.astype(np.float) - temperature_adjustment
-                g = g.astype(np.float) + tint_adjustment
-                r = r.astype(np.float) + temperature_adjustment
+                b = b.astype(float) - temperature_adjustment
+                g = g.astype(float) + tint_adjustment
+                r = r.astype(float) + temperature_adjustment
 
                 clip_method = self.get_value_of("clip_method")
 
@@ -99,7 +99,9 @@ class IptTemperatureTint(IptBase):
                     return
 
                 if self.get_value_of("show_over_under") == 1:
-                    mask_over = cv2.inRange(self.result, (255, 255, 255), (255, 255, 255))
+                    mask_over = cv2.inRange(
+                        self.result, (255, 255, 255), (255, 255, 255)
+                    )
                     mask_under = cv2.inRange(self.result, (0, 0, 0), (0, 0, 0))
                     self.result[mask_over > 0] = C_FUCHSIA
                     self.result[mask_under > 0] = C_ORANGE

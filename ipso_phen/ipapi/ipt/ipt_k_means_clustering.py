@@ -64,7 +64,9 @@ class IptKMeansClustering(IptBase):
             This compactness is returned as output.""",
         )
         self.add_roi_selector()
-        self.add_checkbox(name="normalize", desc="Normalize histograms", default_value=0)
+        self.add_checkbox(
+            name="normalize", desc="Normalize histograms", default_value=0
+        )
 
     def process_wrapper(self, **kwargs):
         """
@@ -122,8 +124,8 @@ class IptKMeansClustering(IptBase):
 
             flt_img = img.reshape((-1, 3))
 
-            # convert to np.float32
-            flt_img = np.float32(flt_img)
+            # convert to float32
+            flt_img = float32(flt_img)
 
             # define criteria, number of clusters(K) and apply kmeans()
             stop_criteria = self.get_value_of("stop_crit")

@@ -270,7 +270,10 @@ class BaseImageProcessor(ImageWrapper):
         contour_thickness = kwargs.get("contour_thickness", 0)
         hull_thickness = kwargs.get("hull_thickness", 0)
         bounding_rec_thickness = kwargs.get("bounding_rec_thickness", 0)
-        straight_bounding_rec_thickness = kwargs.get("straight_bounding_rec_thickness", 0)
+        straight_bounding_rec_thickness = kwargs.get(
+            "straight_bounding_rec_thickness",
+            0,
+        )
         enclosing_circle_thickness = kwargs.get("enclosing_circle_thickness", 0)
         centroid_width = kwargs.get("centroid_width", 0)
         centroid_line_width = kwargs.get("centroid_line_width", 4)
@@ -716,7 +719,9 @@ class BaseImageProcessor(ImageWrapper):
         return None
 
     def print_mosaic(self, padding: 2):
-        if (self.store_mosaic.lower() != "none") or (self.write_mosaic.lower() != "none"):
+        if (self.store_mosaic.lower() != "none") or (
+            self.write_mosaic.lower() != "none"
+        ):
             if self._mosaic_data is None:
                 if self.store_mosaic.lower() == "debug":
                     self._mosaic_data = np.array(
@@ -799,9 +804,9 @@ class BaseImageProcessor(ImageWrapper):
             c = r * 0.299 + g * 0.587 + b * 0.114
         elif mode == "p2":
             c = np.sqrt(
-                0.241 * np.power(r.astype(np.float), 2)
-                + 0.691 * np.power(g.astype(np.float), 2)
-                + 0.068 * np.power(b.astype(np.float), 2)
+                0.241 * np.power(r.astype(float), 2)
+                + 0.691 * np.power(g.astype(float), 2)
+                + 0.068 * np.power(b.astype(float), 2)
             )
         else:
             logger.error("Unknown average calculation mode")
@@ -1544,7 +1549,14 @@ class BaseImageProcessor(ImageWrapper):
                 scaled_area=cv2.contourArea(hull) * math.pow(dist_scaled_inverted, 2),
             )
         else:
-            res_ = dict(dist=0, cx=0, cy=0, dist_scaled_inverted=0, area=0, scaled_area=0)
+            res_ = dict(
+                dist=0,
+                cx=0,
+                cy=0,
+                dist_scaled_inverted=0,
+                area=0,
+                scaled_area=0,
+            )
         return res_
 
     @staticmethod
@@ -1612,7 +1624,8 @@ class BaseImageProcessor(ImageWrapper):
             if ok_size and ok_dist:
                 return KLC_OK_TOLERANCE
             elif (
-                area_override_size > 0 and cv2.contourArea(test_cnt) > area_override_size
+                area_override_size > 0
+                and cv2.contourArea(test_cnt) > area_override_size
             ):
                 return KLC_BIG_ENOUGH_TO_IGNORE_DISTANCE
             elif not ok_size and not ok_dist:
@@ -1738,7 +1751,7 @@ class BaseImageProcessor(ImageWrapper):
             if root_position == "MIDDLE_CENTER":
                 dist_max = roi.radius
             else:
-                dist_max = math.sqrt(roi.width ** 2 + roi.height ** 2)
+                dist_max = math.sqrt(roi.width**2 + roi.height**2)
 
             hull_img = src_image.copy()
             max_area = 0
@@ -1917,7 +1930,7 @@ class BaseImageProcessor(ImageWrapper):
             if root_position == "MIDDLE_CENTER":
                 dist_max = roi.radius
             else:
-                dist_max = math.sqrt(roi.width ** 2 + roi.height ** 2)
+                dist_max = math.sqrt(roi.width**2 + roi.height**2)
 
             hull_img = src_image.copy()
             max_area = 0
@@ -2637,7 +2650,9 @@ class BaseImageProcessor(ImageWrapper):
                 )
 
             # Build dict
-            res = dict(mask=mask, channel=channel, desc=self._params_to_string(**params))
+            res = dict(
+                mask=mask, channel=channel, desc=self._params_to_string(**params)
+            )
 
             # Store image if needed
             if is_store_images:
@@ -2952,13 +2967,19 @@ class BaseImageProcessor(ImageWrapper):
 
         # Apply CLAHE
         if clip_limit[0] >= 0:
-            clahe = cv2.createCLAHE(clipLimit=clip_limit[0], tileGridSize=tile_grid_size)
+            clahe = cv2.createCLAHE(
+                clipLimit=clip_limit[0], tileGridSize=tile_grid_size
+            )
             c1 = clahe.apply(c1)
         if clip_limit[1] >= 0:
-            clahe = cv2.createCLAHE(clipLimit=clip_limit[1], tileGridSize=tile_grid_size)
+            clahe = cv2.createCLAHE(
+                clipLimit=clip_limit[1], tileGridSize=tile_grid_size
+            )
             c2 = clahe.apply(c2)
         if clip_limit[1] >= 0:
-            clahe = cv2.createCLAHE(clipLimit=clip_limit[2], tileGridSize=tile_grid_size)
+            clahe = cv2.createCLAHE(
+                clipLimit=clip_limit[2], tileGridSize=tile_grid_size
+            )
             c3 = clahe.apply(c3)
 
         # Merge channels
@@ -3138,7 +3159,9 @@ class BaseImageProcessor(ImageWrapper):
         )
         if channel:
             dbg_str = ipc.get_hr_channel_name(channel)
-            c = self.get_channel(src_img, channel, "", [], normalize, median_filter_size)
+            c = self.get_channel(
+                src_img, channel, "", [], normalize, median_filter_size
+            )
         else:
             dbg_str = "source"
             if len(src_img.shape) == 2 or (
@@ -3184,7 +3207,9 @@ class BaseImageProcessor(ImageWrapper):
             msk_data = ipc.MaskData(mask=c)
             for l in msk_data.lines_data:
                 if (l.solidity >= 0.99) and (l.nz_span >= msk_data.mask_width - 4):
-                    ld_up, ld_down = msk_data.find_top_bottom_non_full_lines(l.height_pos)
+                    ld_up, ld_down = msk_data.find_top_bottom_non_full_lines(
+                        l.height_pos
+                    )
                     l.merge_or(ld_up, ld_down)
                     all_lines.append([(l.height_pos, 0, msk_data.mask_width)])
                     c[l.height_pos] = 0
@@ -3443,7 +3468,9 @@ class BaseImageProcessor(ImageWrapper):
         def parse_line(a_line, a_line_idx, a_cnv):
             for c, column in enumerate(a_line):
                 if isinstance(column, str):
-                    src_img = images_dict.get(column, self.retrieve_stored_image(column))
+                    src_img = images_dict.get(
+                        column, self.retrieve_stored_image(column)
+                    )
                 else:
                     src_img = column
                 if src_img is None:
@@ -3761,7 +3788,9 @@ class BaseImageProcessor(ImageWrapper):
         for roi in roi_list:
             self.add_roi(roi)
 
-    def add_circle_roi(self, left, top, radius, name, tag="", color=None) -> CircleRegion:
+    def add_circle_roi(
+        self, left, top, radius, name, tag="", color=None
+    ) -> CircleRegion:
         """Add Circle of Interest to list
 
         Arguments:

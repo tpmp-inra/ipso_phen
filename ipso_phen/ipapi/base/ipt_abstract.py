@@ -775,7 +775,9 @@ class IptParamHolder(object):
         fld = self.output_path
         subfolders = self.get_value_of(f"{file_prefix}subfolders")
         if subfolders:
-            fld = os.path.join(fld, *[make_safe_name(sf) for sf in subfolders.split(",")])
+            fld = os.path.join(
+                fld, *[make_safe_name(sf) for sf in subfolders.split(",")]
+            )
 
         return fld
 
@@ -1097,7 +1099,9 @@ class IptParamHolder(object):
             maximum=255,
             hint="Threshold for kernel based operators",
         )
-        self.add_checkbox(name="apply_threshold", desc="Apply threshold", default_value=1)
+        self.add_checkbox(
+            name="apply_threshold", desc="Apply threshold", default_value=1
+        )
 
     def add_binary_threshold(self, add_morphology: bool = True):
         self.add_spin_box(
@@ -1401,7 +1405,9 @@ class IptParamHolder(object):
                 k: n for k, n in wrapper.file_handler.available_channels.items()
             }
         if "hint_channels_select" in param_names_list and wrapper is not None:
-            channels = ",".join([k for k in wrapper.file_handler.available_channels.keys])
+            channels = ",".join(
+                [k for k in wrapper.file_handler.available_channels.keys]
+            )
             update_values["hint"] = f"Available channels: {channels}"
 
         channels = update_values.get("channels", None)
@@ -1687,7 +1693,7 @@ class IptBase(IptParamHolder, ABC):
             or (str(img.dtype) == "int32")
             or (str(img.dtype) == "uint8")
         ):
-            return ((img - img.min()) / (img.max() - img.min()) * 1).astype(np.float)
+            return ((img - img.min()) / (img.max() - img.min()) * 1).astype(float)
         else:
             logger.error(f"Unknown source format {str(img.type)}")
 
@@ -1837,7 +1843,10 @@ class IptBase(IptParamHolder, ABC):
         func = getattr(self._wrapper, morph_op, None)
         if func:
             return func(
-                mask, kernel_size=kernel_size, proc_times=iter_count, kernel_shape=k_shape
+                mask,
+                kernel_size=kernel_size,
+                proc_times=iter_count,
+                kernel_shape=k_shape,
             )
         else:
             return mask
@@ -2025,15 +2034,23 @@ class IptBase(IptParamHolder, ABC):
     def code_imports(self, **kwargs):
         ret = [f"from {self.__module__} import {type(self).__name__}"]
         if kwargs.get("build_wrapper", "yes") is not False:
-            ret.append("from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor")
+            ret.append(
+                "from ipso_phen.ipapi.base.ip_abstract import BaseImageProcessor"
+            )
         return ret
 
     def code_apply_roi(self, print_result=None, white_spaces=""):
         ws = "".join(
-            [" " for _ in range(0, len(f"{white_spaces}ipt_res = ipt.process_wrapper("))]
+            [
+                " "
+                for _ in range(0, len(f"{white_spaces}ipt_res = ipt.process_wrapper("))
+            ]
         )
         params_ = f",\n{ws}".join(
-            [f"{p.name}={p.str_value}" for p in self.input_params(exclude_defaults=True)]
+            [
+                f"{p.name}={p.str_value}"
+                for p in self.input_params(exclude_defaults=True)
+            ]
         )
         code_ = f'{white_spaces}if wrapper is None:\n{white_spaces}    raise RuntimeError("Missing wrapper")\n'
 
@@ -2059,7 +2076,10 @@ class IptBase(IptParamHolder, ABC):
         wrapper_ = "{file}"
         if use_with_clause:
             ws = "".join(
-                [" " for _ in range(0, len(f"{white_spaces}with {type(self).__name__}("))]
+                [
+                    " "
+                    for _ in range(0, len(f"{white_spaces}with {type(self).__name__}("))
+                ]
             )
         else:
             ws = "".join(
@@ -2071,7 +2091,10 @@ class IptBase(IptParamHolder, ABC):
                 ]
             )
         params_ = f",\n{ws}".join(
-            [f"{p.name}={p.str_value}" for p in self.input_params(exclude_defaults=True)]
+            [
+                f"{p.name}={p.str_value}"
+                for p in self.input_params(exclude_defaults=True)
+            ]
         )
         if use_with_clause or (build_wrapper is False):
             if build_wrapper is False:

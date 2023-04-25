@@ -182,29 +182,27 @@ class IptThresholdDistance(IptBase):
             if distance_method == "l1":
                 dist_map = np.zeros_like(channels[0])
                 for c, p in zip(channels, p0):
-                    dist_map = np.add(
-                        dist_map, np.abs(np.subtract(c.astype(np.float), p))
-                    )
+                    dist_map = np.add(dist_map, np.abs(np.subtract(c.astype(float), p)))
             elif distance_method == "l2":
                 dist_map = np.zeros_like(channels[0])
                 for c, p in zip(channels, p0):
                     dist_map = np.add(
-                        dist_map, np.power(np.subtract(c.astype(np.float), p), 2)
+                        dist_map, np.power(np.subtract(c.astype(float), p), 2)
                     )
                 dist_map = np.sqrt(dist_map)
             elif distance_method == "chebyshev":
-                dist_map = np.abs(np.subtract(channels[0].astype(np.float), p0[0]))
+                dist_map = np.abs(np.subtract(channels[0].astype(float), p0[0]))
                 if len(channels) > 1:
                     for c, p in zip(channels[1:], p0[1:]):
                         dist_map = np.maximum(
-                            dist_map, np.abs(np.subtract(c.astype(np.float), p))
+                            dist_map, np.abs(np.subtract(c.astype(float), p))
                         )
             elif distance_method == "inv_chebyshev":
-                dist_map = np.abs(np.subtract(channels[0].astype(np.float), p0[0]))
+                dist_map = np.abs(np.subtract(channels[0].astype(float), p0[0]))
                 if len(channels) > 1:
                     for c, p in zip(channels[1:], p0[1:]):
                         dist_map = np.minimum(
-                            dist_map, np.abs(np.subtract(c.astype(np.float), p))
+                            dist_map, np.abs(np.subtract(c.astype(float), p))
                         )
             elif distance_method == "canberra":
                 dist_map = np.zeros_like(channels[0])
@@ -212,19 +210,19 @@ class IptThresholdDistance(IptBase):
                     dist_map = np.add(
                         dist_map,
                         np.divide(
-                            np.abs(np.subtract(c.astype(np.float), p)),
-                            np.add(c.astype(np.float), p),
+                            np.abs(np.subtract(c.astype(float), p)),
+                            np.add(c.astype(float), p),
                         ),
                     )
             elif distance_method == "delta_plus":
                 dist_map = np.zeros_like(channels[0])
                 for c, p in zip(channels, p0):
-                    dist_map = np.add(dist_map, np.subtract(c.astype(np.float), p))
+                    dist_map = np.add(dist_map, np.subtract(c.astype(float), p))
                 dist_map[dist_map < 0] = 0
             elif distance_method == "delta_minus":
                 dist_map = np.zeros_like(channels[0])
                 for c, p in zip(channels, p0):
-                    dist_map = np.add(dist_map, np.subtract(c.astype(np.float), p))
+                    dist_map = np.add(dist_map, np.subtract(c.astype(float), p))
                 dist_map[dist_map > 0] = 0
             else:
                 logger.error("Unknown distance calculation method")

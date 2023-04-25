@@ -119,8 +119,8 @@ class IptGrabCut(IptBase):
             wrapper.store_image(dbg_img, "grabcut_initialized_mask")
 
             # Initialize the other ones
-            bgd_model = np.zeros((1, 65), np.float64)
-            fgd_model = np.zeros((1, 65), np.float64)
+            bgd_model = np.zeros((1, 65), float64)
+            fgd_model = np.zeros((1, 65), float64)
 
             # Grab the cut
             cv2.grabCut(

@@ -198,14 +198,14 @@ class IptLinearTransformation(IptBaseAnalyzer):
                         r = rr * 0.299 + gr * 0.587 + br * 0.114
                     elif brg_calc == "p2":
                         s = np.sqrt(
-                            0.241 * np.power(rs.astype(np.float), 2)
-                            + 0.691 * np.power(gs.astype(np.float), 2)
-                            + 0.068 * np.power(bs.astype(np.float), 2)
+                            0.241 * np.power(rs.astype(float), 2)
+                            + 0.691 * np.power(gs.astype(float), 2)
+                            + 0.068 * np.power(bs.astype(float), 2)
                         )
                         r = np.sqrt(
-                            0.241 * np.power(rr.astype(np.float), 2)
-                            + 0.691 * np.power(gr.astype(np.float), 2)
-                            + 0.068 * np.power(br.astype(np.float), 2)
+                            0.241 * np.power(rr.astype(float), 2)
+                            + 0.691 * np.power(gr.astype(float), 2)
+                            + 0.068 * np.power(br.astype(float), 2)
                         )
                     else:
                         r = None
@@ -238,14 +238,18 @@ class IptLinearTransformation(IptBaseAnalyzer):
                     br_dict = None
 
                 if self.get_value_of("show_over_under") == 1:
-                    mask_over = cv2.inRange(self.result, (255, 255, 255), (255, 255, 255))
+                    mask_over = cv2.inRange(
+                        self.result, (255, 255, 255), (255, 255, 255)
+                    )
                     mask_under = cv2.inRange(self.result, (0, 0, 0), (0, 0, 0))
                     self.result[mask_over > 0] = C_FUCHSIA
                     self.result[mask_under > 0] = C_ORANGE
 
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
-                    roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
+                    roi_names=self.get_value_of("roi_names")
+                    .replace(" ", "")
+                    .split(","),
                 )
                 if len(rois) > 0:
                     self.result = cv2.bitwise_or(

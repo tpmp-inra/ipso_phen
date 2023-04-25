@@ -99,9 +99,9 @@ class IptPartialPosterizerV2(IptBase):
                 red_percent = self.get_value_of("post_red_value") / 100
 
                 b, g, r = cv2.split(img)
-                b = (b.astype(np.float) * blue_percent).astype(np.uint8)
-                g = (g.astype(np.float) * green_percent).astype(np.uint8)
-                r = (r.astype(np.float) * red_percent).astype(np.uint8)
+                b = (b.astype(float) * blue_percent).astype(np.uint8)
+                g = (g.astype(float) * green_percent).astype(np.uint8)
+                r = (r.astype(float) * red_percent).astype(np.uint8)
                 if blue_color != "none":
                     img[(b > g) & (b > r)] = ipc.all_colors_dict[blue_color]
                 if green_color != "none":

@@ -168,9 +168,9 @@ class IptExposureChecker(IptBaseAnalyzer):
                     s = rs * 0.299 + gs * 0.587 + bs * 0.114
                 elif brg_calc == "p2":
                     s = np.sqrt(
-                        0.241 * np.power(rs.astype(np.float), 2)
-                        + 0.691 * np.power(gs.astype(np.float), 2)
-                        + 0.068 * np.power(bs.astype(np.float), 2)
+                        0.241 * np.power(rs.astype(float), 2)
+                        + 0.691 * np.power(gs.astype(float), 2)
+                        + 0.068 * np.power(bs.astype(float), 2)
                     )
                 else:
                     wrapper.error_list.add_error(

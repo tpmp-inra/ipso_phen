@@ -46,7 +46,9 @@ class IptFixWhiteBalanceWithRoi(IptBase):
                 # Apply ROIs
                 rois = self.get_ipt_roi(
                     wrapper=wrapper,
-                    roi_names=self.get_value_of("roi_names").replace(" ", "").split(","),
+                    roi_names=self.get_value_of("roi_names")
+                    .replace(" ", "")
+                    .split(","),
                 )
                 if not rois:
                     logger.error("Warning Fix white balance with ROI, missing ROI")
@@ -60,9 +62,9 @@ class IptFixWhiteBalanceWithRoi(IptBase):
                 lum = b_avg * 0.0722 + g_avg * 0.7152 + r_avg * 0.2126
 
                 b, g, r = cv2.split(img)
-                b = b.astype(np.float) * lum / b_avg
-                g = g.astype(np.float) * lum / g_avg
-                r = r.astype(np.float) * lum / r_avg
+                b = b.astype(float) * lum / b_avg
+                g = g.astype(float) * lum / g_avg
+                r = r.astype(float) * lum / r_avg
 
                 self.result = self.to_uint8(cv2.merge([b, g, r]))
 

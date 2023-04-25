@@ -85,7 +85,7 @@ class IptChannelMixer(IptBase):
             channels = []
             for i in range(0, 3):
                 m = self.get_value_of(f"channel_{i+1}_weight") / 100
-                c = img[:, :, i].astype(np.float)
+                c = img[:, :, i].astype(float)
                 c *= m
                 c = c.astype(np.uint8)
                 channels.append(c)
