@@ -1466,7 +1466,7 @@ class MosaicModel(QPandasModel):
             [["source" for _ in range(self.columnCount())] for _ in range(count)],
             columns=[i for i in range(self.columnCount())],
         )
-        self._df = self.dataframe.append(new_df).reset_index(drop=True)
+        self._df = pd.concat([self.dataframe, new_df]).reset_index(drop=True)
         self._update_model()
         self.endInsertRows()
         return True

@@ -79,7 +79,7 @@ class Point:
             float -- distance
         """
 
-        return math.sqrt(self.x ** 2 + self.y ** 2)
+        return math.sqrt(self.x**2 + self.y**2)
 
     def distance_to(self, p):
         """Calculate the distance between two points."""
@@ -181,6 +181,9 @@ class AbstractRegion(object):
 
     def __ne__(self, other) -> bool:
         return not self.__eq__(other)
+
+    def to_dict(self) -> dict:
+        raise NotImplementedError
 
     def copy(self):
         return self.__class__(**self.__dict__)
@@ -344,6 +347,9 @@ class EmptyRegion(AbstractRegion):
             color=self.color,
             target=self.target,
         )
+
+    def to_dict(self) -> dict:
+        return {"empty": True}
 
     @property
     def area(self) -> float:
@@ -549,6 +555,18 @@ class RectangleRegion(AbstractRegion):
             target=self.target,
         )
 
+    def to_dict(self) -> dict:
+        return dict(
+            left=self.left,
+            right=self.right,
+            top=self.top,
+            bottom=self.bottom,
+            cx=self.center.x,
+            cy=self.center.y,
+            width=self.width,
+            height=self.height,
+        )
+
     @property
     def top_left(self) -> Point:
         return Point(self.left, self.top)
@@ -692,6 +710,15 @@ class RotatedRectangle(AbstractRegion):
         self._top -= dt
         self._height += 2 * db
 
+    def to_dict(self) -> dict:
+        return dict(
+            left=self.left,
+            width=self._width,
+            top=self.top,
+            height=self.height,
+            angle=self.angle,
+        )
+
     def expand(self, n):
         self._left -= n
         self._top -= n
@@ -786,9 +813,10 @@ class CircleRegion(AbstractRegion):
         self.radius = kwargs.get("radius")
 
     def __repr__(self) -> str:
-        return (
-            f"Circle:[c:{self.center},r:{self.radius} - name:{self.name}, tag:{self.tag}]"
-        )
+        return f"Circle:[c:{self.center},r:{self.radius} - name:{self.name}, tag:{self.tag}]"
+
+    def to_dict(self) -> dict:
+        return dict(cx=self.center.x, cy=self.center.y, radius=self.radius)
 
     def to_opencv(self):
         return (self.center.x, self.center.y), self.radius
@@ -1042,6 +1070,9 @@ class CompositeRegion(AbstractRegion):
 
     def __repr__(self):
         return "".join(repr(i) for i in self.items)
+
+    def to_dict(self) -> dict:
+        raise NotImplementedError
 
     def to_mask(self, width, height):
 

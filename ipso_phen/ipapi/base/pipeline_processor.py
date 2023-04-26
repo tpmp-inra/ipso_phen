@@ -394,7 +394,7 @@ class PipelineProcessor:
         merge_errors_count = 0
         for csv_file in csv_lst:
             try:
-                dataframe = dataframe.append(pd.read_csv(csv_file))
+                dataframe = pd.concat([dataframe, pd.read_csv(csv_file)])
             except Exception as e:
                 merge_errors_count += 1
             self.update_progress()
@@ -452,7 +452,7 @@ class PipelineProcessor:
         total = len(csv_lst)
         for i, csv_file in enumerate(csv_lst):
             try:
-                dataframe = dataframe.append(pd.read_csv(csv_file))
+                dataframe = pd.concat([dataframe, pd.read_csv(csv_file)])
             except pd.errors.EmptyDataError:
                 pass
             except Exception as e:
