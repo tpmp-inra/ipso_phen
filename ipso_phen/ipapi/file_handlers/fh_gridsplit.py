@@ -3,6 +3,10 @@ import os
 
 from ipso_phen.ipapi.file_handlers.fh_base import FileHandlerBase
 
+import logging
+
+logger = logging.getLogger(os.path.splitext(__name__)[-1].replace(".", ""))
+
 
 class FileHandlerGridSplit(FileHandlerBase):
     def __init__(self, **kwargs):
@@ -18,7 +22,7 @@ class FileHandlerGridSplit(FileHandlerBase):
                 self._date_time = dt.fromtimestamp(
                     os.path.getmtime(self.file_path)
                 ).replace(microsecond=0)
-            except Excepton as e:
+            except Exception as e:
                 logger.error("Feile handler grid split: " + repr(e))
                 self._date_time = dt.now().replace(microsecond=0)
 

@@ -57,7 +57,7 @@ class FileHandlerTpmp(FileHandlerBase):
                     self.load_source_file(filename=ret[0][0]),
                     cv2.COLOR_BGR2HSV,
                 )[:, :, 2]
-            except Excepton as e:
+            except Exception as e:
                 logger.error("FileHandlerTpmp: " + repr(e))
                 return None
         else:
