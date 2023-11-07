@@ -4,7 +4,7 @@ import cv2
 from abc import ABC, abstractproperty
 import logging
 
-from skimage.future import graph
+from skimage import graph
 
 from ipso_phen.ipapi.base.ipt_abstract import IptBase
 from ipso_phen.ipapi.base.ip_common import DEFAULT_COLOR_MAP
