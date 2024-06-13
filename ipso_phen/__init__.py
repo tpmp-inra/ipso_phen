@@ -1,7 +1,7 @@
 import sys
 import logging
 
-version = "0.7.112.546"
+version = "0.8.0.547"
 
 import os
 

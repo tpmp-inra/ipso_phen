@@ -1,15 +1,26 @@
 # Install
 
-## System requirements
+### System requirements
 
  IPSO Phen has been tested on:
 
 - Linux: Ubuntu 18.04+
-- Windows 10
+- Windows 10,11
+- Mac OSX 14
 
-## Dependencies
+### Requirements
 
-Python, tested with versions 3.6, 3.7 and 3.8. Python 3.5 will not work.  
+#### Conda
+- https://docs.anaconda.com/free/miniconda/
+
+#### PlantCV (optional)
+
+If you want to use IPSO Phen with PlantCV, you must install it from the source code and modify *requirements.txt* so it installs OpenCV v3 instead of v4.
+
+
+### Dependencies
+
+Python, 3.8+.  
 Python packages:
 
 - numpy
@@ -27,19 +38,12 @@ Python packages:
 - tqdm
 - Unidecode
 
-## Install via pacakage manager
 
-Install on an existing python environment with command line:
-
-```shell
-pip install ipso_phen
-```
-
-## Install from source
+### Install from source
 
 Source code is available from: <https://github.com/tpmp-inra/ipso_phen>  
 Install on an existing python environment with command line:
 
 ```shell
-pip install -r requirements.txt
+conda env create -f environment.yml
 ```
