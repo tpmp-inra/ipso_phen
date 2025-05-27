@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "MAVIANE MACIA"
+  given-names: "Felicià"
+  orcid: "https://orcid.org/0000-0002-4217-7707"
+title: "ipso_phen"
+version: 1.20.3.18
+doi: https://doi.org/10.5281/zenodo.15525115
+date-released: 2025-05-27
+url: "https://github.com/tpmp-inra/ipso_phen"
